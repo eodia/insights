@@ -1,0 +1,653 @@
+---
+/**
+ * One dashboard, three themes: its fonts, colours, cards, bars and logo change together,
+ * every few seconds while it is on screen (or on a click), and its PDF cover beside it
+ * follows. Pure HTML, SVG and CSS variables; without JavaScript, the first theme stays.
+ */
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+const m = t.themes;
+const THEMES = ['eodia', 'fluxen', 'maison'] as const;
+const BARS = [92, 70, 48, 30, 20];
+const SPARKS = ['0,24 12,20 24,22 36,14 48,16 60,9 72,11 84,4', '0,22 12,23 24,17 36,19 48,12 60,14 72,7 84,6', '0,8 12,10 24,7 36,13 48,12 60,16 72,15 84,19'];
+---
+
+<section class="tm-section themes" id="themes" data-themes>
+	<div class="tm-head">
+		<p class="tm-kicker tm-rise">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"></circle><circle cx="17.5" cy="10.5" r="1.5"></circle><circle cx="8.5" cy="7.5" r="1.5"></circle><circle cx="6.5" cy="12.5" r="1.5"></circle><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4c3 0 5.6-2.5 5.6-5.6C23 5.4 18 2 12 2z"></path></svg>
+			{m.kicker}
+		</p>
+		<h2 class="tm-display tm-rise">
+			<span>{m.title}</span>
+			<span class="tm-grad">{m.titleAccent}</span>
+		</h2>
+		<p class="tm-lede tm-rise">{m.lede}</p>
+	</div>
+
+	<div class="picker tm-rise" role="tablist" aria-label={m.pickLabel}>
+		{
+			THEMES.map((k, i) => (
+				<button type="button" role="tab" data-pick={k} aria-selected={i === 0 ? 'true' : 'false'}>
+					<span class={`sw ${k}`} aria-hidden="true">
+						<i />
+						<i />
+						<i />
+					</span>
+					{m.names[k]}
+				</button>
+			))
+		}
+	</div>
+
+	<div class="stage tm-rise" data-stage data-theme="eodia">
+		<svg width="0" height="0" class="defs" aria-hidden="true">
+			<defs>
+				<pattern id="th-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+					<rect width="6" height="6" fill="var(--c1)"></rect>
+					<rect width="2" height="6" fill="rgba(255,255,255,.38)"></rect>
+				</pattern>
+				<linearGradient id="th-fade" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0" stop-color="var(--c1)"></stop>
+					<stop offset="1" stop-color="var(--c1)" stop-opacity=".4"></stop>
+				</linearGradient>
+			</defs>
+		</svg>
+
+		<div class="dash" aria-hidden="true">
+			<div class="d-head">
+				<span class="logo">
+					<span class="mark"><i></i><i></i><i></i></span>
+					<span class="word">{m.logo[0]}</span><span class="word w2">{m.logo[1]}</span><span class="word w3">{m.logo[2]}</span>
+				</span>
+				<div>
+					<p class="d-title">{m.dashTitle}</p>
+					<p class="d-sub">{m.dashSub}</p>
+				</div>
+			</div>
+			<div class="tabs">
+				<span class="on">{m.tabs[0]}</span>
+				<span>{m.tabs[1]}</span>
+			</div>
+			<div class="kpis">
+				{
+					m.kpis.map((k, i) => (
+						<div class="card kpi">
+							<p class="c-label">{k.label}</p>
+							<div class="k-row">
+								<b>{k.value}</b>
+								<svg viewBox="0 0 84 28" class:list={['spark', { down: i === 2 }]}>
+									<polyline points={SPARKS[i]} />
+								</svg>
+							</div>
+							<p class:list={['delta', { down: i === 2 }]}>{k.delta}</p>
+						</div>
+					))
+				}
+			</div>
+			<div class="row2">
+				<div class="card chart">
+					<p class="c-label">{m.chartTitle}</p>
+					<svg viewBox="0 0 300 130" class="bars" preserveAspectRatio="none">
+						{[0, 1, 2, 3].map((g) => <line x1="0" x2="300" y1={18 + g * 32} y2={18 + g * 32} class="gl" />)}
+						{
+							BARS.map((h, i) => (
+								<rect x={14 + i * 58} y={114 - h} width="34" height={h} class="bar" />
+							))
+						}
+					</svg>
+					<p class="axis">
+						{m.channels.map((c) => <span>{c}</span>)}
+					</p>
+				</div>
+				<div class="card donut">
+					<p class="c-label">{m.donutTitle}</p>
+					<svg viewBox="0 0 100 100" class="ring">
+						<circle cx="50" cy="50" r="34" class="r1" pathLength="100" />
+						<circle cx="50" cy="50" r="34" class="r2" pathLength="100" />
+						<circle cx="50" cy="50" r="34" class="r3" pathLength="100" />
+						<text x="50" y="54">58 %</text>
+					</svg>
+				</div>
+			</div>
+		</div>
+
+		<div class="pdf" aria-hidden="true">
+			<div class="sheet">
+				<span class="logo big">
+					<span class="mark"><i></i><i></i><i></i></span>
+					<span class="word">{m.logo[0]}</span><span class="word w2">{m.logo[1]}</span><span class="word w3">{m.logo[2]}</span>
+				</span>
+				<div class="p-body">
+					<p class="p-title">{m.dashTitle}</p>
+					<p class="p-sub">{m.dashSub}</p>
+					<i class="rule"></i>
+				</div>
+				<p class="p-date">{m.pdf.date}</p>
+				<p class="p-foot">
+					<span>{m.pdf.footer}</span>
+					<span>1 / 4</span>
+				</p>
+			</div>
+			<span class="pdf-tag">PDF</span>
+		</div>
+	</div>
+
+	<ul class="points">
+		{
+			m.points.map((p, i) => (
+				<li class="tm-rise" style={`transition-delay:${i * 0.08}s`}>
+					<b>{p.title}</b>
+					<span>{p.text}</span>
+				</li>
+			))
+		}
+	</ul>
+	<p class="more tm-rise"><a class="tm-link" href={href('/fonctionnalites/themes/')}>{m.link}</a></p>
+</section>
+
+<script>
+	import { reducedMotion, whileVisible } from '../../lib/motion';
+
+	const section = document.querySelector<HTMLElement>('[data-themes]');
+	const stage = section?.querySelector<HTMLElement>('[data-stage]');
+	const picks = [...(section?.querySelectorAll<HTMLButtonElement>('[data-pick]') ?? [])];
+	if (section && stage) {
+		let chosen = false;
+		const show = (k: string) => {
+			stage.dataset.theme = k;
+			for (const b of picks) b.setAttribute('aria-selected', String(b.dataset.pick === k));
+		};
+		for (const b of picks) {
+			b.addEventListener('click', () => {
+				chosen = true;
+				show(b.dataset.pick ?? 'eodia');
+			});
+		}
+		if (!reducedMotion()) {
+			whileVisible(
+				section,
+				async (sleep) => {
+					let i = 0;
+					for (;;) {
+						await sleep(3600);
+						if (chosen) continue;
+						i = (i + 1) % picks.length;
+						show(picks[i]?.dataset.pick ?? 'eodia');
+					}
+				},
+				0.3,
+			);
+		}
+	}
+</script>
+
+<style>
+	.themes {
+		background: radial-gradient(50% 35% at 50% 20%, rgba(91, 60, 245, 0.06), transparent 70%), #fbfbfd;
+	}
+	.defs {
+		position: absolute;
+	}
+	.picker {
+		display: flex;
+		justify-content: center;
+		gap: 8px;
+		margin: 44px auto 0;
+	}
+	.picker button {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		padding: 9px 16px 9px 10px;
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		border-radius: 999px;
+		font: 500 15px var(--bd-font-sans);
+		color: var(--tm-slate);
+		background: #fff;
+		cursor: pointer;
+		transition: all 0.25s ease;
+	}
+	.picker button[aria-selected='true'] {
+		color: #1d1d1f;
+		border-color: #1d1d1f;
+		box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.35);
+	}
+	.sw {
+		display: flex;
+	}
+	.sw i {
+		width: 14px;
+		height: 14px;
+		margin-left: -4px;
+		border: 2px solid #fff;
+		border-radius: 50%;
+	}
+	.sw i:first-child {
+		margin-left: 0;
+	}
+	.sw.eodia i:nth-child(1) { background: #2da31d; }
+	.sw.eodia i:nth-child(2) { background: #2a78d6; }
+	.sw.eodia i:nth-child(3) { background: #eda100; }
+	.sw.fluxen i:nth-child(1) { background: #5b3cf5; }
+	.sw.fluxen i:nth-child(2) { background: #3fa1f2; }
+	.sw.fluxen i:nth-child(3) { background: #f5b26b; }
+	.sw.maison i:nth-child(1) { background: #b4532a; }
+	.sw.maison i:nth-child(2) { background: #0f2a1c; }
+	.sw.maison i:nth-child(3) { background: #c9a227; }
+
+	/* Each theme: a set of variables the whole stage reads. */
+	.stage {
+		--font-head: var(--bd-font-sans);
+		--font-body: var(--bd-font-sans);
+		--accent: #2da31d;
+		--title: #0f2a1c;
+		--text: #52525b;
+		--bg: #f4f7f4;
+		--card: #fff;
+		--border: #e4ebe4;
+		--radius: 12px;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+		--c1: #2da31d;
+		--c2: #2a78d6;
+		--c3: #eda100;
+		--bar-fill: var(--c1);
+		--bar-r: 4px;
+		--weight: 700;
+		--case: none;
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 300px;
+		align-items: center;
+		gap: 48px;
+		max-width: 1120px;
+		margin: 36px auto 0;
+	}
+	.stage[data-theme='fluxen'] {
+		--font-head: 'Poppins', 'Avenir Next', 'Montserrat', system-ui, sans-serif;
+		--font-body: 'Poppins', 'Avenir Next', 'Montserrat', system-ui, sans-serif;
+		--accent: #5b3cf5;
+		--title: #14121f;
+		--text: #6b6880;
+		--bg: #f5f4fb;
+		--card: #fff;
+		--border: #ebe9f5;
+		--radius: 18px;
+		--shadow: 0 1px 2px rgba(20, 18, 31, 0.04), 0 10px 28px -14px rgba(91, 60, 245, 0.25);
+		--c1: #5b3cf5;
+		--c2: #3fa1f2;
+		--c3: #f5b26b;
+		--bar-fill: url(#th-hatch);
+		--bar-r: 6px;
+		--weight: 500;
+	}
+	.stage[data-theme='maison'] {
+		--font-head: 'Playfair Display', Georgia, 'Times New Roman', serif;
+		--accent: #b4532a;
+		--title: #0f2a1c;
+		--text: #5f5a50;
+		--bg: #f7f3ec;
+		--card: #fffdf9;
+		--border: #e8dfd0;
+		--radius: 4px;
+		--shadow: none;
+		--c1: #b4532a;
+		--c2: #0f2a1c;
+		--c3: #c9a227;
+		--bar-fill: url(#th-fade);
+		--bar-r: 0px;
+		--weight: 600;
+	}
+	.stage * {
+		transition:
+			background-color 0.6s ease,
+			color 0.6s ease,
+			border-color 0.6s ease,
+			border-radius 0.6s ease,
+			box-shadow 0.6s ease,
+			fill 0.6s ease,
+			stroke 0.6s ease,
+			opacity 0.4s ease;
+	}
+	.dash {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 26px;
+		border-radius: 26px;
+		font-family: var(--font-body);
+		color: var(--text);
+		background: var(--bg);
+		box-shadow: 0 50px 100px -50px rgba(16, 24, 40, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+		transition: background-color 0.6s ease;
+	}
+	.dash p,
+	.sheet p {
+		margin: 0;
+	}
+	.d-head {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+	}
+	.d-title {
+		font: var(--weight) 22px/1.2 var(--font-head);
+		color: var(--title);
+		letter-spacing: -0.01em;
+	}
+	.d-sub {
+		font-size: 13px;
+	}
+	/* The logo: a mark and a word, per theme. */
+	.logo {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding-right: 16px;
+		border-right: 1px solid var(--border);
+	}
+	.mark {
+		display: flex;
+		gap: 2px;
+		align-items: flex-end;
+		height: 26px;
+	}
+	.mark i {
+		width: 6px;
+		border-radius: 2px;
+		background: var(--accent);
+	}
+	.mark i:nth-child(1) { height: 40%; }
+	.mark i:nth-child(2) { height: 100%; }
+	.mark i:nth-child(3) { height: 65%; }
+	.word {
+		display: none;
+		font: 700 17px var(--font-head);
+		color: var(--title);
+	}
+	[data-theme='eodia'] .word:not(.w2):not(.w3),
+	[data-theme='fluxen'] .w2,
+	[data-theme='maison'] .w3 {
+		display: inline;
+	}
+	[data-theme='fluxen'] .mark i {
+		width: 11px;
+		height: 11px !important;
+		border-radius: 50%;
+	}
+	[data-theme='fluxen'] .mark {
+		flex-wrap: wrap;
+		width: 24px;
+		align-items: center;
+	}
+	[data-theme='maison'] .mark i {
+		width: 26px;
+		height: 26px !important;
+		border-radius: 7px;
+		background: var(--title);
+	}
+	[data-theme='maison'] .mark i:not(:first-child) {
+		display: none;
+	}
+	[data-theme='maison'] .word {
+		font-weight: 400;
+		font-size: 19px;
+	}
+	.tabs {
+		display: flex;
+		gap: 6px;
+		font-size: 12.5px;
+	}
+	.tabs span {
+		padding: 5px 11px;
+		border-radius: calc(var(--radius) * 0.6);
+	}
+	.tabs .on {
+		font-weight: 600;
+		color: #fff;
+		background: var(--accent);
+	}
+	.card {
+		padding: 14px 16px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--card);
+		box-shadow: var(--shadow);
+	}
+	.c-label {
+		font: 600 12.5px var(--font-head);
+		color: var(--title);
+	}
+	.kpis {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+	}
+	.k-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		margin: 6px 0 2px;
+	}
+	.k-row b {
+		font: 600 24px var(--font-body);
+		color: var(--title);
+		letter-spacing: -0.02em;
+		font-variant-numeric: tabular-nums;
+	}
+	.spark {
+		width: 72px;
+		height: 26px;
+		overflow: visible;
+	}
+	.spark polyline {
+		fill: none;
+		stroke: #16a34a;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.spark.down polyline {
+		stroke: #dc2626;
+	}
+	.delta {
+		font-size: 12px;
+		font-weight: 600;
+		color: #16a34a;
+	}
+	.delta.down {
+		color: #dc2626;
+	}
+	.row2 {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+		gap: 12px;
+	}
+	.bars {
+		width: 100%;
+		height: 130px;
+		margin-top: 8px;
+	}
+	.gl {
+		stroke: var(--border);
+		stroke-dasharray: 3 4;
+	}
+	.bar {
+		fill: var(--bar-fill);
+		rx: var(--bar-r);
+	}
+	.axis {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		font-size: 11px;
+		text-align: center;
+	}
+	.axis span {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.donut {
+		display: flex;
+		flex-direction: column;
+	}
+	.ring {
+		width: 100%;
+		max-width: 150px;
+		margin: auto;
+		transform: rotate(-90deg);
+	}
+	.ring circle {
+		fill: none;
+		stroke-width: 14;
+	}
+	.r1 {
+		stroke: var(--c1);
+		stroke-dasharray: 58 100;
+	}
+	.r2 {
+		stroke: var(--c2);
+		stroke-dasharray: 26 100;
+		stroke-dashoffset: -59;
+	}
+	.r3 {
+		stroke: var(--c3);
+		stroke-dasharray: 14 100;
+		stroke-dashoffset: -86;
+	}
+	.ring text {
+		font: 700 15px var(--font-body);
+		fill: var(--title);
+		text-anchor: middle;
+		transform: rotate(90deg);
+		transform-origin: 50px 50px;
+	}
+
+	/* The PDF's cover page, in the same theme. */
+	.pdf {
+		position: relative;
+		transform: rotate(3deg);
+	}
+	.sheet {
+		display: flex;
+		flex-direction: column;
+		aspect-ratio: 210 / 297;
+		padding: 28px 24px 18px;
+		border-radius: 6px;
+		font-family: var(--font-body);
+		color: var(--text);
+		background: var(--bg);
+		box-shadow: 0 40px 80px -30px rgba(16, 24, 40, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.06);
+	}
+	.logo.big {
+		align-self: flex-start;
+		padding: 0;
+		border: 0;
+	}
+	.p-body {
+		margin-top: auto;
+	}
+	.p-title {
+		font: var(--weight) 26px/1.15 var(--font-head);
+		color: var(--title);
+		letter-spacing: -0.02em;
+	}
+	.p-sub {
+		margin-top: 8px !important;
+		font-size: 12.5px;
+		line-height: 1.5;
+	}
+	.rule {
+		display: block;
+		width: 52px;
+		height: 3px;
+		margin-top: 14px;
+		border-radius: 3px;
+		background: var(--accent);
+	}
+	.p-date {
+		margin: auto 0 14px !important;
+		font-size: 11.5px;
+	}
+	.p-foot {
+		display: flex;
+		justify-content: space-between;
+		padding-top: 10px;
+		border-top: 1px solid var(--border);
+		font-size: 10px;
+		opacity: 0.8;
+	}
+	.pdf-tag {
+		position: absolute;
+		top: -12px;
+		right: -12px;
+		padding: 5px 10px;
+		border-radius: 8px;
+		font: 700 12px var(--bd-font-sans);
+		color: #fff;
+		background: #e5484d;
+		box-shadow: 0 8px 20px -8px rgba(229, 72, 77, 0.7);
+	}
+	.points {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 28px;
+		max-width: 1080px;
+		margin: 64px auto 0;
+		padding: 0;
+		list-style: none;
+	}
+	.points li {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		font-size: 15.5px;
+		line-height: 1.55;
+		color: var(--tm-slate);
+	}
+	.points b {
+		font-size: 17px;
+		color: #1d1d1f;
+	}
+	.more {
+		margin: 28px 0 0;
+		text-align: center;
+	}
+	@media (max-width: 960px) {
+		.stage {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.pdf {
+			width: 240px;
+			margin: 0 auto;
+		}
+		.points {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 18px;
+		}
+	}
+	@media (max-width: 640px) {
+		.dash {
+			padding: 16px;
+		}
+		.kpis,
+		.row2 {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.picker {
+			flex-wrap: wrap;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.stage * {
+			transition: none;
+		}
+	}
+</style>

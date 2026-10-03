@@ -1,9 +1,9 @@
 ---
 /**
- * What is new, in six cards — each with a small drawing of the thing itself: the
- * associative filter list, Shift + click on a chart, the palettes, the radar with a value
- * that stands out, a chart drawn in a conversation with Claude, filing by drag and drop.
- * Pure HTML and SVG; every card links to its page of the documentation.
+ * What is new, in six cards — each with a small drawing of the thing itself, most of them
+ * moving: a bar race overtaking, bubbles and a treemap, a calendar of days, key figures with
+ * their sparkline, the interface in three languages, a chart refreshed in place. Pure HTML,
+ * SVG and CSS; every card links to its page of the documentation.
  */
 import { type Locale, i18n } from '../../i18n';
 
@@ -16,31 +16,20 @@ const { t, href } = i18n(locale);
 const n = t.news;
 const items = Object.entries(n.items).map(([key, item]) => ({ key, ...item, href: href(item.href) }));
 
-const ROWS = [
-	{ state: 'on', share: 1, count: '3 100' },
-	{ state: 'on', share: 0.14, count: '410' },
-	{ state: 'maybe', share: 0.12, count: '380' },
-	{ state: 'off', share: 0.5, count: '1 633' },
-	{ state: 'off', share: 0.46, count: '1 520' },
+// A year of days, Monday to Sunday, in shades.
+const DAYS = Array.from({ length: 7 * 18 }, (_, i) => {
+	const w = Math.floor(i / 7);
+	const d = i % 7;
+	const v = 0.25 + 0.35 * Math.sin(w / 2.6) + (d >= 5 ? -0.2 : 0.12) + ((i * 37) % 11) / 30;
+	return Math.max(0.08, Math.min(1, v));
+});
+const RACE = [
+	{ label: 'Lyon', c: '#2a78d6' },
+	{ label: 'Paris', c: '#2da31d' },
+	{ label: 'Nantes', c: '#eda100' },
+	{ label: 'Lille', c: '#e87ba4' },
 ];
-const BARS = [52, 78, 44, 92, 61, 70];
-const PICKED = new Set([1, 3]);
-const PALETTES = [
-	['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'],
-	['#2563eb', '#f43f5e', '#8b5cf6', '#f97316', '#10b981', '#f59e0b', '#6366f1', '#ef4444'],
-	['#0369a1', '#059669', '#4f46e5', '#14b8a6', '#818cf8', '#7c3aed', '#38bdf8', '#1d4ed8'],
-	['#b45309', '#65a30d', '#a16207', '#a855f7', '#be123c', '#ca8a04', '#e11d48', '#d97706'],
-	['#5b8def', '#e07a5f', '#b07cc6', '#7a9a3c', '#8c7ae6', '#c96f8a', '#d4a017', '#3d9970'],
-];
-const radar = (values: number[], r = 46, cx = 60, cy = 56) =>
-	values
-		.map((v, i) => {
-			const a = (Math.PI * 2 * i) / values.length - Math.PI / 2;
-			return `${(cx + Math.cos(a) * r * v).toFixed(1)},${(cy + Math.sin(a) * r * v).toFixed(1)}`;
-		})
-		.join(' ');
-const ring = (k: number) => radar([k, k, k, k, k, k]);
-const MINI = [34, 48, 41, 66, 38, 29];
+const LIVE = [42, 58, 50, 72, 64, 80, 70];
 ---
 
 <section class="tm-section news" data-news>
@@ -58,92 +47,93 @@ const MINI = [34, 48, 41, 66, 38, 29];
 			items.map((item, i) => (
 				<a href={item.href} class:list={['card', 'tm-rise', item.key]} style={`transition-delay:${(i % 3) * 0.07}s`}>
 					<div class="art" aria-hidden="true">
-						{item.key === 'associative' && (
-							<div class="list">
-								<p class="l-head">
-									<b>{n.chosen}</b>
-									<span>74 %</span>
-								</p>
-								<span class="l-bar">
-									<i style="width:74%" />
-								</span>
-								{ROWS.map((r, j) => (
-									<p class:list={['row', r.state]}>
-										<i class="fill" style={`width:${r.share * 100}%`} />
-										<span class="check">{r.state === 'on' ? '✓' : ''}</span>
-										<span class="name">{n.values[j]}</span>
-										<span class="count">{r.count}</span>
+						{item.key === 'races' && (
+							<div class="race">
+								{RACE.map((r, j) => (
+									<p class={`lane l${j}`}>
+										<span class="who">{r.label}</span>
+										<span class="track">
+											<i style={`background:${r.c}`} />
+										</span>
 									</p>
 								))}
-							</div>
-						)}
-						{item.key === 'click' && (
-							<div class="bars">
-								{BARS.map((h, j) => (
-									<span class:list={['bar', { picked: PICKED.has(j) }]} style={`height:${h}%`} />
-								))}
-								<span class="cursor">
-									<kbd>⇧</kbd>
-									<svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.5L16 20l-3 1.5-3.4-7.5L4 18z" fill="#1d1d1f" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" /></svg>
+								<span class="period">
+									<b>{n.periods[0]}</b>
+									<b>{n.periods[1]}</b>
+									<b>{n.periods[2]}</b>
 								</span>
 							</div>
 						)}
-						{item.key === 'palettes' && (
-							<div class="pals">
-								{PALETTES.map((p) => (
-									<span class="strip">
-										{p.map((c) => (
-											<i style={`background:${c}`} />
-										))}
-									</span>
-								))}
-								<span class="safe">✓ {n.safe}</span>
+						{item.key === 'bubbles' && (
+							<div class="bub">
+								<svg viewBox="0 0 120 110" width="132" height="121">
+									<circle cx="48" cy="58" r="34" fill="rgba(91,60,245,.18)" stroke="rgba(91,60,245,.5)" />
+									<text x="48" y="63" fill="#5b3cf5" font-size="15">48 %</text>
+									<circle cx="94" cy="72" r="23" fill="rgba(63,161,242,.18)" stroke="rgba(63,161,242,.5)" />
+									<text x="94" y="76" fill="#2a78d6" font-size="11">32 %</text>
+									<circle cx="86" cy="26" r="18" fill="rgba(245,178,107,.22)" stroke="rgba(245,178,107,.6)" />
+									<text x="86" y="30" fill="#c97a1c" font-size="9.5">20 %</text>
+								</svg>
+								<span class="tree">
+									<i class="t1" />
+									<i class="t2" />
+									<i class="t3" />
+									<i class="t4" />
+									<i class="t5" />
+								</span>
 							</div>
 						)}
-						{item.key === 'radar' && (
-							<svg class="radar" viewBox="0 0 220 112" width="220" height="112">
-								{[1, 0.66, 0.33].map((k) => (
-									<polygon points={ring(k)} class="web" />
+						{item.key === 'calendar' && (
+							<div class="cal">
+								{DAYS.map((v) => (
+									<i style={`opacity:${v.toFixed(2)}`} />
 								))}
-								<polygon points={radar([0.9, 0.62, 0.95, 0.7, 0.5, 0.82])} class="a" />
-								<polygon points={radar([0.6, 0.92, 0.58, 0.85, 0.83, 0.48])} class="b" />
-								{MINI.map((h, j) => (
-									<rect x={136 + j * 13} y={100 - h * 1.3} width="9" height={h * 1.3} rx="2" class:list={['mini', { hi: j === 3 }]} />
-								))}
-								<line x1="132" x2="212" y1={100 - 42 * 1.3} y2={100 - 42 * 1.3} class="avg" />
-							</svg>
-						)}
-						{item.key === 'mcp' && (
-							<div class="chat">
-								<p class="ask">{n.ask}</p>
-								<div class="answer">
-									<span class="tool">show_chart</span>
-									<span class="mini-bars">
-										{[40, 55, 48, 70, 63, 82, 77].map((h) => (
-											<i style={`height:${h}%`} />
-										))}
-									</span>
-								</div>
 							</div>
 						)}
-						{item.key === 'organize' && (
-							<div class="tree">
-								<p class="node">
-									<span>📁</span>
-									{n.folders[0]}
-								</p>
-								<p class="node sub over">
-									<span>📈</span>
-									{n.folders[1]}
-								</p>
-								<p class="node">
-									<span>🎧</span>
-									{n.folders[2]}
-								</p>
-								<p class="ghost">
-									<span>▦</span>
-									{n.drag}
-								</p>
+						{item.key === 'sparks' && (
+							<div class="kpis">
+								{n.kpis.map((k, j) => (
+									<span class="kpi">
+										<span class="k-label">{k.label}</span>
+										<span class="k-row">
+											<b>{k.value}</b>
+											<svg viewBox="0 0 64 22" class:list={['spark', { down: j === 1 }]}>
+												<polyline points={j === 1 ? '0,4 10,6 20,5 30,10 40,9 50,14 64,17' : '0,18 10,15 20,16 30,10 40,12 50,6 64,3'} />
+											</svg>
+										</span>
+										<span class:list={['k-delta', { down: j === 1 }]}>{k.delta}</span>
+									</span>
+								))}
+							</div>
+						)}
+						{item.key === 'languages' && (
+							<div class="langs">
+								<span class="flags">
+									<b>FR</b>
+									<b>EN</b>
+									<b>ES</b>
+								</span>
+								<span class="say">
+									{n.say.map((s) => (
+										<em>{s}</em>
+									))}
+								</span>
+							</div>
+						)}
+						{item.key === 'live' && (
+							<div class="refresh">
+								<span class="clock">
+									<svg viewBox="0 0 36 36" width="30" height="30">
+										<circle cx="18" cy="18" r="14" class="c-bg" />
+										<circle cx="18" cy="18" r="14" class="c-fg" pathLength="100" />
+									</svg>
+									{n.every}
+								</span>
+								<span class="bars">
+									{LIVE.map((h, j) => (
+										<i style={`--h:${h}%;--j:${j}`} />
+									))}
+								</span>
 							</div>
 						)}
 					</div>
@@ -215,247 +205,265 @@ const MINI = [34, 48, 41, 66, 38, 29];
 	.art p {
 		margin: 0;
 	}
-
-	/* The associative list */
-	.list {
-		width: 240px;
+	/* A bar race: four lanes that overtake, the period written large. */
+	.race {
+		position: relative;
+		width: 250px;
+		height: 150px;
 		font-size: 11.5px;
 	}
-	.l-head {
+	.lane {
+		position: absolute;
+		left: 0;
+		right: 0;
 		display: flex;
-		justify-content: space-between;
-		margin-bottom: 4px !important;
+		align-items: center;
+		gap: 8px;
+		height: 26px;
+		animation: n-swap 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 	}
-	.l-head span {
+	.who {
+		width: 42px;
+		color: #52525b;
+		text-align: right;
+	}
+	.track {
+		flex: 1;
+	}
+	.track i {
+		display: block;
+		height: 18px;
+		border-radius: 0 5px 5px 0;
+		animation: n-grow 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+	}
+	.l0 { --a: 0px; --b: 34px; --c: 68px; --wa: 92%; --wb: 78%; --wc: 64%; }
+	.l1 { --a: 34px; --b: 0px; --c: 0px; --wa: 80%; --wb: 96%; --wc: 100%; }
+	.l2 { --a: 68px; --b: 102px; --c: 34px; --wa: 60%; --wb: 52%; --wc: 82%; }
+	.l3 { --a: 102px; --b: 68px; --c: 102px; --wa: 44%; --wb: 58%; --wc: 50%; }
+	@keyframes n-swap {
+		0%, 25% { transform: translateY(var(--a)); }
+		38%, 60% { transform: translateY(var(--b)); }
+		73%, 92% { transform: translateY(var(--c)); }
+		100% { transform: translateY(var(--a)); }
+	}
+	@keyframes n-grow {
+		0%, 25% { width: var(--wa); }
+		38%, 60% { width: var(--wb); }
+		73%, 92% { width: var(--wc); }
+		100% { width: var(--wa); }
+	}
+	.period {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		display: grid;
+		font-size: 22px;
 		font-weight: 700;
-		color: #059669;
+		color: rgba(0, 0, 0, 0.16);
 	}
-	.l-bar {
-		display: block;
-		height: 4px;
-		margin-bottom: 8px;
-		border-radius: 4px;
-		background: #eee;
+	.period b {
+		grid-area: 1 / 1;
+		text-align: right;
+		opacity: 0;
+		animation: n-period 9s infinite;
 	}
-	.l-bar i {
-		display: block;
-		height: 100%;
-		border-radius: 4px;
-		background: #10b981;
+	.period b:nth-child(2) { animation-delay: 3s; }
+	.period b:nth-child(3) { animation-delay: 6s; }
+	@keyframes n-period {
+		0%, 30% { opacity: 1; }
+		36%, 100% { opacity: 0; }
 	}
-	.row {
-		position: relative;
+	/* Bubbles and a treemap. */
+	.bub {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		height: 23px;
-		padding: 0 8px;
-		overflow: hidden;
-		border-bottom: 1px solid #ececef;
+		gap: 18px;
 	}
-	.row .fill {
-		position: absolute;
-		inset: 0 auto 0 0;
-		background: rgba(45, 163, 30, 0.08);
+	.bub text {
+		font-weight: 700;
+		text-anchor: middle;
 	}
-	.row > span {
-		position: relative;
+	.bub circle {
+		animation: n-breathe 4s ease-in-out infinite;
+		transform-origin: center;
+		transform-box: fill-box;
 	}
-	.check {
-		width: 10px;
+	.bub circle:nth-of-type(2) { animation-delay: 0.6s; }
+	.bub circle:nth-of-type(3) { animation-delay: 1.2s; }
+	@keyframes n-breathe {
+		50% { transform: scale(1.05); }
 	}
-	.name {
-		flex: 1;
+	.tree {
+		display: grid;
+		grid-template: 1fr 1fr / 1.4fr 1fr 0.7fr;
+		gap: 3px;
+		width: 96px;
+		height: 96px;
 	}
-	.count {
-		font-variant-numeric: tabular-nums;
-		color: #8a8a8f;
+	.tree i { border-radius: 4px; }
+	.t1 { grid-row: 1 / 3; background: #5b3cf5; }
+	.t2 { background: #8b74f8; }
+	.t3 { background: #b8a9fb; }
+	.t4 { background: #3fa1f2; }
+	.t5 { background: #9ccdf7; }
+	/* A calendar of days. */
+	.cal {
+		display: grid;
+		grid-auto-flow: column;
+		grid-template-rows: repeat(7, 11px);
+		gap: 3px;
 	}
-	.row.on {
-		color: #fff;
-		background: #10b981;
+	.cal i {
+		width: 11px;
+		border-radius: 3px;
+		background: #2da31d;
 	}
-	.row.on .fill {
-		background: rgba(255, 255, 255, 0.15);
-	}
-	.row.on .count {
-		color: rgba(255, 255, 255, 0.85);
-	}
-	.row.off {
-		color: #9a9aa0;
-		background: #f1f1f3;
-	}
-	.row.off .name {
-		text-decoration: line-through;
-		text-decoration-color: rgba(0, 0, 0, 0.2);
-	}
-	.row.off .fill {
-		background: rgba(0, 0, 0, 0.04);
-	}
-
-	/* Shift + click */
-	.bars {
-		position: relative;
+	/* Key figures and their sparklines. */
+	.kpis {
 		display: flex;
-		align-items: flex-end;
 		gap: 10px;
-		width: 230px;
-		height: 130px;
-		border-bottom: 1px solid #e3e3e8;
 	}
-	.bar {
-		flex: 1;
-		border-radius: 5px 5px 0 0;
-		background: rgba(42, 120, 214, 0.25);
-	}
-	.bar.picked {
-		background: #2a78d6;
-	}
-	.cursor {
-		position: absolute;
-		left: 128px;
-		top: 6px;
+	.kpi {
 		display: flex;
-		align-items: center;
-		gap: 4px;
-	}
-	kbd {
-		padding: 2px 6px;
-		border-radius: 6px;
-		font-size: 12px;
-		font-family: inherit;
-		background: #fff;
-		box-shadow: 0 0 0 1px #d4d4d8, 0 2px 0 #d4d4d8;
-	}
-
-	/* Palettes */
-	.pals {
-		display: grid;
-		gap: 8px;
-		width: 230px;
-	}
-	.strip {
-		display: flex;
-		height: 13px;
-		overflow: hidden;
-		border-radius: 4px;
-	}
-	.strip i {
-		flex: 1;
-	}
-	.safe {
-		margin-top: 4px;
-		font-size: 12px;
-		font-weight: 600;
-		color: #059669;
-	}
-
-	/* Radar and the highlighted bar */
-	.web {
-		fill: none;
-		stroke: #e3e3e8;
-	}
-	.radar .a {
-		fill: rgba(42, 120, 214, 0.15);
-		stroke: #2a78d6;
-		stroke-width: 2;
-	}
-	.radar .b {
-		fill: rgba(235, 104, 52, 0.12);
-		stroke: #eb6834;
-		stroke-width: 2;
-	}
-	.mini {
-		fill: rgba(42, 120, 214, 0.28);
-	}
-	.mini.hi {
-		fill: #2a78d6;
-	}
-	.avg {
-		stroke: #6e6e73;
-		stroke-dasharray: 3 3;
-	}
-
-	/* Chart in a conversation */
-	.chat {
-		display: grid;
-		gap: 8px;
-		width: 240px;
-		font-size: 12px;
-	}
-	.ask {
-		justify-self: end;
-		max-width: 200px;
-		padding: 7px 11px !important;
-		border-radius: 14px 14px 4px 14px;
-		color: #fff;
-		background: #1d1d1f;
-	}
-	.answer {
-		display: grid;
-		gap: 8px;
-		padding: 10px;
+		flex-direction: column;
+		gap: 2px;
+		width: 140px;
+		padding: 10px 12px;
+		border: 1px solid #ececf3;
 		border-radius: 14px;
 		background: #fff;
-		box-shadow: 0 0 0 1px #e3e3e8, 0 10px 24px -14px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 8px 20px -14px rgba(0, 0, 0, 0.25);
 	}
-	.tool {
-		justify-self: start;
-		padding: 2px 8px;
-		border-radius: 999px;
-		font-family: var(--bd-font-mono, ui-monospace, monospace);
-		font-size: 11px;
-		color: #1b8c14;
-		background: #eaf6e6;
+	.k-label {
+		font-size: 10.5px;
+		font-weight: 600;
+		color: #3f3f46;
 	}
-	.mini-bars {
+	.k-row {
 		display: flex;
-		align-items: flex-end;
-		gap: 5px;
-		height: 54px;
+		align-items: center;
+		justify-content: space-between;
+		gap: 6px;
 	}
-	.mini-bars i {
-		flex: 1;
-		border-radius: 3px 3px 0 0;
-		background: linear-gradient(180deg, #2a78d6, #5aa0ff);
+	.k-row b {
+		white-space: nowrap;
+		font-size: 18px;
+		letter-spacing: -0.02em;
 	}
-
-	/* Drag and drop */
-	.tree {
-		position: relative;
+	.spark {
+		width: 46px;
+		height: 18px;
+		overflow: visible;
+	}
+	.spark polyline {
+		fill: none;
+		stroke: #16a34a;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-dasharray: 90;
+		animation: n-draw 3.5s ease-out infinite;
+	}
+	.spark.down polyline { stroke: #dc2626; }
+	@keyframes n-draw {
+		0% { stroke-dashoffset: 90; }
+		45%, 100% { stroke-dashoffset: 0; }
+	}
+	.k-delta {
+		font-size: 10px;
+		font-weight: 600;
+		color: #16a34a;
+	}
+	.k-delta.down { color: #dc2626; }
+	/* Three languages. */
+	.langs {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+	}
+	.flags {
+		display: flex;
+		gap: 6px;
+	}
+	.flags b {
+		padding: 4px 10px;
+		border-radius: 8px;
+		font-size: 12px;
+		color: #52525b;
+		background: #f4f4f5;
+		animation: n-flag 7.5s infinite;
+	}
+	.flags b:nth-child(2) { animation-delay: 2.5s; }
+	.flags b:nth-child(3) { animation-delay: 5s; }
+	@keyframes n-flag {
+		0%, 30% { color: #fff; background: #2da31d; }
+		34%, 100% { color: #52525b; background: #f4f4f5; }
+	}
+	.say {
 		display: grid;
-		gap: 4px;
-		width: 220px;
-		font-size: 13px;
+		padding: 10px 18px;
+		border: 1px solid #e4e4e7;
+		border-radius: 12px;
+		font-size: 15px;
+		font-weight: 600;
+		background: #fff;
 	}
-	.node {
+	.say em {
+		grid-area: 1 / 1;
+		font-style: normal;
+		text-align: center;
+		opacity: 0;
+		animation: n-period 7.5s infinite;
+	}
+	.say em:nth-child(2) { animation-delay: 2.5s; }
+	.say em:nth-child(3) { animation-delay: 5s; }
+	/* A chart refreshed in place: its bars slide to their new values. */
+	.refresh {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 14px;
+	}
+	.clock {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		padding: 6px 10px !important;
-		border-radius: 9px;
-	}
-	.node.sub {
-		margin-left: 20px;
-	}
-	.node.over {
-		background: rgba(45, 163, 30, 0.1);
-		box-shadow: inset 0 0 0 2px rgba(45, 163, 30, 0.5);
-	}
-	.ghost {
-		position: absolute;
-		right: -6px;
-		top: 22px;
-		display: flex;
-		gap: 6px;
-		padding: 6px 10px !important;
-		border-radius: 9px;
 		font-size: 12px;
-		background: #fff;
-		box-shadow: 0 12px 26px -10px rgba(0, 0, 0, 0.35);
-		transform: rotate(-4deg);
+		color: #52525b;
 	}
-
+	.clock svg { transform: rotate(-90deg); }
+	.c-bg { fill: none; stroke: #ececef; stroke-width: 4; }
+	.c-fg {
+		fill: none;
+		stroke: #2da31d;
+		stroke-width: 4;
+		stroke-dasharray: 100;
+		animation: n-tick 3s linear infinite;
+	}
+	@keyframes n-tick {
+		from { stroke-dashoffset: 100; }
+		to { stroke-dashoffset: 0; }
+	}
+	.refresh .bars {
+		display: flex;
+		align-items: flex-end;
+		gap: 7px;
+		height: 90px;
+	}
+	.refresh .bars i {
+		width: 18px;
+		height: var(--h);
+		border-radius: 5px 5px 0 0;
+		background: linear-gradient(#2a78d6, #6da7ec);
+		animation: n-live 6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		animation-delay: calc(var(--j) * 40ms);
+	}
+	@keyframes n-live {
+		0%, 45% { height: var(--h); }
+		50%, 95% { height: calc(100% - var(--h) + 18%); }
+		100% { height: var(--h); }
+	}
 	@media (max-width: 980px) {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -464,6 +472,15 @@ const MINI = [34, 48, 41, 66, 38, 29];
 	@media (max-width: 640px) {
 		.grid {
 			grid-template-columns: 1fr;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.art * {
+			animation: none !important;
+		}
+		.period b:first-child,
+		.say em:first-child {
+			opacity: 1;
 		}
 	}
 </style>

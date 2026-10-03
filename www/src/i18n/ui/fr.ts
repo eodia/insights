@@ -47,7 +47,8 @@ const fr = {
 							sources: { href: '/fonctionnalites/sources/', title: 'Sources', text: 'Sept moteurs, un schéma synchronisé et décrit.' },
 							questions: { href: '/fonctionnalites/questions/', title: 'Questions', text: 'Sans SQL, en SQL Trino ou en SQL natif.' },
 							models: { href: '/fonctionnalites/modeles-et-metriques/', title: 'Modèles et métriques', text: 'Une définition, partout la même réponse.' },
-							charts: { href: '/fonctionnalites/visualisations/', title: 'Visualisations', text: 'Seize formes, des palettes lisibles par tous.' },
+							charts: { href: '/fonctionnalites/visualisations/', title: 'Visualisations', text: 'Vingt-deux formes, des palettes lisibles par tous.' },
+							assistant: { href: '/fonctionnalites/assistant/', title: 'Assistant IA', text: 'Conversez avec vos données, en graphiques.' },
 						},
 					},
 					share: {
@@ -55,6 +56,7 @@ const fr = {
 						items: {
 							dashboards: { href: '/fonctionnalites/tableaux-de-bord/', title: 'Tableaux de bord', text: 'Filtres, onglets, rafraîchissement automatique.' },
 							sharing: { href: '/fonctionnalites/partage/', title: 'Dossiers et partage', text: 'Liens publics, intégration dans vos pages.' },
+							themes: { href: '/fonctionnalites/themes/', title: 'Thèmes et PDF', text: 'Votre charte, héritée par dossier, jusqu’au PDF.' },
 							copilot: { href: '/fonctionnalites/copilot/', title: 'Copilot', text: 'Il écrit la requête, vous gardez la main.' },
 						},
 					},
@@ -69,10 +71,10 @@ const fr = {
 				},
 				feature: {
 					tag: 'Nouveau',
-					title: 'Les prévisions',
-					text: 'Prolongez une courbe de 3, 6 ou 12 périodes : la saison reconnue, la tendance en pointillés verts, un intervalle honnête.',
-					cta: 'Voir les prévisions',
-					href: '/fonctionnalites/previsions/',
+					title: 'L’assistant IA',
+					text: 'Posez la question, lisez la réponse en graphiques : il cherche les tables, écrit le SQL et l’exécute sous vos droits.',
+					cta: 'Découvrir l’assistant',
+					href: '/fonctionnalites/assistant/',
 				},
 			},
 			developers: {
@@ -145,6 +147,8 @@ const fr = {
 				links: [
 					link({ href: '/fonctionnalites/questions/', label: 'Questions' }),
 					link({ href: '/fonctionnalites/tableaux-de-bord/', label: 'Tableaux de bord' }),
+					link({ href: '/fonctionnalites/assistant/', label: 'Assistant IA' }),
+					link({ href: '/fonctionnalites/themes/', label: 'Thèmes et PDF' }),
 					link({ href: '/fonctionnalites/copilot/', label: 'Copilot' }),
 					link({ href: '/fonctionnalites/droits/', label: 'Droits' }),
 				],
@@ -336,19 +340,57 @@ const fr = {
 		link: 'Tout sur les droits',
 	},
 
-	/** The Copilot, at work. */
-	copilot: {
-		kicker: 'Copilot',
-		title: 'Posez la question.',
-		titleAccent: 'Lisez la réponse.',
-		lede: 'Le copilot connaît votre schéma, vos descriptions et vos métriques. Il écrit la requête, choisit le graphique, construit un tableau de bord — en direct, et toujours sous vos droits.',
-		ask: 'Montre-moi le délai de résolution des tickets par motif, pour les clients Premium.',
-		thinking: [
-			{ tool: 'search_schema', text: 'support.tickets, boutique.clients' },
-			{ tool: 'describe_table', text: 'support.tickets — 8 colonnes' },
-			{ tool: 'run_sql', text: '6 lignes · 238 ms' },
+	/** Themes and their PDF. */
+	themes: {
+		kicker: 'Thèmes et PDF',
+		title: 'À vos couleurs,',
+		titleAccent: 'jusqu’au PDF.',
+		lede: 'Polices, couleurs, cartes, palette des graphiques et logo : posez un thème sur un dossier, et tout ce qu’il contient le porte — sous-dossiers, questions, tableaux de bord, liens partagés et leurs impressions en PDF.',
+		pickLabel: 'Choisir un thème',
+		names: { eodia: 'Par défaut', fluxen: 'Violet hachuré', maison: 'Maison' },
+		logo: ['eodia', 'Fluxen', 'Maison'],
+		dashTitle: 'Ventes du trimestre',
+		dashSub: 'Le point mensuel par canal et par région',
+		tabs: ['Vue d’ensemble', 'Détail'],
+		kpis: [
+			{ label: 'Ventes actives', value: '24,5 k€', delta: '+5,8 % vs septembre' },
+			{ label: 'Chiffre d’affaires', value: '15,2 k€', delta: '+6,1 % vs septembre' },
+			{ label: 'Conversion', value: '12,5 %', delta: '−1,1 % vs septembre' },
 		],
-		answer: 'Pour les clients Premium, les <b>remboursements</b> sont les plus longs à résoudre : <b>61 h</b> en moyenne, deux fois plus que les questions de compte.',
+		chartTitle: 'Ventes par canal',
+		channels: ['Web', 'Magasin', 'Marketplace', 'Téléphone', 'Salons'],
+		donutTitle: 'Part du Web',
+		pdf: { date: '3 octobre 2026', footer: 'Confidentiel — usage interne' },
+		points: [
+			{ title: 'Posé sur un dossier', text: 'Le dossier, ses sous-dossiers, leurs questions et leurs tableaux de bord en héritent ; un sous-dossier ou un tableau peut porter le sien.' },
+			{ title: 'Votre charte, en dix réglages', text: 'Une vingtaine de polices, l’accent, les fonds, l’arrondi et l’ombre des cartes, des barres pleines, hachurées ou en dégradé, votre logo.' },
+			{ title: 'Jusqu’au PDF', text: 'Exporter en PDF met le tableau en pages A4 à ses couleurs : page de garde, filtres appliqués, graphiques vectoriels, pied de page et pagination.' },
+		],
+		link: 'Tout sur les thèmes',
+	},
+
+	/** The AI assistant, at work. */
+	assistant: {
+		kicker: 'Assistant IA',
+		title: 'Parlez à vos données.',
+		titleAccent: 'Elles répondent en graphiques.',
+		lede: 'Un écran pour converser avec vos données : l’assistant cherche les tables, écrit le SQL, l’exécute sous vos droits et vous montre la réponse en graphiques interactifs. Chaque conversation est gardée, pour vous seul.',
+		model: 'claude-sonnet-5-5',
+		newChat: 'Nouvelle conversation',
+		today: 'Aujourd’hui',
+		yesterday: 'Hier',
+		history: ['Délai de résolution Premium', 'Chiffre d’affaires mensuel', 'Top clients 2026'],
+		older: ['Retards par transporteur', 'Tickets par canal'],
+		ask: 'Quel est le délai de résolution des tickets par motif, pour les clients Premium ?',
+		thinking: 'Réflexion…',
+		steps: [
+			{ label: 'Recherche dans le schéma', detail: '2 tables' },
+			{ label: 'Lecture de la table', detail: 'Tickets' },
+			{ label: 'Exécution de la requête', detail: '6 lignes' },
+			{ label: 'Préparation du graphique', detail: '' },
+		],
+		chartTitle: 'Délai moyen de résolution',
+		chartSub: 'Clients Premium · 90 derniers jours',
 		bars: [
 			{ label: 'Remboursement', value: 61 },
 			{ label: 'Produit défectueux', value: 54 },
@@ -358,10 +400,19 @@ const fr = {
 			{ label: 'Compte client', value: 29 },
 		],
 		unit: 'h',
-		chartTitle: 'Délai moyen de résolution',
-		apply: 'Enregistrer la question',
-		providers: 'Anthropic, OpenAI, Mistral ou tout service compatible OpenAI.',
-		link: 'Découvrir le copilot',
+		rows: '6 lignes · sous vos droits',
+		save: 'Enregistrer comme question',
+		answer: 'Les <b>remboursements</b> sont les plus longs à résoudre : <b>61 h</b> en moyenne, deux fois plus que les questions de compte. Voulez-vous comparer avec les clients Standard ?',
+		placeholder: 'Demandez n’importe quoi sur vos données…',
+		sources: 'Support client',
+		points: [
+			{ title: 'Des graphiques, pas des pavés', text: 'Chaque réponse chiffrée arrive en graphique interactif : changez sa forme d’un clic, voyez son SQL, enregistrez-le comme question.' },
+			{ title: 'Vos sources, vos droits', text: 'Choisissez les sources dans la saisie ; Trino applique vos permissions, colonnes masquées et règles de lignes comprises.' },
+			{ title: 'Un historique à vous', text: 'Les conversations sont gardées, rangées par date, cherchées, renommées. Et un copilot reste dans chaque écran.' },
+		],
+		providers: 'Anthropic, OpenAI, Mistral ou tout service compatible OpenAI — y compris hébergé chez vous.',
+		link: 'Découvrir l’assistant',
+		linkCopilot: 'Et le copilot',
 	},
 
 	/** Dashboards. */
@@ -417,23 +468,24 @@ const fr = {
 	/** What is new, in six cards. */
 	news: {
 		kicker: 'Nouveautés',
-		title: 'Explorer,',
-		titleAccent: 'à la vitesse d’un clic.',
-		lede: 'Des filtres qui montrent ce qui reste possible, des couleurs lisibles par tous, des graphiques qui racontent quelque chose — jusque dans la conversation avec Claude.',
+		title: 'Des graphiques',
+		titleAccent: 'qui racontent quelque chose.',
+		lede: 'Des courses pour rejouer le temps, des bulles et des cartes proportionnelles pour les parts de parts, un calendrier, des chiffres clés avec leur courbe — dans une interface qui parle votre langue et se met à jour sous vos yeux.',
 		more: 'En savoir plus',
-		chosen: '2 valeurs choisies',
-		values: ['Livrée', 'Remboursée', 'Annulée', 'Expédiée', 'Payée'],
-		safe: 'Lisibles par les daltoniens',
-		ask: 'Montre-moi les commandes par mois.',
-		folders: ['Ventes', '2026', 'Service client'],
-		drag: 'CA par mois',
+		periods: ['jan. 2026', 'mai 2026', 'sept. 2026'],
+		kpis: [
+			{ label: 'Ventes actives', value: '24,5 k', delta: '+5,8 %' },
+			{ label: 'Conversion', value: '12,5 %', delta: '−1,1 %' },
+		],
+		say: ['Nouvelle question', 'New question', 'Nueva pregunta'],
+		every: 'Toutes les minutes',
 		items: {
-			associative: { title: 'Des filtres associatifs', text: 'Choisi en vert, possible en blanc, exclu en gris — comme dans Qlik. Chaque valeur dit sa part des lignes ; Maj + clic pour une plage, Ctrl + clic pour une seule.', href: '/fonctionnalites/tableaux-de-bord/#des-filtres-associatifs' },
-			click: { title: 'Maj + clic sur un graphique', text: 'Sélectionnez plusieurs barres : tout le tableau de bord se filtre, et le graphique garde ses autres catégories, estompées, pour en ajouter.', href: '/fonctionnalites/tableaux-de-bord/#cliquer-sur-un-graphique-pour-filtrer' },
-			palettes: { title: 'Des palettes pour tous', text: 'Six palettes et la vôtre, validées pour les daltoniens, en clair comme en sombre. Une couleur par valeur, reprise dans tous les graphiques.', href: '/fonctionnalites/visualisations/#les-couleurs' },
-			radar: { title: 'Radar, top N, mise en avant', text: 'Faites ressortir le maximum, tracez la moyenne, gardez les dix premiers, comparez des profils en radar : le graphique dit quelque chose.', href: '/fonctionnalites/visualisations/' },
-			mcp: { title: 'Vos graphiques dans Claude', text: 'Le serveur MCP dessine le graphique dans la conversation (MCP Apps), avec les couleurs, les formats et les droits d’eodia insights.', href: '/integrations/mcp/' },
-			organize: { title: 'Ranger sans y penser', text: 'Sous-dossiers, glisser-déposer, questions créées dans le tableau de bord, cartes déplacées d’un onglet à l’autre ; pictos, emoji et images.', href: '/fonctionnalites/partage/' },
+			races: { title: 'Courses de barres et de courbes', text: 'Rejouez l’histoire période après période : les barres se doublent, les courbes se tracent, la date s’écrit en grand.', href: '/fonctionnalites/visualisations/#les-courses' },
+			bubbles: { title: 'Bulles et carte proportionnelle', text: 'Des bulles sur deux axes ou en grappe, des rectangles imbriqués, un camembert à plusieurs anneaux : les parts de parts, enfin lisibles.', href: '/fonctionnalites/visualisations/#des-parts-sur-plusieurs-niveaux' },
+			calendar: { title: 'Le calendrier', text: 'Une valeur par jour, en points ou en cases colorées : les jours de la semaine, les saisons et les trous sautent aux yeux.', href: '/fonctionnalites/visualisations/#le-calendrier' },
+			sparks: { title: 'Chiffres clés et courbe miniature', text: 'Le chiffre, sa petite courbe — verte quand ça va dans le bon sens, rouge sinon — et sa variation sur la période précédente.', href: '/fonctionnalites/visualisations/#bulles-tendances-entonnoir-en-colonnes' },
+			languages: { title: 'Français, anglais, espagnol', text: 'L’interface prend la langue du navigateur, ou celle choisie dans le menu du compte ; les messages de l’API suivent.', href: '/guides/introduction/' },
+			live: { title: 'Rafraîchi en direct', text: 'Au rafraîchissement ou au changement de filtre, les cartes restent à l’écran et leurs marques glissent vers les nouvelles valeurs.', href: '/fonctionnalites/tableaux-de-bord/#rafraîchissement-et-affichage' },
 		},
 	},
 
@@ -469,6 +521,9 @@ const fr = {
 			history: tile({ title: 'Historique', text: 'Chaque requête exécutée : qui, quoi, combien de temps, depuis où.', href: '/fonctionnalites/questions/' }),
 			native: tile({ code: 'system.query(…)', title: 'SQL natif', text: 'Le dialecte de la base, réservé à qui n’a aucune restriction sur la source.', href: '/fonctionnalites/questions/' }),
 			audit: tile({ title: 'Journal d’audit', text: 'Connexions, droits, sources, jetons, partages : tout est tracé.', href: '/fonctionnalites/droits/' }),
+			assistant: tile({ title: 'Assistant IA', text: 'Conversez avec vos données : réponses rédigées, graphiques interactifs, historique gardé pour vous.', href: '/fonctionnalites/assistant/' }),
+			themes: tile({ title: 'Thèmes et PDF', text: 'Votre charte posée sur un dossier, héritée par tout ce qu’il contient, jusqu’à l’export en PDF.', href: '/fonctionnalites/themes/' }),
+			languages: tile({ code: 'fr · en · es', title: 'Trois langues', text: 'L’interface et les messages de l’API dans la langue du navigateur, ou celle que vous choisissez.', href: '/guides/introduction/' }),
 		},
 	},
 
@@ -507,7 +562,15 @@ const fr = {
 			}),
 			ai: question({
 				q: 'Mes données partent-elles chez un fournisseur d’IA ?',
-				a: 'Seulement si vous activez le copilot, avec le fournisseur que vous choisissez — Anthropic, OpenAI, Mistral ou un service compatible OpenAI, y compris hébergé chez vous. Sans clé, il n’y a pas de copilot. Un quota par personne et par heure limite l’usage.',
+				a: 'Seulement si vous activez l’IA, avec le fournisseur que vous choisissez — Anthropic, OpenAI, Mistral ou un service compatible OpenAI, y compris hébergé chez vous. Sans clé, ni assistant ni copilot. Ce que le modèle lit — schéma, descriptions, résultats de requêtes — passe par vos droits ; un quota par personne et par heure limite l’usage.',
+			}),
+			assistant: question({
+				q: 'L’assistant IA peut-il voir ou modifier plus que moi ?',
+				a: 'Non. Chaque requête qu’il écrit s’exécute dans Trino sous votre identité : vos tables, vos colonnes masquées, vos règles de lignes. Il ne modifie rien — il propose, vous enregistrez. Ses conversations sont gardées pour vous seul, et vous pouvez les supprimer.',
+			}),
+			brand: question({
+				q: 'Puis-je mettre la charte de mon entreprise ?',
+				a: 'Oui. Un administrateur crée un thème — polices, couleurs, cartes, palette des graphiques, logo, mise en page du PDF — et le pose sur un dossier : sous-dossiers, questions, tableaux de bord, liens partagés et exports PDF le portent. Un tableau de bord peut avoir le sien.',
 			}),
 			license: question({
 				q: 'Est-ce vraiment gratuit ?',

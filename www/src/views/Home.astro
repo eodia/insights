@@ -8,7 +8,8 @@
  */
 import '../styles/home.css';
 import Agents from '../components/home/Agents.astro';
-import Copilot from '../components/home/Copilot.astro';
+import Assistant from '../components/home/Assistant.astro';
+import Themes from '../components/home/Themes.astro';
 import Dashboards from '../components/home/Dashboards.astro';
 import Engine from '../components/home/Engine.astro';
 import Features from '../components/home/Features.astro';
@@ -33,8 +34,9 @@ const { t, href } = i18n(locale);
 		<Story locale={locale} />
 		<Engine locale={locale} />
 		<Rights locale={locale} />
-		<Copilot locale={locale} />
+		<Assistant locale={locale} />
 		<Dashboards locale={locale} />
+		<Themes locale={locale} />
 		<Forecast locale={locale} />
 		<News locale={locale} />
 		<Agents locale={locale} />
