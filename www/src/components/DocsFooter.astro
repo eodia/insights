@@ -1,0 +1,32 @@
+---
+// Starlight's own footer — edit link, pagination —, followed by who makes eodia insights: every
+// page of the documentation leads back to the studio, as the home page does. In the
+// page's language: Starlight's locale is the site's (`root` is French).
+import Default from '@astrojs/starlight/components/Footer.astro';
+import { DEFAULT_LOCALE, getDict, isLocale, localizeHtml } from '../i18n';
+
+const key = Astro.locals.starlightRoute.locale;
+const locale = isLocale(key) ? key : DEFAULT_LOCALE;
+const madeBy = localizeHtml(locale, getDict(locale).docsFooter.madeBy);
+---
+
+<Default><slot /></Default>
+<p class="bd-made-by" set:html={madeBy} />
+
+<style>
+	.bd-made-by {
+		margin-top: 2rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--sl-color-hairline);
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+	.bd-made-by :global(a) {
+		font-weight: 600;
+		color: var(--sl-color-text-accent);
+		text-decoration: none;
+	}
+	.bd-made-by :global(a:hover) {
+		text-decoration: underline;
+	}
+</style>

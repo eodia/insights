@@ -1,0 +1,269 @@
+---
+/**
+ * Everything else, in tiles: a figure, a formula or a sentence each, every tile a link to
+ * its page of the documentation. The light under the pointer follows it (`--mx`, `--my`).
+ */
+import Icon from '../landing/Icon.astro';
+import type { IconName } from '../landing/icons';
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+const f = t.features;
+
+const ICON: Record<string, IconName> = {
+	engines: 'server',
+	structure: 'table',
+	metrics: 'layers',
+	sso: 'key',
+	folders: 'columns',
+	history: 'history',
+	native: 'terminal',
+	audit: 'eye',
+};
+const ENGINES = [
+	['Pg', '#4f8fd6'],
+	['My', '#f29111'],
+	['MS', '#e04a3f'],
+	['Or', '#f05a5a'],
+	['❄', '#29b5e8'],
+	['Mg', '#3fcf5e'],
+	['Tr', '#e84fb5'],
+] as const;
+const tiles = Object.entries(f.items).map(([key, tile]) => ({ key, ...tile, icon: ICON[key] ?? 'arrowRight', href: href(tile.href) }));
+---
+
+<section class="tm-section mist features" data-features>
+	<div class="tm-head">
+		<h2 class="tm-display tm-rise">{f.title}</h2>
+		<p class="tm-lede tm-rise">{f.lede}</p>
+	</div>
+
+	<div class="bento">
+		{
+			tiles.map((tile, i) => (
+				<a href={tile.href} class:list={['tile', 'tm-rise', tile.key]} style={`transition-delay:${(i % 4) * 0.06}s`}>
+					<span class="ic">
+						<Icon name={tile.icon} size={20} />
+					</span>
+					{tile.stat && (
+						<span class="stat">
+							<b>{tile.stat}</b>
+							<span class="logos" aria-hidden="true">
+								{ENGINES.map(([short, color]) => (
+									<i style={`--c:${color}`}>{short}</i>
+								))}
+							</span>
+						</span>
+					)}
+					{tile.code && <code>{tile.code}</code>}
+					<h3>{tile.title}</h3>
+					<p>{tile.text}</p>
+					<span class="go" aria-hidden="true">
+						<Icon name="arrowRight" size={16} stroke={2.2} />
+					</span>
+				</a>
+			))
+		}
+	</div>
+</section>
+
+<script>
+	for (const tile of document.querySelectorAll<HTMLElement>('[data-features] .tile')) {
+		tile.addEventListener('pointermove', (event) => {
+			const box = tile.getBoundingClientRect();
+			tile.style.setProperty('--mx', `${event.clientX - box.left}px`);
+			tile.style.setProperty('--my', `${event.clientY - box.top}px`);
+		});
+	}
+</script>
+
+<style>
+	.bento {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 16px;
+		max-width: 1180px;
+		margin: 72px auto 0;
+	}
+	.tile {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		min-height: 220px;
+		padding: 26px;
+		border-radius: 26px;
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+		overflow: hidden;
+		isolation: isolate;
+		transition:
+			transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+			box-shadow 0.35s ease,
+			opacity 0.9s ease;
+	}
+	.tile::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgba(45, 163, 30, 0.1), transparent 70%);
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+	.tile:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 30px 60px -30px rgba(16, 40, 16, 0.3);
+	}
+	.tile:hover::before {
+		opacity: 1;
+	}
+	.engines {
+		grid-column: span 2;
+		color: #f5f5f7;
+		background:
+			radial-gradient(400px 220px at 85% 0%, rgba(63, 203, 42, 0.3), transparent 70%),
+			linear-gradient(160deg, #0f2a1c, #0a120d);
+	}
+	.metrics,
+	.native,
+	.audit {
+		grid-column: span 2;
+	}
+	.ic {
+		display: grid;
+		place-items: center;
+		width: 40px;
+		height: 40px;
+		margin-bottom: auto;
+		border-radius: 12px;
+		color: #1f9d4a;
+		background: #eaf6e6;
+	}
+	.engines .ic {
+		color: #6ee08a;
+		background: rgba(110, 224, 138, 0.14);
+	}
+	.stat {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 16px;
+		margin-top: 18px;
+	}
+	.stat b {
+		font-size: 88px;
+		font-weight: 800;
+		line-height: 0.9;
+		letter-spacing: -0.06em;
+		background: var(--tm-grad-night);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+	.logos {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 6px;
+		max-width: 240px;
+	}
+	.logos i {
+		display: grid;
+		place-items: center;
+		width: 30px;
+		height: 30px;
+		border-radius: 9px;
+		font-size: 11.5px;
+		font-style: normal;
+		font-weight: 800;
+		color: #0b0b0d;
+		background: var(--c);
+		box-shadow: 0 0 16px -4px var(--c);
+		transition: transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+	}
+	.tile:hover .logos i {
+		transform: translateY(-3px);
+	}
+	.tile:hover .logos i:nth-child(2n) {
+		transform: translateY(2px);
+	}
+	code {
+		align-self: flex-start;
+		margin-top: 18px;
+		padding: 8px 12px;
+		border-radius: 10px;
+		font-size: 14px;
+		color: #1c7a12;
+		background: #f0f8ed;
+	}
+	h3 {
+		margin: 14px 0 0;
+		font-size: 19px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+	p {
+		margin: 0;
+		max-width: 440px;
+		font-size: 15px;
+		line-height: 1.5;
+		color: var(--tm-slate);
+	}
+	.engines p {
+		color: #a3b3a6;
+	}
+	.go {
+		position: absolute;
+		top: 26px;
+		right: 26px;
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		color: var(--tm-slate);
+		background: var(--tm-mist);
+		opacity: 0;
+		transform: translateX(-6px);
+		transition:
+			opacity 0.25s ease,
+			transform 0.25s ease;
+	}
+	.engines .go {
+		color: #fff;
+		background: rgba(255, 255, 255, 0.1);
+	}
+	.tile:hover .go {
+		opacity: 1;
+		transform: none;
+	}
+
+	@media (max-width: 1000px) {
+		.bento {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 600px) {
+		.bento {
+			grid-template-columns: 1fr;
+		}
+		.engines,
+		.metrics,
+		.native,
+		.audit {
+			grid-column: auto;
+		}
+		.tile {
+			min-height: 0;
+		}
+		.stat b {
+			font-size: 72px;
+		}
+	}
+</style>

@@ -1,0 +1,251 @@
+---
+/**
+ * Yours: the whole stack started by one command, in a terminal that types it when it
+ * comes into view, then lists the containers as they come up.
+ */
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+const s = t.selfHost;
+const SERVICES = ['catalog', 'trino', 'api', 'worker', 'web', 'mcp', 'caddy'];
+---
+
+<section class="tm-section selfhost" data-selfhost>
+	<div class="inner">
+		<div class="text">
+			<p class="tm-kicker tm-rise">{s.kicker}</p>
+			<h2 class="tm-display tm-rise">
+				<span>{s.title}</span>
+				<span class="tm-grad">{s.titleAccent}</span>
+			</h2>
+			<p class="lede tm-rise">{s.lede}</p>
+			<ul class="points tm-rise">
+				{
+					s.points.map((p) => (
+						<li>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M20 6 9 17l-5-5" />
+							</svg>
+							{p}
+						</li>
+					))
+				}
+			</ul>
+			<div class="tm-actions left tm-rise">
+				<a class="tm-pill" href={href('/guides/installation/')}>{s.cta}</a>
+				<a class="tm-link" href={href('/hebergement/docker/')}>Docker</a>
+			</div>
+		</div>
+
+		<div class="term tm-rise" data-term data-state="wait" aria-hidden="true">
+			<div class="term-bar">
+				<span class="dots"><i></i><i></i><i></i></span>
+				<span>~/eodia-insights</span>
+			</div>
+			<pre><span class="line l1"><span class="p">$</span> cat &gt; .env &lt;&lt;'EOF'</span>
+<span class="line l2"><span class="v">EODIA_DOMAIN</span>=bi.exemple.fr</span>
+<span class="line l3"><span class="v">EODIA_SECRET_KEY</span>=<span class="m">$(openssl rand -hex 32)</span></span>
+<span class="line l4">EOF</span>
+<span class="line l5"><span class="p">$</span> docker compose -f docker-compose.prod.yml up -d</span>
+{SERVICES.map((name, i) => (
+	<span class="svc" style={`--i:${i}`}><span class="ok">✔</span> Container eodia-insights-prod-{name}-1  <span class="st">Started</span>
+</span>
+))}<span class="line done"><span class="p">$</span> <span class="url">https://bi.exemple.fr</span> <span class="cur"></span></span></pre>
+		</div>
+	</div>
+</section>
+
+<script>
+	const term = document.querySelector<HTMLElement>('[data-term]');
+	if (term) {
+		new IntersectionObserver(
+			([entry], observer) => {
+				if (!entry?.isIntersecting) return;
+				term.dataset.state = 'go';
+				observer.disconnect();
+			},
+			{ threshold: 0.45 },
+		).observe(term);
+	}
+</script>
+
+<style>
+	.inner {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+		align-items: center;
+		gap: 64px;
+		max-width: 1180px;
+		margin: 0 auto;
+	}
+	.text .tm-display {
+		font-size: clamp(36px, 4.2vw, 58px);
+	}
+	.lede {
+		margin: 24px 0 0;
+		font-size: clamp(17px, 1.6vw, 20px);
+		line-height: 1.5;
+		color: var(--tm-slate);
+	}
+	.points {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		margin: 28px 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: 16px;
+		font-weight: 500;
+	}
+	.points li {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.points svg {
+		flex-shrink: 0;
+		padding: 3px;
+		border-radius: 50%;
+		color: #fff;
+		background: #2da31e;
+	}
+	.tm-actions.left {
+		justify-content: flex-start;
+	}
+
+	.term {
+		border-radius: 20px;
+		background: #0e1210;
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.06),
+			0 60px 120px -50px rgba(16, 40, 16, 0.6);
+		overflow: hidden;
+	}
+	.term-bar {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 38px;
+		font-family: var(--bd-font-mono);
+		font-size: 12px;
+		color: #6e6e73;
+		background: #161b18;
+	}
+	.dots {
+		position: absolute;
+		left: 14px;
+		display: flex;
+		gap: 6px;
+	}
+	.dots i {
+		width: 11px;
+		height: 11px;
+		border-radius: 50%;
+		background: #ff5f57;
+	}
+	.dots i:nth-child(2) {
+		background: #febc2e;
+	}
+	.dots i:nth-child(3) {
+		background: #28c840;
+	}
+	pre {
+		margin: 0;
+		padding: 22px 24px 26px;
+		font-size: 13.5px;
+		line-height: 1.85;
+		color: #d2d2d7;
+		white-space: pre-wrap;
+		overflow-x: auto;
+	}
+	.p {
+		color: #3fcb2a;
+	}
+	.v {
+		color: #8cc0ff;
+	}
+	.m {
+		color: #f2d675;
+	}
+	.svc {
+		color: #a1a1a6;
+	}
+	.ok,
+	.st {
+		color: #3fcb2a;
+	}
+	.url {
+		color: #c9f06b;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.cur {
+		display: inline-block;
+		width: 8px;
+		height: 1.05em;
+		vertical-align: -0.15em;
+		background: #3fcb2a;
+		animation: sh-blink 1s steps(1) infinite;
+	}
+	@keyframes sh-blink {
+		50% {
+			opacity: 0;
+		}
+	}
+	/* Typed once: the lines, then the containers one by one, then the address. */
+	.line,
+	.svc {
+		transition: opacity 0.25s ease;
+	}
+	[data-state='wait'] :is(.line, .svc) {
+		opacity: 0;
+	}
+	.l1 {
+		transition-delay: 0.1s;
+	}
+	.l2 {
+		transition-delay: 0.35s;
+	}
+	.l3 {
+		transition-delay: 0.6s;
+	}
+	.l4 {
+		transition-delay: 0.85s;
+	}
+	.l5 {
+		transition-delay: 1.3s;
+	}
+	.svc {
+		transition-delay: calc(1.9s + var(--i) * 0.28s);
+	}
+	.done {
+		transition-delay: 4.1s;
+	}
+
+	@media (max-width: 960px) {
+		.inner {
+			grid-template-columns: 1fr;
+			gap: 48px;
+		}
+	}
+	@media (max-width: 560px) {
+		pre {
+			font-size: 11.5px;
+			padding: 18px;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		[data-state='wait'] :is(.line, .svc) {
+			opacity: 1;
+		}
+		.cur {
+			animation: none;
+		}
+	}
+</style>

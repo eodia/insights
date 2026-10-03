@@ -1,0 +1,526 @@
+---
+/**
+ * The same query, two people. A switch at the top of a window chooses who is looking —
+ * the administrator, or the analyst of Brittany —; the table of clients under it follows:
+ * rows of other regions fold away, e-mails turn into what Trino's mask returns (the two
+ * first letters, then `•••`), and the panel beside it shows what eodia insights answered
+ * Trino. It switches by itself while on screen, until a reader picks someone.
+ */
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+const r = t.rights;
+const ANALYST_REGION = 'Bretagne';
+const rows = r.rows.map((row) => ({
+	...row,
+	mine: row.region === ANALYST_REGION,
+	masked: `${row.email.slice(0, 2)}•••`,
+}));
+const people = [
+	{ id: 'admin', ...r.people.admin, initials: 'AM', grad: 'linear-gradient(135deg, #f472b6, #8b5cf6)' },
+	{ id: 'analyst', ...r.people.analyst, initials: 'CD', grad: 'linear-gradient(135deg, #34d399, #0ea5e9)' },
+] as const;
+---
+
+<section class="tm-section mist rights" data-rights>
+	<div class="tm-head">
+		<p class="tm-kicker tm-rise">{r.kicker}</p>
+		<h2 class="tm-display tm-rise">
+			<span>{r.title}</span>
+			<span class="tm-grad">{r.titleAccent}</span>
+		</h2>
+		<p class="tm-lede tm-rise">{r.lede}</p>
+	</div>
+
+	<div class="window tm-rise" data-who="admin" data-window>
+		<div class="bar">
+			<span class="as">{r.viewAs}</span>
+			<div class="switch" role="radiogroup" aria-label={r.viewAs}>
+				<span class="thumb" aria-hidden="true"></span>
+				{
+					people.map((p) => (
+						<button type="button" role="radio" data-person={p.id} aria-checked={p.id === 'admin' ? 'true' : 'false'}>
+							<span class="avatar" style={`background:${p.grad}`}>{p.initials}</span>
+							<span class="id">
+								<b>{p.name}</b>
+								<small>{p.role}</small>
+							</span>
+						</button>
+					))
+				}
+			</div>
+		</div>
+
+		<div class="body">
+			<div class="table" aria-hidden="true">
+				<div class="t-title">
+					<span class="tname">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M9 3v18"></path></svg>
+						{r.table}
+					</span>
+					<span class="count">
+						<span class="for-admin">{r.count.admin}</span>
+						<span class="for-analyst">{r.count.analyst}</span>
+					</span>
+				</div>
+				<div class="row head">
+					{r.columns.map((c, i) => <span class:list={[i === 1 && 'mail']}>{c}</span>)}
+				</div>
+				{
+					rows.map((row, i) => (
+						<div class:list={['row', !row.mine && 'other']} style={`--i:${i}`}>
+							<span class="name">{row.name}</span>
+							<span class="mail">
+								<span class="clear">{row.email}</span>
+								<span class="masked">{row.masked}</span>
+							</span>
+							<span>{row.city}</span>
+							<span>
+								<em class:list={['region', row.mine && 'mine']}>{row.region}</em>
+							</span>
+						</div>
+					))
+				}
+			</div>
+
+			<div class="log" aria-live="polite">
+				<p class="log-title">
+					<span class="live"></span>
+					{r.opa}
+				</p>
+				{
+					people.map((p) => (
+						<ul class={`for-${p.id}`}>
+							{r.decisions[p.id].map((d, i) => (
+								<li style={`--i:${i}`}>
+									<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+									{d}
+								</li>
+							))}
+						</ul>
+					))
+				}
+				<code class="rule">{r.rule}</code>
+			</div>
+		</div>
+	</div>
+
+	<div class="tm-points">
+		{
+			r.points.map((p, i) => (
+				<div class="tm-rise" style={`transition-delay:${i * 0.08}s`}>
+					<span class="ic">
+						{i === 0 && (
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M7 12h10M10 18h4" /></svg>
+						)}
+						{i === 1 && (
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><path d="m3 3 18 18" /></svg>
+						)}
+						{i === 2 && (
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
+						)}
+					</span>
+					<h3>{p.title}</h3>
+					<p>{p.text}</p>
+				</div>
+			))
+		}
+	</div>
+	<p class="more tm-rise"><a class="tm-link" href={href('/fonctionnalites/droits/')}>{r.link}</a></p>
+</section>
+
+<script>
+	import { reducedMotion, whileVisible } from '../../lib/motion';
+
+	const section = document.querySelector<HTMLElement>('[data-rights]');
+	const win = section?.querySelector<HTMLElement>('[data-window]');
+	const buttons = [...(section?.querySelectorAll<HTMLButtonElement>('[data-person]') ?? [])];
+	if (section && win) {
+		let chosen = false;
+		const show = (who: string) => {
+			win.dataset.who = who;
+			for (const b of buttons) b.setAttribute('aria-checked', String(b.dataset.person === who));
+		};
+		for (const b of buttons) {
+			b.addEventListener('click', () => {
+				chosen = true;
+				show(b.dataset.person ?? 'admin');
+			});
+		}
+		if (!reducedMotion()) {
+			whileVisible(
+				section,
+				async (sleep) => {
+					for (;;) {
+						await sleep(2600);
+						if (chosen) return;
+						show('analyst');
+						await sleep(4600);
+						if (chosen) return;
+						show('admin');
+					}
+				},
+				0.4,
+			);
+		}
+	}
+</script>
+
+<style>
+	.window {
+		max-width: 1080px;
+		margin: 72px auto 0;
+		border: 1px solid var(--tm-line);
+		border-radius: 24px;
+		background: #fff;
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.04),
+			0 50px 100px -50px rgba(16, 40, 16, 0.35);
+		overflow: hidden;
+	}
+	.bar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 14px;
+		padding: 16px 20px;
+		border-bottom: 1px solid var(--tm-line);
+		background: #fbfbfc;
+	}
+	.as {
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--tm-slate);
+	}
+	.switch {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		padding: 4px;
+		border-radius: 16px;
+		background: #ececf0;
+	}
+	.thumb {
+		position: absolute;
+		top: 4px;
+		bottom: 4px;
+		left: 4px;
+		width: calc(50% - 4px);
+		border-radius: 12px;
+		background: #fff;
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.08),
+			0 6px 16px -6px rgba(0, 0, 0, 0.18);
+		transition: transform 0.55s cubic-bezier(0.3, 1.3, 0.4, 1);
+	}
+	[data-who='analyst'] .thumb {
+		transform: translateX(100%);
+	}
+	.switch button {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 7px 16px 7px 8px;
+		text-align: left;
+		opacity: 0.6;
+		transition: opacity 0.3s ease;
+	}
+	.switch button[aria-checked='true'] {
+		opacity: 1;
+	}
+	.avatar {
+		display: grid;
+		place-items: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 50%;
+		font-size: 12px;
+		font-weight: 700;
+		color: #fff;
+		flex-shrink: 0;
+	}
+	.id {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.25;
+	}
+	.id b {
+		font-size: 14px;
+		white-space: nowrap;
+	}
+	.id small {
+		font-size: 12px;
+		color: var(--tm-slate);
+		white-space: nowrap;
+	}
+
+	.body {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 320px;
+	}
+	.table {
+		padding: 18px 22px 22px;
+		min-height: 360px;
+	}
+	.t-title {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 12px;
+	}
+	.tname {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-family: var(--bd-font-mono);
+		font-size: 13.5px;
+		font-weight: 600;
+	}
+	.count {
+		display: inline-grid;
+		font-size: 13px;
+		font-weight: 600;
+		color: #1c7a12;
+	}
+	.count > span,
+	.log ul {
+		grid-area: 1 / 1;
+		transition: opacity 0.4s ease;
+	}
+	.count > span {
+		padding: 3px 10px;
+		border-radius: 999px;
+		background: #ecf8e9;
+		text-align: center;
+	}
+	[data-who='admin'] .for-analyst,
+	[data-who='analyst'] .for-admin {
+		opacity: 0;
+		visibility: hidden;
+	}
+	.row {
+		display: grid;
+		grid-template-columns: 1.1fr 1.4fr 0.8fr 1.2fr;
+		align-items: center;
+		gap: 12px;
+		max-height: 46px;
+		padding: 0 4px;
+		border-bottom: 1px solid #f1f1f4;
+		font-size: 14px;
+		overflow: hidden;
+		transition:
+			max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1) calc(var(--i, 0) * 0.04s),
+			opacity 0.4s ease calc(var(--i, 0) * 0.04s),
+			background-color 0.4s ease;
+	}
+	.row > span {
+		padding: 12px 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.row.head {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--tm-slate);
+	}
+	.row.head > span {
+		padding: 8px 0;
+	}
+	[data-who='analyst'] .row.other {
+		max-height: 0;
+		opacity: 0;
+		border-bottom-color: transparent;
+	}
+	.name {
+		font-weight: 600;
+	}
+	.mail {
+		display: inline-grid;
+	}
+	.mail > span {
+		grid-area: 1 / 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		transition:
+			opacity 0.45s ease,
+			filter 0.45s ease,
+			transform 0.45s ease;
+	}
+	.clear {
+		color: #3f3f46;
+	}
+	.masked {
+		justify-self: start;
+		padding: 1px 8px;
+		border-radius: 6px;
+		font-family: var(--bd-font-mono);
+		font-size: 13px;
+		color: #6d28d9;
+		background: #f3efff;
+		opacity: 0;
+		filter: blur(6px);
+		transform: scale(0.9);
+	}
+	[data-who='analyst'] .clear {
+		opacity: 0;
+		filter: blur(6px);
+	}
+	[data-who='analyst'] .masked {
+		opacity: 1;
+		filter: none;
+		transform: none;
+	}
+	[data-who='analyst'] .row.head .mail {
+		color: #6d28d9;
+	}
+	.region {
+		padding: 2px 9px;
+		border-radius: 999px;
+		font-size: 12.5px;
+		font-style: normal;
+		font-weight: 500;
+		background: #f4f4f5;
+		transition:
+			background-color 0.4s ease,
+			color 0.4s ease;
+	}
+	[data-who='analyst'] .region.mine {
+		color: #1c7a12;
+		background: #ecf8e9;
+	}
+
+	.log {
+		display: grid;
+		grid-template-rows: auto auto 1fr;
+		gap: 14px;
+		padding: 20px;
+		color: #d2d2d7;
+		background: #0e1210;
+	}
+	.log-title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		font-family: var(--bd-font-mono);
+		font-size: 12.5px;
+		color: #86868b;
+	}
+	.live {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #3fcb2a;
+		box-shadow: 0 0 0 0 rgba(63, 203, 42, 0.6);
+		animation: rg-ping 1.8s ease-out infinite;
+	}
+	@keyframes rg-ping {
+		to {
+			box-shadow: 0 0 0 9px rgba(63, 203, 42, 0);
+		}
+	}
+	.log ul {
+		grid-row: 2;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.log li {
+		display: flex;
+		align-items: flex-start;
+		gap: 9px;
+		font-family: var(--bd-font-mono);
+		font-size: 12.5px;
+		line-height: 1.5;
+		opacity: 0;
+		transform: translateY(6px);
+		transition:
+			opacity 0.35s ease,
+			transform 0.35s ease;
+	}
+	.log li svg {
+		flex-shrink: 0;
+		margin-top: 3px;
+		color: #6ee08a;
+	}
+	[data-who='admin'] .for-admin li,
+	[data-who='analyst'] .for-analyst li {
+		opacity: 1;
+		transform: none;
+		transition-delay: calc(0.25s + var(--i) * 0.22s);
+	}
+	.rule {
+		grid-row: 3;
+		align-self: end;
+		justify-self: start;
+		padding: 8px 12px;
+		border: 1px dashed rgba(110, 224, 138, 0.4);
+		border-radius: 10px;
+		font-size: 12.5px;
+		color: #6ee08a;
+		opacity: 0.35;
+		transition: opacity 0.4s ease;
+	}
+	[data-who='analyst'] .rule {
+		opacity: 1;
+	}
+	.more {
+		margin: 48px 0 0;
+		text-align: center;
+	}
+
+	@media (max-width: 860px) {
+		.body {
+			grid-template-columns: 1fr;
+		}
+		.row {
+			grid-template-columns: 1fr 1.2fr;
+		}
+		.row > span:nth-child(3),
+		.row > span:nth-child(4) {
+			display: none;
+		}
+		.table {
+			min-height: 0;
+		}
+		.log {
+			min-height: 200px;
+		}
+	}
+	@media (max-width: 560px) {
+		.switch {
+			width: 100%;
+		}
+		.switch button {
+			min-width: 0;
+			padding: 8px 10px;
+		}
+		.switch .avatar,
+		.id small {
+			display: none;
+		}
+		.id {
+			min-width: 0;
+		}
+		.id b {
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.live {
+			animation: none;
+		}
+	}
+</style>

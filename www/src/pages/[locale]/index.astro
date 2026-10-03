@@ -1,0 +1,13 @@
+---
+/* The home page in every language but French (which lives at the root). */
+import { type Locale, PREFIXED_LOCALES } from '../../i18n';
+import Home from '../../views/Home.astro';
+
+export function getStaticPaths() {
+	return PREFIXED_LOCALES.map((l) => ({ params: { locale: l.code } }));
+}
+
+const locale = Astro.params.locale as Locale;
+---
+
+<Home locale={locale} />

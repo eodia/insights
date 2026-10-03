@@ -1,0 +1,129 @@
+---
+import { type Locale, fill, i18n } from '../../i18n';
+import LanguagePicker from './LanguagePicker.astro';
+import Logo from './Logo.astro';
+
+interface Props {
+	locale: Locale;
+	/** The page, as the French site writes it: `/`. */
+	path: string;
+}
+
+const { locale, path } = Astro.props;
+const { t, href, html } = i18n(locale);
+const columns = Object.values(t.footer.columns);
+---
+
+<footer class="bd-footer">
+	<div class="inner">
+		<div class="brand">
+			<Logo size={26} />
+			<p>{t.footer.tagline}</p>
+			<p class="small" set:html={html(t.footer.madeBy)} />
+			<div class="lang">
+				<LanguagePicker locale={locale} path={path} variant="footer" />
+			</div>
+		</div>
+		{
+			columns.map((c) => (
+				<nav aria-label={c.title}>
+					<h3>{c.title}</h3>
+					<ul>
+						{c.links.map((l) => (
+							<li>
+								<a href={href(l.href)}>{l.label}</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+			))
+		}
+	</div>
+	<div class="bottom">
+		<span set:html={html(fill(t.footer.copyright, { year: new Date().getFullYear() }))} />
+		<span>{t.footer.builtWith}</span>
+	</div>
+</footer>
+
+<style>
+	.bd-footer {
+		border-top: 1px solid var(--bd-border);
+		background: #fff;
+	}
+	.inner {
+		display: grid;
+		grid-template-columns: 1.5fr repeat(4, 1fr);
+		gap: 32px;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 56px 24px 40px;
+	}
+	.brand p {
+		margin: 14px 0 0;
+		font-size: 14px;
+		line-height: 1.6;
+		color: var(--bd-text-soft);
+		max-width: 280px;
+	}
+	.brand .small {
+		margin-top: 8px;
+		font-size: 13px;
+		color: var(--bd-muted-fg);
+	}
+	.lang {
+		margin-top: 18px;
+	}
+	h3 {
+		margin: 4px 0 14px;
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--bd-muted-fg);
+	}
+	ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+	nav a {
+		font-size: 14px;
+		color: var(--bd-text-soft);
+	}
+	nav a:hover {
+		color: var(--bd-primary);
+	}
+	.brand :global(.eodia),
+	.bottom :global(a) {
+		font-size: inherit;
+		font-weight: 600;
+		color: var(--bd-text);
+	}
+	.brand :global(.eodia:hover),
+	.bottom :global(a:hover) {
+		color: var(--bd-primary);
+	}
+	.bottom {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 12px;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 18px 24px 32px;
+		border-top: 1px solid var(--bd-border-subtle);
+		font-size: 13px;
+		color: var(--bd-muted-fg);
+	}
+	@media (max-width: 900px) {
+		.inner {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.brand {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

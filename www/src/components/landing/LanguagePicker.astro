@@ -1,0 +1,195 @@
+---
+/*
+ * The twenty languages, each a link to the same page in that language. A disclosure: it
+ * opens and closes without JavaScript; with it, a click outside or Escape closes it too.
+ * A click on a language keeps it (`data-bd-lang`, read by the head script of `Landing`).
+ */
+import { LOCALES, type Locale, fill, i18n, localizedPath } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+	/** The page, as the French site writes it: `/`. */
+	path: string;
+	/** `nav`: a short code under the navbar; `footer`: the language's name, opening upwards. */
+	variant?: 'nav' | 'footer';
+}
+
+const { locale, path, variant = 'nav' } = Astro.props;
+const { t } = i18n(locale);
+const current = LOCALES.find((l) => l.code === locale) ?? LOCALES[0];
+const short = current.code.split('-')[0]!.toUpperCase();
+---
+
+<details class:list={['bd-lang', variant]} data-bd-lang-picker>
+	<summary aria-label={fill(t.language.current, { name: current.label })} title={t.language.label}>
+		<svg class="globe" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+			><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg
+		>
+		<span class="current" aria-hidden="true">{variant === 'nav' ? short : current.label}</span>
+		<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+			><polyline points="6 9 12 15 18 9"></polyline></svg
+		>
+	</summary>
+	<div class="menu">
+		<p class="title">{t.language.label}</p>
+		<ul>
+			{
+				LOCALES.map((l) => (
+					<li>
+						<a
+							href={localizedPath(l.code, path)}
+							hreflang={l.lang}
+							lang={l.lang}
+							data-bd-lang={l.code}
+							aria-current={l.code === locale ? 'page' : undefined}
+						>
+							{l.label}
+							{l.code === locale && (
+								<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+									<polyline points="20 6 9 17 4 12" />
+								</svg>
+							)}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</details>
+
+<script>
+	// Closed by a click elsewhere, or by Escape (focus back on its button).
+	const pickers = [...document.querySelectorAll<HTMLDetailsElement>('[data-bd-lang-picker]')];
+	document.addEventListener('click', (event) => {
+		for (const picker of pickers) {
+			if (picker.open && !picker.contains(event.target as Node)) picker.open = false;
+		}
+	});
+	document.addEventListener('keydown', (event) => {
+		if (event.key !== 'Escape') return;
+		for (const picker of pickers) {
+			if (!picker.open) continue;
+			picker.open = false;
+			picker.querySelector('summary')?.focus();
+		}
+	});
+</script>
+
+<style>
+	.bd-lang {
+		position: relative;
+	}
+	summary {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		height: 32px;
+		padding: 0 9px;
+		border: 1px solid var(--bd-border);
+		border-radius: 8px;
+		background: var(--bd-card);
+		color: var(--bd-text-soft);
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	summary:hover,
+	.bd-lang[open] summary {
+		color: var(--bd-text);
+		border-color: #cfd3cc;
+	}
+	.current {
+		letter-spacing: 0.02em;
+	}
+	.chev {
+		color: var(--bd-muted-fg);
+		transition: transform 0.15s ease;
+	}
+	.bd-lang[open] .chev {
+		transform: rotate(180deg);
+	}
+	.menu {
+		position: absolute;
+		top: calc(100% + 8px);
+		right: 0;
+		z-index: 60;
+		width: min(260px, calc(100vw - 32px));
+		padding: 10px;
+		border: 1px solid var(--bd-border);
+		border-radius: 14px;
+		background: var(--bd-card);
+		box-shadow: var(--bd-shadow-lg);
+	}
+	.footer .menu {
+		top: auto;
+		bottom: calc(100% + 8px);
+		right: auto;
+		left: 0;
+	}
+	.title {
+		margin: 2px 8px 8px;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--bd-muted-fg);
+	}
+	ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 2px;
+	}
+	a {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 6px;
+		padding: 7px 9px;
+		border-radius: 8px;
+		font-size: 13.5px;
+		font-weight: 500;
+		color: var(--bd-text-soft);
+		white-space: nowrap;
+	}
+	a:hover {
+		background: var(--bd-muted);
+		color: var(--bd-text);
+	}
+	a[aria-current='page'] {
+		background: var(--bd-primary-soft);
+		color: var(--bd-primary);
+		font-weight: 600;
+	}
+	/* On a narrow screen, the navbar's menu spans the width under the navbar (whose blur
+	   makes it the containing block of `fixed`). */
+	@media (max-width: 960px) {
+		.nav .menu {
+			position: fixed;
+			top: calc(100% + 6px);
+			left: 16px;
+			right: 16px;
+			width: auto;
+		}
+	}
+	/* The footer's columns follow it on a narrow screen: room below, not above. */
+	@media (max-width: 900px) {
+		.footer .menu {
+			top: calc(100% + 8px);
+			bottom: auto;
+		}
+	}
+	@media (max-width: 400px) {
+		a {
+			padding: 7px;
+			font-size: 13px;
+		}
+	}
+</style>

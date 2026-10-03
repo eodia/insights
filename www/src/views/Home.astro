@@ -1,0 +1,172 @@
+---
+/**
+ * The home page, told like a product keynote: one idea per screen, the product doing the
+ * talking. `src/pages/index.astro` (French) and `src/pages/[locale]/index.astro` show it.
+ *
+ * Its texts are in the dictionary (`src/i18n/ui/fr.ts`); its shared styles,
+ * `src/styles/home.css`.
+ */
+import '../styles/home.css';
+import Agents from '../components/home/Agents.astro';
+import Copilot from '../components/home/Copilot.astro';
+import Dashboards from '../components/home/Dashboards.astro';
+import Engine from '../components/home/Engine.astro';
+import Features from '../components/home/Features.astro';
+import Rights from '../components/home/Rights.astro';
+import SelfHost from '../components/home/SelfHost.astro';
+import Story from '../components/home/Story.astro';
+import { type Locale, i18n } from '../i18n';
+import Landing from '../layouts/Landing.astro';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+---
+
+<Landing locale={locale} path="/" title={t.meta.title} description={t.meta.description}>
+	<main class="tm">
+		<Story locale={locale} />
+		<Engine locale={locale} />
+		<Rights locale={locale} />
+		<Copilot locale={locale} />
+		<Dashboards locale={locale} />
+		<Agents locale={locale} />
+		<Features locale={locale} />
+		<SelfHost locale={locale} />
+
+		<section class="tm-section faq" id="faq">
+			<h2 class="tm-display tm-rise">{t.faq.title}</h2>
+			<div class="faq-list tm-rise">
+				{
+					Object.values(t.faq.items).map((item) => (
+						<details>
+							<summary>{item.q}</summary>
+							<p>{item.a}</p>
+						</details>
+					))
+				}
+			</div>
+		</section>
+
+		<section class="tm-section finale">
+			<div class="glow" aria-hidden="true"></div>
+			<div class="tm-head">
+				<img class="finale-mark tm-rise" src={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/brand/mark.svg`} width="72" height="72" alt="" />
+				<h2 class="tm-display tm-rise">
+					<span>{t.cta.title}</span>
+					<span class="tm-grad">{t.cta.titleAccent}</span>
+				</h2>
+				<p class="tm-lede tm-rise">{t.cta.text}</p>
+				<div class="tm-actions tm-rise">
+					<a class="tm-pill" href={href('/guides/installation/')}>{t.cta.primary}</a>
+					<a class="tm-link" href="https://github.com/eodia/insights">{t.cta.secondary}</a>
+				</div>
+			</div>
+		</section>
+	</main>
+</Landing>
+
+<script>
+	// What rises into view, once.
+	const risers = document.querySelectorAll('.tm-rise');
+	const observer = new IntersectionObserver(
+		(entries) => {
+			for (const entry of entries) {
+				if (!entry.isIntersecting) continue;
+				entry.target.classList.add('is-in');
+				observer.unobserve(entry.target);
+			}
+		},
+		{ rootMargin: '0px 0px -12% 0px' },
+	);
+	for (const el of risers) observer.observe(el);
+</script>
+
+
+<style>
+	/* Questions */
+	.faq {
+		display: grid;
+		grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+		gap: 64px;
+		max-width: 1180px;
+		margin: 0 auto;
+		align-items: start;
+	}
+	.faq .tm-display {
+		font-size: clamp(40px, 5vw, 64px);
+	}
+	.faq-list {
+		border-top: 1px solid var(--tm-line);
+	}
+	details {
+		border-bottom: 1px solid var(--tm-line);
+	}
+	summary {
+		display: flex;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 24px 2px;
+		font-size: 19px;
+		font-weight: 600;
+		letter-spacing: -0.015em;
+		cursor: pointer;
+		list-style: none;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	summary::after {
+		content: '+';
+		font-size: 26px;
+		font-weight: 300;
+		line-height: 1;
+		color: var(--tm-slate);
+		transition: transform 0.25s ease;
+	}
+	details[open] summary::after {
+		transform: rotate(45deg);
+	}
+	details p {
+		max-width: 680px;
+		margin: -6px 0 26px;
+		font-size: 17px;
+		line-height: 1.6;
+		color: var(--tm-slate);
+	}
+
+	/* The last word */
+	.finale {
+		overflow: hidden;
+		padding-top: 80px;
+		padding-bottom: clamp(120px, 16vw, 200px);
+	}
+	.finale .glow {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(40% 50% at 50% 60%, rgba(45, 163, 30, 0.14), transparent 70%);
+		pointer-events: none;
+	}
+	.finale .tm-head {
+		position: relative;
+	}
+	.finale-mark {
+		display: block;
+		margin: 0 auto 28px;
+		border-radius: 18px;
+		box-shadow: 0 24px 50px -18px rgba(31, 138, 21, 0.6);
+	}
+	.finale .tm-display {
+		font-size: clamp(38px, 5.4vw, 76px);
+	}
+
+	@media (max-width: 900px) {
+		.faq {
+			grid-template-columns: 1fr;
+			gap: 32px;
+		}
+	}
+</style>

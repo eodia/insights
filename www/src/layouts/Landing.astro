@@ -1,0 +1,74 @@
+---
+import '../styles/landing.css';
+import Navbar from '../components/landing/Navbar.astro';
+import SiteFooter from '../components/landing/SiteFooter.astro';
+import { LOCALES, type Locale, i18n, localizedPath } from '../i18n';
+import { languageScript } from '../i18n/detect';
+
+interface Props {
+	locale: Locale;
+	/** The page, as the French site writes it: `/`. */
+	path: string;
+	title: string;
+	description: string;
+}
+
+const { locale, path, title, description } = Astro.props;
+const { lang, t } = i18n(locale);
+const info = LOCALES.find((l) => l.code === locale) ?? LOCALES[0];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const canonical = new URL(localizedPath(locale, path), Astro.site);
+const image = new URL(`${base}/brand/icon-512.png`, Astro.site).href;
+const alternates = LOCALES.map((l) => ({ hreflang: l.lang, href: new URL(localizedPath(l.code, path), Astro.site).href }));
+
+// Who makes eodia insights, said to search engines as well as to readers.
+const eodia = { '@type': 'Organization', name: 'Eodia', url: 'https://eodia.com/' };
+const structured = {
+	'@context': 'https://schema.org',
+	'@type': 'SoftwareApplication',
+	name: 'eodia insights',
+	description,
+	inLanguage: lang,
+	url: new URL(localizedPath(locale, '/'), Astro.site).href,
+	applicationCategory: 'BusinessApplication',
+	operatingSystem: 'Linux, Docker',
+	license: 'https://www.gnu.org/licenses/agpl-3.0.html',
+	isAccessibleForFree: true,
+	author: eodia,
+	publisher: eodia,
+};
+---
+
+<!doctype html>
+<html lang={lang}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script is:inline set:html={languageScript(base)} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="author" content="Eodia" />
+		<link rel="canonical" href={canonical} />
+		{alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+		<link rel="alternate" hreflang="x-default" href={alternates[0]!.href} />
+		<link rel="author" href={t.eodia.home} />
+		<script type="application/ld+json" set:html={JSON.stringify(structured)} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:locale" content={info.og} />
+		<meta property="og:site_name" content="eodia insights" />
+		<meta property="og:image" content={image} />
+		<meta name="twitter:card" content="summary" />
+		<meta name="theme-color" content="#0f2a1c" />
+		<link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+		<link rel="apple-touch-icon" sizes="180x180" href={`${base}/apple-touch-icon.png`} />
+		<script is:inline>document.documentElement.classList.add('bd-js');</script>
+	</head>
+	<body>
+		<Navbar locale={locale} path={path} />
+		<slot />
+		<SiteFooter locale={locale} path={path} />
+	</body>
+</html>

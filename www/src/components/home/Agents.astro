@@ -1,0 +1,373 @@
+---
+/**
+ * For agents and developers: the same data through the MCP server, the REST API and the
+ * signed embedding. Three tabs over one dark window — Claude calling `query_metric` and
+ * answering, a `curl` that runs a question, the token a host application signs to show a
+ * dashboard to its own visitor. The MCP conversation plays once when it comes into view.
+ */
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+const a = t.agents;
+
+const c = (w: string) => `<span class="c">${w}</span>`;
+const s = (w: string) => `<span class="s">${w}</span>`;
+const k = (w: string) => `<span class="k">${w}</span>`;
+const REST = [
+	`${c('# Exécuter une question enregistrée, sous les droits du jeton')}`,
+	`curl -X POST https://insights.exemple.fr/api/v1/questions/$QUESTION_ID/run \\`,
+	`  -H ${s('"Authorization: Bearer eoi_…"')} \\`,
+	`  -H ${s('"Content-Type: application/json"')} -d ${s("'{}'")}`,
+	'',
+	`${c('# Toute l’API, décrite en OpenAPI 3.1')}`,
+	`curl https://insights.exemple.fr/api/v1/openapi.json`,
+].join('\n');
+const EMBED = [
+	`${c('// Dans votre application : signez, puis intégrez.')}`,
+	`${k('const')} token = jwt.sign({`,
+	`  resource: { dashboard: DASHBOARD_ID },`,
+	`  user: { id: ${s("'client-42'")}, attributes: { region: ${s("'Bretagne'")} } },`,
+	`}, secret, { algorithm: ${s("'HS256'")}, keyid: kid, expiresIn: ${s("'10m'")} });`,
+	'',
+	`&lt;iframe src=${s('"https://insights.exemple.fr/embed?token=${token}"')}&gt;`,
+].join('\n');
+---
+
+<section class="tm-section night agents" data-agents>
+	<div class="inner">
+		<div class="text">
+			<p class="tm-kicker tm-rise">{a.kicker}</p>
+			<h2 class="tm-display tm-rise">
+				<span>{a.title}</span>
+				<span class="tm-grad">{a.titleAccent}</span>
+			</h2>
+			<p class="lede tm-rise">{a.lede}</p>
+			<p class="tools-label tm-rise">{a.toolsLabel}</p>
+			<ul class="tools tm-rise">
+				{a.tools.map((tool) => <li><code>{tool}</code></li>)}
+			</ul>
+			<div class="links tm-rise">
+				<a class="tm-link" href={href('/integrations/mcp/')}>{a.link}</a>
+				<a class="tm-link" href={href('/integrations/api-rest/')}>{a.linkApi}</a>
+			</div>
+		</div>
+
+		<div class="window tm-rise" data-window data-tab="mcp">
+			<div class="tabs" role="tablist">
+				{
+					(['mcp', 'rest', 'embed'] as const).map((id) => (
+						<button type="button" role="tab" data-tab-id={id} aria-selected={id === 'mcp' ? 'true' : 'false'}>
+							{a.tabs[id]}
+						</button>
+					))
+				}
+			</div>
+
+			<div class="panel mcp" data-panel="mcp" data-play>
+				<div class="bubble user">{a.chat.user}</div>
+				<div class="call">
+					<span class="call-head">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+						eodia-insights · <b>{a.chat.tool}</b>
+					</span>
+					<code>{a.chat.toolArgs}</code>
+					<span class="call-bar"><i></i></span>
+				</div>
+				<div class="bubble bot" set:html={a.chat.answer} />
+			</div>
+			<pre class="panel code" data-panel="rest"><code set:html={REST} /></pre>
+			<pre class="panel code" data-panel="embed"><code set:html={EMBED} /></pre>
+		</div>
+	</div>
+</section>
+
+<script>
+	const win = document.querySelector<HTMLElement>('[data-agents] [data-window]');
+	if (win) {
+		const tabs = [...win.querySelectorAll<HTMLButtonElement>('[data-tab-id]')];
+		for (const tab of tabs) {
+			tab.addEventListener('click', () => {
+				win.dataset.tab = tab.dataset.tabId ?? 'mcp';
+				for (const t of tabs) t.setAttribute('aria-selected', String(t === tab));
+			});
+		}
+		const play = win.querySelector<HTMLElement>('[data-play]');
+		if (play) {
+			play.dataset.play = 'wait';
+			new IntersectionObserver(
+				([entry], observer) => {
+					if (!entry?.isIntersecting) return;
+					play.dataset.play = 'go';
+					observer.disconnect();
+				},
+				{ threshold: 0.5 },
+			).observe(play);
+		}
+	}
+</script>
+
+<style>
+	.agents {
+		overflow: hidden;
+	}
+	.agents::before {
+		content: '';
+		position: absolute;
+		right: -10%;
+		top: 10%;
+		width: 700px;
+		height: 700px;
+		border-radius: 50%;
+		background: radial-gradient(closest-side, rgba(62, 224, 178, 0.1), transparent);
+		pointer-events: none;
+	}
+	.inner {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+		align-items: center;
+		gap: 64px;
+		max-width: 1180px;
+		margin: 0 auto;
+	}
+	.text .tm-display {
+		font-size: clamp(38px, 4.4vw, 60px);
+	}
+	.lede {
+		margin: 24px 0 0;
+		font-size: clamp(17px, 1.6vw, 20px);
+		line-height: 1.5;
+		color: var(--tm-night-slate);
+	}
+	.tools-label {
+		margin: 32px 0 12px;
+		font-size: 13px;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #6e6e73;
+	}
+	.tools {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.tools code {
+		display: inline-block;
+		padding: 5px 10px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		font-size: 13px;
+		color: #d2d2d7;
+		background: rgba(255, 255, 255, 0.04);
+	}
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 28px;
+		margin-top: 32px;
+	}
+
+	.window {
+		position: relative;
+		display: grid;
+		grid-template-rows: auto 1fr;
+		min-height: 440px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 24px;
+		background: linear-gradient(180deg, #151816, #0c0e0d);
+		box-shadow: 0 60px 120px -50px rgba(62, 224, 178, 0.3);
+		overflow: hidden;
+	}
+	.tabs {
+		display: flex;
+		gap: 4px;
+		padding: 12px 12px 0;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	}
+	.tabs button {
+		position: relative;
+		padding: 10px 16px 14px;
+		font-size: 14px;
+		font-weight: 600;
+		color: #86868b;
+		transition: color 0.2s ease;
+	}
+	.tabs button::after {
+		content: '';
+		position: absolute;
+		left: 12px;
+		right: 12px;
+		bottom: -1px;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--tm-grad-night);
+		transform: scaleX(0);
+		transition: transform 0.3s ease;
+	}
+	.tabs button[aria-selected='true'] {
+		color: #f5f5f7;
+	}
+	.tabs button[aria-selected='true']::after {
+		transform: none;
+	}
+	.panel {
+		grid-area: 2 / 1;
+		margin: 0;
+		padding: 26px;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(8px);
+		transition:
+			opacity 0.35s ease,
+			visibility 0.35s,
+			transform 0.45s ease;
+	}
+	[data-tab='mcp'] [data-panel='mcp'],
+	[data-tab='rest'] [data-panel='rest'],
+	[data-tab='embed'] [data-panel='embed'] {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+	}
+
+	.mcp {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+	.bubble {
+		max-width: 88%;
+		padding: 14px 18px;
+		font-size: 15.5px;
+		line-height: 1.55;
+	}
+	.bubble.user {
+		align-self: flex-end;
+		border-radius: 20px 20px 6px 20px;
+		color: #fff;
+		background: #2a2d2b;
+	}
+	.bubble.bot {
+		align-self: flex-start;
+		border-radius: 20px 20px 20px 6px;
+		color: #e8e8ed;
+		background: rgba(255, 255, 255, 0.05);
+	}
+	.bubble.bot :global(b) {
+		color: #c9f06b;
+	}
+	.call {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		align-self: flex-start;
+		min-width: 70%;
+		padding: 12px 14px;
+		border: 1px solid rgba(110, 224, 138, 0.25);
+		border-radius: 14px;
+		background: rgba(110, 224, 138, 0.05);
+	}
+	.call-head {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+		color: #86868b;
+	}
+	.call-head b {
+		font-family: var(--bd-font-mono);
+		font-weight: 600;
+		color: #6ee08a;
+	}
+	.call code {
+		font-size: 12.5px;
+		color: #d2d2d7;
+	}
+	.call-bar {
+		height: 3px;
+		border-radius: 2px;
+		background: rgba(255, 255, 255, 0.06);
+		overflow: hidden;
+	}
+	.call-bar i {
+		display: block;
+		height: 100%;
+		background: var(--tm-grad-night);
+		transform-origin: left;
+	}
+	/* Played once: the call runs, then the answer comes. */
+	[data-play] > * {
+		transition:
+			opacity 0.5s ease,
+			transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+	[data-play='wait'] > :not(.user) {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	[data-play='go'] .call {
+		transition-delay: 0.6s;
+	}
+	[data-play='wait'] .call-bar i {
+		transform: scaleX(0);
+	}
+	[data-play='go'] .call-bar i {
+		transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.9s;
+	}
+	[data-play='go'] .bubble.bot {
+		transition-delay: 2.3s;
+	}
+
+	.code {
+		overflow-x: auto;
+		font-size: 13.5px;
+		line-height: 1.8;
+		color: #d2d2d7;
+		white-space: pre;
+	}
+	.code :global(.c) {
+		color: #6e6e73;
+	}
+	.code :global(.s) {
+		color: #6ee08a;
+	}
+	.code :global(.k) {
+		color: #c4a5f5;
+	}
+
+	@media (max-width: 960px) {
+		.inner {
+			grid-template-columns: 1fr;
+			gap: 48px;
+		}
+	}
+	@media (max-width: 560px) {
+		.panel {
+			padding: 18px;
+		}
+		.code {
+			font-size: 12px;
+		}
+		.bubble {
+			font-size: 14.5px;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		[data-play='wait'] > :not(.user) {
+			opacity: 1;
+			transform: none;
+		}
+		[data-play='wait'] .call-bar i {
+			transform: none;
+		}
+	}
+</style>

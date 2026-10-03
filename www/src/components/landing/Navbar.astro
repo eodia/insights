@@ -1,0 +1,883 @@
+---
+/**
+ * The bar of the landing page, and its menu.
+ *
+ * Three panels open under the bar — Produit, Développeurs, Ressources — each entry with the
+ * sentence that says what it is. A panel opens on hover (after a short pause, so that
+ * crossing the bar opens nothing), on click, or from the keyboard; Escape, a click
+ * elsewhere or focus leaving the menu close it. Without JavaScript, hover and focus open
+ * it all the same. Under 1024 px the same content unfolds in a sheet, section by section.
+ * Over a black section (`.night`), the bar goes dark with it.
+ */
+import { type Locale, i18n } from '../../i18n';
+import Icon from './Icon.astro';
+import type { IconName } from './icons';
+import LanguagePicker from './LanguagePicker.astro';
+import Logo from './Logo.astro';
+
+interface Props {
+	locale: Locale;
+	/** The page, as the French site writes it: `/`. */
+	path: string;
+}
+
+const { locale, path } = Astro.props;
+const { t, href } = i18n(locale);
+const m = t.nav.menu;
+
+/** Each entry's icon, by its key in the dictionary. */
+const ICON: Record<string, IconName> = {
+	sources: 'server',
+	questions: 'search',
+	models: 'layers',
+	dashboards: 'chart',
+	sharing: 'link',
+	copilot: 'sparkles',
+	rights: 'shield',
+	sso: 'key',
+	principles: 'compass',
+	api: 'code',
+	mcp: 'cpu',
+	embed: 'columns',
+	docker: 'box',
+	env: 'sliders',
+	install: 'download',
+	docs: 'book',
+	start: 'play',
+	github: 'github',
+	eodia: 'building',
+};
+
+type Item = { href: string; title: string; text: string };
+const groupsOf = (groups: Record<string, { title: string; items: Record<string, Item> }>) =>
+	Object.values(groups).map((g) => ({
+		title: g.title,
+		items: Object.entries(g.items).map(([key, item]) => ({ ...item, icon: ICON[key] ?? 'arrowRight', href: href(item.href) })),
+	}));
+
+/** The card of the developers' panel: a stack started, a question asked. */
+const CODE = [
+	'<span class="p">$</span> docker compose up -d',
+	'<span class="p">trino&gt;</span> select region, count(*)',
+	'    from boutique.clients',
+	'    group by 1;',
+].join('\n');
+const external = (url: string) => /^https?:\/\//.test(url);
+const target = (url: string) => (external(url) ? { target: '_blank', rel: 'noopener' } : {});
+
+const panels = [
+	{ id: 'product', label: m.product.label, groups: groupsOf(m.product.groups), cols: 'three' },
+	{ id: 'developers', label: m.developers.label, groups: groupsOf(m.developers.groups), cols: 'two' },
+	{ id: 'resources', label: m.resources.label, groups: groupsOf(m.resources.groups), cols: 'two' },
+] as const;
+---
+
+<header class="bd-nav-wrap" data-nav>
+	<nav class="bd-nav" aria-label={t.nav.aria}>
+		<a href={href('/')} class="bd-nav-logo" aria-label={t.nav.home}>
+			<Logo size={26} />
+		</a>
+
+		<ul class="bd-menu">
+			{
+				panels.map((p) => (
+					<li class="bd-menu-item" data-menu={p.id}>
+						<button type="button" class="bd-trigger" aria-expanded="false" aria-controls={`bd-panel-${p.id}`}>
+							{p.label}
+							<Icon name="chevronDown" size={13} stroke={2.4} class="chev" />
+						</button>
+						<div class="bd-panel" id={`bd-panel-${p.id}`}>
+							<div class="bd-panel-inner">
+								<div class:list={['cols', p.cols]}>
+									{p.groups.map((g) => (
+										<div class="group">
+											<p class="group-title">{g.title}</p>
+											<ul>
+												{g.items.map((item) => (
+													<li>
+														<a href={item.href} class="entry" {...target(item.href)}>
+															<span class="glyph">
+																<Icon name={item.icon} />
+															</span>
+															<span class="words">
+																<b>{item.title}</b>
+																<span>{item.text}</span>
+															</span>
+														</a>
+													</li>
+												))}
+											</ul>
+										</div>
+									))}
+								</div>
+
+								{p.id === 'product' && (
+									<a href={href(m.product.feature.href)} class="card dark">
+										<span class="tag">{m.product.feature.tag}</span>
+										<svg class="flow" viewBox="0 0 120 64" aria-hidden="true">
+											<path d="M18 14c18 0 18 18 36 18M18 50c18 0 18-18 36-18M66 32h36" />
+											<circle cx="12" cy="14" r="6" />
+											<circle cx="12" cy="50" r="6" />
+											<circle cx="60" cy="32" r="8" />
+											<circle cx="108" cy="32" r="6" />
+										</svg>
+										<b>{m.product.feature.title}</b>
+										<span>{m.product.feature.text}</span>
+										<span class="more">
+											{m.product.feature.cta}
+											<Icon name="arrowRight" size={14} stroke={2.2} />
+										</span>
+									</a>
+								)}
+
+								{p.id === 'developers' && (
+									<a href={href(m.developers.feature.href)} class="card code">
+										<pre aria-hidden="true" set:html={CODE} />
+										<b>{m.developers.feature.title}</b>
+										<span>{m.developers.feature.text}</span>
+										<span class="more">
+											{m.developers.feature.cta}
+											<Icon name="arrowRight" size={14} stroke={2.2} />
+										</span>
+									</a>
+								)}
+
+								{p.id === 'resources' && (
+									<a href={m.resources.feature.href} class="card mint" target="_blank" rel="noopener">
+										<span class="glyph big">
+											<Icon name="github" size={22} />
+										</span>
+										<span class="tag green">{m.resources.feature.tag}</span>
+										<b>{m.resources.feature.title}</b>
+										<span>{m.resources.feature.text}</span>
+										<span class="more">
+											{m.resources.feature.cta}
+											<Icon name="arrowRight" size={14} stroke={2.2} />
+										</span>
+									</a>
+								)}
+							</div>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+
+		<div class="bd-nav-end">
+			<LanguagePicker locale={locale} path={path} />
+			<a href="https://github.com/eodia/insights" class="bd-nav-gh" aria-label={t.nav.github}>
+				<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+					><path
+						d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+					></path></svg
+				>
+				<span class="gh-label">GitHub</span>
+			</a>
+			<a href={href('/guides/introduction/')} class="bd-nav-docs">{t.nav.docs}</a>
+			<a href={href('/guides/installation/')} class="bd-nav-cta">{t.nav.install}</a>
+			<button type="button" class="bd-burger" aria-expanded="false" aria-controls="bd-sheet" aria-label={m.open} data-open-label={m.open} data-close-label={m.close}>
+				<span></span><span></span>
+			</button>
+		</div>
+	</nav>
+</header>
+
+<!-- Outside the bar: its blur would hold them inside its own box. -->
+<div class="bd-scrim" data-scrim aria-hidden="true"></div>
+
+<div class="bd-sheet" id="bd-sheet" data-sheet hidden>
+	{
+		panels.map((p, i) => (
+			<details open={i === 0}>
+				<summary>
+					{p.label}
+					<Icon name="chevronDown" size={16} stroke={2.2} />
+				</summary>
+				{p.groups.map((g) => (
+					<div class="sheet-group">
+						<p>{g.title}</p>
+						{g.items.map((item) => (
+							<a href={item.href} class="entry" {...target(item.href)}>
+								<span class="glyph">
+									<Icon name={item.icon} />
+								</span>
+								<span class="words">
+									<b>{item.title}</b>
+									<span>{item.text}</span>
+								</span>
+							</a>
+						))}
+					</div>
+				))}
+			</details>
+		))
+	}
+	<div class="sheet-actions">
+		<a href={href('/guides/installation/')} class="bd-btn bd-btn-primary">{t.nav.install}</a>
+		<a href={href('/guides/introduction/')} class="bd-btn bd-btn-secondary">{t.nav.docs}</a>
+		<a href="https://github.com/eodia/insights" class="bd-btn bd-btn-secondary">GitHub</a>
+	</div>
+</div>
+
+<script>
+	const header = document.querySelector<HTMLElement>('[data-nav]');
+	const scrim = document.querySelector<HTMLElement>('[data-scrim]');
+	const sheet = document.querySelector<HTMLElement>('[data-sheet]');
+	const burger = document.querySelector<HTMLButtonElement>('.bd-burger');
+	if (header !== null) {
+		const items = [...header.querySelectorAll<HTMLElement>('[data-menu]')];
+		let open: string | null = null;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+
+		const set = (id: string | null) => {
+			open = id;
+			for (const item of items) {
+				const on = item.dataset.menu === id;
+				item.toggleAttribute('data-open', on);
+				item.querySelector('.bd-trigger')?.setAttribute('aria-expanded', String(on));
+			}
+			header.toggleAttribute('data-open', id !== null);
+			scrim?.toggleAttribute('data-on', id !== null);
+		};
+		const later = (id: string | null, ms: number) => {
+			clearTimeout(timer);
+			timer = setTimeout(() => set(id), ms);
+		};
+
+		for (const item of items) {
+			const id = item.dataset.menu ?? null;
+			const trigger = item.querySelector<HTMLButtonElement>('.bd-trigger');
+			trigger?.addEventListener('click', () => {
+				clearTimeout(timer);
+				set(open === id ? null : id);
+			});
+			// Hover opens after a pause — or at once when another panel is already open.
+			item.addEventListener('pointerenter', (event) => {
+				if (event.pointerType === 'mouse') later(id, open === null ? 110 : 0);
+			});
+			item.addEventListener('pointerleave', (event) => {
+				if (event.pointerType === 'mouse') later(null, 180);
+			});
+		}
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape' || open === null) return;
+			const trigger = header.querySelector<HTMLButtonElement>(`[data-menu="${open}"] .bd-trigger`);
+			set(null);
+			trigger?.focus();
+		});
+		document.addEventListener('click', (event) => {
+			if (open !== null && !header.contains(event.target as Node)) set(null);
+		});
+		header.addEventListener('focusout', (event) => {
+			const next = event.relatedTarget as Node | null;
+			if (open !== null && (next === null || !header.contains(next))) set(null);
+		});
+
+		// The sheet, under 1024 px.
+		const openSheet = (on: boolean) => {
+			if (sheet === null || burger === null) return;
+			sheet.hidden = !on;
+			burger.setAttribute('aria-expanded', String(on));
+			burger.setAttribute('aria-label', (on ? burger.dataset.closeLabel : burger.dataset.openLabel) ?? '');
+			header.toggleAttribute('data-sheet', on);
+			document.documentElement.style.overflow = on ? 'hidden' : '';
+		};
+		burger?.addEventListener('click', () => openSheet(sheet?.hidden === true));
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape' && sheet?.hidden === false) {
+				openSheet(false);
+				burger?.focus();
+			}
+		});
+		sheet?.addEventListener('click', (event) => {
+			if ((event.target as HTMLElement).closest('a') !== null) openSheet(false);
+		});
+		window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+			if (e.matches) openSheet(false);
+		});
+
+		// Over a black section, the bar goes dark with it.
+		const darks = [...document.querySelectorAll<HTMLElement>('.night')];
+		if (darks.length > 0) {
+			let frame = 0;
+			const tone = () => {
+				frame = 0;
+				const dark = darks.some((d) => {
+					const box = d.getBoundingClientRect();
+					return box.top <= 30 && box.bottom >= 30;
+				});
+				header.toggleAttribute('data-dark', dark);
+			};
+			window.addEventListener(
+				'scroll',
+				() => {
+					if (frame === 0) frame = requestAnimationFrame(tone);
+				},
+				{ passive: true },
+			);
+			tone();
+		}
+	}
+</script>
+
+<style>
+	.bd-nav-wrap {
+		position: fixed;
+		inset: 0 0 auto 0;
+		z-index: 50;
+		background: rgba(255, 255, 255, 0.78);
+		backdrop-filter: blur(18px) saturate(180%);
+		-webkit-backdrop-filter: blur(18px) saturate(180%);
+		border-bottom: 1px solid rgba(10, 20, 10, 0.07);
+		transition:
+			background-color 0.3s ease,
+			border-color 0.3s ease;
+	}
+	.bd-nav-wrap[data-open],
+	.bd-nav-wrap[data-sheet] {
+		background: #fff;
+	}
+	/* Over a black section: dark glass, light words — until a panel opens. */
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) {
+		background: rgba(22, 22, 23, 0.72);
+		border-bottom-color: rgba(255, 255, 255, 0.08);
+	}
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) :global(.bd-logo .word) {
+		color: #b9c7bb;
+	}
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) :global(.bd-logo .word b) {
+		color: #f4f8ef;
+	}
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-trigger {
+		color: rgba(245, 245, 247, 0.78);
+	}
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-trigger:hover {
+		color: #fff;
+	}
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-nav-gh,
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-nav-docs,
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) :global(.bd-lang summary) {
+		color: rgba(245, 245, 247, 0.85);
+		background: transparent;
+		border-color: rgba(255, 255, 255, 0.18);
+	}
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-burger span {
+		background: #f5f5f7;
+	}
+	.bd-nav {
+		display: flex;
+		align-items: center;
+		gap: 20px;
+		height: 60px;
+		padding: 0 32px;
+		max-width: 1320px;
+		margin: 0 auto;
+	}
+	.bd-nav-logo {
+		display: flex;
+		flex-shrink: 0;
+		margin-right: 12px;
+	}
+
+	/* The four triggers */
+	.bd-menu {
+		display: flex;
+		align-items: stretch;
+		height: 100%;
+		flex: 1;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.bd-menu-item {
+		display: flex;
+	}
+	.bd-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 0 13px;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--bd-text-soft);
+		transition: color 0.15s ease;
+	}
+	.bd-trigger:hover,
+	.bd-trigger[aria-expanded='true'] {
+		color: var(--bd-text);
+	}
+	.bd-trigger :global(.chev) {
+		opacity: 0.55;
+		transition: transform 0.2s ease;
+	}
+	.bd-trigger[aria-expanded='true'] :global(.chev) {
+		transform: rotate(180deg);
+	}
+
+	/* The panels */
+	.bd-panel {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		background: #fff;
+		border-top: 1px solid var(--bd-border-subtle);
+		box-shadow: 0 30px 60px -30px rgba(16, 24, 16, 0.28);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-6px);
+		transition:
+			opacity 0.2s ease,
+			transform 0.24s ease,
+			visibility 0.2s;
+	}
+	.bd-menu-item[data-open] > .bd-panel,
+	:global(html:not(.bd-js)) .bd-menu-item:hover > .bd-panel,
+	:global(html:not(.bd-js)) .bd-menu-item:focus-within > .bd-panel {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+	}
+	.bd-panel-inner {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 300px;
+		gap: 12px 40px;
+		max-width: 1256px;
+		margin: 0 auto;
+		padding: 30px 32px 30px;
+	}
+	.cols {
+		display: grid;
+		gap: 8px 28px;
+		align-content: start;
+	}
+	.cols.three {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.cols.two {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.group ul,
+	.teams {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.teams {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 2px 20px;
+	}
+	.group-title {
+		margin: 0 0 8px 10px;
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--bd-muted-fg);
+	}
+	.group-title.wide {
+		grid-column: 1 / -1;
+	}
+	.entry {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		padding: 9px 10px;
+		border-radius: 12px;
+		transition: background-color 0.15s ease;
+	}
+	.entry:hover,
+	.entry:focus-visible {
+		background: #f4f6f3;
+	}
+	.glyph {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 10px;
+		background: #eef6ec;
+		color: #1f7a14;
+	}
+	.glyph.tinted {
+		background: color-mix(in srgb, var(--c) 14%, #fff);
+		color: color-mix(in srgb, var(--c) 80%, #000);
+	}
+	.glyph.big {
+		width: 44px;
+		height: 44px;
+		border-radius: 12px;
+	}
+	.words {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.words b {
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--bd-text);
+	}
+	.words em {
+		font-style: normal;
+		font-size: 12px;
+		font-weight: 500;
+		color: var(--bd-primary);
+	}
+	.words span {
+		font-size: 13px;
+		line-height: 1.45;
+		color: var(--bd-muted-fg);
+	}
+
+	/* The card beside each panel */
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		align-self: start;
+		padding: 22px;
+		border-radius: 18px;
+		transition: transform 0.2s ease;
+	}
+	.card:hover {
+		transform: translateY(-2px);
+	}
+	.card b {
+		font-size: 17px;
+		letter-spacing: -0.01em;
+	}
+	.card > span:not(.tag):not(.more):not(.glyph) {
+		font-size: 13.5px;
+		line-height: 1.5;
+	}
+	.card .more {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 6px;
+		font-size: 13.5px;
+		font-weight: 600;
+	}
+	.card .tag {
+		align-self: flex-start;
+		padding: 3px 10px;
+		border-radius: 999px;
+		font-size: 11.5px;
+		font-weight: 700;
+	}
+	.card.dark {
+		color: #e8f5e4;
+		background:
+			radial-gradient(260px 160px at 90% 0%, rgba(63, 203, 42, 0.35), transparent 70%),
+			linear-gradient(160deg, #10271c, #143d2b);
+	}
+	.card.dark .tag {
+		background: rgba(63, 203, 42, 0.18);
+		color: #9ff08c;
+	}
+	.card.dark .more {
+		color: #9ff08c;
+	}
+	.card.dark > span:not(.tag):not(.more) {
+		color: #b8cdb3;
+	}
+	.bars {
+		display: flex;
+		align-items: flex-end;
+		gap: 7px;
+		height: 56px;
+		margin: 6px 0 2px;
+	}
+	.bars i {
+		width: 14px;
+		border-radius: 4px 4px 2px 2px;
+		background: linear-gradient(180deg, #9ff08c, rgba(159, 240, 140, 0.35));
+	}
+	.flow {
+		width: 120px;
+		height: 64px;
+		margin: 6px 0 2px;
+	}
+	.flow path {
+		fill: none;
+		stroke: rgba(159, 240, 140, 0.55);
+		stroke-width: 2;
+		stroke-dasharray: 4 4;
+	}
+	.flow circle {
+		fill: #143d2b;
+		stroke: #9ff08c;
+		stroke-width: 2;
+	}
+	.card.mint {
+		background: linear-gradient(160deg, #effaec, #e3f4f1);
+		color: var(--bd-text);
+	}
+	.card.mint .glyph {
+		background: #fff;
+	}
+	.card.mint > span:not(.more):not(.glyph) {
+		color: var(--bd-text-soft);
+	}
+	.card.mint .more,
+	.card.light .more {
+		color: var(--bd-primary);
+	}
+	.card.code {
+		background: var(--bd-ink);
+		color: #e8f5e4;
+	}
+	.card.code pre {
+		margin: 0 0 6px;
+		padding: 12px 14px;
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.05);
+		font-size: 12.5px;
+		line-height: 1.8;
+		white-space: pre-wrap;
+	}
+	.card.code :global(.p) {
+		color: var(--bd-primary-vivid);
+	}
+	.card.code > span:not(.more) {
+		color: #b8cdb3;
+	}
+	.card.code .more {
+		color: #9ff08c;
+	}
+	.card.light {
+		background: var(--bd-alt-bg);
+		border: 1px solid var(--bd-border-subtle);
+	}
+	.card.light time {
+		font-size: 12.5px;
+		color: var(--bd-muted-fg);
+	}
+	.tag.green {
+		background: var(--bd-primary-soft);
+		color: #1f6a15;
+	}
+	.foot {
+		grid-column: 1;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		justify-self: start;
+		margin: 4px 0 0 10px;
+		font-size: 13.5px;
+		font-weight: 600;
+		color: var(--bd-primary);
+	}
+
+	/* The end of the bar */
+	.bd-nav-end {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+	.bd-nav-gh {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--bd-text-soft);
+		padding: 6px 12px;
+		border: 1px solid var(--bd-border);
+		border-radius: 999px;
+		background: #fff;
+	}
+	.bd-nav-gh:hover {
+		color: var(--bd-text);
+	}
+	.bd-nav-docs {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--bd-text-soft);
+		padding: 6px 12px;
+		border: 1px solid var(--bd-border);
+		border-radius: 999px;
+		background: #fff;
+	}
+	.bd-nav-docs:hover {
+		color: var(--bd-text);
+	}
+	.bd-nav-cta {
+		padding: 8px 16px;
+		background: var(--bd-primary);
+		color: #fff;
+		border-radius: 999px;
+		font-size: 13px;
+		font-weight: 600;
+		box-shadow: 0 1px 3px rgba(42, 157, 28, 0.3);
+	}
+	.bd-nav-cta:hover {
+		background: #248a17;
+	}
+	.bd-burger {
+		display: none;
+		position: relative;
+		width: 40px;
+		height: 40px;
+		margin-right: -8px;
+	}
+	.bd-burger span {
+		position: absolute;
+		left: 11px;
+		width: 18px;
+		height: 1.8px;
+		border-radius: 2px;
+		background: var(--bd-text);
+		transition: transform 0.25s ease;
+	}
+	.bd-burger span:first-child {
+		top: 15px;
+	}
+	.bd-burger span:last-child {
+		top: 23px;
+	}
+	.bd-burger[aria-expanded='true'] span:first-child {
+		transform: translateY(4px) rotate(45deg);
+	}
+	.bd-burger[aria-expanded='true'] span:last-child {
+		transform: translateY(-4px) rotate(-45deg);
+	}
+
+	/* Behind an open panel, the page steps back. */
+	.bd-scrim {
+		position: fixed;
+		inset: 60px 0 0 0;
+		z-index: 40;
+		background: rgba(16, 24, 16, 0.16);
+		backdrop-filter: blur(6px);
+		-webkit-backdrop-filter: blur(6px);
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			opacity 0.25s ease,
+			visibility 0.25s;
+	}
+	.bd-scrim[data-on] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	/* The sheet, on a phone or a tablet */
+	.bd-sheet {
+		position: fixed;
+		inset: 60px 0 0 0;
+		z-index: 49;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding: 8px 20px 32px;
+		background: #fff;
+		animation: sheet-in 0.25s ease;
+	}
+	@keyframes sheet-in {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+	}
+	.bd-sheet details {
+		border-bottom: 1px solid var(--bd-border-subtle);
+	}
+	.bd-sheet summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 18px 4px;
+		font-size: 19px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		list-style: none;
+		cursor: pointer;
+	}
+	.bd-sheet summary::-webkit-details-marker {
+		display: none;
+	}
+	.bd-sheet summary :global(svg) {
+		color: var(--bd-muted-fg);
+		transition: transform 0.2s ease;
+	}
+	.bd-sheet details[open] summary :global(svg) {
+		transform: rotate(180deg);
+	}
+	.sheet-group {
+		padding-bottom: 12px;
+	}
+	.sheet-group > p {
+		margin: 4px 0 4px 10px;
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--bd-muted-fg);
+	}
+	.sheet-more {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		margin: 0 0 18px 10px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--bd-primary);
+	}
+	.sheet-actions {
+		display: flex;
+		gap: 10px;
+		margin-top: 24px;
+	}
+	.sheet-actions .bd-btn {
+		flex: 1;
+		justify-content: center;
+		border-radius: 999px;
+	}
+
+	@media (max-width: 1180px) {
+		.cols.three {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.teams {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 1023px) {
+		.bd-nav {
+			padding: 0 16px;
+			gap: 10px;
+		}
+		.bd-menu {
+			display: none;
+		}
+		.bd-nav-logo {
+			margin-right: auto;
+		}
+		.bd-burger {
+			display: block;
+		}
+		.bd-nav-cta {
+			display: none;
+		}
+	}
+	@media (min-width: 1024px) {
+		.bd-sheet {
+			display: none;
+		}
+	}
+	@media (max-width: 420px) {
+		.bd-nav-gh {
+			padding: 6px 8px;
+		}
+		.gh-label {
+			display: none;
+		}
+		/* In the menu, as a button. */
+		.bd-nav-docs {
+			display: none;
+		}
+	}
+</style>

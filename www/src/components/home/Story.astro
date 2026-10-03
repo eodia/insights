@@ -1,0 +1,389 @@
+---
+/**
+ * The first screens of the home page, told by the scroll.
+ *
+ * The headline, and under it the window of eodia insights, tilted back. Scrolling stands
+ * the window up and pins it; then each stretch of scroll shows one moment — the question
+ * without SQL, the SQL editor, the Copilot, the dashboard — under its caption, while the
+ * bars at the bottom fill up. A click on a bar scrolls to its moment.
+ *
+ * The section is tall (the scroll it takes), its content sticky. Without JavaScript it is
+ * a plain first screen: the headline, then the question.
+ */
+import { type Locale, i18n } from '../../i18n';
+import Stage from './Stage.astro';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href } = i18n(locale);
+const h = t.hero;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const STEPS = ['builder', 'sql', 'copilot', 'dashboard'] as const;
+const steps = STEPS.map((id) => ({ id, ...t.story.steps[id], label: t.story.steps[id].tab }));
+---
+
+<section class="story" data-story>
+	<div class="pin" data-pin data-step="intro">
+		<div class="glow" aria-hidden="true"></div>
+
+		<header class="intro" data-intro>
+			<p class="brand">
+				<img src={`${base}/brand/mark.svg`} width="28" height="28" alt="" />
+				{h.eyebrow}
+			</p>
+			<h1 class="tm-display">
+				<span>{h.title}</span>
+				<span class="tm-grad">{h.titleAccent}</span>
+			</h1>
+			<p class="tm-lede">{h.lead}</p>
+			<div class="tm-actions">
+				<a class="tm-pill" href={href('/guides/installation/')}>{h.primary}</a>
+				<a class="tm-pill ghost" href="https://github.com/eodia/insights">
+					<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"></path></svg>
+					GitHub
+				</a>
+				<a class="tm-link" href={href('/guides/introduction/')}>{h.secondary}</a>
+			</div>
+			<ul class="facts">
+				{h.facts.map((fact) => <li>{fact}</li>)}
+			</ul>
+		</header>
+
+		<div class="captions" data-captions>
+			{
+				steps.map((s) => (
+					<div class="cap" data-cap={s.id}>
+						<h2>{s.title}</h2>
+						<p>{s.text}</p>
+					</div>
+				))
+			}
+		</div>
+
+		<div class="device" data-device>
+			<Stage locale={locale} minScale={0.2} />
+		</div>
+
+		<nav class="steps" aria-label={t.story.aria}>
+			{
+				steps.map((s) => (
+					<button type="button" data-go={s.id}>
+						<span class="bar">
+							<i />
+						</span>
+						<span class="label">{s.label}</span>
+					</button>
+				))
+			}
+		</nav>
+	</div>
+</section>
+
+<script>
+	import { clamp, ease, progress, reducedMotion } from '../../lib/motion';
+
+	const STEPS = ['builder', 'sql', 'copilot', 'dashboard'];
+	/** The share of the scroll the headline takes to give way; then each view's share. */
+	const INTRO = 0.1;
+	const SPAN = (1 - INTRO) / STEPS.length;
+
+	const section = document.querySelector<HTMLElement>('[data-story]');
+	const pin = section?.querySelector<HTMLElement>('[data-pin]');
+	const intro = section?.querySelector<HTMLElement>('[data-intro]');
+	const captions = section?.querySelector<HTMLElement>('[data-captions]');
+	const device = section?.querySelector<HTMLElement>('[data-device]');
+	const stage = section?.querySelector<HTMLElement>('[data-stage]');
+	const buttons = [...(section?.querySelectorAll<HTMLButtonElement>('[data-go]') ?? [])];
+
+	if (section && pin && intro && captions && device && stage) {
+		const still = reducedMotion();
+		/** How far below its place the window waits, under the headline. */
+		let shift = 0;
+		let last = 0;
+
+		// Where everything goes, for this screen: the captions as tall as the tallest, the
+		// window as large as the room under them allows.
+		const layout = () => {
+			const caps = [...captions.querySelectorAll<HTMLElement>('.cap')];
+			const capHeight = Math.max(...caps.map((c) => c.offsetHeight));
+			captions.style.height = `${capHeight}px`;
+			const vw = pin.clientWidth;
+			const vh = pin.clientHeight;
+			const bar = 60;
+			const bottom = vw < 640 ? 56 : 76;
+			const gap = vw < 640 ? 28 : 24;
+			const room = vh - bar - bottom - capHeight - gap - 24;
+			const width = Math.min(1080, vw - (vw < 640 ? 24 : 64), (room * 1080) / 600);
+			const height = (width * 600) / 1080;
+			// The caption and the window, together, sit a little above the middle of the room.
+			const free = vh - bar - bottom - capHeight - gap - height;
+			const capTop = bar + Math.max(vh * 0.03, free * 0.42);
+			captions.style.top = `${capTop}px`;
+			const top = capTop + capHeight + gap;
+			device.style.width = `${width}px`;
+			device.style.left = `${(vw - width) / 2}px`;
+			device.style.top = `${top}px`;
+			shift = Math.max(0, intro.offsetTop + intro.offsetHeight + 40 - top);
+			update(last);
+		};
+
+		const update = (p: number) => {
+			last = p;
+			const e = still ? (p > INTRO / 2 ? 1 : 0) : ease(clamp(p / INTRO));
+			intro.style.opacity = String(clamp(1 - e * 1.5));
+			intro.style.transform = still ? '' : `translateY(${-80 * e}px) scale(${1 - 0.05 * e})`;
+			intro.inert = e > 0.9;
+			// Asked for less motion, the window waits under the headline all the same — it just
+			// does not tilt, nor travel: it is there, then in its place.
+			device.style.transform = still
+				? `translateY(${shift * (1 - e)}px)`
+				: `perspective(1600px) translateY(${shift * (1 - e)}px) rotateX(${30 * (1 - e)}deg) scale(${0.82 + 0.18 * e})`;
+
+			const index = p < INTRO ? -1 : Math.min(STEPS.length - 1, Math.floor((p - INTRO) / SPAN));
+			const step = index < 0 ? 'intro' : STEPS[index]!;
+			if (pin.dataset.step !== step) {
+				pin.dataset.step = step;
+				stage.dataset.view = index < 0 ? 'builder' : step;
+			}
+			buttons.forEach((b, i) => {
+				const local = clamp((p - INTRO - i * SPAN) / SPAN);
+				b.querySelector<HTMLElement>('i')?.style.setProperty('transform', `scaleX(${local})`);
+				if (i === index) b.setAttribute('aria-current', 'step');
+				else b.removeAttribute('aria-current');
+			});
+		};
+
+		// A bar takes the reader to its view.
+		buttons.forEach((b, i) => {
+			b.addEventListener('click', () => {
+				const top = section.offsetTop + (INTRO + (i + 0.08) * SPAN) * (section.offsetHeight - window.innerHeight);
+				window.scrollTo({ top, behavior: still ? 'auto' : 'smooth' });
+			});
+		});
+
+		layout();
+		const resize = new ResizeObserver(layout);
+		resize.observe(pin);
+		// A caption grows when its font arrives, or when its language writes longer: the
+		// window makes room.
+		for (const cap of captions.querySelectorAll<HTMLElement>('.cap')) resize.observe(cap);
+		progress(section, update);
+	}
+</script>
+
+<style>
+	.story {
+		position: relative;
+	}
+	:global(.bd-js) .story {
+		height: 600vh;
+	}
+	.pin {
+		position: relative;
+		overflow: hidden;
+	}
+	:global(.bd-js) .pin {
+		position: sticky;
+		top: 0;
+		height: 100vh;
+		height: 100svh;
+		min-height: 540px;
+	}
+	.glow {
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(46% 36% at 50% 82%, rgba(45, 163, 30, 0.18), transparent 70%),
+			radial-gradient(34% 30% at 14% 20%, rgba(20, 184, 166, 0.1), transparent 70%),
+			radial-gradient(30% 26% at 88% 28%, rgba(163, 217, 58, 0.12), transparent 70%);
+		pointer-events: none;
+	}
+
+	/* The headline */
+	.intro {
+		position: relative;
+		padding: calc(60px + 7vh) 24px 0;
+		text-align: center;
+		transform-origin: 50% 0;
+	}
+	:global(.bd-js) .intro {
+		position: absolute;
+		inset: 0 0 auto 0;
+		padding-top: calc(60px + 5vh);
+	}
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 9px;
+		margin: 0 0 18px;
+		font-size: 22px;
+		font-weight: 700;
+		letter-spacing: -0.045em;
+		color: #0f2a1c;
+	}
+	.intro h1 {
+		font-size: clamp(44px, 7.6vw, 116px);
+	}
+	.intro .tm-lede {
+		max-width: 660px;
+	}
+	.facts {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px 24px;
+		margin: 26px 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--tm-slate);
+	}
+	.facts li {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+	}
+	.facts li::before {
+		content: '';
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #3fcb2a;
+	}
+
+	/* The captions, one per view */
+	.captions {
+		display: none;
+	}
+	:global(.bd-js) .captions {
+		display: block;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: calc(60px + 4vh);
+		pointer-events: none;
+	}
+	.cap {
+		position: absolute;
+		inset: 0 24px auto;
+		text-align: center;
+		opacity: 0;
+		transform: translateY(22px);
+		transition:
+			opacity 0.5s ease,
+			transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+	.pin[data-step='builder'] .cap[data-cap='builder'],
+	.pin[data-step='sql'] .cap[data-cap='sql'],
+	.pin[data-step='copilot'] .cap[data-cap='copilot'],
+	.pin[data-step='dashboard'] .cap[data-cap='dashboard'] {
+		opacity: 1;
+		transform: none;
+	}
+	.cap h2 {
+		margin: 0;
+		font-size: clamp(32px, 4.8vw, 68px);
+		font-weight: 800;
+		line-height: 1.04;
+		letter-spacing: -0.048em;
+		text-wrap: balance;
+	}
+	.cap p {
+		max-width: 640px;
+		margin: 14px auto 0;
+		font-size: clamp(17px, 1.6vw, 21px);
+		line-height: 1.45;
+		color: var(--tm-slate);
+		text-wrap: pretty;
+	}
+
+	/* The window */
+	.device {
+		position: relative;
+		max-width: 1080px;
+		margin: 56px auto 0;
+		padding: 0 24px 96px;
+	}
+	:global(.bd-js) .device {
+		position: absolute;
+		margin: 0;
+		padding: 0;
+		transform-origin: 50% 0;
+		will-change: transform;
+	}
+	.device :global(.frame) {
+		box-shadow:
+			0 60px 120px -50px rgba(16, 40, 16, 0.5),
+			0 0 0 1px rgba(16, 24, 16, 0.08);
+	}
+
+	/* The bars at the bottom: where the story is, and a way to jump in it */
+	.steps {
+		display: none;
+	}
+	:global(.bd-js) .steps {
+		position: absolute;
+		left: 50%;
+		bottom: 18px;
+		display: flex;
+		gap: 10px;
+		transform: translateX(-50%);
+		opacity: 0;
+		transition: opacity 0.4s ease;
+	}
+	.pin:not([data-step='intro']) .steps {
+		opacity: 1;
+	}
+	.steps button {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		width: 120px;
+		padding: 6px 0;
+	}
+	.bar {
+		width: 100%;
+		height: 3px;
+		border-radius: 3px;
+		background: rgba(16, 24, 16, 0.1);
+		overflow: hidden;
+	}
+	.bar i {
+		display: block;
+		height: 100%;
+		background: #1fa34a;
+		transform: scaleX(0);
+		transform-origin: left;
+	}
+	.label {
+		font-size: 12.5px;
+		font-weight: 500;
+		color: var(--tm-slate);
+		white-space: nowrap;
+		transition: color 0.2s ease;
+	}
+	.steps button[aria-current] .label,
+	.steps button:hover .label {
+		color: var(--tm-ink);
+	}
+
+	@media (max-width: 640px) {
+		.steps button {
+			width: 44px;
+		}
+		.label {
+			display: none;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.cap {
+			transform: none;
+			transition: opacity 0.2s ease;
+		}
+	}
+</style>

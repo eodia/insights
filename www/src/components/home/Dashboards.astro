@@ -1,0 +1,602 @@
+---
+/**
+ * A dashboard that assembles itself with the scroll: its cards come in scattered and
+ * tilted, and settle into the grid as the section reaches the middle of the screen. Once
+ * in place, the figures count up, the curves draw, the bubbles of the map rise.
+ *
+ * Its progress is `--p` on the frame (`progress`, mode `pass`); without JavaScript, or
+ * asked for less motion, the dashboard is simply there. Drawn at 1080 × 640 and scaled to
+ * its frame.
+ */
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t, href, lang } = i18n(locale);
+const d = t.dashboards;
+const b = d.board;
+
+/** The four figures: their value, how they are written, and their curve. */
+const KPIS = [
+	{ value: 1_284_550, format: { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 2 } },
+	{ value: 14_302, format: {} },
+	{ value: 89.5, format: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+	{ value: 4.6, format: { minimumFractionDigits: 1, maximumFractionDigits: 1 }, suffix: ' / 5' },
+] as const;
+const SPARKS = [
+	[4, 6, 5, 7, 8, 7, 9, 11],
+	[5, 5, 6, 6, 7, 8, 8, 9],
+	[6, 5, 6, 7, 6, 7, 8, 8],
+	[7, 7, 6, 7, 8, 8, 8, 9],
+];
+const spark = (values: number[]) => {
+	const lo = Math.min(...values);
+	const hi = Math.max(...values);
+	return values.map((v, i) => `${i === 0 ? 'M' : 'L'}${(i / (values.length - 1)) * 80} ${26 - ((v - lo) / (hi - lo || 1)) * 22}`).join(' ');
+};
+const kpis = t.stage.dashboard.kpis.map((k, i) => {
+	const kpi = KPIS[i]!;
+	return {
+		...k,
+		value: kpi.value,
+		format: JSON.stringify({ lang, ...kpi.format }),
+		suffix: 'suffix' in kpi ? kpi.suffix : '',
+		text: new Intl.NumberFormat(lang, kpi.format as Intl.NumberFormatOptions).format(kpi.value) + ('suffix' in kpi ? kpi.suffix : ''),
+		spark: spark(SPARKS[i]!),
+	};
+});
+
+/** Revenue by week, this year and the last, in a 620 × 170 box. */
+const NOW = [62, 66, 64, 71, 75, 73, 80, 84, 82, 90, 95, 93, 101];
+const BEFORE = [55, 58, 60, 59, 63, 66, 64, 68, 71, 70, 74, 77, 79];
+const path = (values: number[]) =>
+	values.map((v, i) => `${i === 0 ? 'M' : 'L'}${(i / (values.length - 1)) * 620} ${170 - ((v - 45) / 60) * 160}`).join(' ');
+const now = path(NOW);
+const before = path(BEFORE);
+
+/** The demo's cities: where the clients live, and how many. */
+const CITIES: Array<[number, number, number]> = [
+	[48.8566, 2.3522, 22], [48.8397, 2.2399, 4], [45.764, 4.8357, 9], [45.1885, 5.7245, 4], [43.2965, 5.3698, 8],
+	[43.7102, 7.262, 5], [43.6047, 1.4442, 7], [43.6108, 3.8767, 5], [44.8378, -0.5792, 6], [47.2184, -1.5536, 6],
+	[48.1173, -1.6778, 5], [48.3904, -4.4861, 2], [50.6292, 3.0573, 6], [48.5734, 7.7521, 5], [47.322, 5.0415, 2],
+	[49.4432, 1.0999, 3], [47.9029, 1.9093, 2], [41.9192, 8.7386, 1],
+];
+const cities = CITIES.map(([lat, lon, weight], i) => ({
+	x: Math.round(((lon + 5.2) / 14.4) * 300 + 20),
+	y: Math.round(((51.3 - lat) / 9.8) * 175 + 8),
+	r: Math.round(4 + Math.sqrt(weight) * 3.2),
+	i,
+}));
+
+/** Sales by department of the shop. */
+const RAYONS = [41, 27, 19, 13];
+const rayons = b.rayons.map((label, i) => ({ label, share: RAYONS[i]!, percent: new Intl.NumberFormat(lang, { style: 'percent' }).format(RAYONS[i]! / 100) }));
+
+/** Orders by day and hour: busier in the evening, and on Sunday. */
+const days = Array.from({ length: 7 }, (_, i) =>
+	new Intl.DateTimeFormat(lang, { weekday: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2026, 8, 28 + i))),
+);
+const HOURS = 16;
+const heat = days.flatMap((_, day) =>
+	Array.from({ length: HOURS }, (_, h) => {
+		const hour = h + 7;
+		const evening = Math.exp(-((hour - 20.5) ** 2) / 6);
+		const noon = 0.55 * Math.exp(-((hour - 12.5) ** 2) / 3);
+		const weekend = day >= 5 ? 1.25 : 1;
+		const v = Math.min(1, (0.12 + evening + noon) * weekend * (0.85 + ((day * 7 + h * 3) % 5) * 0.05));
+		return { day, h, v: Math.round(v * 100) / 100 };
+	}),
+);
+
+/** Where each card comes from, before it settles: x, y, rotation. */
+const SCATTER: Array<[number, number, number]> = [
+	[-260, -120, -9],
+	[-120, -180, 6],
+	[140, -170, -5],
+	[300, -110, 8],
+	[-320, 40, 7],
+	[340, 60, -8],
+	[-240, 220, -6],
+	[260, 230, 5],
+];
+const scatter = (i: number) => {
+	const [x, y, r] = SCATTER[i]!;
+	return `--sx:${x};--sy:${y};--sr:${r};--o:${i}`;
+};
+---
+
+<section class="tm-section dashboards" data-dashboards>
+	<div class="tm-head">
+		<p class="tm-kicker tm-rise">{d.kicker}</p>
+		<h2 class="tm-display tm-rise">
+			<span>{d.title}</span>
+			<span class="tm-grad">{d.titleAccent}</span>
+		</h2>
+		<p class="tm-lede tm-rise">{d.lede}</p>
+	</div>
+
+	<div class="frame" data-board aria-hidden="true">
+		<div class="board">
+			<header class="b-head">
+				<div class="b-title">
+					<b>{b.title}</b>
+					<ul class="tabs">
+						{b.tabs.map((tab, i) => <li class:list={[i === 0 && 'on']}>{tab}</li>)}
+					</ul>
+				</div>
+				<div class="b-filters">
+					{
+						b.filters.map((f) => (
+							<span>
+								{f}
+								<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6" /></svg>
+							</span>
+						))
+					}
+				</div>
+			</header>
+
+			{
+				kpis.map((k, i) => (
+					<div class="card kpi" style={`left:${24 + i * 261}px;top:84px;width:249px;height:96px;${scatter(i)}`}>
+						<small>{k.label}</small>
+						<b data-count={k.value} data-format={k.format} data-suffix={k.suffix}>{k.text}</b>
+						<em>{k.delta}</em>
+						<svg class="spark" viewBox="0 0 80 28">
+							<path d={k.spark} pathLength="1" />
+						</svg>
+					</div>
+				))
+			}
+
+			<div class="card area" style={`left:24px;top:192px;width:660px;height:240px;${scatter(4)}`}>
+				<div class="c-head">
+					<p>{b.revenue}</p>
+					<span class="legend"><i class="now"></i>{b.current}<i class="before"></i>{b.previous}</span>
+				</div>
+				<svg viewBox="0 0 620 175" preserveAspectRatio="none">
+					<defs>
+						<linearGradient id="db-area" x1="0" y1="0" x2="0" y2="1">
+							<stop offset="0" stop-color="#2da31e" stop-opacity="0.25"></stop>
+							<stop offset="1" stop-color="#2da31e" stop-opacity="0"></stop>
+						</linearGradient>
+					</defs>
+					{[30, 75, 120, 165].map((y) => <line x1="0" x2="620" y1={y} y2={y} class="grid" />)}
+					<path d={`${now} L620 175 L0 175 Z`} class="fill" fill="url(#db-area)"></path>
+					<path d={before} class="before" pathLength="1"></path>
+					<path d={now} class="now" pathLength="1"></path>
+				</svg>
+			</div>
+
+			<div class="card map" style={`left:696px;top:192px;width:360px;height:240px;${scatter(5)}`}>
+				<div class="c-head"><p>{b.map}</p></div>
+				<svg viewBox="0 0 340 190">
+					<defs>
+						<pattern id="db-dots" width="10" height="10" patternUnits="userSpaceOnUse">
+							<circle cx="2" cy="2" r="1" fill="#e4e4e7"></circle>
+						</pattern>
+					</defs>
+					<rect width="340" height="190" fill="url(#db-dots)"></rect>
+					{cities.map((c) => <circle cx={c.x} cy={c.y} r={c.r} class="bubble" style={`--i:${c.i}`} />)}
+					{cities.slice(0, 3).map((c) => <circle cx={c.x} cy={c.y} r={c.r} class="ping" style={`--i:${c.i}`} />)}
+				</svg>
+			</div>
+
+			<div class="card cats" style={`left:24px;top:444px;width:330px;height:176px;${scatter(6)}`}>
+				<div class="c-head"><p>{b.categories}</p></div>
+				{
+					rayons.map((r, i) => (
+						<div class="cat" style={`--w:${(r.share / 41) * 100}%;--i:${i}`}>
+							<span>{r.label}</span>
+							<span class="track"><i /></span>
+							<b>{r.percent}</b>
+						</div>
+					))
+				}
+			</div>
+
+			<div class="card heat" style={`left:366px;top:444px;width:690px;height:176px;${scatter(7)}`}>
+				<div class="c-head"><p>{b.heat}</p></div>
+				<div class="cells" style={`--hours:${HOURS}`}>
+					{
+						days.map((day, di) => (
+							<>
+								<span class="day">{day}</span>
+								{heat
+									.filter((c) => c.day === di)
+									.map((c) => (
+										<i style={`--v:${c.v};--d:${(c.day + c.h) * 0.018}s`} />
+									))}
+							</>
+						))
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="tm-points">
+		{
+			d.points.map((p, i) => (
+				<div class="tm-rise" style={`transition-delay:${i * 0.08}s`}>
+					<span class="ic">
+						{i === 0 && (
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" /></svg>
+						)}
+						{i === 1 && (
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+						)}
+						{i === 2 && (
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+						)}
+					</span>
+					<h3>{p.title}</h3>
+					<p>{p.text}</p>
+				</div>
+			))
+		}
+	</div>
+	<p class="more tm-rise"><a class="tm-link" href={href('/fonctionnalites/tableaux-de-bord/')}>{d.link}</a></p>
+</section>
+
+<script>
+	import { clamp, ease, fit, progress, reducedMotion } from '../../lib/motion';
+
+	const frame = document.querySelector<HTMLElement>('[data-board]');
+	if (frame) {
+		fit(frame, 1080, 0.28);
+		const counters = [...frame.querySelectorAll<HTMLElement>('[data-count]')];
+		let counted = false;
+		const count = () => {
+			counted = true;
+			const start = performance.now();
+			const formats = counters.map((el) => {
+				const { lang, ...options } = JSON.parse(el.dataset.format ?? '{}') as { lang: string } & Intl.NumberFormatOptions;
+				return new Intl.NumberFormat(lang, options);
+			});
+			const tick = (now: number) => {
+				const k = ease(clamp((now - start) / 1400));
+				counters.forEach((el, i) => {
+					el.textContent = formats[i]!.format(Number(el.dataset.count) * k) + (el.dataset.suffix ?? '');
+				});
+				if (k < 1) requestAnimationFrame(tick);
+			};
+			requestAnimationFrame(tick);
+		};
+
+		if (reducedMotion()) {
+			frame.style.setProperty('--p', '1');
+			frame.dataset.done = '';
+		} else {
+			frame.style.setProperty('--p', '0');
+			progress(
+				frame,
+				(p) => {
+					const e = ease(clamp(p / 0.85));
+					frame.style.setProperty('--p', e.toFixed(4));
+					const done = e > 0.97;
+					frame.toggleAttribute('data-done', done);
+					if (done && !counted) count();
+				},
+				{ mode: 'pass', start: 1.05, end: 0.75 },
+			);
+		}
+	}
+</script>
+
+<style>
+	.dashboards {
+		overflow: hidden;
+		background: radial-gradient(60% 40% at 50% 62%, rgba(45, 163, 30, 0.07), transparent 70%), #fff;
+	}
+	.frame {
+		--k: 1;
+		--p: 1;
+		position: relative;
+		max-width: 1080px;
+		height: calc(644px * var(--k));
+		margin: 72px auto 0;
+	}
+	.board {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 1080px;
+		height: 644px;
+		border-radius: 22px;
+		font-family: var(--bd-font-sans);
+		font-size: 13px;
+		color: #18181b;
+		background: rgba(250, 250, 250, calc(var(--p)));
+		box-shadow: 0 0 0 1px rgba(16, 24, 16, calc(0.08 * var(--p))),
+			0 60px 120px -60px rgba(16, 40, 16, calc(0.45 * var(--p)));
+		transform: translateX(-50%) scale(var(--k));
+		transform-origin: 50% 0;
+	}
+	.board p {
+		margin: 0;
+	}
+	.b-head {
+		position: absolute;
+		top: 18px;
+		left: 24px;
+		right: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		opacity: var(--p);
+	}
+	.b-title {
+		display: flex;
+		align-items: center;
+		gap: 22px;
+	}
+	.b-title b {
+		font-size: 18px;
+		letter-spacing: -0.02em;
+	}
+	.tabs {
+		display: flex;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.tabs li {
+		padding: 5px 12px;
+		border-radius: 8px;
+		color: #71717a;
+	}
+	.tabs li.on {
+		font-weight: 600;
+		color: #18181b;
+		background: #fff;
+		box-shadow: 0 0 0 1px #e4e4e7;
+	}
+	.b-filters {
+		display: flex;
+		gap: 8px;
+	}
+	.b-filters span {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 5px 10px;
+		border: 1px solid #e4e4e7;
+		border-radius: 8px;
+		font-size: 12px;
+		background: #fff;
+	}
+
+	.card {
+		position: absolute;
+		padding: 14px 16px;
+		border: 1px solid #e4e4e7;
+		border-radius: 14px;
+		background: #fff;
+		box-shadow: 0 calc(30px * (1 - var(--p)) + 1px) calc(60px * (1 - var(--p)) + 2px) -20px rgba(16, 40, 16, 0.25);
+		transform: translate(calc(var(--sx) * (1 - var(--p)) * 1px), calc(var(--sy) * (1 - var(--p)) * 1px))
+			rotate(calc(var(--sr) * (1 - var(--p)) * 1deg)) scale(calc(0.9 + 0.1 * var(--p)));
+		opacity: calc(0.15 + 0.85 * var(--p));
+		will-change: transform;
+	}
+	.c-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 8px;
+	}
+	.c-head p {
+		font-weight: 600;
+	}
+	.legend {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 11.5px;
+		color: #71717a;
+	}
+	.legend i {
+		width: 14px;
+		height: 3px;
+		border-radius: 2px;
+		background: #2da31e;
+	}
+	.legend i.before {
+		margin-left: 8px;
+		background: #c4c4cc;
+	}
+
+	.kpi {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+	.kpi small {
+		font-size: 12px;
+		color: #71717a;
+	}
+	.kpi b {
+		font-size: 26px;
+		font-weight: 800;
+		letter-spacing: -0.035em;
+		font-variant-numeric: tabular-nums;
+	}
+	.kpi em {
+		align-self: flex-start;
+		padding: 1px 7px;
+		border-radius: 999px;
+		font-size: 11px;
+		font-style: normal;
+		font-weight: 700;
+		color: #1c7a12;
+		background: #ecf8e9;
+	}
+	.spark {
+		position: absolute;
+		right: 16px;
+		bottom: 16px;
+		width: 80px;
+		height: 28px;
+		overflow: visible;
+	}
+	.spark path,
+	.area .now,
+	.area .before {
+		fill: none;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+		transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	.spark path {
+		stroke: #2da31e;
+		stroke-width: 2;
+	}
+	[data-done] :is(.spark path, .area .now, .area .before) {
+		stroke-dashoffset: 0;
+	}
+
+	.area svg {
+		width: 100%;
+		height: 180px;
+	}
+	.area .grid {
+		stroke: #f1f1f3;
+	}
+	.area .now {
+		stroke: #2da31e;
+		stroke-width: 3;
+		vector-effect: non-scaling-stroke;
+		transition-duration: 1.8s;
+	}
+	.area .before {
+		stroke: #c4c4cc;
+		stroke-width: 2;
+		stroke-dasharray: 1;
+		vector-effect: non-scaling-stroke;
+	}
+	.area .fill {
+		opacity: 0;
+		transition: opacity 1s ease 1s;
+	}
+	[data-done] .area .fill {
+		opacity: 1;
+	}
+
+	.map svg {
+		width: 100%;
+		height: 190px;
+	}
+	.bubble {
+		fill: rgba(45, 163, 30, 0.55);
+		stroke: #fff;
+		stroke-width: 1.5;
+		transform-box: fill-box;
+		transform-origin: center;
+		transform: scale(0);
+		transition: transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) calc(0.2s + var(--i) * 0.05s);
+	}
+	[data-done] .bubble {
+		transform: none;
+	}
+	.ping {
+		fill: none;
+		stroke: #2da31e;
+		stroke-width: 2;
+		transform-box: fill-box;
+		transform-origin: center;
+		opacity: 0;
+	}
+	[data-done] .ping {
+		animation: db-ping 2.4s ease-out calc(1.2s + var(--i) * 0.6s) infinite;
+	}
+	@keyframes db-ping {
+		from {
+			opacity: 0.8;
+			transform: scale(1);
+		}
+		to {
+			opacity: 0;
+			transform: scale(2.6);
+		}
+	}
+
+	.cats {
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+	}
+	.cat {
+		display: grid;
+		grid-template-columns: 74px minmax(0, 1fr) 40px;
+		align-items: center;
+		gap: 10px;
+		font-size: 12.5px;
+	}
+	.cat span:first-child {
+		color: #52525b;
+	}
+	.cat b {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.track {
+		height: 10px;
+		border-radius: 5px;
+		background: #f4f4f5;
+		overflow: hidden;
+	}
+	.track i {
+		display: block;
+		width: var(--w);
+		height: 100%;
+		border-radius: 5px;
+		background: linear-gradient(90deg, #2da31e, #a3d93a);
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.2s + var(--i) * 0.1s);
+	}
+	[data-done] .track i {
+		transform: none;
+	}
+
+	.cells {
+		display: grid;
+		grid-template-columns: 34px repeat(var(--hours), minmax(0, 1fr));
+		gap: 3px;
+	}
+	.day {
+		font-size: 11px;
+		line-height: 15px;
+		color: #71717a;
+	}
+	.cells i {
+		height: 15px;
+		border-radius: 4px;
+		background: color-mix(in srgb, #2da31e calc(var(--v) * 100%), #f1f5f0);
+		opacity: 0;
+		transform: scale(0.4);
+		transition:
+			opacity 0.4s ease var(--d),
+			transform 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) var(--d);
+	}
+	[data-done] .cells i {
+		opacity: 1;
+		transform: none;
+	}
+	.more {
+		margin: 48px 0 0;
+		text-align: center;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		[data-done] .ping {
+			animation: none;
+		}
+	}
+</style>
