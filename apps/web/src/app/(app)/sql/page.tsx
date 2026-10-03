@@ -205,6 +205,7 @@ function SqlWorkspace() {
   const openCopilot = useUi((s) => s.openCopilot)
   const [tabs, setTabs] = useState<Tab[]>([])
   const [active, setActive] = useState<string>('')
+  const [renaming, setRenaming] = useState<string | null>(null)
   const [side, setSide] = useState<'schema' | 'snippets' | 'history'>('schema')
   const [results, setResults] = useState<Record<string, { result?: RunResult; error?: ApiError; running?: boolean; execution?: string }>>({})
   const [view, setView] = useState<'table' | 'viz'>('table')
@@ -286,9 +287,32 @@ function SqlWorkspace() {
         <TabRow className="h-10 shrink-0 items-end gap-0.5 border-b bg-surface px-2">
           {tabs.map((t) => (
             <div key={t.id} className={cn('group flex h-8 items-center gap-1.5 rounded-t-lg border border-b-0 px-3 text-sm', t.id === active ? 'bg-background font-medium' : 'border-transparent text-muted-foreground hover:text-foreground')}>
-              <button type="button" onClick={() => setActive(t.id)} onDoubleClick={() => { const name = prompt($t('Nom de l’onglet'), t.name); if (name) setTabs((ts) => ts.map((x) => (x.id === t.id ? { ...x, name } : x))) }} className="max-w-40 truncate">
-                {t.name}
-              </button>
+              {renaming === t.id ? (
+                <input
+                  // biome-ignore lint/a11y/noAutofocus: the tab is renamed where it is, right after the double click
+                  autoFocus
+                  defaultValue={t.name}
+                  aria-label={$t('Nom de l’onglet')}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onBlur={(e) => {
+                    const name = e.currentTarget.value.trim()
+                    if (name) setTabs((ts) => ts.map((x) => (x.id === t.id ? { ...x, name } : x)))
+                    setRenaming(null)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.currentTarget.blur()
+                    else if (e.key === 'Escape') {
+                      e.currentTarget.value = t.name
+                      e.currentTarget.blur()
+                    }
+                  }}
+                  className="w-32 bg-transparent outline-none"
+                />
+              ) : (
+                <button type="button" onClick={() => setActive(t.id)} onDoubleClick={() => setRenaming(t.id)} className="max-w-40 truncate">
+                  {t.name}
+                </button>
+              )}
               {results[t.id]?.running ? <Loader2 className="size-3 animate-spin text-primary" /> : null}
               {tabs.length > 1 ? (
                 <button type="button" aria-label={$t('Fermer')} onClick={() => { const rest = tabs.filter((x) => x.id !== t.id); setTabs(rest); if (active === t.id) setActive(rest[rest.length - 1]?.id ?? '') }} className="opacity-0 group-hover:opacity-100">

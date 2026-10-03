@@ -61,10 +61,12 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
+import Link from 'next/link'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 import { ParameterBar, type Values } from './parameters'
+import { RefreshTimer } from './refresh-timer'
 import { TabRow } from '@/components/ui/tab-row'
 
 export type Runner = (card: DashboardCard, values: Values, opts: { fresh: boolean; draft: boolean }) => Promise<RunResult>
@@ -211,8 +213,14 @@ function CardFrame(props: CardProps) {
           {editing && editingTitle ? (
             <input autoFocus value={card.title ?? title} onChange={(e) => onChange({ title: e.target.value })} onBlur={() => setEditingTitle(false)} className="card-still flex-1 bg-transparent text-[15px] font-semibold outline-none" />
           ) : (
-            <h3 className="flex-1 truncate text-[15px] font-semibold" onDoubleClick={() => editing && setEditingTitle(true)}>
-              {title}
+            <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold" onDoubleClick={() => editing && setEditingTitle(true)}>
+              {card.question && !publicMode && !editing ? (
+                <Link href={`/question/${card.question}`} className="hover:text-primary hover:underline">
+                  {title}
+                </Link>
+              ) : (
+                title
+              )}
             </h3>
           )}
           {run.isFetching ? <Loader2 className="size-3.5 animate-spin text-muted-foreground" /> : null}
@@ -356,11 +364,13 @@ export interface DashboardViewProps {
   onSave?: (d: Pick<Dashboard, 'tabs' | 'cards' | 'parameters'>) => Promise<void>
   toolbar?: React.ReactNode
   autoRefresh?: number | null
+  /** Offers the choice of the automatic refresh, as a stopwatch, when given. */
+  onAutoRefreshChange?: (seconds: number | null) => void
   /** Opens the editor for a new question of this dashboard, whose card goes to `tab`. */
   onNewQuestion?: (tab: string | null) => void
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onNewQuestion }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   const [draft, setDraft] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
   const initialValues = useMemo(() => Object.fromEntries(dashboard.parameters.map((p) => [p.id, p.default ?? null])) as Values, [dashboard.parameters])
@@ -381,12 +391,15 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     if (!editing) setDraft({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
   }, [dashboard, editing])
 
-  // Automatic refresh: every card re-runs, bypassing the cache.
+  // Automatic refresh: every card re-runs, bypassing the cache. `cycle` is when the wait began.
+  const [cycle, setCycle] = useState(() => Date.now())
   useEffect(() => {
     if (!autoRefresh || editing) return
+    setCycle(Date.now())
     const t = setInterval(() => {
       setFresh(true)
       setTick((x) => x + 1)
+      setCycle(Date.now())
     }, autoRefresh * 1000)
     return () => clearInterval(t)
   }, [autoRefresh, editing])
@@ -550,6 +563,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           </>
         ) : (
           <>
+            {onAutoRefreshChange ? <RefreshTimer seconds={autoRefresh ?? null} since={cycle} onChange={onAutoRefreshChange} /> : null}
             {toolbar}
             {editable ? (
               <Button size="sm" variant="outline" onClick={() => setEditing(true)}>

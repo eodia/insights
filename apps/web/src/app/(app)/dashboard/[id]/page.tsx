@@ -144,6 +144,10 @@ function DashboardScreen({ id }: { id: string }) {
           editable={editable}
           startEditing={params.get('edit') === '1'}
           autoRefresh={refresh}
+          onAutoRefreshChange={async (next) => {
+            setRefresh(next)
+            if (editable) await api.patch(`/v1/dashboards/${dashboard.id}`, { auto_refresh: next })
+          }}
           onNewQuestion={(tab) => router.push(`/question/new?dashboard=${dashboard.id}${tab ? `&tab=${encodeURIComponent(tab)}` : ''}`)}
           onSave={async (d) => {
             await api.patch(`/v1/dashboards/${dashboard.id}`, d)
@@ -153,23 +157,6 @@ function DashboardScreen({ id }: { id: string }) {
           }}
           toolbar={
             <>
-              <Choice
-                value={refresh === null ? 'off' : String(refresh)}
-                onValueChange={async (v) => {
-                  const next = v === 'off' ? null : Number(v)
-                  setRefresh(next)
-                  if (editable) await api.patch(`/v1/dashboards/${dashboard.id}`, { auto_refresh: next })
-                }}
-                options={[
-                  { value: 'off', label: $t('Pas de rafraîchissement') },
-                  { value: '60', label: $t('Toutes les minutes') },
-                  { value: '300', label: $t('Toutes les 5 minutes') },
-                  { value: '900', label: $t('Toutes les 15 minutes') },
-                  { value: '3600', label: $t('Toutes les heures') },
-                ]}
-                aria-label={$t('Rafraîchissement automatique')}
-                className="w-52"
-              />
               <Button size="sm" variant="outline" onClick={() => setShare(true)}>
                 <Share2 /> {$t('Partager')}
               </Button>

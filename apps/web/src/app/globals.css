@@ -216,6 +216,16 @@
   }
 }
 
+/* The automatic refresh of a dashboard: its ring fills until the next one. */
+@keyframes refresh-ring {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* The screens before a session move a lot; asked for less motion, they arrive still. */
 @media (prefers-reduced-motion: reduce) {
   [data-auth-screen] *,

@@ -3,7 +3,9 @@
 import type { Folder, ItemKind, ItemSummary } from '@eodia/contracts'
 import { Avatar, Chip, ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
+import { DashboardView, type Runner } from '@/components/app/dashboard/view'
 import { ShareDialog } from '@/components/app/share-dialog'
+import { Hint } from '@/components/ui/tooltip'
 import { ResultFooter, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,14 +17,34 @@ import { useCrumbs } from '@/lib/store'
 import { VIZ_LABELS } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowUpRight, FolderOpen, Loader2, Search, Share2, Star } from 'lucide-react'
+import { ArrowUpRight, FolderOpen, Loader2, PanelRight, Search, Share2, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { use, useMemo, useState } from 'react'
+import { use, useEffect, useMemo, useState } from 'react'
 import { Pane } from '@/components/ui/pane'
 import { TabRow } from '@/components/ui/tab-row'
 
 type Tab = 'all' | ItemKind
+
+const DETAILS_KEY = 'eodia:browse:details'
+
+/** Whether the details pane shows, remembered in the browser when it can be. */
+function useDetailsShown(): [boolean, () => void] {
+  const [shown, setShown] = useState(true)
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(DETAILS_KEY) === '0') setShown(false)
+    } catch {}
+  }, [])
+  const toggle = () =>
+    setShown((v) => {
+      try {
+        localStorage.setItem(DETAILS_KEY, v ? '0' : '1')
+      } catch {}
+      return !v
+    })
+  return [shown, toggle]
+}
 
 function groupOf(iso: string): string {
   const d = new Date(iso)
@@ -76,7 +98,7 @@ function Row({ item, active, onSelect }: { item: ItemSummary; active: boolean; o
   )
 }
 
-function QuestionPreview({ id }: { id: string }) {
+function QuestionPreview({ id, details, onToggleDetails }: { id: string; details: boolean; onToggleDetails: () => void }) {
   const { data: q } = useQuestion(id)
   const run = useQuery({ queryKey: ['preview-run', id], queryFn: () => api.post<RunResult>(`/v1/questions/${id}/run`, {}), retry: false })
   if (!q) return <Loader2 className="m-auto size-5 animate-spin text-muted-foreground" />
@@ -93,6 +115,11 @@ function QuestionPreview({ id }: { id: string }) {
             {$t('Ouvrir')} <ArrowUpRight />
           </Link>
         </Button>
+        <Hint label={$t('Afficher ou masquer le détail')}>
+          <Button size="icon-sm" variant={details ? 'secondary' : 'ghost'} onClick={onToggleDetails} aria-label={$t('Afficher ou masquer le détail')} aria-pressed={details} className="hidden xl:inline-flex">
+            <PanelRight />
+          </Button>
+        </Hint>
       </div>
       <div className="min-h-0 flex-1 p-4">
         {run.isLoading ? (
@@ -116,14 +143,15 @@ function QuestionPreview({ id }: { id: string }) {
   )
 }
 
+/** A dashboard, shown as it is — its cards run under the person's rights, as on its own page. */
 function DashboardPreview({ id }: { id: string }) {
-  const { data: d } = useDashboard(id)
+  const { data: d, error } = useDashboard(id)
+  if (error) return <p className="p-8 text-sm text-destructive">{(error as Error).message}</p>
   if (!d) return <Loader2 className="m-auto size-5 animate-spin text-muted-foreground" />
-  const cards = d.cards.filter((c) => c.kind === 'question')
+  const runner: Runner = (card, values, { fresh }) => api.post<RunResult>(`/v1/dashboards/${d.id}/cards/${card.id}/run`, { values, fresh })
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-start gap-3 border-b px-6 py-4">
-        <ItemTile kind="dashboard" />
+      <div className="flex items-start gap-3 px-6 pt-4 pb-1">
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-lg font-semibold">{d.name}</h2>
           {d.description ? <p className="text-sm text-muted-foreground">{d.description}</p> : null}
@@ -134,37 +162,8 @@ function DashboardPreview({ id }: { id: string }) {
           </Link>
         </Button>
       </div>
-      <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            [$t('Cartes'), cards.length],
-            [$t('Onglets'), Math.max(d.tabs.length, 1)],
-            [$t('Filtres'), d.parameters.length],
-          ].map(([l, v]) => (
-            <div key={l as string} className="rounded-xl border p-4">
-              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{l}</div>
-              <div className="mt-1 text-2xl font-semibold">{v}</div>
-            </div>
-          ))}
-        </div>
-        {d.parameters.length ? (
-          <div className="flex flex-wrap gap-1.5">
-            {d.parameters.map((p) => (
-              <Chip key={p.id} color="indigo">
-                {p.label}
-              </Chip>
-            ))}
-          </div>
-        ) : null}
-        <div className="space-y-1.5">
-          {d.cards.map((c) => (
-            <div key={c.id} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-              <span className="size-1.5 rounded-full bg-primary" />
-              <span className="flex-1 truncate">{c.title || (c.kind === 'heading' || c.kind === 'text' ? (c.text ?? '').slice(0, 60) : $t('Carte'))}</span>
-              <span className="text-xs text-muted-foreground">{c.kind}</span>
-            </div>
-          ))}
-        </div>
+      <div className="min-h-0 flex-1">
+        <DashboardView key={d.updated_at} dashboard={d} runner={runner} editable={false} autoRefresh={d.auto_refresh} />
       </div>
     </div>
   )
@@ -232,6 +231,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
   const [share, setShare] = useState(false)
+  const [details, toggleDetails] = useDetailsShown()
   const folder = folders.find((f) => f.id === folderId)
   const byId = new Map(folders.map((f) => [f.id, f]))
   const path: Folder[] = []
@@ -324,7 +324,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
           current.kind === 'dashboard' ? (
             <DashboardPreview key={current.id} id={current.id} />
           ) : (
-            <QuestionPreview key={current.id} id={current.id} />
+            <QuestionPreview key={current.id} id={current.id} details={details} onToggleDetails={toggleDetails} />
           )
         ) : (
           <div className="m-auto max-w-sm space-y-2 text-center">
@@ -334,7 +334,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
         )}
       </section>
 
-      {current ? <Details item={current} {...(folder ? { folder } : {})} onShare={() => setShare(true)} /> : null}
+      {current && current.kind !== 'dashboard' && details ? <Details item={current} {...(folder ? { folder } : {})} onShare={() => setShare(true)} /> : null}
       {current ? <ShareDialog open={share} onOpenChange={setShare} kind={current.kind} id={current.id} name={current.name} /> : null}
     </div>
   )
