@@ -153,6 +153,7 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   scatter: msg('Nuage de points'),
   funnel: msg('Entonnoir'),
   radar: msg('Radar'),
+  polar: msg('Barres polaires'),
   bar_race: msg('Course de barres'),
   line_race: msg('Course de courbes'),
   treemap: msg('Carte proportionnelle'),
@@ -892,6 +893,70 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
           },
         })),
       } as EChartsOption,
+    }
+  }
+
+  if (type === 'polar') {
+    // Bars on a circle: around it, one ring per category (radial), or rising from the centre.
+    const { x, series, categories } = cartesian(result, settings)
+    if (!x || series.length === 0) return null
+    const pal = paletteOf(settings, theme, series.length)
+    let next = 0
+    const muted = theme.dark ? OTHER.dark : OTHER.light
+    const colors = series.map((s) => settings.series?.[s.key]?.color ?? (series.length === 1 && settings.color ? settings.color : s.key === '__other__' ? muted : (s.look ?? pal(next++))))
+    const radial = settings.polar_style !== 'column'
+    const stack = settings.stack && settings.stack !== 'none' ? 'total' : undefined
+    const metric = series[0]?.metric
+    const names = categories.map((v) => (v === OTHER_CATEGORY ? $t('Autres') : formatValue(v, x) || '∅'))
+    // One series over categories: each bar its category's own colour, when it has one.
+    const own = series.length === 1 && !settings.color ? categories.map((v) => (v === OTHER_CATEGORY ? muted : (settings.series?.[keyOf(v)]?.color ?? valueColor(result, x, v)))) : []
+    const catAxis = {
+      type: 'category' as const,
+      data: names,
+      axisTick: { show: false },
+      axisLine: { show: !radial, lineStyle: { color: c.grid } },
+      axisLabel: { color: c.secondary, fontSize: 11, ...(radial ? { interval: 0 } : {}) },
+      splitLine: { show: !radial, lineStyle: { color: c.grid, type: 'dashed' as const } },
+      z: 10,
+    }
+    const top = Math.max(0, ...categories.map((_, j) => (stack ? series.reduce((sum, s) => sum + Math.abs(s.values[j] ?? 0), 0) : Math.max(0, ...series.map((s) => Math.abs(s.values[j] ?? 0))))))
+    const valAxis = {
+      type: 'value' as const,
+      // Radial: the longest bar goes four fifths of the way round, not the whole circle.
+      ...(radial ? { max: top > 0 ? top * 1.25 : 1, startAngle: 90 } : {}),
+      axisLabel: { show: !radial, color: c.muted, formatter: axisLabel(metric) },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: c.grid, type: 'dashed' as const } },
+    }
+    const legend = series.length > 1 && settings.legend !== false
+    return {
+      clickColumn: x,
+      categories,
+      targets: series.filter((s) => s.key !== '__other__').map((s) => ({ key: s.key, name: s.name, color: colors[series.indexOf(s)] as string })),
+      option: {
+        ...base,
+        color: colors,
+        legend: legend ? { top: 0, left: 0, type: 'scroll', icon: 'roundRect', itemWidth: 10, itemHeight: 10, itemGap: 18, textStyle: { color: c.secondary } } : undefined,
+        tooltip: { ...base.tooltip, trigger: 'item', valueFormatter: (v) => formatValue(v, metric ?? x) },
+        polar: { radius: radial ? ['14%', '78%'] : ['6%', '76%'], center: ['50%', legend ? '55%' : '52%'] },
+        angleAxis: radial ? valAxis : { ...catAxis, startAngle: 90 },
+        radiusAxis: radial ? catAxis : valAxis,
+        series: series.map((s, i) => ({
+          type: 'bar',
+          coordinateSystem: 'polar',
+          name: s.name,
+          stack,
+          data: s.values.map((v, j) => (own[j] ? { value: v, itemStyle: { color: own[j] } } : v)),
+          roundCap: radial && !stack,
+          barCategoryGap: radial ? '28%' : '12%',
+          itemStyle: { color: colors[i], ...(radial ? {} : { borderColor: c.surface, borderWidth: 1 }) },
+          emphasis: { focus: 'series' },
+          label: settings.values
+            ? { show: true, position: radial ? 'end' : 'middle', color: radial ? c.secondary : '#ffffff', fontSize: 10, formatter: (p: { value: unknown }) => formatValue(p.value, s.metric, { compact: true }) }
+            : undefined,
+        })) as SeriesOption[],
+      },
     }
   }
 

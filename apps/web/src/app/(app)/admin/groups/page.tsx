@@ -193,7 +193,7 @@ function GroupDetail({ group, onRename, onDelete }: { group: Group; onRename: ()
             <h2 className="truncate text-lg font-semibold">{groupName(group.name)}</h2>
             <Chip color={group.kind === 'custom' ? 'indigo' : 'gray'}>{$t(GROUP_KIND_LABELS[group.kind])}</Chip>
           </div>
-          <p className="truncate text-sm text-muted-foreground">{group.description || $tp(group.members, '{count} membre', '{count} membres')}</p>
+          <p className="truncate text-sm text-muted-foreground">{(group.description && groupName(group.description)) || $tp(group.members, '{count} membre', '{count} membres')}</p>
         </div>
         <Button asChild variant="outline" size="sm">
           <Link href={`/admin/permissions?group=${group.id}`}>

@@ -44,7 +44,7 @@ import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe, useQuestion, useTables } from '@/lib/queries'
 import { type ColumnOption, columnOptions } from '@/lib/builder'
 import { cn } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowRightLeft,
@@ -213,6 +213,8 @@ function CardFrame(props: CardProps) {
     enabled: isQuestion,
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
+    // A refresh or a new filter keeps the chart on screen: its values move to the new ones.
+    placeholderData: keepPreviousData,
   })
   const viz = card.visualization ?? question?.visualization ?? { type: 'table' as VisualizationType }
   useEffect(() => {

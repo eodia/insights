@@ -280,6 +280,7 @@ export const VISUALIZATIONS = [
   'scatter',
   'funnel',
   'radar',
+  'polar',
   'bar_race',
   'line_race',
   'treemap',
@@ -428,6 +429,10 @@ export interface VisualizationSettings {
   readonly pieces?: readonly AreaPiece[]
   /** A calendar: a dot sized by the value, or each day's square coloured by it. */
   readonly calendar_style?: 'scatter' | 'heatmap'
+
+  // ── Polar bars ──
+  /** Bars that wind around the centre (radial), or that rise from it like petals (column). */
+  readonly polar_style?: 'radial' | 'column'
 
   // ── Races ──
   /** How long each period stays on screen, in milliseconds (300 to 5 000; 1 000 by default). */

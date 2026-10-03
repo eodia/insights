@@ -15,7 +15,7 @@ résultat ; une forme qui ne lui convient pas est atténuée, et son info-bulle 
 | Famille | Formes | Pour |
 |---|---|---|
 | **Chiffres clés** | Nombre, Tendance, Progression, Jauge | un chiffre, son évolution, sa part d’un objectif |
-| **Comparer** | Barres, Barres horizontales, **Radar** | des catégories entre elles ; le radar compare des profils sur 3 à 30 critères, sur une échelle commune |
+| **Comparer** | Barres, Barres horizontales, **Radar**, **Barres polaires** | des catégories entre elles ; le radar compare des profils sur 3 à 30 critères, sur une échelle commune |
 | **Évolution** | Lignes, Aires, Combiné, **Course de barres**, **Course de courbes**, **Calendrier** | suivre dans le temps — et [prévoir](/insights/fonctionnalites/previsions/) ; les courses rejouent l’histoire période après période |
 | **Répartition** | Camembert (sur plusieurs anneaux), **Carte proportionnelle**, Entonnoir | des parts, des parts de parts, des étapes |
 | **Relation** | Nuage de points | deux mesures l’une contre l’autre |

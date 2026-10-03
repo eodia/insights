@@ -15,7 +15,7 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 | Family | Types | For |
 |---|---|---|
 | **Key figures** | Number, Trend, Progress, Gauge | a figure, its change, its share of a goal |
-| **Compare** | Bar, Row, **Radar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
+| **Compare** | Bar, Row, **Radar**, **Polar bar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
 | **Trend** | Line, Area, Combo, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
 | **Distribution** | Pie (on several rings), **Treemap**, Funnel | shares, shares of shares, stages |
 | **Relationship** | Scatter | two measures against each other |

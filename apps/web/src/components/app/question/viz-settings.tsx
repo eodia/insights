@@ -23,6 +23,9 @@ import {
   ChartBarDecreasing,
   ChartSpline,
   CalendarDays,
+  Disc3,
+  Orbit,
+  Flower2,
   LayoutPanelLeft,
   Clock,
   Trash2,
@@ -86,6 +89,7 @@ export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
   scatter: ChartScatter,
   funnel: Filter,
   radar: Radar,
+  polar: Disc3,
   bar_race: ChartBarDecreasing,
   line_race: ChartSpline,
   treemap: LayoutPanelLeft,
@@ -194,7 +198,7 @@ const IconRows1 = rows(3)
 /** The forms by what they are for, each family with its tint. */
 const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = [
   { label: msg('Chiffres clés'), tone: 'bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300', types: ['scalar', 'trend', 'progress', 'gauge'] },
-  { label: msg('Comparer'), tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar'] },
+  { label: msg('Comparer'), tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar', 'polar'] },
   { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'bar_race', 'line_race', 'calendar'] },
   { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'treemap', 'funnel'] },
   { label: msg('Relation'), tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter'] },
@@ -524,11 +528,11 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
     set({ ref_lines: [...next] })
   }
   const race = type === 'bar_race' || type === 'line_race'
-  const colored = cartesian || race || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
+  const colored = cartesian || race || type === 'polar' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
 
   return (
     <div className="space-y-4">
-      {cartesian || race || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
+      {cartesian || race || type === 'polar' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
         <Section title={$t('Données')}>
           <ColumnsPick label={$t('Dimensions (axe, puis séries)')} columns={columns} value={settings.dimensions ?? detected.dims.map((d) => d.name)} onChange={(v) => set({ dimensions: v })} />
           <ColumnsPick label={$t('Mesures')} columns={numeric} value={settings.metrics ?? detected.metrics.map((d) => d.name)} onChange={(v) => set({ metrics: v })} />
@@ -811,6 +815,35 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
             ? $t('Plusieurs dimensions (type, motif, sous-motif…) : un anneau par niveau, du centre vers l’extérieur. Cliquez une part pour zoomer dessus.')
             : $t('Plusieurs dimensions : des rectangles imbriqués, un niveau par dimension. Cliquez un rectangle pour zoomer dessus.')}
         </p>
+      ) : null}
+
+      {type === 'polar' ? (
+        <Section title={$t('Barres polaires')}>
+          <Field label={$t('Disposition')}>
+            <Segmented
+              value={settings.polar_style ?? 'radial'}
+              onValueChange={(v) => set({ polar_style: v })}
+              options={[
+                { value: 'radial', label: $t('En anneaux'), icon: Orbit, hint: $t('Une barre par catégorie, qui tourne autour du centre') },
+                { value: 'column', label: $t('En pétales'), icon: Flower2, hint: $t('Une barre par catégorie, qui part du centre') },
+              ]}
+              aria-label={$t('Disposition')}
+            />
+          </Field>
+          <Field label={$t('Empilement')}>
+            <Segmented
+              value={settings.stack === 'stacked' ? 'stacked' : 'none'}
+              onValueChange={(v) => set({ stack: v })}
+              options={[
+                { value: 'none', label: $t('Côte à côte'), icon: BarChart3 },
+                { value: 'stacked', label: $t('Empilées'), icon: ChartColumnStacked },
+              ]}
+              aria-label={$t('Empilement')}
+            />
+          </Field>
+          <Toggle label={$t('Valeurs sur les marques')} checked={!!settings.values} onChange={(v) => set({ values: v })} />
+          <Toggle label={$t('Légende')} checked={settings.legend !== false} onChange={(v) => set({ legend: v })} />
+        </Section>
       ) : null}
 
       {type === 'calendar' ? (

@@ -29,6 +29,7 @@ import {
 import {
   CalendarComponent,
   DataZoomComponent,
+  PolarComponent,
   GraphicComponent,
   GridComponent,
   LegendComponent,
@@ -48,6 +49,7 @@ import { autoVisualization, chartOption } from '../../web/src/lib/viz'
 import { $t } from '../../web/src/lib/i18n'
 
 echarts.use([
+  PolarComponent,
   HeatmapChart,
   SunburstChart,
   TreemapChart,

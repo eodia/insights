@@ -18,6 +18,7 @@ import {
 import {
   CalendarComponent,
   DataZoomComponent,
+  PolarComponent,
   GeoComponent,
   GraphicComponent,
   GridComponent,
@@ -43,6 +44,7 @@ import { useEffect, useRef } from 'react'
  */
 
 echarts.use([
+  PolarComponent,
   HeatmapChart,
   SunburstChart,
   TreemapChart,
@@ -70,6 +72,22 @@ echarts.use([
   GeoComponent,
   SVGRenderer,
 ])
+
+/**
+ * What makes two options the same chart: their components and their series (type, name,
+ * stack, coordinate system). With the same shape, only the data changed — it is merged, and
+ * ECharts animates the marks from their old values to the new ones.
+ */
+function shapeOf(option: EChartsOption): string {
+  const o = option as Record<string, unknown>
+  if (o.baseOption !== undefined) return `timeline:${Math.random()}`
+  const list = (v: unknown) => (Array.isArray(v) ? v : v === undefined ? [] : [v]) as Record<string, unknown>[]
+  return JSON.stringify({
+    keys: Object.keys(o).filter((k) => o[k] !== undefined).sort(),
+    series: list(o.series).map((s) => [s.type, s.name, s.stack, s.coordinateSystem]),
+    axes: [...list(o.xAxis), ...list(o.yAxis)].map((a) => a.type),
+  })
+}
 
 /** A map's regions, registered once for every chart that draws it. */
 export function registerMap(name: string, geo: unknown): void {
@@ -133,8 +151,14 @@ export function EChart({
     }
   }, [])
 
+  // New data for the same chart moves its marks (ECharts' dynamic data); another chart is drawn anew.
+  const shape = useRef<string | null>(null)
   useEffect(() => {
-    chart.current?.setOption(option, { notMerge: true })
+    const instance = chart.current
+    if (instance === null) return
+    const next = shapeOf(option)
+    instance.setOption(option, next === shape.current ? { notMerge: false, replaceMerge: ['series', 'dataset'] } : { notMerge: true })
+    shape.current = next
   }, [option])
 
   return (
