@@ -12,6 +12,8 @@ import Copilot from '../components/home/Copilot.astro';
 import Dashboards from '../components/home/Dashboards.astro';
 import Engine from '../components/home/Engine.astro';
 import Features from '../components/home/Features.astro';
+import Forecast from '../components/home/Forecast.astro';
+import News from '../components/home/News.astro';
 import Rights from '../components/home/Rights.astro';
 import SelfHost from '../components/home/SelfHost.astro';
 import Story from '../components/home/Story.astro';
@@ -33,6 +35,8 @@ const { t, href } = i18n(locale);
 		<Rights locale={locale} />
 		<Copilot locale={locale} />
 		<Dashboards locale={locale} />
+		<Forecast locale={locale} />
+		<News locale={locale} />
 		<Agents locale={locale} />
 		<Features locale={locale} />
 		<SelfHost locale={locale} />

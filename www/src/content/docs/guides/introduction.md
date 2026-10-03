@@ -43,19 +43,25 @@ tableau de bord, une requête écrite à la main ou un assistant branché sur le
   PostgreSQL, MySQL / MariaDB, SQL Server, Oracle, Snowflake, MongoDB, et tout connecteur Trino.
 - Un écran **Structure** pour décrire les tables : libellés, descriptions, types sémantiques,
   formats, valeurs, relations.
-- Des [questions](/insights/fonctionnalites/questions/) construites avec l’éditeur visuel, en
-  SQL Trino ou en SQL natif, et quinze visualisations.
+- Des [questions](/insights/fonctionnalites/questions/) construites avec l’éditeur visuel (avec
+  ses jointures), en SQL Trino ou en SQL natif, et seize
+  [visualisations](/insights/fonctionnalites/visualisations/) — radar compris — aux palettes
+  lisibles par tous.
+- Des [prévisions](/insights/fonctionnalites/previsions/) qui prolongent une courbe en pointillés
+  verts, avec la saison et un intervalle de confiance.
 - Des [modèles et des métriques](/insights/fonctionnalites/modeles-et-metriques/) : des tables
   virtuelles et des agrégats nommés, définis une fois.
-- Des [tableaux de bord](/insights/fonctionnalites/tableaux-de-bord/) avec filtres, onglets,
-  rafraîchissement automatique et cache de résultats.
+- Des [tableaux de bord](/insights/fonctionnalites/tableaux-de-bord/) avec des **filtres
+  associatifs** (choisi, possible, exclu, comme dans Qlik), la sélection au **Maj + clic** sur les
+  graphiques, des onglets, un rafraîchissement automatique et un cache de résultats.
 - Des [droits](/insights/fonctionnalites/droits/) par groupe, jusqu’à la colonne et à la ligne.
 - Le [partage](/insights/fonctionnalites/partage/) : dossiers, partage d’élément, liens publics,
   iframe, et [intégration signée](/insights/integrations/integration-signee/).
 - Un [copilot](/insights/fonctionnalites/copilot/) (Anthropic, OpenAI, Mistral ou compatible
   OpenAI) qui cherche les tables, écrit le SQL et propose des questions et des tableaux de bord.
 - Une [API REST](/insights/integrations/api-rest/) décrite en OpenAPI 3.1 et un
-  [serveur MCP](/insights/integrations/mcp/) pour Claude et les autres assistants.
+  [serveur MCP](/insights/integrations/mcp/) pour Claude et les autres assistants, qui dessine
+  même les graphiques dans la conversation.
 
 ## Pour qui ?
 

@@ -40,6 +40,13 @@ se regroupe par valeurs ou **par tranches**.
 déclarée dans [Structure](/insights/fonctionnalites/sources/#les-relations) — sont proposées
 avec celles de la table de départ : en choisir une ajoute la jointure, et la retirer l’enlève.
 
+**Joindre des données.** Dans l’étape **Données**, **Joindre des données** ajoute une jointure
+choisie : la table, le type (**à gauche**, **interne**, **à droite**, **complète**) et les deux
+colonnes de la condition — la clé entre les deux tables est proposée d’office. La jointure reste
+même si aucune étape ne cite ses colonnes ; sans résumé, ses colonnes s’affichent après celles
+de la source, et se choisissent, se filtrent et se trient comme elles. Sa pastille la modifie ou
+la retire (avec les étapes qui citaient ses colonnes). Quatre jointures au plus.
+
 **Explorer un point.** Un clic sur une barre ou un point d’un graphique propose **Filtrer sur
 cette valeur** ou **Exclure cette valeur**.
 
@@ -129,24 +136,19 @@ Une date accepte une date (`2026-03-01`), une période relative (`today`, `yeste
 
 ## Les visualisations
 
-| Visualisation | Pour |
-|---|---|
-| **Tableau**, **Tableau croisé** | des lignes, ou une mesure croisée par deux dimensions |
-| **Nombre**, **Tendance**, **Progression**, **Jauge** | un chiffre, son évolution, sa part d’un objectif |
-| **Barres**, **Barres horizontales**, **Lignes**, **Aires**, **Combiné** | comparer et suivre dans le temps |
-| **Camembert**, **Entonnoir** | une répartition, des étapes |
-| **Nuage de points** | deux mesures l’une contre l’autre |
-| **Carte** | des valeurs par région ou département français, ou par pays |
-
-Le panneau **Visualisation** règle les dimensions et les mesures, l’empilement, les axes et leur
-échelle, la légende, les valeurs sur les marques, un objectif… Les formats et l’apparence des
-valeurs définis dans **Structure** s’appliquent d’eux-mêmes.
+Seize formes, rangées par usage — chiffres clés, comparer (dont le **radar**), évolution,
+répartition, relation, détail —, avec des palettes validées pour les daltoniens, la mise en
+avant d’une valeur, la moyenne, le tri, le top N… et des **prévisions** qui prolongent une
+courbe en pointillés verts. Tout est décrit dans [Visualisations](/insights/fonctionnalites/visualisations/)
+et [Prévisions](/insights/fonctionnalites/previsions/).
 
 ## Exporter, partager, ranger
 
 - **Exporter** télécharge le résultat en **CSV**, **XLSX** ou **JSON**, jusqu’à 100 000 lignes,
   toujours sous vos droits.
 - **Ajouter à un tableau de bord** pose la question sur un tableau existant.
+- **Déplacer…** la range dans un autre dossier, ou la confie à un tableau de bord (et à l’un de
+  ses onglets) : elle lui appartient alors, comme une question créée dans le tableau.
 - **Dupliquer**, **Enregistrer une copie**, **Partager** : voir
   [Partage](/insights/fonctionnalites/partage/).
 - **Transformer en modèle** ou **en métrique** : voir

@@ -1,6 +1,6 @@
 ---
 title: Tableaux de bord
-description: Cartes, filtres, onglets, rafraîchissement automatique et cache des résultats.
+description: Cartes, filtres associatifs, onglets, prévisions, rafraîchissement automatique et cache des résultats.
 ---
 
 Un **tableau de bord** assemble des cartes sur une grille de **24 colonnes**, réparties au
@@ -29,12 +29,34 @@ ajoute des onglets, des cartes et des filtres.
 | **Texte** | du Markdown ; `{{id_du_filtre}}` y affiche la valeur d’un filtre |
 | **Page intégrée** | une page d’ailleurs, par son adresse |
 
-**Ajouter une question** cherche parmi les questions, modèles et métriques que vous pouvez lire.
-Une question peut aussi venir de son propre écran (**Ajouter à un tableau de bord**) ou d’une
-proposition du [copilot](/insights/fonctionnalites/copilot/).
+**Ajouter une question** cherche parmi les questions, modèles et métriques que vous pouvez lire ;
+chacune y montre son dossier. Une question peut aussi venir de son propre écran (**Ajouter à un
+tableau de bord**) ou d’une proposition du [copilot](/insights/fonctionnalites/copilot/).
 
-Le menu d’une carte permet de la **rafraîchir**, de l’**agrandir** en plein écran, d’**ouvrir la
-question**, de la **dupliquer** ou de la **retirer**. Retirer une carte ne supprime pas la question.
+Le titre d’une carte ouvre sa question. Son menu permet de la **rafraîchir**, de l’**agrandir**
+en plein écran, d’**ouvrir la question**, de la **dupliquer**, de la **retirer** — retirer une
+carte ne supprime pas la question —, et de la **déplacer** :
+
+- **Vers l’onglet ›** l’envoie sur un autre onglet du même tableau ;
+- **Vers un autre tableau de bord…** la place sur un autre tableau, dans l’onglet choisi. Ses
+  liens aux filtres restent derrière elle : les filtres ne sont pas les mêmes d’un tableau à
+  l’autre.
+
+L’onglet ouvert fait partie de l’adresse (`?tab=…`) : un lien ouvre le bon onglet, et
+**Précédent** / **Suivant** du navigateur vont d’un onglet à l’autre.
+
+### Une question créée dans le tableau
+
+**Nouvelle question**, dans **Ajouter une question** ou dans le menu **…** du tableau, ouvre
+l’éditeur ; à l’enregistrement, la carte se place dans l’onglet d’où vous êtes parti et le
+tableau se rouvre. Cette question **appartient au tableau** :
+
+- elle n’apparaît dans aucun dossier ni dans la recherche ;
+- elle prend les droits du tableau (un partage du tableau la partage aussi) ;
+- elle est copiée avec le tableau, supprimée avec lui ; retirer sa carte l’archive, la remettre
+  la restaure ;
+- **Déplacer…**, dans l’éditeur, la range dans un dossier (elle devient une question comme une
+  autre) ou l’envoie vers un autre tableau de bord.
 
 ## Les filtres
 
@@ -52,16 +74,59 @@ Chaque filtre a un libellé, un identifiant (`{{periode}}`) et une **valeur par 
 (**Valeur actuelle par défaut** reprend celle qui est affichée). Une catégorie accepte ou non
 plusieurs valeurs.
 
-**Relier un filtre aux cartes.** En mode édition, sélectionnez un filtre : chaque carte propose
-la colonne qu’il restreint — une colonne de sa table ou d’une table liée — ou, pour une question
-SQL, une de ses [variables](/insights/fonctionnalites/questions/#les-variables). Une carte non
-reliée ignore le filtre.
+**Paramétrer un filtre.** En mode édition, sélectionnez un filtre : un panneau montre son type,
+son nom, s’il accepte plusieurs valeurs, sa valeur par défaut (**prendre la valeur actuelle**) et
+combien de cartes il pilote.
 
-**Filtres liés.** La liste des valeurs d’une catégorie tient compte des autres catégories déjà
-choisies : une fois le pays choisi, le filtre « ville » ne propose que ses villes.
+**Relier un filtre aux cartes.** Chaque carte propose la colonne que le filtre restreint — une
+colonne de sa table ou d’une table liée — ou, pour une question SQL, une de ses
+[variables](/insights/fonctionnalites/questions/#les-variables). **Relier toutes les cartes**
+fait tout d’un coup : il liste les colonnes que les cartes ont en commun, avec le nombre de
+cartes qui l’ont, et suggère celle qui porte le nom du filtre. **Délier toutes** défait les
+liens. Une carte non reliée ignore le filtre.
 
-**Cliquer pour filtrer.** Hors édition, un clic sur un point d’un graphique applique sa valeur au
-filtre relié à cette colonne : un clic sur la barre « Web » filtre tout le tableau sur ce canal.
+### Des filtres associatifs
+
+La liste d’un filtre de catégorie se lit comme dans Qlik :
+
+| Couleur | Ce que c’est |
+|---|---|
+| **Vert** | les valeurs choisies |
+| **Blanc** | les valeurs possibles : les autres filtres leur laissent des lignes |
+| **Gris**, en dessous | les valeurs exclues par les autres filtres |
+
+Chaque valeur montre ses lignes dans le périmètre des autres filtres (et son total), avec une
+barre proportionnelle ; l’en-tête et la puce du filtre montrent **la part des lignes** que garde
+la sélection (« 74 % »). Les valeurs viennent des données, lues sous vos droits ; les couleurs et
+les pictos sont ceux définis dans [Structure](/insights/fonctionnalites/sources/).
+
+| Geste | Effet |
+|---|---|
+| Clic | choisit ou retire la valeur |
+| **Maj** + clic | choisit la plage, depuis la dernière valeur cliquée |
+| **Ctrl** (⌘) + clic | garde seulement cette valeur |
+| ↑ ↓, **Espace** | se déplacer, choisir |
+| **Maj** + ↑ ↓ | étendre la sélection |
+| **Ctrl** + **A** | toutes les valeurs possibles |
+| **Suppr** | aucune valeur |
+| **Entrée** | fermer |
+
+Les boutons **Tout**, **Exclues** (les valeurs grisées), **Inverser** et **Effacer** font le
+reste. Les choix s’appliquent au fil de l’eau ; l’ordre de la liste reste celui de l’ouverture.
+Seuls les filtres posés sur la **même table** restreignent les valeurs possibles.
+
+### Cliquer sur un graphique pour filtrer
+
+Hors édition, un clic sur une barre, une part ou un point applique sa valeur au filtre relié à
+cette colonne : un clic sur la barre « Web » filtre tout le tableau sur ce canal.
+
+- **Maj** (ou **Ctrl**, ⌘) + clic **ajoute** la catégorie à la sélection, ou l’en retire ;
+- un clic sur la seule catégorie choisie retire le filtre ;
+- sur une période, **Maj** + clic étend la période jusqu’à celle cliquée.
+
+Le graphique d’où part la sélection n’est pas restreint par elle : il garde toutes ses
+catégories, celles qui ne sont pas choisies estompées, pour qu’on puisse en ajouter. Les autres
+cartes sont filtrées.
 
 :::note[Le serveur décide de ce que filtre une carte]
 Les filtres qu’une carte reçoit sont lus dans le tableau de bord enregistré, côté serveur : un
@@ -69,10 +134,17 @@ appelant envoie des valeurs, jamais la liste des colonnes à filtrer. Un lien pa
 donc pas de détourner une carte.
 :::
 
+## Les graphiques des cartes
+
+Chaque carte se règle comme une question : forme (dont le **radar**), palette, couleurs par
+série, mise en avant, moyenne, tri, top N… — voir [Visualisations](/insights/fonctionnalites/visualisations/)
+— et peut **prolonger sa tendance** : voir [Prévisions](/insights/fonctionnalites/previsions/).
+
 ## Rafraîchissement et affichage
 
-- **Rafraîchissement automatique** : jamais, toutes les minutes, toutes les 5 ou 15 minutes, ou
-  toutes les heures.
+- **Rafraîchissement automatique** : le chronomètre de la barre — jamais, toutes les minutes,
+  toutes les 5 ou 15 minutes, ou toutes les heures ; sa jauge se remplit jusqu’au prochain
+  rafraîchissement.
 - **Rafraîchir** relance les cartes en ignorant le cache.
 - **Plein écran**, pour un écran mural.
 - **Dupliquer**, **Ajouter aux favoris**, **Partager** (voir

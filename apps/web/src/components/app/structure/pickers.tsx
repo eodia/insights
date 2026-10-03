@@ -95,13 +95,14 @@ export const COMMON_ICONS = ICON_GROUPS.flatMap((g) => g.icons)
 const KNOWN = new Set<string>(iconNames)
 const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
+const kindOf = (v: string | null | undefined) => (v?.startsWith('emoji:') ? 'emoji' : v?.startsWith('img:') ? 'image' : 'icon')
+
 /**
  * A pictogram to choose: one of lucide's (by theme, or searched among all of them), an emoji,
  * or an image by its address. Stored as the lucide name, `emoji:…` or `img:…`.
  */
 export function IconPicker({ value, onChange, disabled, color, size = 'sm' }: { value: string | null | undefined; onChange: (icon: string | null) => void; disabled?: boolean; color?: LookColor | null; size?: 'sm' | 'xs' }) {
   const [open, setOpen] = useState(false)
-  const kindOf = (v: string | null | undefined) => (v?.startsWith('emoji:') ? 'emoji' : v?.startsWith('img:') ? 'image' : 'icon')
   const [tab, setTab] = useState<'icon' | 'emoji' | 'image'>(kindOf(value))
   const [search, setSearch] = useState('')
   const [url, setUrl] = useState('')

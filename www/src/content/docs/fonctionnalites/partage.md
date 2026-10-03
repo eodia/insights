@@ -29,6 +29,16 @@ prévisualise un élément.
   contenu et les sous-dossiers, et se surchargent plus bas. **Gestion** permet de régler les
   droits du dossier lui-même. Voir [Droits](/insights/fonctionnalites/droits/#les-dossiers-et-les-partages).
 - Un dossier se renomme, se déplace ou s’**archive** ; son contenu archivé disparaît des listes.
+- **Nouveau dossier**, dans la section **Dossiers** d’un dossier ouvert, crée un sous-dossier sur
+  place.
+- **Glisser-déposer** : une question, un tableau ou un dossier se glisse sur un sous-dossier, sur
+  la tuile du dossier parent, ou sur un dossier de la barre latérale — qui montre toute
+  l’arborescence, dépliée jusqu’au dossier ouvert. Seul un administrateur range un dossier à la
+  racine.
+- En tête d’un dossier, son **picto** (un picto, un emoji ou une image) et sa **couleur** se
+  choisissent ; ils le suivent dans la barre latérale et les listes.
+- Cliquer sur un tableau de bord dans un dossier l’affiche aussitôt, à droite ; une question
+  montre son résultat, avec un volet de détail que l’on affiche ou masque.
 
 L’auteur d’un élément peut toujours le modifier dès qu’il peut le voir.
 

@@ -105,7 +105,7 @@ droite. Tout le monde le consulte pour les tables qu’il peut lire ; le modifie
 |---|---|
 | **Libellé** et **description** | ce que contient la table, pour les analystes et le copilot |
 | **Entité** | ce qu’une ligne représente : *Commande*, *Client*… |
-| **Couleur** et **picto** | l’apparence de la table dans les listes |
+| **Couleur** et **picto** | l’apparence de la table dans les listes (voir ci-dessous) |
 | **Visibilité** | normale, masquée ou technique |
 | **Colonne d’affichage** | ce qui nomme une ligne quand une autre table y fait référence |
 
@@ -154,8 +154,20 @@ jointures implicites de l’éditeur visuel et contexte du copilot.
 
 Pour une colonne de catégorie, l’onglet **Valeurs** liste les valeurs relevées par la
 synchronisation. Chacune reçoit un **libellé**, une **couleur**, un **picto** ou une **image** :
-`expédiée` s’affiche alors « Expédiée », en bleu, avec un camion. Les résultats et les filtres
-reprennent cette apparence.
+`expédiée` s’affiche alors « Expédiée », en bleu, avec un camion. Les résultats, les filtres et
+**les graphiques** reprennent cette apparence : une valeur colorée garde sa couleur dans toutes
+les séries, les parts et les barres (voir [Visualisations](/insights/fonctionnalites/visualisations/#les-couleurs)).
+
+### Les pictos
+
+Partout où un picto se choisit — une table, une valeur, un dossier —, le sélecteur a trois
+onglets :
+
+- **Pictos** : près de 300 pictos rangés par thème (statuts, commerce, personnes, lieux, temps,
+  données, communication, technique, documents, nature), et une recherche parmi les plus de
+  2 000 de [lucide](https://lucide.dev/icons) — les noms sont en anglais : `truck`, `star`… ;
+- **Emoji** : par thème, ou collé ;
+- **Image** : un logo, une photo, un drapeau, par son adresse `https://`, avec un aperçu.
 
 ### Les relations
 

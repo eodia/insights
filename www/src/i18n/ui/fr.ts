@@ -47,6 +47,7 @@ const fr = {
 							sources: { href: '/fonctionnalites/sources/', title: 'Sources', text: 'Sept moteurs, un schéma synchronisé et décrit.' },
 							questions: { href: '/fonctionnalites/questions/', title: 'Questions', text: 'Sans SQL, en SQL Trino ou en SQL natif.' },
 							models: { href: '/fonctionnalites/modeles-et-metriques/', title: 'Modèles et métriques', text: 'Une définition, partout la même réponse.' },
+							charts: { href: '/fonctionnalites/visualisations/', title: 'Visualisations', text: 'Seize formes, des palettes lisibles par tous.' },
 						},
 					},
 					share: {
@@ -67,11 +68,11 @@ const fr = {
 					},
 				},
 				feature: {
-					tag: 'Le cœur',
-					title: 'Trino décide, pas l’interface',
-					text: 'Chaque requête demande à eodia insights ce que la personne a le droit de lire.',
-					cta: 'Comment ça marche',
-					href: '/architecture/principes/',
+					tag: 'Nouveau',
+					title: 'Les prévisions',
+					text: 'Prolongez une courbe de 3, 6 ou 12 périodes : la saison reconnue, la tendance en pointillés verts, un intervalle honnête.',
+					cta: 'Voir les prévisions',
+					href: '/fonctionnalites/previsions/',
 				},
 			},
 			developers: {
@@ -192,6 +193,8 @@ const fr = {
 		primary: 'Installer eodia insights',
 		secondary: 'Lire la documentation',
 		facts: ['Open source, AGPL-3.0', 'Sept moteurs, une requête', 'Droits appliqués par Trino'],
+		/** The ribbon above the title: what is new. */
+		announce: { tag: 'Nouveau', text: 'Les prévisions : prolongez vos courbes, saison comprise', href: '#previsions' },
 	},
 
 	story: {
@@ -387,6 +390,53 @@ const fr = {
 		},
 	},
 
+	/** Forecasts: the curve, prolonged. */
+	forecast: {
+		badge: 'Nouveau',
+		kicker: 'Prévisions',
+		title: 'Ce qui s’est passé.',
+		titleAccent: 'Et ce qui vient.',
+		lede: 'Un clic prolonge une courbe, une aire ou des barres de 3, 6 ou 12 périodes. eodia insights reconnaît la saison, dessine la tendance en pointillés verts et vous dit à quel point vous y fier.',
+		chartTitle: 'Chiffre d’affaires mensuel',
+		measured: 'Mesuré',
+		forecast: 'Prévision',
+		band: 'Intervalle 80 %',
+		extend: 'Prolonger de',
+		method: 'Automatique · saison de 12 mois reconnue',
+		zone: 'Prévision',
+		tip: 'prévision',
+		range: 'intervalle 80 %',
+		points: [
+			{ title: 'La saison, reconnue', text: 'Holt-Winters dès que la série couvre deux saisons — 12 mois, 4 trimestres, 7 jours ; sinon une tendance lissée, ou une droite.' },
+			{ title: 'Un intervalle honnête', text: 'La plage à 80 % s’élargit avec l’horizon : on voit d’un coup d’œil ce qui est probable, et ce qui est un pari.' },
+			{ title: 'Partout où sont vos graphiques', text: 'Courbes, aires, barres et combinés, dans les questions et les tableaux de bord — et jusque dans Claude, par le serveur MCP.' },
+		],
+		link: 'Tout sur les prévisions',
+	},
+
+	/** What is new, in six cards. */
+	news: {
+		kicker: 'Nouveautés',
+		title: 'Explorer,',
+		titleAccent: 'à la vitesse d’un clic.',
+		lede: 'Des filtres qui montrent ce qui reste possible, des couleurs lisibles par tous, des graphiques qui racontent quelque chose — jusque dans la conversation avec Claude.',
+		more: 'En savoir plus',
+		chosen: '2 valeurs choisies',
+		values: ['Livrée', 'Remboursée', 'Annulée', 'Expédiée', 'Payée'],
+		safe: 'Lisibles par les daltoniens',
+		ask: 'Montre-moi les commandes par mois.',
+		folders: ['Ventes', '2026', 'Service client'],
+		drag: 'CA par mois',
+		items: {
+			associative: { title: 'Des filtres associatifs', text: 'Choisi en vert, possible en blanc, exclu en gris — comme dans Qlik. Chaque valeur dit sa part des lignes ; Maj + clic pour une plage, Ctrl + clic pour une seule.', href: '/fonctionnalites/tableaux-de-bord/#des-filtres-associatifs' },
+			click: { title: 'Maj + clic sur un graphique', text: 'Sélectionnez plusieurs barres : tout le tableau de bord se filtre, et le graphique garde ses autres catégories, estompées, pour en ajouter.', href: '/fonctionnalites/tableaux-de-bord/#cliquer-sur-un-graphique-pour-filtrer' },
+			palettes: { title: 'Des palettes pour tous', text: 'Six palettes et la vôtre, validées pour les daltoniens, en clair comme en sombre. Une couleur par valeur, reprise dans tous les graphiques.', href: '/fonctionnalites/visualisations/#les-couleurs' },
+			radar: { title: 'Radar, top N, mise en avant', text: 'Faites ressortir le maximum, tracez la moyenne, gardez les dix premiers, comparez des profils en radar : le graphique dit quelque chose.', href: '/fonctionnalites/visualisations/' },
+			mcp: { title: 'Vos graphiques dans Claude', text: 'Le serveur MCP dessine le graphique dans la conversation (MCP Apps), avec les couleurs, les formats et les droits d’eodia insights.', href: '/integrations/mcp/' },
+			organize: { title: 'Ranger sans y penser', text: 'Sous-dossiers, glisser-déposer, questions créées dans le tableau de bord, cartes déplacées d’un onglet à l’autre ; pictos, emoji et images.', href: '/fonctionnalites/partage/' },
+		},
+	},
+
 	/** Agents and developers. */
 	agents: {
 		kicker: 'API et MCP',
@@ -400,7 +450,7 @@ const fr = {
 			answer: '<b>1 184 commandes</b> en septembre, contre 1 027 en août : <b>+15,3 %</b>. C’est le meilleur mois de l’année pour la région.',
 		},
 		tabs: { mcp: 'MCP', rest: 'REST', embed: 'Intégration' },
-		tools: ['list_datasources', 'search_schema', 'describe_table', 'list_metrics', 'query_metric', 'list_questions', 'run_question', 'run_sql', 'get_dashboard'],
+		tools: ['list_datasources', 'search_schema', 'describe_table', 'list_metrics', 'query_metric', 'list_questions', 'run_question', 'run_sql', 'get_dashboard', 'show_chart'],
 		toolsLabel: 'Les outils du serveur MCP',
 		link: 'Brancher Claude',
 		linkApi: 'Explorer l’API',
@@ -446,6 +496,10 @@ const fr = {
 			sql: question({
 				q: 'Le SQL libre peut-il contourner les droits ?',
 				a: 'Non. Les droits ne sont pas appliqués par l’interface mais par Trino, qui consulte eodia insights avant chaque instruction : accès aux tables, filtres de ligne, masques de colonne. Le SQL natif, qui contournerait Trino, est réservé à qui n’a aucune restriction sur la source.',
+			}),
+			forecast: question({
+				q: 'Peut-on se fier aux prévisions ?',
+				a: 'Autant qu’à la série qu’elles prolongent. eodia insights choisit la méthode selon les données — Holt-Winters quand la série couvre deux saisons, une tendance lissée sinon —, et entoure la prévision d’un intervalle à 80 % qui s’élargit avec l’horizon. Elle ne devine pas ce que les données ne contiennent pas : une nouvelle offre, une crise.',
 			}),
 			mongo: question({
 				q: 'MongoDB, vraiment ?',
