@@ -7,7 +7,7 @@ import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
 import { $t, $tp } from '@/lib/i18n'
-import { type ChartModel, type Result, chartOption, roles } from '@/lib/viz'
+import { type ChartModel, OTHER_CATEGORY, type Result, chartOption, roles } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -112,6 +112,7 @@ export function Visualization({
               const col = model.clickColumn as ResultColumn
               const index = e.dataIndex
               const raw = model.categories ? model.categories[index] : (e.data as { raw?: unknown })?.raw
+              if (raw === OTHER_CATEGORY || (e.data as { key?: string })?.key === '__other__') return
               const native = e.event?.event as unknown as MouseEvent | undefined
               onPointClick({
                 column: col,

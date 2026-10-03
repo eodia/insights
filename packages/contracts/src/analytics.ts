@@ -299,6 +299,10 @@ export type MapRegion = (typeof MAP_REGIONS)[number]
  * The settings of a visualization. Columns are cited by the names of the result
  * (`resultName`): a setting survives a change of period or of filter.
  */
+/** The named palettes of the charts (`apps/web/src/lib/palettes.ts`), or one's own. */
+export const COLOR_SCHEMES = ['eodia', 'vif', 'ocean', 'terre', 'doux', 'degrade', 'custom'] as const
+export type ColorScheme = (typeof COLOR_SCHEMES)[number]
+
 export interface VisualizationSettings {
   /** Dimensions: the first on the axis, the second splitting it into series. */
   readonly dimensions?: readonly string[]
@@ -377,8 +381,24 @@ export interface VisualizationSettings {
   readonly fill_periods?: boolean
 
   // ── Colours ──
+  /** The palette the series take, in its order; `custom` reads `colors`. */
+  readonly scheme?: ColorScheme
+  /** A palette of one's own: up to eight colours, in order. */
+  readonly colors?: readonly string[]
   /** One colour: a number's, a bar of progress's, a gauge's, a single series'. */
   readonly color?: string
+
+  // ── Reading aids ──
+  /** One mark stands out, the others recede: the highest, the lowest, the last. */
+  readonly highlight?: 'none' | 'max' | 'min' | 'last'
+  /** Lines across the chart at the series' average or median. */
+  readonly ref_lines?: readonly ('average' | 'median')[]
+  /** Only the largest categories, the rest summed into « Autres ». */
+  readonly top_n?: number | null
+  /** An area fades towards its base — by default. */
+  readonly gradient?: boolean
+  /** Lines named at their end rather than only in the legend — by default for 2 to 4 lines. */
+  readonly end_labels?: boolean
   /** Colours by value: a number, the cells of a table or a pivot. */
   readonly rules?: readonly ColorRule[]
   /** The trend: a fall is good news — a cost, a delay. */
