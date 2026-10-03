@@ -29,7 +29,7 @@ function SourceRow({ ds }: { ds: Datasource }) {
           <Link href={`/data/${ds.id}`} className="truncate font-semibold after:absolute after:inset-0 after:content-['']">
             {ds.name}
           </Link>
-          <CatalogName catalog={ds.catalog} suffix=".schéma.table" />
+          <CatalogName catalog={ds.catalog} suffix={`.${$t('schéma.table')}`} />
         </div>
         <div className="truncate text-sm text-muted-foreground">{ds.description || $t('Aucune description')}</div>
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -93,7 +93,7 @@ function DataSources() {
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">{$t('Sources de données')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {$t('Chaque source devient un catalogue Trino : le SQL cite ses tables en {path}.', { path: 'catalogue.schéma.table' })}
+              {$t('Chaque source devient un catalogue Trino : le SQL cite ses tables en {path}.', { path: $t('catalogue.schéma.table') })}
             </p>
           </div>
           {canManage ? (

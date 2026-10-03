@@ -25,7 +25,7 @@ export function valueLabel(p: DashboardParameter, v: ParameterValue | null | und
   if (p.type === 'temporal_unit') return $t(UNIT_LABELS[String(Array.isArray(v) ? v[0] : v) as TemporalTruncation] ?? String(v))
   if (Array.isArray(v)) {
     if (p.type === 'number') return v.filter((x) => x !== null).join(' – ')
-    return v.length > 2 ? `${v.slice(0, 2).join(', ')} +${v.length - 2}` : v.join(', ')
+    return v.length > 2 ? $t('{first} +{more}', { first: v.slice(0, 2).join(', '), more: v.length - 2 }) : v.join(', ')
   }
   return String(v)
 }
@@ -203,6 +203,7 @@ export function ParameterBar({
                   <span
                     role="button"
                     tabIndex={0}
+                    aria-label={$t('Effacer le filtre')}
                     onClick={(e) => {
                       e.stopPropagation()
                       onChange(p.id, null)

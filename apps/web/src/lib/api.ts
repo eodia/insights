@@ -3,6 +3,7 @@
  * session part seul ; chaque écriture porte `X-Eodia-Csrf`.
  */
 import type { ErrorCode, QueryResult } from '@eodia/contracts'
+import { $t } from './i18n'
 
 export class ApiError extends Error {
   constructor(
@@ -32,7 +33,7 @@ async function request<T>(method: string, path: string, body?: unknown, init: Re
     try {
       payload = await res.json()
     } catch {}
-    const err = new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? `Erreur ${res.status}`, payload.error?.details)
+    const err = new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? $t('Erreur {status}', { status: res.status }), payload.error?.details)
     if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth') && !path.startsWith('/public')) {
       const back = window.location.pathname + window.location.search
       if (!window.location.pathname.startsWith('/login')) window.location.href = `/login?return=${encodeURIComponent(back)}`
@@ -66,7 +67,7 @@ export async function download(path: string, body: unknown): Promise<void> {
   })
   if (!res.ok) {
     const payload = await res.json().catch(() => ({}))
-    throw new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? 'Export impossible.')
+    throw new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? $t('Export impossible.'))
   }
   const blob = await res.blob()
   const name = /filename\*=UTF-8''([^;]+)/.exec(res.headers.get('content-disposition') ?? '')?.[1]
@@ -87,7 +88,7 @@ export async function* postStream(path: string, body: unknown, signal?: AbortSig
   })
   if (!res.ok || !res.body) {
     const payload = await res.json().catch(() => ({}))
-    throw new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? 'Erreur du copilot.')
+    throw new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? $t('Erreur du copilot.'))
   }
   const reader = res.body.getReader()
   const decoder = new TextDecoder()

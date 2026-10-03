@@ -258,15 +258,14 @@ export function ValueList({
               {share !== null ? (
                 <span className="text-muted-foreground">
                   {' '}
-                  · {$t('{rows} lignes', { rows: int(kept) })}
+                  · {$tp(kept, '{count} ligne', '{count} lignes')}
                 </span>
               ) : null}
             </span>
           ) : (
             <span className="text-muted-foreground">
               {all.data
-                ? $t('{possible} possibles sur {total}', {
-                    possible: int(possible),
+                ? $tp(possible, '{count} possible sur {total}', '{count} possibles sur {total}', {
                     total: int(rows.length),
                   })
                 : ' '}

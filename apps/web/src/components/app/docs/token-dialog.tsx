@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, Loader2, ShieldAlert, Trash2 } from 'lucide-react'
@@ -27,20 +27,20 @@ interface TokenRow {
 }
 
 const EXPIRIES = [
-  { days: 30, label: '30 jours' },
-  { days: 90, label: '90 jours' },
-  { days: 365, label: '1 an' },
-  { days: null, label: 'Jamais' },
+  { days: 30, label: msg('30 jours') },
+  { days: 90, label: msg('90 jours') },
+  { days: 365, label: msg('1 an') },
+  { days: null, label: msg('Jamais') },
 ] as const
 
 const SURFACES: readonly { id: Surface; label: string; hint: string }[] = [
-  { id: 'rest', label: 'API REST', hint: 'Scripts, intégrations, SDK' },
-  { id: 'mcp', label: 'MCP', hint: 'Claude, assistants et agents' },
+  { id: 'rest', label: msg('API REST'), hint: msg('Scripts, intégrations, SDK') },
+  { id: 'mcp', label: 'MCP', hint: msg('Claude, assistants et agents') },
 ]
 
 const TOKENS_KEY = ['me-tokens'] as const
 
-const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
+const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
 
 function Existing() {
   const qc = useQueryClient()

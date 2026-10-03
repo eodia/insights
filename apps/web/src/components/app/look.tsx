@@ -2,6 +2,7 @@
 
 import type { ItemKind, LookColor } from '@eodia/contracts'
 import { LOOK_CLASSES, LOOK_HEX } from '@/lib/format'
+import { msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   BarChart3,
@@ -47,11 +48,11 @@ export const KIND_ICONS: Record<ItemKind, LucideIcon> = {
 }
 
 export const KIND_LABELS: Record<ItemKind, string> = {
-  question: 'Question',
-  model: 'Modèle',
-  metric: 'Métrique',
-  dashboard: 'Tableau de bord',
-  folder: 'Dossier',
+  question: msg('Question'),
+  model: msg('Modèle'),
+  metric: msg('Métrique'),
+  dashboard: msg('Tableau de bord'),
+  folder: msg('Dossier'),
 }
 
 /** The round tile of an item in a list, like a conversation's avatar. */

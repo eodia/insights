@@ -6,8 +6,8 @@ import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { formatValue } from '@/lib/format'
-import { $t } from '@/lib/i18n'
+import { formatDate, formatValue } from '@/lib/format'
+import { $t, intlLocale, msg } from '@/lib/i18n'
 import { Clock, Eye, EyeOff, Timer } from 'lucide-react'
 import { Segmented } from '@/components/ui/segmented'
 import { useEffect, useId, useRef, useState } from 'react'
@@ -15,23 +15,30 @@ import { useEffect, useId, useRef, useState } from 'react'
 type Mutable<T> = { -readonly [K in keyof T]: T[K] }
 
 const NUMBER_STYLE_LABELS = {
-  '': 'Automatique (selon le type sémantique)',
-  integer: 'Entier',
-  decimal: 'Décimal',
-  percent: 'Pourcentage',
-  currency: 'Devise',
-  duration: 'Durée',
-  rating: 'Note',
-  compact: 'Compact (1,2 k)',
+  '': msg('Automatique (selon le type sémantique)'),
+  integer: msg('Entier'),
+  decimal: msg('Décimal'),
+  percent: msg('Pourcentage'),
+  currency: msg('Devise'),
+  duration: msg('Durée'),
+  rating: msg('Note'),
+  compact: msg('Compact (1,2 k)'),
 } as const
 
 const DATE_STYLE_LABELS = {
-  default: 'Par défaut (3 mars 2026)',
-  short: 'Court (03/03/2026)',
-  long: 'Long (3 mars 2026)',
-  relative: 'Relative (il y a 2 jours)',
-  custom: 'Motif personnalisé',
+  default: msg('Par défaut ({example})'),
+  short: msg('Court ({example})'),
+  long: msg('Long ({example})'),
+  relative: msg('Relative ({example})'),
+  custom: msg('Motif personnalisé'),
 } as const
+
+/** Each date style shown on one date, as the reader's language writes it. */
+function dateExample(style: keyof typeof DATE_STYLE_LABELS): string {
+  if (style === 'relative') return new Intl.RelativeTimeFormat(intlLocale()).format(-2, 'day')
+  if (style === 'custom') return ''
+  return formatDate('2026-03-03', 'date', undefined, { date_style: style })
+}
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'CAD', 'JPY', 'CNY', 'XOF', 'MAD']
 
@@ -216,7 +223,7 @@ export function FormatEditor({ column, disabled, onSave }: { column: ColumnMeta;
               <Choice
                 value={draft.date_style ?? 'default'}
                 onValueChange={(v) => set('date_style', v === 'default' ? undefined : (v as ColumnFormat['date_style']))}
-                options={Object.entries(DATE_STYLE_LABELS).map(([value, label]) => ({ value, label: $t(label) }))}
+                options={Object.entries(DATE_STYLE_LABELS).map(([value, label]) => ({ value, label: $t(label, { example: dateExample(value as keyof typeof DATE_STYLE_LABELS) }) }))}
                 aria-label={$t('Style de date')}
                 size="default"
                 className="w-full"

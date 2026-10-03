@@ -6,6 +6,7 @@
  * sélection quand il y en a une, `Maj+Alt+F` met en forme, et l'erreur de Trino se place sur
  * la ligne et la colonne qu'il désigne.
  */
+import { $t } from '@/lib/i18n'
 import type { SchemaTree } from '@/lib/queries'
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
@@ -117,6 +118,25 @@ async function formatInto(view: EditorView): Promise<void> {
   }
 }
 
+/** CodeMirror's own words — its search panel, its folds — in the reader's language. */
+const phrases = () => ({
+  Find: $t('Rechercher'),
+  Replace: $t('Remplacer'),
+  next: $t('suivant'),
+  previous: $t('précédent'),
+  all: $t('tout'),
+  'match case': $t('respecter la casse'),
+  regexp: $t('expression régulière'),
+  'by word': $t('mot entier'),
+  replace: $t('remplacer'),
+  'replace all': $t('tout remplacer'),
+  close: $t('fermer'),
+  'Fold line': $t('Replier la ligne'),
+  'Unfold line': $t('Déplier la ligne'),
+  'folded code': $t('code replié'),
+  unfold: $t('déplier'),
+})
+
 export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, onReady, className }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
@@ -149,7 +169,8 @@ export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, on
           theme,
           lintGutter(),
           EditorView.lineWrapping,
-          placeholderExtension(placeholder ?? 'SELECT * FROM catalogue.schema.table'),
+          placeholderExtension(placeholder ?? $t('SELECT * FROM catalogue.schema.table')),
+          EditorState.phrases.of(phrases()),
           language.current.of([dialect(tree), autocompletion({ activateOnTyping: true, icons: true })]),
           lint.current.of(linter((v) => diagnosticsFor(v, latest.current.error))),
           keymap.of([

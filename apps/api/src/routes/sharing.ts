@@ -1,5 +1,5 @@
 import { z } from '@hono/zod-openapi'
-import type { ParameterValue } from '@eodia/contracts'
+import { type ParameterValue, requestLocaleOf } from '@eodia/contracts'
 import {
   AppError,
   type CopilotContext,
@@ -10,6 +10,7 @@ import {
   getQuestion,
   listConversations,
   listShareLinks,
+  localizeMessage,
   openEmbed,
   openShareLink,
   readConversation,
@@ -109,6 +110,7 @@ export function sharingRoutes(app: ReturnType<typeof newApp>) {
     if (!parsed.success) throw new AppError('INVALID_INPUT', 'Message invalide.')
     const input = parsed.data
     const core = c.get('core')
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
     return streamSSE(c, async (stream) => {
       const controller = new AbortController()
       stream.onAbort(() => controller.abort())
@@ -123,12 +125,14 @@ export function sharingRoutes(app: ReturnType<typeof newApp>) {
             context: (input.context ?? { kind: 'general' }) as CopilotContext,
           },
           (event) => {
-            void stream.writeSSE({ event: event.type, data: JSON.stringify(event) })
+            const shown = event.type === 'tool_result' ? { ...event, summary: localizeMessage(event.summary, locale) } : event
+            void stream.writeSSE({ event: event.type, data: JSON.stringify(shown) })
           },
           controller.signal,
         )
       } catch (err) {
-        await stream.writeSSE({ event: 'error', data: JSON.stringify({ type: 'error', message: err instanceof Error ? err.message : String(err) }) })
+        const message = err instanceof Error ? err.message : String(err)
+        await stream.writeSSE({ event: 'error', data: JSON.stringify({ type: 'error', message: localizeMessage(message, locale) }) })
       }
     })
   })

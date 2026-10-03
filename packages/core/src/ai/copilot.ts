@@ -54,7 +54,7 @@ Règles :
 - Tu ne modifies rien toi-même. Pour créer une question, un tableau de bord ou décrire une table, utilise les outils propose_* : la personne verra la proposition et décidera de l'appliquer.
 - run_query n'est disponible que si la personne y a consenti ; il lit sous ses propres droits. Garde les requêtes légères (agrégats, LIMIT).
 - Pour une proposition de question, valide d'abord ton SQL avec run_query quand c'est permis.
-- Réponds en français, de façon concise et concrète. Formate le SQL dans des blocs \`\`\`sql.
+- Réponds dans la langue de la personne (celle de son dernier message), de façon concise et concrète. Formate le SQL dans des blocs \`\`\`sql.
 - Visualisations disponibles : ${VISUALIZATIONS.join(', ')}. Choisis « line » ou « area » pour une évolution dans le temps, « bar »/« row » pour comparer des catégories, « scalar » pour un seul chiffre, « pie » pour une répartition de moins de 8 parts, « table » sinon.`
 
 const TOOLS: readonly ToolSpec[] = [

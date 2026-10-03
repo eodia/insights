@@ -2,7 +2,7 @@
 
 import type { Datasource, Engine } from '@eodia/contracts'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { $t } from '@/lib/i18n'
+import { $t, msg } from '@/lib/i18n'
 import { keys, useEngines } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
@@ -13,13 +13,13 @@ import { SourceForm } from './source-form'
 import { EngineBadge } from './source-look'
 
 const ENGINE_HINTS: Partial<Record<Engine, string>> = {
-  postgresql: 'Pilote natif pour les clés, commentaires et volumes.',
-  mysql: 'MySQL et MariaDB.',
-  sqlserver: 'Microsoft SQL Server et Azure SQL.',
-  oracle: 'Oracle Database, par nom de service.',
-  snowflake: 'Entrepôt Snowflake : relations à déclarer à la main.',
-  mongodb: 'Collections lues comme des tables ; relations à déclarer.',
-  trino: 'N’importe quel connecteur Trino : Iceberg, Hive, ClickHouse…',
+  postgresql: msg('Pilote natif pour les clés, commentaires et volumes.'),
+  mysql: msg('MySQL et MariaDB.'),
+  sqlserver: msg('Microsoft SQL Server et Azure SQL.'),
+  oracle: msg('Oracle Database, par nom de service.'),
+  snowflake: msg('Entrepôt Snowflake : relations à déclarer à la main.'),
+  mongodb: msg('Collections lues comme des tables ; relations à déclarer.'),
+  trino: msg('N’importe quel connecteur Trino : Iceberg, Hive, ClickHouse…'),
 }
 
 /** « Ajouter une source » : the engine first, then its connection form. */
@@ -43,7 +43,7 @@ export function NewSourceDialog({ open, onOpenChange, onCreated }: { open: boole
           </div>
           <DialogTitle className="flex items-center gap-3 text-lg">
             {spec ? <EngineBadge engine={spec.engine} size="sm" /> : null}
-            {spec ? $t('Connecter {engine}', { engine: spec.label }) : $t('Ajouter une source de données')}
+            {spec ? $t('Connecter {engine}', { engine: $t(spec.label) }) : $t('Ajouter une source de données')}
           </DialogTitle>
           <DialogDescription>
             {spec
@@ -80,7 +80,7 @@ export function NewSourceDialog({ open, onOpenChange, onCreated }: { open: boole
                 <EngineBadge engine={e.engine} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1 font-semibold">
-                    {e.label}
+                    {$t(e.label)}
                     <ChevronRight className="ml-auto size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                   </div>
                   <div className="text-xs text-muted-foreground">{ENGINE_HINTS[e.engine] ? $t(ENGINE_HINTS[e.engine] as string) : null}</div>

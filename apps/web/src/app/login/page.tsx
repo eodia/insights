@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ApiError, api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, $tp, intlLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, KeyRound, Loader2, ShieldCheck, Sparkles, Zap } from 'lucide-react'
@@ -23,15 +23,17 @@ interface AuthState {
 /** The right half: what the product does, drawn rather than told. */
 function Showcase() {
   const bars = [38, 52, 44, 61, 58, 72, 66, 81, 77, 90, 86, 97]
+  const euros = new Intl.NumberFormat(intlLocale(), { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 2 })
+  const change = new Intl.NumberFormat(intlLocale(), { style: 'percent', signDisplay: 'always', minimumFractionDigits: 1 })
   return (
     <div className="relative hidden overflow-hidden bg-gradient-to-br from-green-50 via-background to-sky-50 lg:flex dark:from-green-950/30 dark:to-sky-950/20">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,color-mix(in_oklch,var(--primary)_14%,transparent),transparent_55%)]" />
       <div className="relative m-auto w-full max-w-[560px] space-y-4 p-10">
         <div className="grid grid-cols-3 gap-3">
           {[
-            ['Chiffre d’affaires', '7,29 M€', '+12,4 %'],
-            ['Commandes', '12 944', '+3,1 %'],
-            ['Panier moyen', '704,50 €', '+8,9 %'],
+            [$t('Chiffre d’affaires'), euros.format(7_290_000), change.format(0.124)],
+            [$t('Commandes'), new Intl.NumberFormat(intlLocale()).format(12_944), change.format(0.031)],
+            [$t('Panier moyen'), new Intl.NumberFormat(intlLocale(), { style: 'currency', currency: 'EUR' }).format(704.5), change.format(0.089)],
           ].map(([l, v, d]) => (
             <div key={l} className="rounded-xl border bg-card/90 p-4 shadow-sm backdrop-blur">
               <div className="text-xs text-muted-foreground">{l}</div>
@@ -43,7 +45,7 @@ function Showcase() {
         <div className="rounded-xl border bg-card/90 p-5 shadow-sm backdrop-blur">
           <div className="mb-4 flex items-center justify-between text-sm">
             <span className="font-medium">{$t('Chiffre d’affaires par mois')}</span>
-            <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">12 mois</span>
+            <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">{$tp(12, '{count} mois', '{count} mois')}</span>
           </div>
           <div className="flex h-36 items-end gap-2">
             {bars.map((h, i) => (
@@ -181,7 +183,7 @@ function LoginForm() {
             </button>
           ))}
           <div className="px-1.5 pt-1">
-            {$t('Mot de passe')} : <span className="font-mono">{state.demo.password}</span>
+            {$t('Mot de passe :')} <span className="font-mono">{state.demo.password}</span>
           </div>
         </div>
       ) : null}

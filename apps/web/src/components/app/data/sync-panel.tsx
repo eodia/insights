@@ -4,7 +4,7 @@ import type { Datasource, JobState, SyncReport } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, $tp, intlLocale, msg } from '@/lib/i18n'
 import { keys } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
@@ -15,9 +15,9 @@ import { SCHEDULE_LABELS, SYNC_LABELS, SyncDot, syncSummary } from './source-loo
 type Pass = 'schema' | 'fingerprint' | 'values'
 
 const PASSES: { key: Pass; label: string; help: string }[] = [
-  { key: 'schema', label: 'Schéma', help: 'Schémas, tables, colonnes, clés et commentaires.' },
-  { key: 'fingerprint', label: 'Empreinte', help: 'Cardinalité, nulls, min et max sur un échantillon.' },
-  { key: 'values', label: 'Valeurs', help: 'Valeurs distinctes des colonnes catégorielles.' },
+  { key: 'schema', label: msg('Schéma'), help: msg('Schémas, tables, colonnes, clés et commentaires.') },
+  { key: 'fingerprint', label: msg('Empreinte'), help: msg('Cardinalité, nulls, min et max sur un échantillon.') },
+  { key: 'values', label: msg('Valeurs'), help: msg('Valeurs distinctes des colonnes catégorielles.') },
 ]
 
 /**
@@ -68,7 +68,7 @@ function ReportGrid({ report }: { report: SyncReport }) {
   const cells: [string, string, string?][] = [
     [$t('Schémas'), `+${report.schemas.added} / −${report.schemas.removed}`],
     [$t('Tables'), `+${report.tables.added} / −${report.tables.removed}`],
-    [$t('Colonnes'), `+${report.columns.added} / −${report.columns.removed}`, report.columns.retyped ? $t('{n} type(s) changé(s)', { n: report.columns.retyped }) : undefined],
+    [$t('Colonnes'), `+${report.columns.added} / −${report.columns.removed}`, report.columns.retyped ? $tp(report.columns.retyped, '{count} type changé', '{count} types changés') : undefined],
     [$t('Empreintes'), String(report.fingerprinted)],
     [$t('Valeurs'), String(report.values)],
   ]
@@ -140,7 +140,7 @@ export function SyncPanel({ source, canSync }: { source: Datasource; canSync: bo
         </div>
         <div className="flex gap-3">
           <dt className="w-32 shrink-0 text-muted-foreground">{$t('Dernière synchro')}</dt>
-          <dd>{source.sync.last_at ? new Date(source.sync.last_at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</dd>
+          <dd>{source.sync.last_at ? new Date(source.sync.last_at).toLocaleString(intlLocale(), { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</dd>
         </div>
       </dl>
       {source.sync.status === 'failed' && source.sync.error && !running ? (

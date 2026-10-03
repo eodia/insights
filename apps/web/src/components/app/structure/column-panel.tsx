@@ -73,7 +73,7 @@ export function ColumnPanel({
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 font-mono text-xs text-muted-foreground">
             <span>{column.type}</span>
-            {column.native_type && column.native_type !== column.type ? <span>· {$t('natif')} {column.native_type}</span> : null}
+            {column.native_type && column.native_type !== column.type ? <span>· {$t('natif {type}', { type: column.native_type })}</span> : null}
             <span>· {column.nullable ? $t('nullable') : $t('non nulle')}</span>
           </div>
           {column.type_changed_from ? (

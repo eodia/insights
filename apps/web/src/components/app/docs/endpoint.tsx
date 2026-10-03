@@ -1,12 +1,24 @@
 'use client'
 
-import { $t } from '@/lib/i18n'
+import { $t, msg } from '@/lib/i18n'
 import { Globe, KeyRound } from 'lucide-react'
 import { CopyButton } from './code'
 import { MethodChip } from './nav'
 import type { Endpoint, OpenApiDoc, OpenApiParameter } from './openapi'
 import { constraintsOf, typeLabel } from './openapi'
 import { SchemaTree } from './schema-tree'
+
+/** A translated sentence with an element where its `{name}` stands. */
+export function around(sentence: string, name: string, element: React.ReactNode): React.ReactNode {
+  const [before, after] = sentence.split(`{${name}}`)
+  return (
+    <>
+      {before}
+      {element}
+      {after}
+    </>
+  )
+}
 
 export function Section({ title, children, aside }: { title: string; children: React.ReactNode; aside?: React.ReactNode }) {
   return (
@@ -21,10 +33,10 @@ export function Section({ title, children, aside }: { title: string; children: R
 }
 
 const IN_LABELS: Record<OpenApiParameter['in'], string> = {
-  path: 'Paramètres de chemin',
-  query: 'Paramètres de requête',
-  header: 'En-têtes',
-  cookie: 'Cookies',
+  path: msg('Paramètres de chemin'),
+  query: msg('Paramètres de requête'),
+  header: msg('En-têtes'),
+  cookie: msg('Cookies'),
 }
 
 function Parameters({ params, doc }: { params: readonly OpenApiParameter[]; doc: OpenApiDoc }) {
@@ -87,8 +99,7 @@ export function EndpointDetail({ endpoint: e, doc }: { endpoint: Endpoint; doc: 
             <>
               <KeyRound className="mt-0.5 size-4 shrink-0" />
               <span>
-                {$t('Authentification :')} <code className="font-mono text-xs text-foreground">Authorization: Bearer eoi_…</code>{' '}
-                {$t('(jeton avec la surface REST) ou session du navigateur.')}
+                {around($t('Authentification : {header} (jeton avec la surface REST) ou session du navigateur.'), 'header', <code className="font-mono text-xs text-foreground">Authorization: Bearer eoi_…</code>)}
               </span>
             </>
           )}
@@ -126,8 +137,7 @@ export function EndpointDetail({ endpoint: e, doc }: { endpoint: Endpoint; doc: 
           ))}
         </ul>
         <p className="text-xs text-muted-foreground">
-          {$t('Une erreur renvoie')} <code className="font-mono">{'{ "error": { "code": "…", "message": "…" } }'}</code>{' '}
-          {$t('avec un message en français, prêt à afficher.')}
+          {around($t('Une erreur renvoie {body} avec un message en français, prêt à afficher.'), 'body', <code className="font-mono">{'{ "error": { "code": "…", "message": "…" } }'}</code>)}
         </p>
       </Section>
     </article>

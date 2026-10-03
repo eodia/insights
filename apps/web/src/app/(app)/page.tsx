@@ -51,8 +51,8 @@ export default function HomePage() {
   const { data: tables = [] } = useTables()
   const { data: sources = [] } = useDatasources()
   const hour = new Date().getHours()
-  const hello = hour < 18 ? $t('Bonjour') : $t('Bonsoir')
   const firstName = me?.name.split(' ')[0] ?? ''
+  const hello = hour < 18 ? $t('Bonjour {name}', { name: firstName }) : $t('Bonsoir {name}', { name: firstName })
   const starters = tables
     .filter((t) => t.visibility === 'normal')
     .sort((a, b) => (b.description ? 1 : 0) - (a.description ? 1 : 0) || (b.row_count ?? 0) - (a.row_count ?? 0))
@@ -61,9 +61,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-8 py-8">
       <div className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {hello} {firstName}
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{hello}</h1>
         <p className="text-muted-foreground">{$t('Que voulez-vous savoir aujourd’hui ?')}</p>
       </div>
 

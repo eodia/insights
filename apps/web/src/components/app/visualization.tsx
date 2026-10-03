@@ -6,8 +6,8 @@ import { EChart } from '@/components/app/echart'
 import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
-import { $t, $tp } from '@/lib/i18n'
-import { type ChartModel, OTHER_CATEGORY, type Result, chartOption, roles } from '@/lib/viz'
+import { $t, $tp, intlLocale } from '@/lib/i18n'
+import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -105,7 +105,7 @@ export function Visualization({
   return (
     <EChart
       option={model.option}
-      label={viz.type}
+      label={VIZ_LABELS[viz.type] ? $t(VIZ_LABELS[viz.type]) : viz.type}
       {...(onPointClick && model.clickColumn
         ? {
             onClick: (e) => {
@@ -174,9 +174,9 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
       {change !== null ? (
         <div className={cn('flex items-center gap-1 text-sm font-medium', change === 0 ? 'text-muted-foreground' : good ? 'text-green-600' : 'text-red-600')}>
           {change > 0 ? <ArrowUp className="size-3.5" /> : change < 0 ? <ArrowDown className="size-3.5" /> : <Minus className="size-3.5" />}
-          {new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 1 }).format(Math.abs(change))}
+          {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 1 }).format(Math.abs(change))}
           <span className="font-normal text-muted-foreground">
-            {$t('vs {period}', { period: prevPeriod })} · {formatValue(prev, m.col, { compact: true })}
+            {$t('vs {period} · {value}', { period: prevPeriod, value: formatValue(prev, m.col, { compact: true }) })}
           </span>
         </div>
       ) : null}
@@ -196,13 +196,13 @@ function Progress({ result, settings }: { result: Result; settings: Visualizatio
       <div className="flex items-baseline justify-between">
         <span className="text-3xl font-semibold tabular-nums">{formatValue(value, m.col, { compact: true })}</span>
         <span className="text-sm text-muted-foreground">
-          {$t('objectif')} {formatValue(goal, m.col, { compact: true })}
+          {$t('objectif {goal}', { goal: formatValue(goal, m.col, { compact: true }) })}
         </span>
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-muted">
         <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(ratio, 1) * 100}%`, background: settings.color ?? (ratio >= 1 ? '#0ca30c' : 'var(--primary)') }} />
       </div>
-      <div className="text-xs text-muted-foreground">{new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 0 }).format(ratio)}</div>
+      <div className="text-xs text-muted-foreground">{new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(ratio)}</div>
     </div>
   )
 }
@@ -285,7 +285,7 @@ export function DataTable({
       if (x === y) return 0
       if (x === null || x === undefined) return 1
       if (y === null || y === undefined) return -1
-      const cmp = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true })
+      const cmp = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), intlLocale(), { numeric: true })
       return sort.desc ? -cmp : cmp
     })
     return copy
@@ -372,13 +372,15 @@ export function DataTable({
 
 /** « 2 000 lignes · 120 ms », under a result. */
 export function ResultFooter({ result }: { result: RunResult }) {
-  return (
-    <span className="text-xs text-muted-foreground tabular-nums">
-      {$tp(result.rows.length, '{count} ligne', '{count} lignes')}
-      {result.truncated ? ` (${$t('tronqué')})` : ''} · {formatCount(result.duration_ms)} ms
-      {result.cached_at ? ` · ${$t('résultat du {when}', { when: new Date(result.cached_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) })}` : ''}
-    </span>
-  )
+  const rows = result.truncated
+    ? $tp(result.rows.length, '{count} ligne (tronqué)', '{count} lignes (tronqué)')
+    : $tp(result.rows.length, '{count} ligne', '{count} lignes')
+  const parts = [rows, $t('{duration} ms', { duration: formatCount(result.duration_ms) })]
+  if (result.cached_at) {
+    const when = new Intl.DateTimeFormat(intlLocale(), { dateStyle: 'short', timeStyle: 'short' }).format(new Date(result.cached_at))
+    parts.push($t('résultat du {when}', { when }))
+  }
+  return <span className="text-xs text-muted-foreground tabular-nums">{parts.join(' · ')}</span>
 }
 
 // ── Tableau croisé ──────────────────────────────────────────────────────────

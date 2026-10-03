@@ -1,21 +1,15 @@
 'use client'
 
+import type { ColumnAccess, ColumnMeta, DataAccess, Datasource, Folder, FolderAccess, Group, QueryLevel, TableMeta } from '@eodia/contracts'
 import {
-  COLUMN_ACCESS_LABELS,
-  type ColumnAccess,
-  type ColumnMeta,
-  DATA_ACCESS_LABELS,
-  type DataAccess,
-  type Datasource,
-  FOLDER_ACCESS_LABELS,
-  type Folder,
-  type FolderAccess,
-  type Group,
-  QUERY_LEVEL_LABELS,
-  type QueryLevel,
-  type TableMeta,
-} from '@eodia/contracts'
-import { type PermissionsOverview, adminKeys, fail } from '@/components/app/admin/common'
+  COLUMN_ACCESS_TEXT,
+  DATA_ACCESS_TEXT,
+  FOLDER_ACCESS_TEXT,
+  type PermissionsOverview,
+  QUERY_LEVEL_TEXT,
+  adminKeys,
+  fail,
+} from '@/components/app/admin/common'
 import { RowRuleEditor } from '@/components/app/admin/row-rule-editor'
 import { Chip, ItemTile, LookIcon } from '@/components/app/look'
 import { Button } from '@/components/ui/button'
@@ -54,14 +48,14 @@ function AccessDot({ access }: { access: DataAccess }) {
 }
 
 const accessOptions = (inherited?: DataAccess) => [
-  ...(inherited ? [{ value: 'inherit', label: $t('Hérité · {access}', { access: $t(DATA_ACCESS_LABELS[inherited]) }), render: <span className="flex items-center gap-2 text-muted-foreground"><AccessDot access={inherited} />{$t('Hérité · {access}', { access: $t(DATA_ACCESS_LABELS[inherited]) })}</span> }] : []),
+  ...(inherited ? [{ value: 'inherit', label: $t('Hérité · {access}', { access: $t(DATA_ACCESS_TEXT[inherited]) }), render: <span className="flex items-center gap-2 text-muted-foreground"><AccessDot access={inherited} />{$t('Hérité · {access}', { access: $t(DATA_ACCESS_TEXT[inherited]) })}</span> }] : []),
   ...(['none', 'read', 'restricted'] as const).map((a) => ({
     value: a,
-    label: $t(DATA_ACCESS_LABELS[a]),
+    label: $t(DATA_ACCESS_TEXT[a]),
     render: (
       <span className="flex items-center gap-2">
         <AccessDot access={a} />
-        {$t(DATA_ACCESS_LABELS[a])}
+        {$t(DATA_ACCESS_TEXT[a])}
       </span>
     ),
   })),
@@ -92,7 +86,7 @@ function ColumnRules({ group, columns, perms }: { group: string; columns: readon
   const { apply, pending } = useApply()
   const [masks, setMasks] = useState<Record<string, string>>({})
   const ruleOf = (col: string) => perms.columns.find((c) => c.group === group && c.column === col)
-  const options = (['read', 'masked', 'hidden'] as const).map((a) => ({ value: a, label: $t(COLUMN_ACCESS_LABELS[a]) }))
+  const options = (['read', 'masked', 'hidden'] as const).map((a) => ({ value: a, label: $t(COLUMN_ACCESS_TEXT[a]) }))
   return (
     <div className="overflow-hidden rounded-lg border bg-background">
       {columns.map((col) => {
@@ -298,7 +292,7 @@ function SourceRow({ ds, group, perms, readOnly }: { ds: Datasource; group: stri
           <Choice
             value={level}
             onValueChange={(v) => apply(`q:${ds.id}`, '/v1/permissions/query', { group, datasource: ds.id, level: v as QueryLevel })}
-            options={levels.map((l) => ({ value: l, label: $t(QUERY_LEVEL_LABELS[l]) }))}
+            options={levels.map((l) => ({ value: l, label: $t(QUERY_LEVEL_TEXT[l]) }))}
             aria-label={$t('Requêtes sur {source}', { source: ds.name })}
             disabled={readOnly}
             className="w-full"
@@ -352,7 +346,7 @@ export function FolderMatrix({ group, perms, folders }: { group: Group; perms: P
   // Folders whose parent is out of sight (personal): shown at the root.
   for (const f of shared) if (!ordered.some((o) => o.folder.id === f.id)) ordered.push({ folder: f, depth: 0 })
 
-  const options = (['inherit', 'none', 'view', 'edit', 'manage'] as const).map((a) => ({ value: a, label: a === 'inherit' ? $t('Hérité') : $t(FOLDER_ACCESS_LABELS[a]) }))
+  const options = (['inherit', 'none', 'view', 'edit', 'manage'] as const).map((a) => ({ value: a, label: a === 'inherit' ? $t('Hérité') : $t(FOLDER_ACCESS_TEXT[a]) }))
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="grid grid-cols-[minmax(0,1fr)_220px] gap-4 border-b bg-muted/40 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -371,7 +365,7 @@ export function FolderMatrix({ group, perms, folders }: { group: Group; perms: P
             <div className="flex items-center gap-2">
               {readOnly ? (
                 <Chip color="green">
-                  <Lock className="size-3" /> {$t(FOLDER_ACCESS_LABELS.manage)}
+                  <Lock className="size-3" /> {$t(FOLDER_ACCESS_TEXT.manage)}
                 </Chip>
               ) : (
                 <Choice

@@ -2,7 +2,7 @@
 
 import type { Datasource, Engine, SyncStatus } from '@eodia/contracts'
 import { formatAgo } from '@/lib/format'
-import { $t } from '@/lib/i18n'
+import { $t, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 /** Each engine's little tile: two letters on its colour, as a logo would. */
@@ -33,11 +33,11 @@ export function EngineBadge({ engine, size = 'md', className }: { engine: Engine
 }
 
 export const SYNC_LABELS: Record<SyncStatus, string> = {
-  never: 'Jamais synchronisée',
-  queued: 'En file d’attente',
-  running: 'Synchronisation en cours',
-  ok: 'À jour',
-  failed: 'Échec de la synchronisation',
+  never: msg('Jamais synchronisée'),
+  queued: msg('En file d’attente'),
+  running: msg('Synchronisation en cours'),
+  ok: msg('À jour'),
+  failed: msg('Échec de la synchronisation'),
 }
 
 const SYNC_DOT: Record<SyncStatus, string> = {
@@ -53,9 +53,9 @@ export function SyncDot({ status, className }: { status: SyncStatus; className?:
 }
 
 export const SCHEDULE_LABELS: Record<Datasource['sync']['schedule'], string> = {
-  hourly: 'Toutes les heures',
-  daily: 'Tous les jours',
-  manual: 'Manuelle',
+  hourly: msg('Toutes les heures'),
+  daily: msg('Tous les jours'),
+  manual: msg('Manuelle'),
 }
 
 /** « il y a 5 minutes », or the status when it never ran. */

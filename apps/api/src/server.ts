@@ -3,7 +3,8 @@
  * interne (point de décision de Trino), OpenAPI 3.1 générée depuis les routes.
  */
 import { serve } from '@hono/node-server'
-import { AppError, type OpaInput, OpaDecider, loadConfig, prepare, start } from '@eodia/core'
+import { requestLocaleOf } from '@eodia/contracts'
+import { AppError, type OpaInput, OpaDecider, loadConfig, localizeMessage, prepare, start } from '@eodia/core'
 import { identify, newApp } from './http'
 import { adminRoutes } from './routes/admin'
 import { authRoutes } from './routes/auth'
@@ -40,6 +41,26 @@ export async function createApp() {
   app.get('/api/health', async (c) => {
     const trino = await core.engine.info()
     return c.json({ ok: true, trino: trino.up })
+  })
+
+  // A message meant for a person reads in their language: the one chosen in the interface
+  // (its cookie reaches us through the web's relay), else the browser's.
+  app.use('/api/*', async (c, next) => {
+    await next()
+    if (c.res.status < 400 || !c.res.headers.get('content-type')?.includes('application/json')) return
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
+    if (locale === 'fr') return
+    const body = (await c.res
+      .clone()
+      .json()
+      .catch(() => null)) as { error?: { message?: unknown } } | null
+    if (typeof body?.error?.message !== 'string') return
+    const headers = new Headers(c.res.headers)
+    headers.delete('content-length')
+    c.res = new Response(
+      JSON.stringify({ ...body, error: { ...body.error, message: localizeMessage(body.error.message, locale) } }),
+      { status: c.res.status, headers },
+    )
   })
 
   app.use('/api/*', identify(core))

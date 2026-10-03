@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, $tp } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import type { Me } from '@eodia/contracts'
 import { useQuery } from '@tanstack/react-query'
@@ -86,7 +86,11 @@ function Overview({ doc, endpoints, onSelect, onToken }: { doc: OpenApiDoc; endp
           <li>{$t('Un jeton ne vaut que pour les surfaces qu’il déclare : un jeton MCP seul est refusé sur l’API REST.')}</li>
           <li>{$t('Les erreurs portent un code stable et un message en français, prêt à afficher.')}</li>
           <li>
-            {$t('{count} endpoints documentés, générés depuis les schémas de validation de l’API : cette page est toujours à jour.', { count: endpoints })}
+            {$tp(
+              endpoints,
+              '{count} endpoint documenté, généré depuis les schémas de validation de l’API : cette page est toujours à jour.',
+              '{count} endpoints documentés, générés depuis les schémas de validation de l’API : cette page est toujours à jour.',
+            )}
           </li>
         </ul>
       </Section>
@@ -127,7 +131,7 @@ export function DocsViewer() {
       .map((g) => ({
         tag: g.tag,
         endpoints: g.endpoints.filter(
-          (e) => allowed(e, me) && words.every((w) => fold(`${e.method} ${e.path} ${e.summary} ${e.description ?? ''} ${g.tag}`).includes(w)),
+          (e) => allowed(e, me) && words.every((w) => fold(`${e.method} ${e.path} ${e.summary} ${e.description ?? ''} ${g.tag} ${$t(g.tag)}`).includes(w)),
         ),
       }))
       .filter((g) => g.endpoints.length)
@@ -135,7 +139,7 @@ export function DocsViewer() {
 
   const tools = useMemo(() => {
     const words = fold(search).split(/\s+/).filter(Boolean)
-    return MCP_TOOLS.filter((t) => words.every((w) => fold(`${t.name} ${t.title} ${t.description} mcp`).includes(w)))
+    return MCP_TOOLS.filter((t) => words.every((w) => fold(`${t.name} ${$t(t.title)} ${$t(t.description)} mcp`).includes(w)))
   }, [search])
 
   const all = useMemo(() => (doc ? endpointsOf(doc).flatMap((g) => g.endpoints) : []), [doc])

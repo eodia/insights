@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, $tp } from '@/lib/i18n'
 import { keys } from '@/lib/queries'
 import { useQueryClient } from '@tanstack/react-query'
 import { ClipboardPaste, Copy, Loader2 } from 'lucide-react'
@@ -77,7 +77,7 @@ export function PasteConfigButton({ target, compact = false }: { target: Target;
       await qc.invalidateQueries({ queryKey: keys.table(tableId) })
       await qc.invalidateQueries({ queryKey: ['column-values'] })
       await qc.invalidateQueries({ queryKey: ['tables'] })
-      toast.success($t('Configuration appliquée ({n} élément(s)).', { n: res.applied }))
+      toast.success($tp(res.applied, 'Configuration appliquée ({count} élément).', 'Configuration appliquée ({count} éléments).'))
       setOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

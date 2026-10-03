@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { formatAgo, formatCount } from '@/lib/format'
-import { $t, $tp, intlLocale } from '@/lib/i18n'
+import { $t, $tp, intlLocale, msg } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -21,13 +21,13 @@ import { useState } from 'react'
 const PAGE = 100
 
 const ORIGINS: Record<QueryExecution['origin'], { label: string; color: LookColor }> = {
-  editor: { label: 'Éditeur SQL', color: 'sky' },
-  question: { label: 'Question', color: 'blue' },
-  card: { label: 'Carte', color: 'green' },
-  api: { label: 'API', color: 'amber' },
-  mcp: { label: 'MCP', color: 'violet' },
-  copilot: { label: 'Copilot', color: 'pink' },
-  share: { label: 'Partage', color: 'teal' },
+  editor: { label: msg('Éditeur SQL'), color: 'sky' },
+  question: { label: msg('Question'), color: 'blue' },
+  card: { label: msg('Carte'), color: 'green' },
+  api: { label: msg('API'), color: 'amber' },
+  mcp: { label: msg('MCP'), color: 'violet' },
+  copilot: { label: msg('Copilot'), color: 'pink' },
+  share: { label: msg('Partage'), color: 'teal' },
 }
 
 function duration(ms: number): string {

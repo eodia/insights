@@ -8,6 +8,7 @@
  * Une palette personnalisée est vérifiée ici même (`checkPalette`), avec les mêmes seuils.
  */
 import type { ColorScheme } from '@eodia/contracts'
+import { msg } from './i18n'
 
 export interface Palette {
   readonly label: string
@@ -24,27 +25,27 @@ export const PALETTES: Record<Exclude<ColorScheme, 'custom'>, Palette> = {
     dark: ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'],
   },
   vif: {
-    label: 'Vive',
+    label: msg('Vive'),
     light: ['#2563eb', '#f43f5e', '#8b5cf6', '#f97316', '#10b981', '#f59e0b', '#6366f1', '#ef4444'],
     dark: ['#2563eb', '#f43f5e', '#8b5cf6', '#d75f00', '#17ac78', '#c7800e', '#6366f1', '#ef4444'],
   },
   ocean: {
-    label: 'Océan',
+    label: msg('Océan'),
     light: ['#0369a1', '#059669', '#4f46e5', '#14b8a6', '#818cf8', '#7c3aed', '#38bdf8', '#1d4ed8'],
     dark: ['#2b81bb', '#059669', '#544dec', '#149c8d', '#7b86f1', '#7c3aed', '#0b9fd6', '#3369f4'],
   },
   terre: {
-    label: 'Terre',
+    label: msg('Terre'),
     light: ['#b45309', '#65a30d', '#a16207', '#a855f7', '#be123c', '#ca8a04', '#e11d48', '#d97706'],
     dark: ['#b45309', '#65a30d', '#a16207', '#a855f7', '#c41c40', '#c28407', '#e11d48', '#d77500'],
   },
   doux: {
-    label: 'Douce',
+    label: msg('Douce'),
     light: ['#5b8def', '#e07a5f', '#b07cc6', '#7a9a3c', '#8c7ae6', '#c96f8a', '#d4a017', '#3d9970'],
     dark: ['#5b8def', '#d67157', '#ae7ac4', '#7a9a3c', '#8c7ae6', '#c96f8a', '#b6890f', '#3d9970'],
   },
   degrade: {
-    label: 'Dégradé',
+    label: msg('Dégradé'),
     // A blue ramp, light to dark (dark to light on a dark surface), picked evenly for the series.
     light: [
       '#86b6ef',

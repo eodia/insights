@@ -39,7 +39,7 @@ import { Textarea } from '@/components/ui/textarea'
 import type { RunResult } from '@/lib/api'
 import { api } from '@/lib/api'
 import { valueLabel as valueLabelFor } from './parameters'
-import { $t } from '@/lib/i18n'
+import { $t, $tp, msg } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe, useQuestion, useTables } from '@/lib/queries'
 import { type ColumnOption, columnOptions } from '@/lib/builder'
@@ -496,7 +496,7 @@ function FilterSettings({
             <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${share * 100}%` }} />
           </div>
           <span className="text-xs">
-            {$t('Relié à {n} carte(s) sur {total}', { n: tied.length, total: questions.length })}
+            {$tp(tied.length, 'Relié à {count} carte sur {total}', 'Relié à {count} cartes sur {total}', { total: questions.length })}
           </span>
         </div>
         <Popover open={open} onOpenChange={setOpen}>
@@ -514,13 +514,13 @@ function FilterSettings({
                 onClick={() => {
                   onMap(new Map(c.cards))
                   setOpen(false)
-                  toast.success($t('« {label} » relié à {n} carte(s).', { label: parameter.label, n: c.cards.size }))
+                  toast.success($tp(c.cards.size, '« {label} » relié à {count} carte.', '« {label} » relié à {count} cartes.', { label: parameter.label }))
                 }}
                 className={cn('flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent', c.key === suggested && 'bg-primary/5')}
               >
                 <span className="flex-1 truncate">{c.label}</span>
                 {c.key === suggested ? <span className="text-[10px] font-semibold tracking-wide text-primary uppercase">{$t('suggérée')}</span> : null}
-                <span className="text-xs text-muted-foreground tabular-nums">{$t('{n} carte(s)', { n: c.cards.size })}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{$tp(c.cards.size, '{count} carte', '{count} cartes')}</span>
               </button>
             ))}
           </PopoverContent>
@@ -532,7 +532,7 @@ function FilterSettings({
         ) : null}
         <span className="text-xs text-muted-foreground">
           {$t('Ou choisissez la colonne sur chaque carte.')}
-          {unloaded ? ` ${$t('{n} carte(s) d’autres onglets : ouvrez-les pour les relier.', { n: unloaded })}` : ''}
+          {unloaded ? ` ${$tp(unloaded, '{count} carte d’un autre onglet : ouvrez-le pour la relier.', '{count} cartes d’autres onglets : ouvrez-les pour les relier.')}` : ''}
         </span>
       </div>
     </div>
@@ -540,11 +540,11 @@ function FilterSettings({
 }
 
 const PARAM_TYPES: { type: ParameterType; label: string }[] = [
-  { type: 'date', label: 'Période' },
-  { type: 'category', label: 'Catégorie' },
-  { type: 'text', label: 'Texte' },
-  { type: 'number', label: 'Nombre' },
-  { type: 'temporal_unit', label: 'Granularité de date' },
+  { type: 'date', label: msg('Période') },
+  { type: 'category', label: msg('Catégorie') },
+  { type: 'text', label: msg('Texte') },
+  { type: 'number', label: msg('Nombre') },
+  { type: 'temporal_unit', label: msg('Granularité de date') },
 ]
 
 export interface DashboardViewProps {

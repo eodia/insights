@@ -15,7 +15,7 @@ import type {
   TemporalUnit,
 } from '@eodia/contracts'
 import { SEMANTIC_LABELS, columnName, kindOfTrinoType } from '@eodia/contracts'
-import { $t } from './i18n'
+import { $t, msg } from './i18n'
 
 export interface ColumnOption {
   readonly ref: ColumnRef
@@ -111,72 +111,72 @@ export function pruneJoins(query: BuilderQuery): BuilderQuery {
 }
 
 export const AGG_FNS: { fn: Aggregation['fn']; label: string; needsColumn: boolean; numeric?: boolean }[] = [
-  { fn: 'count', label: 'Nombre de lignes', needsColumn: false },
-  { fn: 'distinct', label: 'Valeurs distinctes', needsColumn: true },
-  { fn: 'sum', label: 'Somme', needsColumn: true, numeric: true },
-  { fn: 'avg', label: 'Moyenne', needsColumn: true, numeric: true },
-  { fn: 'median', label: 'Médiane', needsColumn: true, numeric: true },
-  { fn: 'min', label: 'Minimum', needsColumn: true },
-  { fn: 'max', label: 'Maximum', needsColumn: true },
-  { fn: 'stddev', label: 'Écart type', needsColumn: true, numeric: true },
-  { fn: 'cum_count', label: 'Nombre cumulé', needsColumn: false },
-  { fn: 'cum_sum', label: 'Somme cumulée', needsColumn: true, numeric: true },
+  { fn: 'count', label: msg('Nombre de lignes'), needsColumn: false },
+  { fn: 'distinct', label: msg('Valeurs distinctes'), needsColumn: true },
+  { fn: 'sum', label: msg('Somme'), needsColumn: true, numeric: true },
+  { fn: 'avg', label: msg('Moyenne'), needsColumn: true, numeric: true },
+  { fn: 'median', label: msg('Médiane'), needsColumn: true, numeric: true },
+  { fn: 'min', label: msg('Minimum'), needsColumn: true },
+  { fn: 'max', label: msg('Maximum'), needsColumn: true },
+  { fn: 'stddev', label: msg('Écart type'), needsColumn: true, numeric: true },
+  { fn: 'cum_count', label: msg('Nombre cumulé'), needsColumn: false },
+  { fn: 'cum_sum', label: msg('Somme cumulée'), needsColumn: true, numeric: true },
 ]
 
 export const UNIT_LABELS: Record<TemporalUnit, string> = {
-  minute: 'Minute',
-  hour: 'Heure',
-  day: 'Jour',
-  week: 'Semaine',
-  month: 'Mois',
-  quarter: 'Trimestre',
-  year: 'Année',
-  hour_of_day: 'Heure de la journée',
-  day_of_week: 'Jour de la semaine',
-  day_of_month: 'Jour du mois',
-  week_of_year: "Semaine de l'année",
-  month_of_year: "Mois de l'année",
-  quarter_of_year: "Trimestre de l'année",
+  minute: msg('Minute'),
+  hour: msg('Heure'),
+  day: msg('Jour'),
+  week: msg('Semaine'),
+  month: msg('Mois'),
+  quarter: msg('Trimestre'),
+  year: msg('Année'),
+  hour_of_day: msg('Heure de la journée'),
+  day_of_week: msg('Jour de la semaine'),
+  day_of_month: msg('Jour du mois'),
+  week_of_year: msg("Semaine de l'année"),
+  month_of_year: msg("Mois de l'année"),
+  quarter_of_year: msg("Trimestre de l'année"),
 }
 
 export const DATE_PRESETS: { value: string; label: string }[] = [
-  { value: 'today', label: "Aujourd'hui" },
-  { value: 'yesterday', label: 'Hier' },
-  { value: 'past7days', label: '7 derniers jours' },
-  { value: 'past30days', label: '30 derniers jours' },
-  { value: 'thisweek', label: 'Cette semaine' },
-  { value: 'lastweek', label: 'Semaine dernière' },
-  { value: 'thismonth', label: 'Ce mois-ci' },
-  { value: 'lastmonth', label: 'Mois dernier' },
-  { value: 'past3months', label: '3 derniers mois' },
-  { value: 'past12months', label: '12 derniers mois' },
-  { value: 'thisquarter', label: 'Ce trimestre' },
-  { value: 'lastquarter', label: 'Trimestre dernier' },
-  { value: 'thisyear', label: 'Cette année' },
-  { value: 'lastyear', label: "L'année dernière" },
+  { value: 'today', label: msg("Aujourd'hui") },
+  { value: 'yesterday', label: msg('Hier') },
+  { value: 'past7days', label: msg('7 derniers jours') },
+  { value: 'past30days', label: msg('30 derniers jours') },
+  { value: 'thisweek', label: msg('Cette semaine') },
+  { value: 'lastweek', label: msg('Semaine dernière') },
+  { value: 'thismonth', label: msg('Ce mois-ci') },
+  { value: 'lastmonth', label: msg('Mois dernier') },
+  { value: 'past3months', label: msg('3 derniers mois') },
+  { value: 'past12months', label: msg('12 derniers mois') },
+  { value: 'thisquarter', label: msg('Ce trimestre') },
+  { value: 'lastquarter', label: msg('Trimestre dernier') },
+  { value: 'thisyear', label: msg('Cette année') },
+  { value: 'lastyear', label: msg("L'année dernière") },
 ]
 
 export const OP_LABELS: Record<string, string> = {
-  is: 'est',
-  is_not: "n'est pas",
-  contains: 'contient',
-  not_contains: 'ne contient pas',
-  starts_with: 'commence par',
-  ends_with: 'finit par',
+  is: msg('est'),
+  is_not: msg("n'est pas"),
+  contains: msg('contient'),
+  not_contains: msg('ne contient pas'),
+  starts_with: msg('commence par'),
+  ends_with: msg('finit par'),
   eq: '=',
   ne: '≠',
   gt: '>',
   gte: '≥',
   lt: '<',
   lte: '≤',
-  between: 'entre',
-  date: 'période',
-  before: 'avant le',
-  after: 'après le',
-  true: 'est vrai',
-  false: 'est faux',
-  empty: 'est vide',
-  not_empty: "n'est pas vide",
+  between: msg('entre'),
+  date: msg('période'),
+  before: msg('avant le'),
+  after: msg('après le'),
+  true: msg('est vrai'),
+  false: msg('est faux'),
+  empty: msg('est vide'),
+  not_empty: msg("n'est pas vide"),
 }
 
 export const OPS_BY_KIND: Record<string, string[]> = {
@@ -191,14 +191,18 @@ export function filterLabel(f: Filter, options: readonly ColumnOption[]): string
   if ('sql' in f) return f.sql
   const col = findOption(options, f.column)?.label ?? columnName(f.column)
   const op = $t(OP_LABELS[f.op] ?? f.op)
-  if (['empty', 'not_empty', 'true', 'false'].includes(f.op)) return `${col} ${op}`
+  if (['empty', 'not_empty', 'true', 'false'].includes(f.op)) return $t('{column} {operator}', { column: col, operator: op })
   if (f.op === 'date') {
     const preset = DATE_PRESETS.find((p) => p.value === f.values[0])
-    return `${col} : ${preset ? $t(preset.label) : String(f.values[0] ?? '')}`
+    return $t('{column} : {period}', { column: col, period: preset ? $t(preset.label) : String(f.values[0] ?? '') })
   }
-  if (f.op === 'between') return `${col} ${op} ${f.values[0] ?? '…'} ${$t('et')} ${f.values[1] ?? '…'}`
+  if (f.op === 'between') return $t('{column} entre {from} et {to}', { column: col, from: String(f.values[0] ?? '…'), to: String(f.values[1] ?? '…') })
   const values = f.values.map(String)
-  return `${col} ${op} ${values.length > 2 ? `${values.slice(0, 2).join(', ')} +${values.length - 2}` : values.join(', ')}`
+  return $t('{column} {operator} {values}', {
+    column: col,
+    operator: op,
+    values: values.length > 2 ? $t('{first} +{more}', { first: values.slice(0, 2).join(', '), more: values.length - 2 }) : values.join(', '),
+  })
 }
 
 export function aggregationLabel(a: Aggregation, options: readonly ColumnOption[], metrics: ReadonlyMap<string, string>): string {
@@ -206,10 +210,13 @@ export function aggregationLabel(a: Aggregation, options: readonly ColumnOption[
   const def = AGG_FNS.find((x) => x.fn === a.fn)
   const base = $t(def?.label ?? a.fn)
   if (!a.column) return base
-  return `${base} ${$t('de')} ${findOption(options, a.column)?.label ?? columnName(a.column)}`
+  return $t('{aggregation} de {column}', { aggregation: base, column: findOption(options, a.column)?.label ?? columnName(a.column) })
 }
 
-export const semanticLabel = (s?: string | null) => (s ? (SEMANTIC_LABELS as Record<string, string>)[s] ?? s : '')
+export const semanticLabel = (s?: string | null) => {
+  const label = s ? (SEMANTIC_LABELS as Record<string, string>)[s] : undefined
+  return label ? $t(label) : (s ?? '')
+}
 
 /** An alias for a new join on `table`, free in the query and among the implicit ones. */
 export function joinAlias(query: BuilderQuery, table: TableMeta, options: readonly ColumnOption[]): string {
@@ -238,8 +245,8 @@ export function suggestedCondition(source: TableMeta | null, target: TableMeta):
 }
 
 export const JOIN_LABELS: Record<Join['kind'], string> = {
-  left: 'Jointure à gauche',
-  inner: 'Jointure interne',
-  right: 'Jointure à droite',
-  full: 'Jointure complète',
+  left: msg('Jointure à gauche'),
+  inner: msg('Jointure interne'),
+  right: msg('Jointure à droite'),
+  full: msg('Jointure complète'),
 }

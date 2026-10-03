@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Hint } from '@/components/ui/tooltip'
 import { ApiError, type RunResult, api, download } from '@/lib/api'
-import { formatAgo } from '@/lib/format'
+import { formatAgo, formatCount } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { useDatasources, useMe, useSchemaTree } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
@@ -52,7 +52,7 @@ interface Tab {
 }
 
 const STORE = 'eodia-sql-tabs'
-const newTab = (n: number, sql = ''): Tab => ({ id: Math.random().toString(36).slice(2), name: `${$t('Requête')} ${n}`, sql, native: null })
+const newTab = (n: number, sql = ''): Tab => ({ id: Math.random().toString(36).slice(2), name: $t('Requête {n}', { n }), sql, native: null })
 
 function loadTabs(): Tab[] {
   try {
@@ -186,7 +186,7 @@ function HistoryPanel({ onOpen }: { onOpen: (sql: string) => void }) {
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span className={cn('size-1.5 rounded-full', h.error ? 'bg-red-500' : 'bg-green-500')} />
             {formatAgo(h.at)}
-            <span className="ml-auto tabular-nums">{h.duration_ms} ms</span>
+            <span className="ml-auto tabular-nums">{$t('{n} ms', { n: formatCount(h.duration_ms) })}</span>
           </div>
           <pre className="mt-1 line-clamp-3 font-mono text-[11px] whitespace-pre-wrap">{h.sql}</pre>
         </button>

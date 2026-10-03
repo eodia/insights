@@ -10,16 +10,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Hint } from '@/components/ui/tooltip'
-import { $t } from '@/lib/i18n'
+import { $t, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Timer } from 'lucide-react'
 
 const CHOICES: readonly { value: number | null; label: string }[] = [
-  { value: null, label: 'Pas de rafraîchissement' },
-  { value: 60, label: 'Toutes les minutes' },
-  { value: 300, label: 'Toutes les 5 minutes' },
-  { value: 900, label: 'Toutes les 15 minutes' },
-  { value: 3600, label: 'Toutes les heures' },
+  { value: null, label: msg('Pas de rafraîchissement') },
+  { value: 60, label: msg('Toutes les minutes') },
+  { value: 300, label: msg('Toutes les 5 minutes') },
+  { value: 900, label: msg('Toutes les 15 minutes') },
+  { value: 3600, label: msg('Toutes les heures') },
 ]
 
 /**

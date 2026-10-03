@@ -8,7 +8,7 @@ import { Choice } from '@/components/ui/choice'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { formatAgo } from '@/lib/format'
-import { $t, intlLocale } from '@/lib/i18n'
+import { $t, $tp, intlLocale, msg } from '@/lib/i18n'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { useInfiniteQuery } from '@tanstack/react-query'
@@ -32,20 +32,20 @@ const PAGE = 100
 
 /** The families of actions, by their prefix. */
 const FAMILIES: readonly { prefix: string; label: string; color: LookColor }[] = [
-  { prefix: 'auth.', label: 'Connexions', color: 'sky' },
-  { prefix: 'user.', label: 'Personnes', color: 'teal' },
-  { prefix: 'invitation.', label: 'Invitations', color: 'cyan' },
-  { prefix: 'group.', label: 'Groupes', color: 'indigo' },
-  { prefix: 'permission.', label: 'Permissions', color: 'rose' },
-  { prefix: 'datasource.', label: 'Sources de données', color: 'violet' },
-  { prefix: 'metadata.', label: 'Métadonnées', color: 'purple' },
-  { prefix: 'question.', label: 'Questions', color: 'blue' },
-  { prefix: 'dashboard.', label: 'Tableaux de bord', color: 'green' },
-  { prefix: 'folder.', label: 'Dossiers', color: 'amber' },
-  { prefix: 'share', label: 'Partages', color: 'orange' },
-  { prefix: 'token.', label: 'Jetons', color: 'lime' },
-  { prefix: 'embed_secret.', label: 'Intégration signée', color: 'pink' },
-  { prefix: 'setting.', label: 'Réglages', color: 'gray' },
+  { prefix: 'auth.', label: msg('Connexions'), color: 'sky' },
+  { prefix: 'user.', label: msg('Personnes'), color: 'teal' },
+  { prefix: 'invitation.', label: msg('Invitations'), color: 'cyan' },
+  { prefix: 'group.', label: msg('Groupes'), color: 'indigo' },
+  { prefix: 'permission.', label: msg('Permissions'), color: 'rose' },
+  { prefix: 'datasource.', label: msg('Sources de données'), color: 'violet' },
+  { prefix: 'metadata.', label: msg('Métadonnées'), color: 'purple' },
+  { prefix: 'question.', label: msg('Questions'), color: 'blue' },
+  { prefix: 'dashboard.', label: msg('Tableaux de bord'), color: 'green' },
+  { prefix: 'folder.', label: msg('Dossiers'), color: 'amber' },
+  { prefix: 'share', label: msg('Partages'), color: 'orange' },
+  { prefix: 'token.', label: msg('Jetons'), color: 'lime' },
+  { prefix: 'embed_secret.', label: msg('Intégration signée'), color: 'pink' },
+  { prefix: 'setting.', label: msg('Réglages'), color: 'gray' },
 ]
 
 const colorOf = (action: string): LookColor => FAMILIES.find((f) => action.startsWith(f.prefix))?.color ?? 'gray'
@@ -113,7 +113,7 @@ function Audit() {
           size="default"
         />
         <span className="flex-1" />
-        <span className="text-sm text-muted-foreground">{q.hasNextPage ? $t('{count}+ événements', { count: rows.length }) : $t('{count} événements', { count: rows.length })}</span>
+        <span className="text-sm text-muted-foreground">{q.hasNextPage ? $t('{count}+ événements', { count: rows.length }) : $tp(rows.length, '{count} événement', '{count} événements')}</span>
       </div>
 
       <div className="overflow-hidden rounded-xl border">

@@ -172,9 +172,15 @@ function PersonDetail({ user, groups, known, self }: { user: UserRow; groups: re
           <div>
             <SectionTitle>{$t('Attributs')}</SectionTitle>
             <p className="mb-3 text-sm text-muted-foreground">
-              {$t('Les attributs décrivent la personne pour les règles de ligne : une règle « region = ')}
-              <code className="rounded bg-muted px-1 font-mono text-[12px]">{'{{user.region}}'}</code>
-              {$t(' » ne lui laisse voir que les lignes de sa région. Un attribut absent ne donne accès à aucune ligne.')}
+              {$t('Les attributs décrivent la personne pour les règles de ligne : une règle « region = {attribute} » ne lui laisse voir que les lignes de sa région. Un attribut absent ne donne accès à aucune ligne.')
+                .split('{attribute}')
+                .map((part, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: the parts of one sentence, in order
+                  <span key={i}>
+                    {i > 0 ? <code className="rounded bg-muted px-1 font-mono text-[12px]">{'{{user.region}}'}</code> : null}
+                    {part}
+                  </span>
+                ))}
             </p>
             <AttributesEditor rows={attrs} onChange={setAttrs} known={known} />
           </div>

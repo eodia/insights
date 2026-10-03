@@ -72,13 +72,36 @@ export function chartPage(): Promise<string> {
             }))
           },
         },
+        {
+          // The translations the view needs: those of the web modules it bundles, no more.
+          name: 'messages',
+          setup(b) {
+            const lib = join(here, '../../web/src/lib')
+            const locales = join(here, '../../web/src/locales')
+            b.onResolve({ filter: /^eodia:messages$/ }, () => ({ path: 'messages', namespace: 'eodia' }))
+            b.onLoad({ filter: /.*/, namespace: 'eodia' }, async () => {
+              const { readFile, readdir } = await import('node:fs/promises')
+              const sources = await Promise.all(
+                (await readdir(lib)).filter((f) => f.endsWith('.ts')).map((f) => readFile(join(lib, f), 'utf8')),
+              )
+              const used = (key: string) => sources.some((s) => s.includes(`'${key}'`) || s.includes(`"${key}"`) || s.includes(`\`${key}\``))
+              const catalogs: Record<string, Record<string, unknown>> = {}
+              for (const file of await readdir(locales)) {
+                if (!file.endsWith('.json')) continue
+                const all = JSON.parse(await readFile(join(locales, file), 'utf8')) as Record<string, unknown>
+                catalogs[file.slice(0, -5)] = Object.fromEntries(Object.entries(all).filter(([k]) => used(k)))
+              }
+              return { contents: `export default ${JSON.stringify(catalogs)}`, loader: 'js' }
+            })
+          },
+        },
       ],
       logLevel: 'silent',
     })
     // `</script` inside the code would close the tag: escaped, it stays a string.
     const js = (out.outputFiles[0]?.text ?? '').replace(/<\/script/gi, '<\\/script')
     return `<!doctype html>
-<html lang="fr">
+<html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

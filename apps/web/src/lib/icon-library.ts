@@ -3,10 +3,11 @@
  * par thème (la recherche couvre toute la bibliothèque), et des emoji. Un nom absent de la
  * version installée de lucide est simplement écarté à l'affichage.
  */
+import { msg } from './i18n'
 
 export const ICON_GROUPS: readonly { readonly label: string; readonly icons: readonly string[] }[] = [
   {
-    label: 'Statuts',
+    label: msg('Statuts'),
     icons: [
       'circle', 'circle-check', 'circle-check-big', 'circle-x', 'circle-alert', 'circle-pause', 'circle-play', 'circle-stop', 'circle-dot', 'circle-dashed',
       'circle-help', 'circle-minus', 'circle-plus', 'check', 'check-check', 'x', 'ban', 'octagon-alert', 'triangle-alert', 'info', 'badge-check', 'badge-alert',
@@ -15,7 +16,7 @@ export const ICON_GROUPS: readonly { readonly label: string; readonly icons: rea
     ],
   },
   {
-    label: 'Commerce',
+    label: msg('Commerce'),
     icons: [
       'shopping-cart', 'shopping-bag', 'shopping-basket', 'store', 'package', 'package-check', 'package-x', 'package-open', 'boxes', 'truck', 'ship', 'warehouse',
       'credit-card', 'wallet', 'banknote', 'coins', 'piggy-bank', 'receipt', 'receipt-text', 'tag', 'tags', 'percent', 'badge-percent', 'badge-euro', 'euro',
@@ -23,14 +24,14 @@ export const ICON_GROUPS: readonly { readonly label: string; readonly icons: rea
     ],
   },
   {
-    label: 'Personnes',
+    label: msg('Personnes'),
     icons: [
       'user', 'users', 'user-round', 'user-check', 'user-x', 'user-plus', 'user-minus', 'user-cog', 'users-round', 'contact', 'id-card', 'baby', 'person-standing',
       'accessibility', 'smile', 'frown', 'meh', 'laugh', 'angry', 'hand', 'hand-heart', 'heart-handshake', 'graduation-cap', 'briefcase', 'crown', 'medal', 'award', 'trophy',
     ],
   },
   {
-    label: 'Lieux',
+    label: msg('Lieux'),
     icons: [
       'globe', 'earth', 'map', 'map-pin', 'map-pinned', 'navigation', 'compass', 'home', 'house', 'building', 'building-2', 'factory', 'hotel', 'hospital', 'school',
       'university', 'landmark', 'church', 'castle', 'tent', 'mountain', 'trees', 'palmtree', 'waves', 'plane', 'train-front', 'car', 'bus', 'bike', 'ship-wheel',
@@ -38,11 +39,11 @@ export const ICON_GROUPS: readonly { readonly label: string; readonly icons: rea
     ],
   },
   {
-    label: 'Temps',
+    label: msg('Temps'),
     icons: ['calendar', 'calendar-days', 'calendar-check', 'calendar-x', 'calendar-clock', 'calendar-range', 'clock-3', 'history', 'sunrise', 'sunset', 'sun', 'moon', 'cloud', 'cloud-rain', 'cloud-sun', 'umbrella', 'thermometer'],
   },
   {
-    label: 'Données',
+    label: msg('Données'),
     icons: [
       'chart-bar', 'chart-column', 'chart-line', 'chart-pie', 'chart-area', 'chart-scatter', 'chart-spline', 'gauge', 'activity', 'trending-up', 'trending-down',
       'trending-up-down', 'arrow-up', 'arrow-down', 'arrow-up-right', 'arrow-down-right', 'database', 'table', 'table-2', 'sheet', 'sigma', 'calculator', 'hash',
@@ -50,31 +51,31 @@ export const ICON_GROUPS: readonly { readonly label: string; readonly icons: rea
     ],
   },
   {
-    label: 'Communication',
+    label: msg('Communication'),
     icons: ['mail', 'mail-open', 'send', 'inbox', 'message-square', 'message-circle', 'messages-square', 'phone', 'phone-call', 'video', 'megaphone', 'rss', 'share-2', 'link', 'at-sign', 'newspaper', 'mic', 'headphones', 'headset'],
   },
   {
-    label: 'Technique',
+    label: msg('Technique'),
     icons: [
       'monitor', 'laptop', 'smartphone', 'tablet', 'tv', 'server', 'hard-drive', 'cpu', 'wifi', 'bluetooth', 'cloud-upload', 'cloud-download', 'code', 'terminal',
       'bug', 'wrench', 'hammer', 'settings', 'cog', 'plug', 'power', 'battery', 'battery-charging', 'key', 'key-round', 'shield', 'fingerprint', 'scan-face', 'bot', 'brain',
     ],
   },
   {
-    label: 'Documents',
+    label: msg('Documents'),
     icons: ['file', 'file-text', 'file-check', 'file-x', 'file-plus', 'file-spreadsheet', 'files', 'folder', 'folder-open', 'folder-kanban', 'book', 'book-open', 'notebook', 'notebook-pen', 'pen', 'pencil', 'clipboard', 'clipboard-check', 'paperclip', 'printer', 'image', 'camera', 'film', 'music'],
   },
   {
-    label: 'Nature et vie',
+    label: msg('Nature et vie'),
     icons: ['leaf', 'sprout', 'flower', 'tree-pine', 'apple', 'carrot', 'coffee', 'wine', 'utensils', 'pizza', 'cake', 'dog', 'cat', 'fish', 'bird', 'paw-print', 'heart-pulse', 'stethoscope', 'pill', 'syringe', 'dumbbell', 'gamepad-2', 'palette', 'paintbrush', 'shirt', 'gem', 'rocket', 'lightbulb', 'puzzle'],
   },
 ]
 
 export const EMOJI_GROUPS: readonly { readonly label: string; readonly emojis: readonly string[] }[] = [
-  { label: 'Statuts', emojis: ['✅', '❌', '⚠️', '⛔', '⏳', '⌛', '🔄', '⏸️', '▶️', '⏹️', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '⭐', '🌟', '🔥', '💡', '📌', '🚩', '🏁', '❓', '❗', '💯'] },
-  { label: 'Commerce', emojis: ['🛒', '🛍️', '💳', '💰', '💶', '💵', '🪙', '🧾', '🏷️', '📦', '🎁', '🚚', '🚛', '🏪', '🏬', '🏦', '📈', '📉', '💹', '🤝', '↩️', '🔁'] },
-  { label: 'Personnes', emojis: ['👤', '👥', '🧑‍💼', '👩‍💻', '👨‍🔧', '🧑‍🏫', '🧑‍⚕️', '👶', '🙂', '😀', '😍', '😐', '😕', '😞', '😡', '👍', '👎', '👋', '🙏', '💪'] },
-  { label: 'Lieux et transports', emojis: ['🏠', '🏢', '🏭', '🏥', '🏫', '🏛️', '🌍', '🌎', '🌏', '🗺️', '📍', '✈️', '🚆', '🚗', '🚌', '🚲', '⛴️', '🏖️', '⛰️', '🏙️', '🇫🇷', '🇪🇺', '🇬🇧', '🇩🇪', '🇪🇸', '🇮🇹', '🇺🇸'] },
-  { label: 'Nature', emojis: ['☀️', '🌤️', '🌧️', '❄️', '🌈', '🌱', '🍃', '🌳', '🌸', '🍎', '🍇', '🥕', '🍷', '☕', '🍕', '🐶', '🐱', '🐟', '🐝', '🦋'] },
-  { label: 'Objets', emojis: ['💻', '📱', '🖥️', '⚙️', '🔧', '🔒', '🔑', '📊', '🗂️', '📁', '📄', '📝', '✉️', '📞', '📣', '🔔', '📅', '⏰', '🎯', '🚀', '💎', '🏆', '🎉', '🎓', '🩺', '💊', '🧪', '🔬'] },
+  { label: msg('Statuts'), emojis: ['✅', '❌', '⚠️', '⛔', '⏳', '⌛', '🔄', '⏸️', '▶️', '⏹️', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '⭐', '🌟', '🔥', '💡', '📌', '🚩', '🏁', '❓', '❗', '💯'] },
+  { label: msg('Commerce'), emojis: ['🛒', '🛍️', '💳', '💰', '💶', '💵', '🪙', '🧾', '🏷️', '📦', '🎁', '🚚', '🚛', '🏪', '🏬', '🏦', '📈', '📉', '💹', '🤝', '↩️', '🔁'] },
+  { label: msg('Personnes'), emojis: ['👤', '👥', '🧑‍💼', '👩‍💻', '👨‍🔧', '🧑‍🏫', '🧑‍⚕️', '👶', '🙂', '😀', '😍', '😐', '😕', '😞', '😡', '👍', '👎', '👋', '🙏', '💪'] },
+  { label: msg('Lieux et transports'), emojis: ['🏠', '🏢', '🏭', '🏥', '🏫', '🏛️', '🌍', '🌎', '🌏', '🗺️', '📍', '✈️', '🚆', '🚗', '🚌', '🚲', '⛴️', '🏖️', '⛰️', '🏙️', '🇫🇷', '🇪🇺', '🇬🇧', '🇩🇪', '🇪🇸', '🇮🇹', '🇺🇸'] },
+  { label: msg('Nature'), emojis: ['☀️', '🌤️', '🌧️', '❄️', '🌈', '🌱', '🍃', '🌳', '🌸', '🍎', '🍇', '🥕', '🍷', '☕', '🍕', '🐶', '🐱', '🐟', '🐝', '🦋'] },
+  { label: msg('Objets'), emojis: ['💻', '📱', '🖥️', '⚙️', '🔧', '🔒', '🔑', '📊', '🗂️', '📁', '📄', '📝', '✉️', '📞', '📣', '🔔', '📅', '⏰', '🎯', '🚀', '💎', '🏆', '🎉', '🎓', '🩺', '💊', '🧪', '🔬'] },
 ]

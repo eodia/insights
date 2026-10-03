@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { formatCount, LOOK_CLASSES } from '@/lib/format'
-import { $t } from '@/lib/i18n'
+import { $t, $tp } from '@/lib/i18n'
 import { keys, useEngines, useMe, useTables } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -63,7 +63,7 @@ function TablesList({ source }: { source: Datasource }) {
                 {t.visibility !== 'normal' ? <Chip color={t.visibility === 'hidden' ? 'gray' : 'amber'}>{$t(VISIBILITY_LABELS[t.visibility])}</Chip> : null}
                 {t.entity ? <Chip color={t.color ?? 'gray'}>{t.entity}</Chip> : null}
                 <span className="w-24 shrink-0 text-right font-mono text-xs text-muted-foreground">
-                  {t.row_count != null ? $t('{n} lignes', { n: formatCount(t.row_count) }) : '—'}
+                  {t.row_count != null ? $tp(t.row_count, '{n} ligne', '{n} lignes', { n: formatCount(t.row_count) }) : '—'}
                 </span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
               </Link>
@@ -135,7 +135,7 @@ function ConnectionView({ source, canEdit }: { source: Datasource; canEdit: bool
         </div>
         <dl className="divide-y text-sm">
           {[
-            [$t('Moteur'), spec.label],
+            [$t('Moteur'), $t(spec.label)],
             [$t('Catalogue Trino'), <CatalogName key="c" catalog={source.catalog} />],
             ...rows,
             [$t('SQL natif'), source.options.native_sql ? $t('Autorisé') : $t('Interdit')],
@@ -190,7 +190,7 @@ export default function SourcePage({ params }: { params: Promise<{ id: string }>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-2xl font-semibold tracking-tight">{source.name}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <CatalogName catalog={source.catalog} suffix=".schéma.table" />
+                <CatalogName catalog={source.catalog} suffix={`.${$t('schéma.table')}`} />
                 <span>·</span>
                 <span>{ENGINE_NAMES[source.engine]}</span>
                 <span>·</span>

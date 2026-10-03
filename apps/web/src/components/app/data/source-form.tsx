@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { CalendarDays, CheckCircle2, ChevronRight, Hand, Info, Loader2, Plug, Plus, Timer, Trash2, XCircle } from 'lucide-react'
 import { Segmented } from '@/components/ui/segmented'
@@ -24,6 +24,32 @@ interface TestResult {
 }
 
 const CATALOG_RE = /^[a-z][a-z0-9_]{0,62}$/
+
+/**
+ * The French of `ENGINE_SPECS` (`@eodia/contracts`) — labels, help and example values of the
+ * fields —, marked here for the catalog: the form shows them through `$t`.
+ */
+export const ENGINE_SPEC_TEXT = [
+  msg('Connecteur Trino (avancé)'),
+  msg('Hôte'),
+  msg('db.exemple.fr'),
+  msg('Port'),
+  msg('Utilisateur'),
+  msg('Mot de passe'),
+  msg('Base de données'),
+  msg('Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.'),
+  msg('Chiffrer la connexion'),
+  msg('Faire confiance au certificat du serveur'),
+  msg('Nom de service'),
+  msg('Compte'),
+  msg('Entrepôt'),
+  msg('Rôle'),
+  msg('Chaîne de connexion'),
+  msg('mongodb://utilisateur:motdepasse@hote:27017/'),
+  msg('Connecteur'),
+  msg('Propriétés'),
+  msg('Une propriété par ligne, au format clé=valeur, comme dans un fichier de catalogue.'),
+] as const
 
 /** What a name becomes as a Trino catalog: `Support client` → `support_client`. */
 export function catalogFromName(name: string): string {
@@ -66,7 +92,7 @@ function Field({ field, value, onChange, secretSet }: { field: EngineField; valu
       </div>
     )
   }
-  const placeholder = field.secret && secretSet ? $t('••••• (inchangé)') : field.placeholder
+  const placeholder = field.secret && secretSet ? $t('••••• (inchangé)') : field.placeholder ? $t(field.placeholder) : undefined
   return (
     <div className={cn('space-y-1.5', field.type === 'textarea' && 'sm:col-span-2', field.key === 'connection_url' && 'sm:col-span-2')}>
       <Label htmlFor={id}>
@@ -215,7 +241,7 @@ export function SourceForm({
               {catalogError ??
                 (editing
                   ? $t('Le catalogue ne change pas : le SQL le cite.')
-                  : $t('Facultatif : dérivé du nom. Le SQL cite les tables en {path}.', { path: 'catalogue.schéma.table' }))}
+                  : $t('Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.'))}
             </p>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
@@ -227,7 +253,7 @@ export function SourceForm({
 
       {/* Connexion */}
       <div className="space-y-3">
-        <SectionTitle>{$t('Connexion {engine}', { engine: spec.label })}</SectionTitle>
+        <SectionTitle>{$t('Connexion {engine}', { engine: $t(spec.label) })}</SectionTitle>
         <div className="grid gap-3 sm:grid-cols-2">
           {spec.fields.map((f) => (
             <Field
@@ -335,7 +361,7 @@ export function SourceForm({
           <div className="min-w-0">
             <div className="font-medium">{test.ok ? $t('Connexion réussie') : $t('Connexion impossible')}</div>
             <div className="text-xs break-words opacity-90">
-              {test.ok ? [test.version, test.ms ? `${test.ms} ms` : null].filter(Boolean).join(' · ') : test.error}
+              {test.ok ? [test.version, test.ms ? new Intl.NumberFormat(intlLocale(), { style: 'unit', unit: 'millisecond' }).format(test.ms) : null].filter(Boolean).join(' · ') : test.error}
             </div>
           </div>
         </div>

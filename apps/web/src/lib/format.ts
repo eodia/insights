@@ -77,12 +77,12 @@ export function formatNumber(value: number, format: ColumnFormat = {}, opts: For
 function formatDuration(value: number, unit: NonNullable<ColumnFormat['duration_unit']>): string {
   const seconds = value * { ms: 0.001, s: 1, min: 60, h: 3600, d: 86400 }[unit]
   const abs = Math.abs(seconds)
-  const n = (x: number, d = 0) => numberFormat({ maximumFractionDigits: d }).format(x)
-  if (abs < 1) return `${n(seconds * 1000)} ms`
-  if (abs < 60) return `${n(seconds, 1)} s`
-  if (abs < 3600) return `${n(seconds / 60, 1)} min`
-  if (abs < 86400) return `${n(seconds / 3600, 1)} h`
-  return `${n(seconds / 86400, 1)} j`
+  const n = (x: number, u: string, d = 1) => numberFormat({ style: 'unit', unit: u, unitDisplay: 'short', maximumFractionDigits: d }).format(x)
+  if (abs < 1) return n(seconds * 1000, 'millisecond', 0)
+  if (abs < 60) return n(seconds, 'second')
+  if (abs < 3600) return n(seconds / 60, 'minute')
+  if (abs < 86400) return n(seconds / 3600, 'hour')
+  return n(seconds / 86400, 'day')
 }
 
 const MONTH = new Map<string, Intl.DateTimeFormat>()
@@ -116,9 +116,9 @@ export function formatDate(value: unknown, kind: string, unit?: TemporalUnit, fo
       case 'month_of_year':
         return MONTHS()[value - 1] ?? String(value)
       case 'quarter_of_year':
-        return `T${value}`
+        return $t('T{quarter}', { quarter: value })
       case 'hour_of_day':
-        return `${String(value).padStart(2, '0')} h`
+        return $t('{hour} h', { hour: String(value).padStart(2, '0') })
       default:
         return String(value)
     }
@@ -129,7 +129,7 @@ export function formatDate(value: unknown, kind: string, unit?: TemporalUnit, fo
     case 'year':
       return String(d.getFullYear())
     case 'quarter':
-      return `T${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`
+      return $t('T{quarter} {year}', { quarter: Math.floor(d.getMonth() / 3) + 1, year: d.getFullYear() })
     case 'month':
       return dateFormat({ month: 'long', year: 'numeric' }).format(d)
     case 'week':

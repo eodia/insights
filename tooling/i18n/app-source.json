@@ -1,0 +1,7463 @@
+{
+  ": par tranches": {
+    "where": [
+      "components/app/question/notebook.tsx:423"
+    ]
+  },
+  ": valeurs": {
+    "where": [
+      "components/app/question/notebook.tsx:423"
+    ]
+  },
+  "« {item} » rangé dans « {folder} ».": {
+    "where": [
+      "lib/dnd.ts:72"
+    ]
+  },
+  "« {key} » est un attribut intégré : il ne se saisit pas.": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:30"
+    ]
+  },
+  "« {label} » relié à {count} cartes.": {
+    "one": "« {label} » relié à {count} carte.",
+    "other": "« {label} » relié à {count} cartes.",
+    "where": [
+      "components/app/dashboard/view.tsx:517"
+    ]
+  },
+  "« La région Bretagne progresse de 18 % sur le trimestre, portée par le canal Web. Je vous propose un tableau de bord pour la suivre. »": {
+    "where": [
+      "app/login/page.tsx:63"
+    ]
+  },
+  "« Lecture » l’emporte sur « Restreint » : si un autre groupe de la personne lit la table en entier, les règles de colonnes et de lignes de ce groupe ne s’appliquent pas.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:32"
+    ]
+  },
+  "« Quel est le chiffre d’affaires par mois cette année ? » : l’assistant trouve la métrique, l’interroge et répond avec les chiffres que vous verriez dans l’application.": {
+    "where": [
+      "components/app/docs/mcp.tsx:66"
+    ]
+  },
+  "« Restreint » applique les colonnes masquées ou cachées et les règles de lignes du groupe, et interdit le SQL natif.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:34"
+    ]
+  },
+  "(tout)": {
+    "where": [
+      "components/app/dashboard/view.tsx:97"
+    ]
+  },
+  "(vous)": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:116"
+    ]
+  },
+  "{aggregation} de {column}": {
+    "where": [
+      "lib/builder.ts:213"
+    ]
+  },
+  "{column} : {period}": {
+    "where": [
+      "lib/builder.ts:197"
+    ]
+  },
+  "{column} : {value}": {
+    "where": [
+      "lib/viz.ts:371"
+    ]
+  },
+  "{column} {operator}": {
+    "where": [
+      "lib/builder.ts:194"
+    ]
+  },
+  "{column} {operator} {values}": {
+    "where": [
+      "lib/builder.ts:201"
+    ]
+  },
+  "{column} entre {from} et {to}": {
+    "where": [
+      "lib/builder.ts:199"
+    ]
+  },
+  "{count} cartes": {
+    "one": "{count} carte",
+    "other": "{count} cartes",
+    "where": [
+      "components/app/dashboard/view.tsx:523"
+    ]
+  },
+  "{count} cartes ajoutées au tableau de bord.": {
+    "one": "{count} carte ajoutée au tableau de bord.",
+    "other": "{count} cartes ajoutées au tableau de bord.",
+    "where": [
+      "components/app/copilot.tsx:77"
+    ]
+  },
+  "{count} cartes d’autres onglets : ouvrez-les pour les relier.": {
+    "one": "{count} carte d’un autre onglet : ouvrez-le pour la relier.",
+    "other": "{count} cartes d’autres onglets : ouvrez-les pour les relier.",
+    "where": [
+      "components/app/dashboard/view.tsx:535"
+    ]
+  },
+  "{count} colonnes": {
+    "one": "{count} colonne",
+    "other": "{count} colonnes",
+    "where": [
+      "app/(app)/data/page.tsx:47",
+      "components/app/admin/permission-matrix.tsx:162"
+    ]
+  },
+  "{count} distinctes · {pct} nulls": {
+    "one": "{count} distincte · {pct} nulls",
+    "other": "{count} distinctes · {pct} nulls",
+    "where": [
+      "components/app/structure/column-bits.tsx:149"
+    ]
+  },
+  "{count} endpoints documentés, générés depuis les schémas de validation de l’API : cette page est toujours à jour.": {
+    "one": "{count} endpoint documenté, généré depuis les schémas de validation de l’API : cette page est toujours à jour.",
+    "other": "{count} endpoints documentés, générés depuis les schémas de validation de l’API : cette page est toujours à jour.",
+    "where": [
+      "components/app/docs/docs-viewer.tsx:89"
+    ]
+  },
+  "{count} événements": {
+    "one": "{count} événement",
+    "other": "{count} événements",
+    "where": [
+      "app/(app)/admin/audit/page.tsx:116"
+    ]
+  },
+  "{count} heures": {
+    "one": "{count} heure",
+    "other": "{count} heures",
+    "where": [
+      "app/(app)/admin/settings/page.tsx:43"
+    ]
+  },
+  "{count} j": {
+    "one": "{count} j",
+    "other": "{count} j",
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:79"
+    ]
+  },
+  "{count} jours": {
+    "one": "{count} jour",
+    "other": "{count} jours",
+    "where": [
+      "app/(app)/admin/settings/page.tsx:44"
+    ]
+  },
+  "{count} lignes": {
+    "one": "{count} ligne",
+    "other": "{count} lignes",
+    "where": [
+      "app/(app)/history/page.tsx:80",
+      "components/app/dashboard/value-list.tsx:261",
+      "components/app/structure/column-bits.tsx:174"
+    ]
+  },
+  "{count} lignes (tronqué)": {
+    "one": "{count} ligne (tronqué)",
+    "other": "{count} lignes (tronqué)",
+    "where": [
+      "components/app/visualization.tsx:376"
+    ]
+  },
+  "{count} membres": {
+    "one": "{count} membre",
+    "other": "{count} membres",
+    "where": [
+      "app/(app)/admin/groups/page.tsx:196",
+      "app/(app)/admin/groups/page.tsx:270",
+      "app/(app)/admin/permissions/page.tsx:87"
+    ]
+  },
+  "{count} messages par heure et par personne": {
+    "one": "{count} message par heure et par personne",
+    "other": "{count} messages par heure et par personne",
+    "where": [
+      "app/(app)/admin/settings/page.tsx:369"
+    ]
+  },
+  "{count} minutes": {
+    "one": "{count} minute",
+    "other": "{count} minutes",
+    "where": [
+      "app/(app)/admin/settings/page.tsx:42"
+    ]
+  },
+  "{count} mois": {
+    "one": "{count} mois",
+    "other": "{count} mois",
+    "where": [
+      "app/login/page.tsx:48"
+    ]
+  },
+  "{count} personnes sur l’instance.": {
+    "one": "{count} personne sur l’instance.",
+    "other": "{count} personnes sur l’instance.",
+    "where": [
+      "app/(app)/admin/people/page.tsx:571"
+    ]
+  },
+  "{count} possibles sur {total}": {
+    "one": "{count} possible sur {total}",
+    "other": "{count} possibles sur {total}",
+    "where": [
+      "components/app/dashboard/value-list.tsx:268"
+    ]
+  },
+  "{count} réglages plus fins": {
+    "one": "{count} réglage plus fin",
+    "other": "{count} réglages plus fins",
+    "where": [
+      "components/app/admin/permission-matrix.tsx:279"
+    ]
+  },
+  "{count} requêtes": {
+    "one": "{count} requête",
+    "other": "{count} requêtes",
+    "where": [
+      "app/(app)/history/page.tsx:151"
+    ]
+  },
+  "{count} restreintes": {
+    "one": "{count} restreinte",
+    "other": "{count} restreintes",
+    "where": [
+      "components/app/admin/permission-matrix.tsx:401"
+    ]
+  },
+  "{count} résultats retirés du cache": {
+    "one": "{count} résultat retiré du cache",
+    "other": "{count} résultats retirés du cache",
+    "where": [
+      "app/(app)/admin/settings/page.tsx:145"
+    ]
+  },
+  "{count} schémas": {
+    "one": "{count} schéma",
+    "other": "{count} schémas",
+    "where": [
+      "app/(app)/data/page.tsx:47"
+    ]
+  },
+  "{count} secondes": {
+    "one": "{count} seconde",
+    "other": "{count} secondes",
+    "where": [
+      "app/(app)/admin/settings/page.tsx:41"
+    ]
+  },
+  "{count} sources en lecture": {
+    "one": "{count} source en lecture",
+    "other": "{count} sources en lecture",
+    "where": [
+      "components/app/admin/permission-matrix.tsx:400"
+    ]
+  },
+  "{count} tables": {
+    "one": "{count} table",
+    "other": "{count} tables",
+    "where": [
+      "app/(app)/data/page.tsx:47",
+      "components/app/admin/permission-matrix.tsx:232",
+      "components/app/admin/permission-matrix.tsx:278"
+    ]
+  },
+  "{count} types changés": {
+    "one": "{count} type changé",
+    "other": "{count} types changés",
+    "where": [
+      "components/app/data/sync-panel.tsx:71"
+    ]
+  },
+  "{count} valeurs choisies": {
+    "one": "{count} valeur choisie",
+    "other": "{count} valeurs choisies",
+    "where": [
+      "components/app/dashboard/value-list.tsx:256"
+    ]
+  },
+  "{count}+ événements": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:116"
+    ]
+  },
+  "{count}+ requêtes": {
+    "where": [
+      "app/(app)/history/page.tsx:151"
+    ]
+  },
+  "{duration} ms": {
+    "where": [
+      "components/app/visualization.tsx:378"
+    ]
+  },
+  "{first} +{more}": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:28",
+      "lib/builder.ts:204"
+    ]
+  },
+  "{hour} h": {
+    "where": [
+      "lib/format.ts:121"
+    ]
+  },
+  "{min}–{max} car.": {
+    "where": [
+      "components/app/docs/openapi.ts:146"
+    ]
+  },
+  "{n} colonnes": {
+    "where": [
+      "components/app/structure/table-editor.tsx:59"
+    ]
+  },
+  "{n} lignes": {
+    "one": "{n} ligne",
+    "other": "{n} lignes",
+    "where": [
+      "app/(app)/data/[id]/page.tsx:66"
+    ]
+  },
+  "{n} ms": {
+    "where": [
+      "app/(app)/sql/page.tsx:189"
+    ]
+  },
+  "{n} s": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:142"
+    ]
+  },
+  "{name} (groupe)": {
+    "where": [
+      "components/app/share-dialog.tsx:55"
+    ]
+  },
+  "{name} a été ajouté·e": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:296"
+    ]
+  },
+  "{name} est désactivé·e": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:458"
+    ]
+  },
+  "{name} est réactivé·e": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:458"
+    ]
+  },
+  "{name} vous invite.": {
+    "where": [
+      "app/invitation/[token]/page.tsx:51"
+    ]
+  },
+  "{series} · prévision": {
+    "where": [
+      "lib/viz.ts:471"
+    ]
+  },
+  "••••• (inchangé)": {
+    "where": [
+      "components/app/data/source-form.tsx:95"
+    ]
+  },
+  "≈ {n} lignes": {
+    "one": "≈ {n} ligne",
+    "other": "≈ {n} lignes",
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:151",
+      "components/app/structure/table-editor.tsx:58"
+    ]
+  },
+  "≤ {max} car.": {
+    "where": [
+      "components/app/docs/openapi.ts:147"
+    ]
+  },
+  "≤ {max} él.": {
+    "where": [
+      "components/app/docs/openapi.ts:153"
+    ]
+  },
+  "≥ {min} car.": {
+    "where": [
+      "components/app/docs/openapi.ts:148"
+    ]
+  },
+  "≥ {min} él.": {
+    "where": [
+      "components/app/docs/openapi.ts:152"
+    ]
+  },
+  "0,42 signifie 42 % ; désactivé : 42 signifie 42 %.": {
+    "where": [
+      "components/app/structure/format-editor.tsx:213"
+    ]
+  },
+  "1 an": {
+    "where": [
+      "app/(app)/account/page.tsx:303",
+      "components/app/docs/token-dialog.tsx:32"
+    ]
+  },
+  "1 heure": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:66"
+    ]
+  },
+  "1. Créer un jeton": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:65"
+    ]
+  },
+  "1. Moteur": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:40"
+    ]
+  },
+  "10 caractères au moins": {
+    "where": [
+      "app/(app)/account/page.tsx:136"
+    ]
+  },
+  "100 %": {
+    "where": [
+      "components/app/question/viz-settings.tsx:580"
+    ]
+  },
+  "12 derniers mois": {
+    "where": [
+      "lib/builder.ts:152"
+    ]
+  },
+  "2. Connexion": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:42"
+    ]
+  },
+  "2. Interroger les données": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:73"
+    ]
+  },
+  "24 heures": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:67"
+    ]
+  },
+  "3 derniers mois": {
+    "where": [
+      "lib/builder.ts:151"
+    ]
+  },
+  "3. Brancher un assistant": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:77"
+    ]
+  },
+  "30 derniers jours": {
+    "where": [
+      "lib/builder.ts:146"
+    ]
+  },
+  "30 jours": {
+    "where": [
+      "app/(app)/account/page.tsx:301",
+      "components/app/docs/token-dialog.tsx:30"
+    ]
+  },
+  "5 minutes": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:65"
+    ]
+  },
+  "7 derniers jours": {
+    "where": [
+      "lib/builder.ts:145"
+    ]
+  },
+  "7 moteurs via Trino, requêtes inter-bases": {
+    "where": [
+      "app/login/page.tsx:69"
+    ]
+  },
+  "90 jours": {
+    "where": [
+      "app/(app)/account/page.tsx:302",
+      "components/app/docs/token-dialog.tsx:31"
+    ]
+  },
+  "À jour": {
+    "where": [
+      "components/app/data/source-look.tsx:39"
+    ]
+  },
+  "À quelle colonne relier « {label} » sur chaque carte qui l’a ?": {
+    "where": [
+      "components/app/dashboard/view.tsx:509"
+    ]
+  },
+  "À quoi sert cette question ?": {
+    "where": [
+      "components/app/question/editor.tsx:548"
+    ]
+  },
+  "Accès": {
+    "where": [
+      "app/(app)/account/page.tsx:287",
+      "app/(app)/browse/[[...folder]]/page.tsx:412",
+      "components/app/question/editor.tsx:569"
+    ]
+  },
+  "Accès à la colonne {col}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:128"
+    ]
+  },
+  "Accès à la table {table}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:177"
+    ]
+  },
+  "Accès au dossier {folder}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:378"
+    ]
+  },
+  "Accès au schéma {schema}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:238"
+    ]
+  },
+  "Accès aux données": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:319"
+    ]
+  },
+  "Accès aux données de {source}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:287"
+    ]
+  },
+  "Accès aux données refusé": {
+    "where": [
+      "app/(app)/sql/page.tsx:418",
+      "components/app/question/editor.tsx:470"
+    ]
+  },
+  "Accès du groupe": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:354"
+    ]
+  },
+  "Accès réservé": {
+    "where": [
+      "components/app/admin/common.tsx:233"
+    ]
+  },
+  "Accueil": {
+    "where": [
+      "app/(app)/page.tsx:44",
+      "components/app/palette.tsx:58",
+      "components/app/sidebar.tsx:179"
+    ]
+  },
+  "Actif": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:135"
+    ]
+  },
+  "Action": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:125"
+    ]
+  },
+  "Actions de la carte": {
+    "where": [
+      "components/app/dashboard/view.tsx:272"
+    ]
+  },
+  "Activé": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:377",
+      "app/(app)/admin/settings/page.tsx:380",
+      "app/(app)/admin/settings/page.tsx:383"
+    ]
+  },
+  "Actualiser": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:87",
+      "app/(app)/admin/audit/page.tsx:88",
+      "app/(app)/admin/settings/page.tsx:332"
+    ]
+  },
+  "actuel": {
+    "where": [
+      "components/app/move-dialog.tsx:161"
+    ]
+  },
+  "Actuel : {v}": {
+    "where": [
+      "components/app/structure/pickers.tsx:234"
+    ]
+  },
+  "administrateur": {
+    "where": [
+      "app/login/page.tsx:170"
+    ]
+  },
+  "Administrateur": {
+    "where": [
+      "app/(app)/account/page.tsx:52",
+      "components/app/sidebar.tsx:160"
+    ]
+  },
+  "Administration": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:194",
+      "app/(app)/admin/groups/page.tsx:359",
+      "app/(app)/admin/people/page.tsx:604"
+    ]
+  },
+  "Adresse": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:346",
+      "components/app/structure/column-bits.tsx:50",
+      "packages/contracts/src/metadata.ts:84"
+    ]
+  },
+  "Adresse (Streamable HTTP)": {
+    "where": [
+      "components/app/docs/mcp.tsx:38"
+    ]
+  },
+  "Adresse de base": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:38"
+    ]
+  },
+  "Adresse e-mail": {
+    "where": [
+      "app/login/page.tsx:152"
+    ]
+  },
+  "Aérée": {
+    "where": [
+      "components/app/question/viz-settings.tsx:751"
+    ]
+  },
+  "Affiche un graphique dans la conversation (MCP Apps : Claude, ChatGPT, VS Code…), dessiné comme dans l’application, d’une question enregistrée ou d’une requête SQL. Un client sans MCP Apps reçoit le résultat en texte.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:117"
+    ]
+  },
+  "Afficher ou masquer le détail": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:285",
+      "app/(app)/browse/[[...folder]]/page.tsx:290"
+    ]
+  },
+  "Afficher ou masquer le menu": {
+    "where": [
+      "components/app/topbar.tsx:40"
+    ]
+  },
+  "Afficher un graphique": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:115"
+    ]
+  },
+  "Agrandir": {
+    "where": [
+      "components/app/dashboard/view.tsx:283"
+    ]
+  },
+  "Aire en dégradé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:627"
+    ]
+  },
+  "Aires": {
+    "where": [
+      "lib/viz.ts:137"
+    ]
+  },
+  "Ajouté aux favoris.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:189"
+    ]
+  },
+  "Ajoutée à « {name} ».": {
+    "where": [
+      "components/app/question/editor.tsx:264"
+    ]
+  },
+  "Ajoutées aux réglages par défaut du connecteur : cache des métadonnées, pushdown, délais…": {
+    "where": [
+      "components/app/data/source-form.tsx:322"
+    ]
+  },
+  "Ajouter": {
+    "where": [
+      "components/app/question/notebook.tsx:547"
+    ]
+  },
+  "Ajouter à un tableau de bord": {
+    "where": [
+      "components/app/question/editor.tsx:362"
+    ]
+  },
+  "Ajouter aux favoris": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:192"
+    ]
+  },
+  "Ajouter des cartes": {
+    "where": [
+      "components/app/dashboard/view.tsx:948"
+    ]
+  },
+  "Ajouter et synchroniser": {
+    "where": [
+      "components/app/data/source-form.tsx:389"
+    ]
+  },
+  "Ajouter le filtre": {
+    "where": [
+      "components/app/question/pickers.tsx:217"
+    ]
+  },
+  "Ajouter un attribut": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:75"
+    ]
+  },
+  "Ajouter une condition": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:233"
+    ]
+  },
+  "Ajouter une couleur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:333"
+    ]
+  },
+  "Ajouter une personne": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:90"
+    ]
+  },
+  "Ajouter une personne ou un groupe…": {
+    "where": [
+      "components/app/share-dialog.tsx:81"
+    ]
+  },
+  "Ajouter une personne…": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:96"
+    ]
+  },
+  "Ajouter une propriété": {
+    "where": [
+      "components/app/data/source-form.tsx:347"
+    ]
+  },
+  "Ajouter une question": {
+    "where": [
+      "components/app/dashboard/view.tsx:388",
+      "components/app/dashboard/view.tsx:952"
+    ]
+  },
+  "Ajouter une règle de lignes": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:165"
+    ]
+  },
+  "Ajouter une source": {
+    "where": [
+      "app/(app)/data/page.tsx:101",
+      "app/(app)/data/page.tsx:142",
+      "app/(app)/structure/[[...path]]/page.tsx:164"
+    ]
+  },
+  "Ajouter une source de données": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:46"
+    ]
+  },
+  "Ajoutez-y des personnes, puis donnez-lui des droits dans « Permissions ».": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:318"
+    ]
+  },
+  "Aller à": {
+    "where": [
+      "components/app/palette.tsx:56"
+    ]
+  },
+  "Ambre": {
+    "where": [
+      "components/app/structure/pickers.tsx:23"
+    ]
+  },
+  "Analyste": {
+    "where": [
+      "app/(app)/account/page.tsx:52",
+      "components/app/sidebar.tsx:160"
+    ]
+  },
+  "Anneau": {
+    "where": [
+      "components/app/question/viz-settings.tsx:681"
+    ]
+  },
+  "Année": {
+    "where": [
+      "components/app/structure/format-editor.tsx:266",
+      "lib/builder.ts:133"
+    ]
+  },
+  "Annuler": {
+    "where": [
+      "app/(app)/account/page.tsx:311",
+      "app/(app)/admin/people/page.tsx:204",
+      "app/(app)/admin/people/page.tsx:329"
+    ]
+  },
+  "Annuler l’invitation": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:241",
+      "app/(app)/admin/people/page.tsx:586"
+    ]
+  },
+  "Annuler l’invitation ?": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:584"
+    ]
+  },
+  "Aperçu": {
+    "where": [
+      "components/app/structure/format-editor.tsx:284"
+    ]
+  },
+  "API": {
+    "where": [
+      "app/(app)/history/page.tsx:27"
+    ]
+  },
+  "API et MCP": {
+    "where": [
+      "app/(app)/docs/page.tsx:8",
+      "components/app/docs/docs-viewer.tsx:48",
+      "components/app/sidebar.tsx:213"
+    ]
+  },
+  "API REST": {
+    "where": [
+      "app/(app)/account/page.tsx:40",
+      "app/(app)/account/page.tsx:234",
+      "components/app/docs/token-dialog.tsx:37"
+    ]
+  },
+  "Apparence": {
+    "where": [
+      "components/app/structure/table-editor.tsx:115"
+    ]
+  },
+  "Appel de l’outil": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:169"
+    ]
+  },
+  "Appels à l’API": {
+    "where": [
+      "components/app/docs/mcp.tsx:143"
+    ]
+  },
+  "Appliquée": {
+    "where": [
+      "components/app/copilot.tsx:142"
+    ]
+  },
+  "Appliquer": {
+    "where": [
+      "components/app/copilot.tsx:142",
+      "components/app/dashboard/parameters.tsx:112",
+      "components/app/dashboard/parameters.tsx:129"
+    ]
+  },
+  "Appliquer la période": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:80"
+    ]
+  },
+  "après le": {
+    "where": [
+      "lib/builder.ts:175"
+    ]
+  },
+  "Arguments": {
+    "where": [
+      "components/app/docs/mcp.tsx:124"
+    ]
+  },
+  "Arrêter": {
+    "where": [
+      "components/app/copilot.tsx:332"
+    ]
+  },
+  "Attendu un objet JSON.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:69"
+    ]
+  },
+  "Attributs": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:173"
+    ]
+  },
+  "Attributs de la personne qui lit": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:66"
+    ]
+  },
+  "au moins une condition": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:198"
+    ]
+  },
+  "Aucun": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:367",
+      "components/app/admin/common.tsx:66",
+      "packages/contracts/src/permissions.ts:47"
+    ]
+  },
+  "Aucun accès": {
+    "where": [
+      "components/app/admin/common.tsx:47",
+      "packages/contracts/src/permissions.ts:28"
+    ]
+  },
+  "Aucun accès aux données": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:402"
+    ]
+  },
+  "Aucun argument.": {
+    "where": [
+      "components/app/docs/mcp.tsx:139"
+    ]
+  },
+  "Aucun attribut.": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:71"
+    ]
+  },
+  "Aucun dossier partagé.": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:388"
+    ]
+  },
+  "Aucun endpoint ne correspond.": {
+    "where": [
+      "components/app/docs/nav.tsx:132"
+    ]
+  },
+  "Aucun événement.": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:179"
+    ]
+  },
+  "Aucun filtre du tableau n’est relié à « {col} ».": {
+    "where": [
+      "components/app/dashboard/view.tsx:648"
+    ]
+  },
+  "Aucun groupe": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:310",
+      "app/(app)/admin/permissions/page.tsx:161",
+      "components/app/admin/common.tsx:282"
+    ]
+  },
+  "Aucun groupe pour l’instant.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:302"
+    ]
+  },
+  "Aucun jeton pour l’instant.": {
+    "where": [
+      "app/(app)/account/page.tsx:227"
+    ]
+  },
+  "Aucun jeton pour le moment.": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:57"
+    ]
+  },
+  "Aucun membre.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:129"
+    ]
+  },
+  "Aucun picto": {
+    "where": [
+      "components/app/structure/pickers.tsx:234"
+    ]
+  },
+  "Aucun picto pour « {q} ».": {
+    "where": [
+      "components/app/structure/pickers.tsx:165"
+    ]
+  },
+  "Aucun résultat": {
+    "where": [
+      "components/app/palette.tsx:54",
+      "components/app/visualization.tsx:86",
+      "components/ui/combobox.tsx:99"
+    ]
+  },
+  "Aucun secret d’intégration.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:233"
+    ]
+  },
+  "Aucun tableau de bord": {
+    "where": [
+      "components/app/move-dialog.tsx:168"
+    ]
+  },
+  "Aucun type": {
+    "where": [
+      "components/app/structure/column-bits.tsx:83"
+    ]
+  },
+  "aucune": {
+    "where": [
+      "components/app/question/notebook.tsx:520"
+    ]
+  },
+  "Aucune": {
+    "where": [
+      "components/app/structure/table-editor.tsx:108"
+    ]
+  },
+  "Aucune cible": {
+    "where": [
+      "components/app/structure/column-list.tsx:15"
+    ]
+  },
+  "Aucune clé": {
+    "where": [
+      "components/app/structure/relations.tsx:71"
+    ]
+  },
+  "Aucune colonne": {
+    "where": [
+      "components/app/question/pickers.tsx:71"
+    ]
+  },
+  "Aucune couleur": {
+    "where": [
+      "components/app/structure/pickers.tsx:43",
+      "components/app/structure/pickers.tsx:48"
+    ]
+  },
+  "Aucune description": {
+    "where": [
+      "app/(app)/data/page.tsx:34"
+    ]
+  },
+  "Aucune erreur : tout s’est bien passé.": {
+    "where": [
+      "app/(app)/history/page.tsx:161"
+    ]
+  },
+  "Aucune invitation en attente.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:546"
+    ]
+  },
+  "Aucune méthode": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:212"
+    ]
+  },
+  "Aucune règle : les membres lisent toutes les lignes de la table.": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:163"
+    ]
+  },
+  "Aucune requête": {
+    "where": [
+      "components/app/admin/common.tsx:53",
+      "packages/contracts/src/permissions.ts:34"
+    ]
+  },
+  "Aucune requête.": {
+    "where": [
+      "app/(app)/history/page.tsx:160"
+    ]
+  },
+  "Aucune source connectée : ajoutez-en une pour décrire ses tables.": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:162"
+    ]
+  },
+  "Aucune source connectée pour l’instant.": {
+    "where": [
+      "app/(app)/data/page.tsx:138"
+    ]
+  },
+  "Aucune source de données connectée.": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:325"
+    ]
+  },
+  "Aucune source ne correspond à la recherche.": {
+    "where": [
+      "app/(app)/data/page.tsx:138"
+    ]
+  },
+  "Aucune source.": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:93"
+    ]
+  },
+  "Aucune table : lancez une synchronisation.": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:76"
+    ]
+  },
+  "Aucune table accessible pour l’instant.": {
+    "where": [
+      "app/(app)/page.tsx:140"
+    ]
+  },
+  "Aucune table ne correspond.": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:76"
+    ]
+  },
+  "Aucune table synchronisée.": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:220",
+      "components/app/structure/tree.tsx:130"
+    ]
+  },
+  "aucune valeur": {
+    "where": [
+      "components/app/dashboard/view.tsx:475"
+    ]
+  },
+  "Aucune valeur": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:397"
+    ]
+  },
+  "Aucune valeur (Suppr)": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:240"
+    ]
+  },
+  "Aucune valeur relevée : lancez la passe « Valeurs » de la synchronisation.": {
+    "where": [
+      "components/app/structure/values-editor.tsx:94"
+    ]
+  },
+  "Audience": {
+    "where": [
+      "components/app/share-dialog.tsx:151"
+    ]
+  },
+  "Aujourd'hui": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:67",
+      "lib/builder.ts:143"
+    ]
+  },
+  "Auteur": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:111",
+      "app/(app)/admin/audit/page.tsx:124"
+    ]
+  },
+  "Authentification": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:39"
+    ]
+  },
+  "Authentification : {header} (jeton avec la surface REST) ou session du navigateur.": {
+    "where": [
+      "components/app/docs/endpoint.tsx:102"
+    ]
+  },
+  "Authentification et e-mails": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:374"
+    ]
+  },
+  "auto": {
+    "where": [
+      "components/app/question/viz-settings.tsx:655",
+      "components/app/question/viz-settings.tsx:658"
+    ]
+  },
+  "Auto": {
+    "where": [
+      "components/app/question/viz-settings.tsx:533",
+      "components/app/question/viz-settings.tsx:604",
+      "components/app/structure/format-editor.tsx:161"
+    ]
+  },
+  "Automatique": {
+    "where": [
+      "components/app/structure/format-editor.tsx:261"
+    ]
+  },
+  "Automatique (selon le type sémantique)": {
+    "where": [
+      "components/app/structure/format-editor.tsx:18"
+    ]
+  },
+  "Autorisé": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:141"
+    ]
+  },
+  "Autoriser l’exécution de requêtes (sous vos droits)": {
+    "where": [
+      "components/app/copilot.tsx:328"
+    ]
+  },
+  "Autoriser le SQL natif": {
+    "where": [
+      "components/app/data/source-form.tsx:304",
+      "components/app/data/source-form.tsx:311"
+    ]
+  },
+  "Autre couleur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:370"
+    ]
+  },
+  "Autres": {
+    "where": [
+      "components/app/docs/openapi.ts:89",
+      "lib/viz.ts:182",
+      "lib/viz.ts:281"
+    ]
+  },
+  "Avancé": {
+    "where": [
+      "components/app/data/source-form.tsx:317"
+    ]
+  },
+  "avant le": {
+    "where": [
+      "lib/builder.ts:174"
+    ]
+  },
+  "Avatar": {
+    "where": [
+      "components/app/structure/column-bits.tsx:43",
+      "packages/contracts/src/metadata.ts:77"
+    ]
+  },
+  "Avec les secondes": {
+    "where": [
+      "components/app/structure/format-editor.tsx:249"
+    ]
+  },
+  "Avec OIDC, les attributs des personnes peuvent venir des claims du fournisseur d’identité.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:388"
+    ]
+  },
+  "Axe horizontal": {
+    "where": [
+      "components/app/question/viz-settings.tsx:673"
+    ]
+  },
+  "Axe vertical": {
+    "where": [
+      "components/app/question/viz-settings.tsx:674"
+    ]
+  },
+  "Axes": {
+    "where": [
+      "components/app/question/viz-settings.tsx:641"
+    ]
+  },
+  "bar, row, line, area, combo, pie, funnel, scatter, scalar, gauge, table…": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:122"
+    ]
+  },
+  "Barres": {
+    "where": [
+      "lib/viz.ts:134"
+    ]
+  },
+  "Barres dans les cellules": {
+    "where": [
+      "components/app/question/viz-settings.tsx:756"
+    ]
+  },
+  "Barres horizontales": {
+    "where": [
+      "lib/viz.ts:135"
+    ]
+  },
+  "Base de données": {
+    "where": [
+      "components/app/data/source-form.tsx:39",
+      "packages/contracts/src/domain.ts:75",
+      "packages/contracts/src/domain.ts:89"
+    ]
+  },
+  "Bienvenue": {
+    "where": [
+      "app/login/page.tsx:124"
+    ]
+  },
+  "Bleu": {
+    "where": [
+      "components/app/structure/pickers.tsx:31"
+    ]
+  },
+  "Bon à savoir": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:83"
+    ]
+  },
+  "Bonjour {name}": {
+    "where": [
+      "app/(app)/page.tsx:55"
+    ]
+  },
+  "Bonsoir {name}": {
+    "where": [
+      "app/(app)/page.tsx:55"
+    ]
+  },
+  "Booléen métier": {
+    "where": [
+      "components/app/structure/column-bits.tsx:37",
+      "packages/contracts/src/metadata.ts:71"
+    ]
+  },
+  "Boutique, Entrepôt…": {
+    "where": [
+      "components/app/data/source-form.tsx:231"
+    ]
+  },
+  "Brancher un assistant": {
+    "where": [
+      "components/app/docs/mcp.tsx:28"
+    ]
+  },
+  "Brancher un assistant (MCP)": {
+    "where": [
+      "components/app/docs/nav.tsx:97"
+    ]
+  },
+  "Bretagne": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:60"
+    ]
+  },
+  "Cache": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:69",
+      "app/(app)/history/page.tsx:76"
+    ]
+  },
+  "Cache des résultats": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:80",
+      "app/(app)/data/[id]/page.tsx:142"
+    ]
+  },
+  "Cache des résultats (secondes)": {
+    "where": [
+      "components/app/data/source-form.tsx:299"
+    ]
+  },
+  "Cachée": {
+    "where": [
+      "components/app/admin/common.tsx:60",
+      "packages/contracts/src/permissions.ts:41"
+    ]
+  },
+  "Calcule une métrique, regroupée par une colonne et/ou par période, avec des filtres en plus des siens. Une colonne d'une autre table est rejointe par clé étrangère.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:63"
+    ]
+  },
+  "Camembert": {
+    "where": [
+      "components/app/question/viz-settings.tsx:680",
+      "lib/viz.ts:139"
+    ]
+  },
+  "Cardinalité, nulls, min et max sur un échantillon.": {
+    "where": [
+      "components/app/data/sync-panel.tsx:19"
+    ]
+  },
+  "Carte": {
+    "where": [
+      "app/(app)/history/page.tsx:26",
+      "components/app/dashboard/view.tsx:1025",
+      "components/app/dashboard/view.tsx:1039"
+    ]
+  },
+  "Carte de chaleur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:766"
+    ]
+  },
+  "Carte déplacée dans « {name} ».": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:161"
+    ]
+  },
+  "Carte déplacée.": {
+    "where": [
+      "components/app/dashboard/view.tsx:743"
+    ]
+  },
+  "Catalogue Trino": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:139"
+    ]
+  },
+  "catalogue.schéma.table": {
+    "where": [
+      "app/(app)/data/page.tsx:96"
+    ]
+  },
+  "Catalogues": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:349"
+    ]
+  },
+  "Catégorie": {
+    "where": [
+      "components/app/dashboard/view.tsx:544",
+      "components/app/structure/column-bits.tsx:23",
+      "components/app/structure/column-bits.tsx:35"
+    ]
+  },
+  "Ce contenu ne peut pas être intégré.": {
+    "where": [
+      "app/d/[token]/page.tsx:15",
+      "app/q/[token]/page.tsx:15"
+    ]
+  },
+  "Ce dossier est vide.": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:617"
+    ]
+  },
+  "Ce mois-ci": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:70",
+      "lib/builder.ts:149"
+    ]
+  },
+  "Ce moteur n’accepte pas de requête native : seul le SQL Trino est possible.": {
+    "where": [
+      "components/app/data/source-form.tsx:308"
+    ]
+  },
+  "Ce que contient la colonne, pour les analystes et le copilot.": {
+    "where": [
+      "components/app/structure/column-panel.tsx:101"
+    ]
+  },
+  "Ce que contient la table, pour les analystes et le copilot.": {
+    "where": [
+      "components/app/structure/table-editor.tsx:93"
+    ]
+  },
+  "Ce que vous accordez ici, tout le monde l’a. Accordez plutôt les accès larges à des groupes dédiés.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:139"
+    ]
+  },
+  "Ce qui l’utilise cessera aussitôt de fonctionner.": {
+    "where": [
+      "app/(app)/account/page.tsx:326"
+    ]
+  },
+  "Ce résultat ne se prête pas à cette visualisation : il faut au moins une dimension et une mesure.": {
+    "where": [
+      "components/app/visualization.tsx:103"
+    ]
+  },
+  "Ce tableau de bord est vide.": {
+    "where": [
+      "components/app/dashboard/view.tsx:945"
+    ]
+  },
+  "Ce texte n’est pas du JSON valide.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:65"
+    ]
+  },
+  "Ce trimestre": {
+    "where": [
+      "lib/builder.ts:153"
+    ]
+  },
+  "Celle de l'instance": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:63"
+    ]
+  },
+  "Celui de la source (Europe/Paris…)": {
+    "where": [
+      "components/app/structure/format-editor.tsx:276"
+    ]
+  },
+  "Cet écran est réservé aux administrateurs de l’instance.": {
+    "where": [
+      "components/app/admin/common.tsx:234"
+    ]
+  },
+  "Cette année": {
+    "where": [
+      "lib/builder.ts:155"
+    ]
+  },
+  "Cette semaine": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:69",
+      "lib/builder.ts:147"
+    ]
+  },
+  "Chaîne de connexion": {
+    "where": [
+      "components/app/data/source-form.tsx:47",
+      "packages/contracts/src/domain.ts:153"
+    ]
+  },
+  "Changer": {
+    "where": [
+      "app/(app)/sql/page.tsx:389",
+      "components/app/question/notebook.tsx:130"
+    ]
+  },
+  "Changer la couleur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:360"
+    ]
+  },
+  "Changer le mot de passe": {
+    "where": [
+      "app/(app)/account/page.tsx:146"
+    ]
+  },
+  "Chaque action sensible laisse une trace : connexions, changements de droits, de sources, de contenu et de réglages.": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:85"
+    ]
+  },
+  "Chaque heure": {
+    "where": [
+      "components/app/data/source-form.tsx:292"
+    ]
+  },
+  "Chaque jour": {
+    "where": [
+      "components/app/data/source-form.tsx:293"
+    ]
+  },
+  "Chaque personne de l’instance fait partie de ce groupe : ses droits sont ceux de tout le monde. Sa liste ne se modifie pas.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:80"
+    ]
+  },
+  "Chaque personne fait aussi partie de « Tous les utilisateurs ». Les droits des groupes s’additionnent.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:170"
+    ]
+  },
+  "Chaque requête envoyée à Trino, avec le SQL réellement exécuté : depuis l’éditeur, une question, un tableau de bord, l’API, le serveur MCP ou le copilot.": {
+    "where": [
+      "app/(app)/history/page.tsx:121"
+    ]
+  },
+  "Chaque résultat est gardé en proportion du temps qu’il a coûté : une requête de 10 secondes reste en cache environ 17 minutes (entre 1 minute et 24 heures).": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:127"
+    ]
+  },
+  "Chaque source devient un catalogue Trino : le SQL cite ses tables en {path}.": {
+    "where": [
+      "app/(app)/data/page.tsx:96"
+    ]
+  },
+  "Chargement…": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:314",
+      "components/app/question/pickers.tsx:149"
+    ]
+  },
+  "Charger plus": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:185",
+      "app/(app)/history/page.tsx:169"
+    ]
+  },
+  "Cherche des tables et des colonnes par mot-clé (nom, libellé, description) dans toutes les sources lisibles.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:38"
+    ]
+  },
+  "Chercher parmi {n} pictos…": {
+    "where": [
+      "components/app/structure/pickers.tsx:158"
+    ]
+  },
+  "Chercher une colonne…": {
+    "where": [
+      "components/app/question/pickers.tsx:48"
+    ]
+  },
+  "Chercher une table ou un modèle…": {
+    "where": [
+      "components/app/question/pickers.tsx:94"
+    ]
+  },
+  "Chercher une valeur…": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:248",
+      "components/app/question/pickers.tsx:147"
+    ]
+  },
+  "Chiffre d’affaires": {
+    "where": [
+      "app/login/page.tsx:34"
+    ]
+  },
+  "Chiffre d’affaires par mois": {
+    "where": [
+      "app/login/page.tsx:47"
+    ]
+  },
+  "Chiffrer la connexion": {
+    "where": [
+      "components/app/data/source-form.tsx:41",
+      "packages/contracts/src/domain.ts:106"
+    ]
+  },
+  "Choisie selon la série : la saison si elle en couvre deux, sinon une tendance lissée": {
+    "where": [
+      "components/app/question/viz-settings.tsx:533"
+    ]
+  },
+  "Choisir": {
+    "where": [
+      "components/app/question/notebook.tsx:442"
+    ]
+  },
+  "Choisir une source": {
+    "where": [
+      "components/app/question/editor.tsx:163"
+    ]
+  },
+  "Choisir…": {
+    "where": [
+      "components/ui/choice.tsx:51"
+    ]
+  },
+  "Choisissez au moins une surface.": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:170"
+    ]
+  },
+  "Choisissez le moteur de la base à connecter. Toutes les requêtes passeront par Trino.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:51"
+    ]
+  },
+  "Choisissez un dossier.": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:617"
+    ]
+  },
+  "Choisissez un groupe pour régler ses droits.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:64"
+    ]
+  },
+  "Choisissez une source de données.": {
+    "where": [
+      "components/app/question/editor.tsx:489"
+    ]
+  },
+  "Cible": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:126"
+    ]
+  },
+  "Cible de la clé étrangère": {
+    "where": [
+      "components/app/structure/column-list.tsx:43",
+      "components/app/structure/column-panel.tsx:116"
+    ]
+  },
+  "Cible…": {
+    "where": [
+      "components/app/structure/column-list.tsx:44"
+    ]
+  },
+  "Ciel": {
+    "where": [
+      "components/app/structure/pickers.tsx:30"
+    ]
+  },
+  "Citer": {
+    "where": [
+      "app/(app)/sql/page.tsx:142"
+    ]
+  },
+  "Citron vert": {
+    "where": [
+      "components/app/structure/pickers.tsx:25"
+    ]
+  },
+  "Claude Desktop, script de reporting…": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:151"
+    ]
+  },
+  "Claude ou tout client MCP lit vos métriques, questions et tableaux de bord.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:78"
+    ]
+  },
+  "Claude, assistants et agents": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:38"
+    ]
+  },
+  "Clé étrangère": {
+    "where": [
+      "components/app/structure/column-bits.tsx:32",
+      "components/app/structure/column-bits.tsx:130",
+      "packages/contracts/src/metadata.ts:66"
+    ]
+  },
+  "Clé primaire": {
+    "where": [
+      "components/app/structure/column-bits.tsx:31",
+      "components/app/structure/column-bits.tsx:122",
+      "packages/contracts/src/metadata.ts:65"
+    ]
+  },
+  "Cliquez une colonne pour sa description, son format et ses valeurs.": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:111"
+    ]
+  },
+  "Code postal": {
+    "where": [
+      "components/app/structure/column-bits.tsx:49",
+      "packages/contracts/src/metadata.ts:83"
+    ]
+  },
+  "code replié": {
+    "where": [
+      "components/app/sql-editor.tsx:136"
+    ]
+  },
+  "Collections lues comme des tables ; relations à déclarer.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:21"
+    ]
+  },
+  "Coller": {
+    "where": [
+      "components/app/structure/json-tools.tsx:89"
+    ]
+  },
+  "Coller la configuration d’une colonne": {
+    "where": [
+      "components/app/structure/json-tools.tsx:106"
+    ]
+  },
+  "Coller la configuration d’une table": {
+    "where": [
+      "components/app/structure/json-tools.tsx:106"
+    ]
+  },
+  "Coller une configuration": {
+    "where": [
+      "components/app/structure/json-tools.tsx:93",
+      "components/app/structure/json-tools.tsx:94"
+    ]
+  },
+  "Colonne": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:208",
+      "components/app/dashboard/view.tsx:192"
+    ]
+  },
+  "Colonne calculée": {
+    "where": [
+      "components/app/question/notebook.tsx:535"
+    ]
+  },
+  "Colonne d’affichage": {
+    "where": [
+      "components/app/structure/table-editor.tsx:104",
+      "components/app/structure/table-editor.tsx:109"
+    ]
+  },
+  "Colonne de {table}": {
+    "where": [
+      "components/app/question/notebook.tsx:153",
+      "components/app/question/notebook.tsx:154"
+    ]
+  },
+  "Colonne de date ; par défaut la date d'événement de la table.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:68"
+    ]
+  },
+  "Colonne de la source": {
+    "where": [
+      "components/app/question/notebook.tsx:144",
+      "components/app/question/notebook.tsx:145"
+    ]
+  },
+  "Colonne de regroupement, par nom ou libellé.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:66"
+    ]
+  },
+  "colonne SQL": {
+    "where": [
+      "components/app/question/editor.tsx:99"
+    ]
+  },
+  "Colonnes": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:236",
+      "app/(app)/data/page.tsx:110",
+      "app/(app)/structure/[[...path]]/page.tsx:108"
+    ]
+  },
+  "colonnes choisies": {
+    "where": [
+      "components/app/question/notebook.tsx:441"
+    ]
+  },
+  "Colonnes personnalisées": {
+    "where": [
+      "components/app/question/notebook.tsx:527",
+      "lib/builder.ts:77"
+    ]
+  },
+  "Colonnes retirées": {
+    "where": [
+      "components/app/structure/column-list.tsx:163"
+    ]
+  },
+  "Combinaison des conditions": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:200"
+    ]
+  },
+  "Combiné": {
+    "where": [
+      "lib/viz.ts:138"
+    ]
+  },
+  "Commande, Client…": {
+    "where": [
+      "components/app/structure/table-editor.tsx:99"
+    ]
+  },
+  "Commandes": {
+    "where": [
+      "app/login/page.tsx:35"
+    ]
+  },
+  "commence par": {
+    "where": [
+      "lib/builder.ts:164"
+    ]
+  },
+  "Commentaire": {
+    "where": [
+      "components/app/structure/column-bits.tsx:39",
+      "packages/contracts/src/metadata.ts:73"
+    ]
+  },
+  "Commentaire de la base : {c}": {
+    "where": [
+      "components/app/structure/column-panel.tsx:105"
+    ]
+  },
+  "Commerce": {
+    "where": [
+      "lib/icon-library.ts:19",
+      "lib/icon-library.ts:76"
+    ]
+  },
+  "Communication": {
+    "where": [
+      "lib/icon-library.ts:54"
+    ]
+  },
+  "Compact (1,2 k)": {
+    "where": [
+      "components/app/structure/format-editor.tsx:25"
+    ]
+  },
+  "Compacte": {
+    "where": [
+      "components/app/question/viz-settings.tsx:749"
+    ]
+  },
+  "Compte": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:209",
+      "components/app/data/source-form.tsx:44",
+      "packages/contracts/src/domain.ts:134"
+    ]
+  },
+  "Compte actif": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:88",
+      "app/(app)/admin/people/page.tsx:148"
+    ]
+  },
+  "Compte désactivé : ses sessions sont fermées.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:143"
+    ]
+  },
+  "Compte réactivé": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:143"
+    ]
+  },
+  "Configuration appliquée ({count} éléments).": {
+    "one": "Configuration appliquée ({count} élément).",
+    "other": "Configuration appliquée ({count} éléments).",
+    "where": [
+      "components/app/structure/json-tools.tsx:80"
+    ]
+  },
+  "Configuration de la colonne copiée.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:25"
+    ]
+  },
+  "Configuration de la table copiée.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:25"
+    ]
+  },
+  "Configuration du client": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:173"
+    ]
+  },
+  "Configuré": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:365"
+    ]
+  },
+  "Confirmer le nouveau mot de passe": {
+    "where": [
+      "app/(app)/account/page.tsx:139"
+    ]
+  },
+  "Connecter {engine}": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:46"
+    ]
+  },
+  "Connecter des bases, modifier leurs réglages, lancer une synchronisation.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:40"
+    ]
+  },
+  "Connecteur": {
+    "where": [
+      "components/app/data/source-form.tsx:49",
+      "packages/contracts/src/domain.ts:169"
+    ]
+  },
+  "Connecteur Trino (avancé)": {
+    "where": [
+      "components/app/data/source-form.tsx:33",
+      "packages/contracts/src/domain.ts:163"
+    ]
+  },
+  "Connexion": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:212",
+      "app/(app)/data/[id]/page.tsx:215",
+      "app/login/page.tsx:124"
+    ]
+  },
+  "Connexion {engine}": {
+    "where": [
+      "components/app/data/source-form.tsx:256"
+    ]
+  },
+  "Connexion enregistrée.": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:101"
+    ]
+  },
+  "Connexion impossible": {
+    "where": [
+      "components/app/data/source-form.tsx:362"
+    ]
+  },
+  "Connexion impossible.": {
+    "where": [
+      "app/login/page.tsx:105"
+    ]
+  },
+  "Connexion réussie": {
+    "where": [
+      "components/app/data/source-form.tsx:362"
+    ]
+  },
+  "Connexions": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:35"
+    ]
+  },
+  "Conseillé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:229"
+    ]
+  },
+  "Conseillé pour ce résultat": {
+    "where": [
+      "components/app/question/viz-settings.tsx:235"
+    ]
+  },
+  "Construis un tableau de bord du service client.": {
+    "where": [
+      "components/app/copilot.tsx:258"
+    ]
+  },
+  "Consultés récemment": {
+    "where": [
+      "app/(app)/page.tsx:102"
+    ]
+  },
+  "contient": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:29",
+      "lib/builder.ts:162"
+    ]
+  },
+  "Convertir en SQL": {
+    "where": [
+      "components/app/question/editor.tsx:385"
+    ]
+  },
+  "Cookies": {
+    "where": [
+      "components/app/docs/endpoint.tsx:39"
+    ]
+  },
+  "Copié": {
+    "where": [
+      "components/app/admin/common.tsx:206"
+    ]
+  },
+  "Copié dans le presse-papiers": {
+    "where": [
+      "components/app/admin/common.tsx:183"
+    ]
+  },
+  "Copié dans le presse-papiers.": {
+    "where": [
+      "components/app/docs/code.tsx:10",
+      "components/app/share-dialog.tsx:39"
+    ]
+  },
+  "Copie impossible : sélectionnez le texte à la main.": {
+    "where": [
+      "components/app/admin/common.tsx:185",
+      "components/app/docs/code.tsx:15"
+    ]
+  },
+  "Copie impossible.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:27"
+    ]
+  },
+  "Copier": {
+    "where": [
+      "components/app/admin/common.tsx:206",
+      "components/app/admin/common.tsx:217",
+      "components/app/admin/common.tsx:218"
+    ]
+  },
+  "Copier la configuration": {
+    "where": [
+      "components/app/structure/json-tools.tsx:32"
+    ]
+  },
+  "Copiez-le maintenant : il ne sera plus jamais affiché.": {
+    "where": [
+      "app/(app)/account/page.tsx:253",
+      "components/app/docs/token-dialog.tsx:117"
+    ]
+  },
+  "Copiez-le maintenant : il ne sera plus jamais affiché. Rangez-le dans la configuration serveur de votre application.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:244"
+    ]
+  },
+  "Copilot": {
+    "where": [
+      "app/(app)/history/page.tsx:29"
+    ]
+  },
+  "Copilot IA": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:365"
+    ]
+  },
+  "Copilote": {
+    "where": [
+      "app/(app)/sql/page.tsx:354",
+      "app/login/page.tsx:62",
+      "components/app/copilot.tsx:227"
+    ]
+  },
+  "Corps de la requête": {
+    "where": [
+      "components/app/docs/endpoint.tsx:116"
+    ]
+  },
+  "Corrige cette requête : {error}": {
+    "where": [
+      "components/app/question/editor.tsx:473"
+    ]
+  },
+  "Corrige cette requête.": {
+    "where": [
+      "app/(app)/sql/page.tsx:421"
+    ]
+  },
+  "Corriger avec le copilote": {
+    "where": [
+      "app/(app)/sql/page.tsx:422",
+      "components/app/question/editor.tsx:474"
+    ]
+  },
+  "Côte à côte": {
+    "where": [
+      "components/app/question/viz-settings.tsx:578"
+    ]
+  },
+  "Couleur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:771",
+      "components/app/structure/pickers.tsx:73",
+      "components/app/structure/pickers.tsx:75"
+    ]
+  },
+  "Couleur {i}": {
+    "where": [
+      "components/app/question/viz-settings.tsx:321"
+    ]
+  },
+  "Couleur de chaque élément": {
+    "where": [
+      "components/app/question/viz-settings.tsx:405"
+    ]
+  },
+  "Couleur unique": {
+    "where": [
+      "components/app/question/viz-settings.tsx:469"
+    ]
+  },
+  "Couleurs": {
+    "where": [
+      "components/app/question/viz-settings.tsx:463"
+    ]
+  },
+  "Court ({example})": {
+    "where": [
+      "components/app/structure/format-editor.tsx:30"
+    ]
+  },
+  "Coût": {
+    "where": [
+      "components/app/structure/column-bits.tsx:60",
+      "packages/contracts/src/metadata.ts:94"
+    ]
+  },
+  "créé {when}": {
+    "where": [
+      "app/(app)/account/page.tsx:202"
+    ]
+  },
+  "Créé le": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:213"
+    ]
+  },
+  "Créée dans ce tableau de bord, sans passer par un dossier": {
+    "where": [
+      "components/app/dashboard/view.tsx:402"
+    ]
+  },
+  "Créer": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:321",
+      "app/(app)/admin/people/page.tsx:333",
+      "app/(app)/layout.tsx:55"
+    ]
+  },
+  "Créer le jeton": {
+    "where": [
+      "app/(app)/account/page.tsx:315",
+      "components/app/docs/token-dialog.tsx:204"
+    ]
+  },
+  "Créer le secret": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:295"
+    ]
+  },
+  "Créer mon compte": {
+    "where": [
+      "app/invitation/[token]/page.tsx:65",
+      "app/login/page.tsx:162"
+    ]
+  },
+  "Créer un jeton": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:193",
+      "components/app/docs/mcp.tsx:55"
+    ]
+  },
+  "Créer un jeton avec la surface MCP": {
+    "where": [
+      "components/app/docs/mcp.tsx:52"
+    ]
+  },
+  "Créer un jeton d'intégration": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:114"
+    ]
+  },
+  "Créer un lien de partage": {
+    "where": [
+      "components/app/share-dialog.tsx:194"
+    ]
+  },
+  "Créer une personne": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:307",
+      "app/(app)/admin/people/page.tsx:477",
+      "app/(app)/admin/people/page.tsx:478"
+    ]
+  },
+  "Créez le compte administrateur de cette instance.": {
+    "where": [
+      "app/login/page.tsx:126"
+    ]
+  },
+  "Croissant": {
+    "where": [
+      "components/app/question/viz-settings.tsx:560"
+    ]
+  },
+  "Curateur": {
+    "where": [
+      "app/(app)/account/page.tsx:52",
+      "components/app/sidebar.tsx:160"
+    ]
+  },
+  "Cyan": {
+    "where": [
+      "components/app/structure/pickers.tsx:29"
+    ]
+  },
+  "Dans un terminal": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:133"
+    ]
+  },
+  "date": {
+    "where": [
+      "components/app/question/editor.tsx:100"
+    ]
+  },
+  "Date": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:123",
+      "components/app/question/editor.tsx:91"
+    ]
+  },
+  "Date d'annulation": {
+    "where": [
+      "components/app/structure/column-bits.tsx:57",
+      "packages/contracts/src/metadata.ts:91"
+    ]
+  },
+  "Date d'événement": {
+    "where": [
+      "components/app/structure/column-bits.tsx:55",
+      "packages/contracts/src/metadata.ts:89"
+    ]
+  },
+  "Date de création": {
+    "where": [
+      "components/app/structure/column-bits.tsx:53",
+      "packages/contracts/src/metadata.ts:87"
+    ]
+  },
+  "Date de mise à jour": {
+    "where": [
+      "components/app/structure/column-bits.tsx:54",
+      "packages/contracts/src/metadata.ts:88"
+    ]
+  },
+  "Date de naissance": {
+    "where": [
+      "components/app/structure/column-bits.tsx:56",
+      "packages/contracts/src/metadata.ts:90"
+    ]
+  },
+  "db.exemple.fr": {
+    "where": [
+      "components/app/data/source-form.tsx:35",
+      "packages/contracts/src/domain.ts:58"
+    ]
+  },
+  "Décimal": {
+    "where": [
+      "components/app/structure/format-editor.tsx:20"
+    ]
+  },
+  "Décimales": {
+    "where": [
+      "components/app/question/viz-settings.tsx:723",
+      "components/app/structure/format-editor.tsx:154"
+    ]
+  },
+  "Déclarée à la main": {
+    "where": [
+      "components/app/structure/relations.tsx:241"
+    ]
+  },
+  "Déclarer le serveur dans le client": {
+    "where": [
+      "components/app/docs/mcp.tsx:58"
+    ]
+  },
+  "Décrire avec le copilot": {
+    "where": [
+      "components/app/structure/table-editor.tsx:79"
+    ]
+  },
+  "Décrire une table": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:45"
+    ]
+  },
+  "Décris cette table : propose un libellé, une description et pour chaque colonne un libellé, une description et un type sémantique.": {
+    "where": [
+      "components/app/structure/table-editor.tsx:75"
+    ]
+  },
+  "Décroissant": {
+    "where": [
+      "components/app/question/viz-settings.tsx:559"
+    ]
+  },
+  "défaut {value}": {
+    "where": [
+      "components/app/docs/openapi.ts:154"
+    ]
+  },
+  "Dégradé": {
+    "where": [
+      "lib/palettes.ts:48"
+    ]
+  },
+  "Délier toutes": {
+    "where": [
+      "components/app/dashboard/view.tsx:530"
+    ]
+  },
+  "Demander au copilote": {
+    "where": [
+      "app/(app)/page.tsx:73",
+      "components/app/question/editor.tsx:346",
+      "components/app/topbar.tsx:100"
+    ]
+  },
+  "Demandez au copilote…": {
+    "where": [
+      "components/app/copilot.tsx:322"
+    ]
+  },
+  "Démarrage rapide": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:177"
+    ]
+  },
+  "Démarrage…": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:343",
+      "components/app/data/sync-panel.tsx:200"
+    ]
+  },
+  "Demi-cercle": {
+    "where": [
+      "components/app/question/viz-settings.tsx:688"
+    ]
+  },
+  "Densité": {
+    "where": [
+      "components/app/question/viz-settings.tsx:744",
+      "components/app/question/viz-settings.tsx:753"
+    ]
+  },
+  "Déplacer": {
+    "where": [
+      "components/app/move-dialog.tsx:212"
+    ]
+  },
+  "Déplacer « {name} »": {
+    "where": [
+      "components/app/move-dialog.tsx:94"
+    ]
+  },
+  "Déplacer…": {
+    "where": [
+      "components/app/question/editor.tsx:356"
+    ]
+  },
+  "déplier": {
+    "where": [
+      "components/app/sql-editor.tsx:137"
+    ]
+  },
+  "Déplier": {
+    "where": [
+      "app/(app)/history/page.tsx:45",
+      "components/app/docs/schema-tree.tsx:39",
+      "components/app/sidebar.tsx:115"
+    ]
+  },
+  "Déplier la ligne": {
+    "where": [
+      "components/app/sql-editor.tsx:135"
+    ]
+  },
+  "Dépliez une source pour régler ses schémas et ses tables. Une table en accès « Restreint » se règle colonne par colonne, et peut porter une règle de lignes qui cite les attributs de la personne, comme {{user.region}}.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:144"
+    ]
+  },
+  "Dernière": {
+    "where": [
+      "components/app/question/viz-settings.tsx:491"
+    ]
+  },
+  "Dernière connexion": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:214"
+    ]
+  },
+  "Dernière synchro": {
+    "where": [
+      "components/app/data/sync-panel.tsx:142"
+    ]
+  },
+  "Désactivé": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:79",
+      "app/(app)/admin/people/page.tsx:135",
+      "app/(app)/admin/settings/page.tsx:365"
+    ]
+  },
+  "Désactiver": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:86",
+      "components/app/share-dialog.tsx:174"
+    ]
+  },
+  "Description": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:50",
+      "components/app/admin/row-rule-editor.tsx:235",
+      "components/app/data/source-form.tsx:248"
+    ]
+  },
+  "Description appliquée.": {
+    "where": [
+      "components/app/copilot.tsx:96"
+    ]
+  },
+  "Description de la table": {
+    "where": [
+      "components/app/copilot.tsx:111",
+      "components/app/structure/table-editor.tsx:95"
+    ]
+  },
+  "Description, pour les autres administrateurs (facultative)": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:235"
+    ]
+  },
+  "Détails": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:127",
+      "app/(app)/admin/people/page.tsx:153",
+      "app/(app)/browse/[[...folder]]/page.tsx:375"
+    ]
+  },
+  "Détectée": {
+    "where": [
+      "components/app/structure/relations.tsx:238"
+    ]
+  },
+  "Devise": {
+    "where": [
+      "components/app/structure/format-editor.tsx:22",
+      "components/app/structure/format-editor.tsx:141",
+      "components/app/structure/format-editor.tsx:146"
+    ]
+  },
+  "Dialecte": {
+    "where": [
+      "app/(app)/sql/page.tsx:348"
+    ]
+  },
+  "Dimensions (axe, puis séries)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:457"
+    ]
+  },
+  "Disparues de la base à la dernière synchro ; leurs métadonnées sont conservées au cas où elles reviendraient.": {
+    "where": [
+      "components/app/structure/column-list.tsx:165"
+    ]
+  },
+  "Documentation indisponible.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:157"
+    ]
+  },
+  "Documents": {
+    "where": [
+      "lib/icon-library.ts:65"
+    ]
+  },
+  "Données": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:120",
+      "components/app/question/editor.tsx:455",
+      "components/app/question/notebook.tsx:265"
+    ]
+  },
+  "Donnez-lui un nom qui dit où il sert : vous saurez lequel révoquer.": {
+    "where": [
+      "app/(app)/account/page.tsx:280"
+    ]
+  },
+  "Dossier": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:388",
+      "app/(app)/dashboard/[id]/page.tsx:54",
+      "components/app/admin/permission-matrix.tsx:353"
+    ]
+  },
+  "Dossiers": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:44",
+      "app/(app)/admin/permissions/page.tsx:120",
+      "app/(app)/browse/[[...folder]]/page.tsx:469"
+    ]
+  },
+  "Douce": {
+    "where": [
+      "lib/palettes.ts:43"
+    ]
+  },
+  "Droit": {
+    "where": [
+      "components/app/question/viz-settings.tsx:592"
+    ]
+  },
+  "Droit accordé à {group}": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:166"
+    ]
+  },
+  "Droit retiré à {group}": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:166"
+    ]
+  },
+  "Droite": {
+    "where": [
+      "components/app/question/viz-settings.tsx:534"
+    ]
+  },
+  "Droite de tendance (moindres carrés)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:534"
+    ]
+  },
+  "Droits": {
+    "where": [
+      "components/app/question/viz-settings.tsx:666"
+    ]
+  },
+  "Droits d’administration": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:231"
+    ]
+  },
+  "Droits par ligne et par colonne, partout": {
+    "where": [
+      "app/login/page.tsx:70"
+    ]
+  },
+  "Dupliquer": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:200",
+      "components/app/dashboard/view.tsx:316",
+      "components/app/question/editor.tsx:406"
+    ]
+  },
+  "Durée": {
+    "where": [
+      "components/app/structure/column-bits.tsx:66",
+      "components/app/structure/format-editor.tsx:23",
+      "packages/contracts/src/metadata.ts:100"
+    ]
+  },
+  "Durée adaptative": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:124",
+      "app/(app)/admin/settings/page.tsx:126"
+    ]
+  },
+  "Durée de cache des résultats": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:58"
+    ]
+  },
+  "Durée de conservation (secondes)": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:116"
+    ]
+  },
+  "e-mail": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:77"
+    ]
+  },
+  "E-mail": {
+    "where": [
+      "app/(app)/account/page.tsx:96",
+      "app/(app)/admin/people/page.tsx:250",
+      "app/(app)/admin/people/page.tsx:311"
+    ]
+  },
+  "E-mail envoyé": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:372",
+      "app/(app)/admin/people/page.tsx:539"
+    ]
+  },
+  "Écart type": {
+    "where": [
+      "lib/builder.ts:121"
+    ]
+  },
+  "Échantillon": {
+    "where": [
+      "components/app/structure/column-bits.tsx:174"
+    ]
+  },
+  "Échec de la synchronisation": {
+    "where": [
+      "components/app/data/source-look.tsx:40"
+    ]
+  },
+  "Échelle": {
+    "where": [
+      "components/app/question/viz-settings.tsx:642",
+      "components/app/question/viz-settings.tsx:650"
+    ]
+  },
+  "Écrivez une requête puis Ctrl+Entrée.": {
+    "where": [
+      "components/app/question/editor.tsx:489"
+    ]
+  },
+  "Éditeur SQL": {
+    "where": [
+      "app/(app)/history/page.tsx:24",
+      "app/(app)/sql/page.tsx:216",
+      "components/app/copilot.tsx:217"
+    ]
+  },
+  "Éditeur visuel": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:402",
+      "components/app/admin/common.tsx:54",
+      "components/app/question/editor.tsx:311"
+    ]
+  },
+  "Effacer": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:239"
+    ]
+  },
+  "Effacer le filtre": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:206"
+    ]
+  },
+  "Éléments": {
+    "where": [
+      "components/app/palette.tsx:70"
+    ]
+  },
+  "Elle appartiendra au tableau de bord choisi et n’apparaîtra dans aucun dossier ; ses liens aux filtres de l’ancien tableau ne suivent pas.": {
+    "where": [
+      "components/app/move-dialog.tsx:97"
+    ]
+  },
+  "Elle appartient au tableau de bord « {name} » et n’apparaît dans aucun dossier.": {
+    "where": [
+      "components/app/question/editor.tsx:586"
+    ]
+  },
+  "Elle recevra un e-mail avec un lien pour choisir son mot de passe.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:400"
+    ]
+  },
+  "Elle se range dans le dossier choisi et en prend les droits.": {
+    "where": [
+      "components/app/move-dialog.tsx:100"
+    ]
+  },
+  "Émeraude": {
+    "where": [
+      "components/app/structure/pickers.tsx:27"
+    ]
+  },
+  "Emoji": {
+    "where": [
+      "components/app/structure/pickers.tsx:150"
+    ]
+  },
+  "Empilé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:579"
+    ]
+  },
+  "Empilé à 100 % : la part de chaque série": {
+    "where": [
+      "components/app/question/viz-settings.tsx:580"
+    ]
+  },
+  "Empilement": {
+    "where": [
+      "components/app/question/viz-settings.tsx:573",
+      "components/app/question/viz-settings.tsx:582"
+    ]
+  },
+  "Empreinte": {
+    "where": [
+      "components/app/data/sync-panel.tsx:19",
+      "components/app/structure/column-bits.tsx:158",
+      "components/app/structure/column-bits.tsx:160"
+    ]
+  },
+  "Empreintes": {
+    "where": [
+      "components/app/data/sync-panel.tsx:72"
+    ]
+  },
+  "En accès restreint, le SQL natif reste interdit : les règles ne pourraient pas s’y appliquer. Le groupe écrira en SQL Trino.": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:305"
+    ]
+  },
+  "En attente": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:538"
+    ]
+  },
+  "En développement, Trino tourne dans Docker : « localhost » est traduit automatiquement en « host.docker.internal » pour que Trino joigne votre base.": {
+    "where": [
+      "components/app/data/source-form.tsx:275"
+    ]
+  },
+  "En file d’attente": {
+    "where": [
+      "components/app/data/source-look.tsx:37"
+    ]
+  },
+  "En file d’attente…": {
+    "where": [
+      "components/app/data/sync-panel.tsx:200"
+    ]
+  },
+  "En HTTP avec l’en-tête Authorization, ou en stdio : le client lance alors {command} avec EODIA_URL et EODIA_TOKEN dans son environnement. Les configurations sont à droite.": {
+    "where": [
+      "components/app/docs/mcp.tsx:60"
+    ]
+  },
+  "En ligne": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:343"
+    ]
+  },
+  "En trois étapes": {
+    "where": [
+      "components/app/docs/mcp.tsx:50"
+    ]
+  },
+  "En-tête": {
+    "where": [
+      "components/app/docs/mcp.tsx:45"
+    ]
+  },
+  "En-têtes": {
+    "where": [
+      "components/app/docs/endpoint.tsx:38"
+    ]
+  },
+  "Enregistré.": {
+    "where": [
+      "components/app/question/editor.tsx:238"
+    ]
+  },
+  "Enregistrement impossible.": {
+    "where": [
+      "components/app/structure/use-metadata.ts:25",
+      "components/app/structure/use-metadata.ts:46"
+    ]
+  },
+  "Enregistrer": {
+    "where": [
+      "app/(app)/account/page.tsx:102",
+      "app/(app)/admin/groups/page.tsx:321",
+      "app/(app)/admin/people/page.tsx:191"
+    ]
+  },
+  "Enregistrer comme question": {
+    "where": [
+      "app/(app)/sql/page.tsx:358",
+      "app/(app)/sql/page.tsx:444"
+    ]
+  },
+  "Enregistrer la question": {
+    "where": [
+      "components/app/question/editor.tsx:585"
+    ]
+  },
+  "Enregistrer la règle": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:245"
+    ]
+  },
+  "Enregistrer la sélection courante": {
+    "where": [
+      "app/(app)/sql/page.tsx:173"
+    ]
+  },
+  "Enregistrer les valeurs": {
+    "where": [
+      "components/app/structure/values-editor.tsx:136"
+    ]
+  },
+  "Enregistrer une copie": {
+    "where": [
+      "components/app/question/editor.tsx:334",
+      "components/app/question/editor.tsx:585"
+    ]
+  },
+  "Enregistrez d’abord la question.": {
+    "where": [
+      "components/app/question/editor.tsx:256"
+    ]
+  },
+  "Entier": {
+    "where": [
+      "components/app/structure/format-editor.tsx:19"
+    ]
+  },
+  "Entité": {
+    "where": [
+      "components/app/structure/table-editor.tsx:98",
+      "components/app/structure/table-editor.tsx:99"
+    ]
+  },
+  "Entonnoir": {
+    "where": [
+      "lib/viz.ts:141"
+    ]
+  },
+  "entre": {
+    "where": [
+      "lib/builder.ts:172"
+    ]
+  },
+  "Entrepôt": {
+    "where": [
+      "components/app/data/source-form.tsx:45",
+      "packages/contracts/src/domain.ts:141"
+    ]
+  },
+  "Entrepôt Snowflake : relations à déclarer à la main.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:20"
+    ]
+  },
+  "Envoyé le {date}": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:250"
+    ]
+  },
+  "Envoyée le": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:248"
+    ]
+  },
+  "Envoyer": {
+    "where": [
+      "components/app/copilot.tsx:336"
+    ]
+  },
+  "Épaisseur de l’anneau": {
+    "where": [
+      "components/app/question/viz-settings.tsx:683"
+    ]
+  },
+  "équipe régionale — lignes filtrées, e-mails masqués": {
+    "where": [
+      "app/login/page.tsx:171"
+    ]
+  },
+  "Erreur": {
+    "where": [
+      "app/(app)/sql/page.tsx:418"
+    ]
+  },
+  "Erreur {status}": {
+    "where": [
+      "lib/api.ts:36"
+    ]
+  },
+  "Erreur du copilot.": {
+    "where": [
+      "lib/api.ts:91"
+    ]
+  },
+  "Erreurs seulement": {
+    "where": [
+      "app/(app)/history/page.tsx:141",
+      "app/(app)/history/page.tsx:142"
+    ]
+  },
+  "est": {
+    "where": [
+      "lib/builder.ts:160"
+    ]
+  },
+  "est différent de": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:22"
+    ]
+  },
+  "est égal à": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:21"
+    ]
+  },
+  "est faux": {
+    "where": [
+      "lib/builder.ts:177"
+    ]
+  },
+  "est inférieur à": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:27"
+    ]
+  },
+  "est inférieur ou égal à": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:28"
+    ]
+  },
+  "est parmi": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:23"
+    ]
+  },
+  "est supérieur à": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:25"
+    ]
+  },
+  "est supérieur ou égal à": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:26"
+    ]
+  },
+  "est vide": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:30",
+      "lib/builder.ts:178"
+    ]
+  },
+  "est vrai": {
+    "where": [
+      "lib/builder.ts:176"
+    ]
+  },
+  "et": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:143",
+      "components/app/admin/row-rule-editor.tsx:207",
+      "components/app/question/pickers.tsx:200"
+    ]
+  },
+  "Étiquettes à l’extérieur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:706"
+    ]
+  },
+  "Étiquettes et légende": {
+    "where": [
+      "components/app/question/viz-settings.tsx:632"
+    ]
+  },
+  "Exclues": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:227"
+    ]
+  },
+  "Exclure cette valeur": {
+    "where": [
+      "components/app/question/editor.tsx:501"
+    ]
+  },
+  "Exécute une question enregistrée et renvoie son résultat en tableau (50 lignes au plus).": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:85"
+    ]
+  },
+  "Exécute une requête SQL Trino en lecture seule, sous les droits du propriétaire du jeton : ses permissions de tables, de colonnes et de lignes s’appliquent. Les requêtes inter-sources sont possibles.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:97"
+    ]
+  },
+  "Exécuter": {
+    "where": [
+      "app/(app)/sql/page.tsx:337",
+      "components/app/question/editor.tsx:325"
+    ]
+  },
+  "Exécuter du SQL": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:95"
+    ]
+  },
+  "Exécuter une question": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:84"
+    ]
+  },
+  "Exécution de la requête": {
+    "where": [
+      "components/app/copilot.tsx:37"
+    ]
+  },
+  "Exemple (Node.js)": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:235"
+    ]
+  },
+  "Exemple de requête": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:165"
+    ]
+  },
+  "Expiration": {
+    "where": [
+      "app/(app)/account/page.tsx:296",
+      "app/(app)/account/page.tsx:306",
+      "components/app/docs/token-dialog.tsx:173"
+    ]
+  },
+  "Expiré": {
+    "where": [
+      "app/(app)/account/page.tsx:214"
+    ]
+  },
+  "Expire {when}": {
+    "where": [
+      "app/(app)/account/page.tsx:214"
+    ]
+  },
+  "Expire le": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:249"
+    ]
+  },
+  "expire le {date}": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:68"
+    ]
+  },
+  "Explorer une table": {
+    "where": [
+      "app/(app)/page.tsx:128"
+    ]
+  },
+  "Explorer une table sans écrire de SQL": {
+    "where": [
+      "app/(app)/page.tsx:70"
+    ]
+  },
+  "Explorez vos données, posez vos questions et partagez vos tableaux de bord. Open source, avec un copilot IA.": {
+    "where": [
+      "app/layout.tsx:31"
+    ]
+  },
+  "Export impossible.": {
+    "where": [
+      "lib/api.ts:70"
+    ]
+  },
+  "Exporter": {
+    "where": [
+      "components/app/question/editor.tsx:375"
+    ]
+  },
+  "expression régulière": {
+    "where": [
+      "components/app/sql-editor.tsx:129"
+    ]
+  },
+  "Expression Trino SQL (ex. prix - cout)": {
+    "where": [
+      "components/app/question/notebook.tsx:538"
+    ]
+  },
+  "facultatif": {
+    "where": [
+      "components/app/docs/endpoint.tsx:116"
+    ]
+  },
+  "Facultatif": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:409"
+    ]
+  },
+  "Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.": {
+    "where": [
+      "components/app/data/source-form.tsx:244"
+    ]
+  },
+  "Facultatif, 10 caractères au moins": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:320"
+    ]
+  },
+  "Facultative": {
+    "where": [
+      "components/app/data/source-form.tsx:249",
+      "components/app/dialogs.tsx:106"
+    ]
+  },
+  "Faire confiance au certificat du serveur": {
+    "where": [
+      "components/app/data/source-form.tsx:42",
+      "packages/contracts/src/domain.ts:109"
+    ]
+  },
+  "Faire ressortir": {
+    "where": [
+      "components/app/question/viz-settings.tsx:483",
+      "components/app/question/viz-settings.tsx:493"
+    ]
+  },
+  "Favori": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:440"
+    ]
+  },
+  "Favoris": {
+    "where": [
+      "app/(app)/page.tsx:111"
+    ]
+  },
+  "fermer": {
+    "where": [
+      "components/app/sql-editor.tsx:133"
+    ]
+  },
+  "Fermer": {
+    "where": [
+      "app/(app)/sql/page.tsx:318",
+      "components/app/copilot.tsx:244",
+      "components/app/question/editor.tsx:505"
+    ]
+  },
+  "Fil d'Ariane": {
+    "where": [
+      "components/app/topbar.tsx:45"
+    ]
+  },
+  "Filtre": {
+    "where": [
+      "components/app/dashboard/view.tsx:787",
+      "components/app/question/editor.tsx:91",
+      "components/app/question/notebook.tsx:343"
+    ]
+  },
+  "Filtré : {label} = {value}": {
+    "where": [
+      "components/app/dashboard/view.tsx:679"
+    ]
+  },
+  "Filtre « {label} » retiré.": {
+    "where": [
+      "components/app/dashboard/view.tsx:677"
+    ]
+  },
+  "Filtrer": {
+    "where": [
+      "components/app/question/notebook.tsx:327"
+    ]
+  },
+  "Filtrer les membres…": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:106"
+    ]
+  },
+  "Filtrer les tables…": {
+    "where": [
+      "app/(app)/sql/page.tsx:78"
+    ]
+  },
+  "Filtrer les valeurs…": {
+    "where": [
+      "components/app/structure/values-editor.tsx:84"
+    ]
+  },
+  "Filtrer sur cette valeur": {
+    "where": [
+      "components/app/question/editor.tsx:497"
+    ]
+  },
+  "Filtres supplémentaires (is, contains, gt, between, date…).": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:69"
+    ]
+  },
+  "Fine": {
+    "where": [
+      "components/app/question/viz-settings.tsx:619"
+    ]
+  },
+  "finit par": {
+    "where": [
+      "lib/builder.ts:165"
+    ]
+  },
+  "Format": {
+    "where": [
+      "components/app/structure/column-panel.tsx:53"
+    ]
+  },
+  "Format compact (1,2 k)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:726"
+    ]
+  },
+  "Formater": {
+    "where": [
+      "app/(app)/sql/page.tsx:342"
+    ]
+  },
+  "Forme": {
+    "where": [
+      "components/app/question/viz-settings.tsx:572"
+    ]
+  },
+  "Fournisseur": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:367"
+    ]
+  },
+  "Fuseau horaire": {
+    "where": [
+      "components/app/structure/format-editor.tsx:275"
+    ]
+  },
+  "Genre": {
+    "where": [
+      "components/app/question/editor.tsx:100"
+    ]
+  },
+  "Genre de picto": {
+    "where": [
+      "components/app/structure/pickers.tsx:153"
+    ]
+  },
+  "Géographie": {
+    "where": [
+      "components/app/structure/column-bits.tsx:25",
+      "packages/contracts/src/metadata.ts:27"
+    ]
+  },
+  "Gérer les groupes et leurs membres": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:96"
+    ]
+  },
+  "Gérer les métadonnées": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:41"
+    ]
+  },
+  "Gérer les permissions": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:42"
+    ]
+  },
+  "Gérer les sources": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:40"
+    ]
+  },
+  "Gestion": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:413",
+      "components/app/admin/common.tsx:69",
+      "components/app/question/editor.tsx:570"
+    ]
+  },
+  "Glisser pour redimensionner · double-clic pour revenir à la taille par défaut": {
+    "where": [
+      "components/ui/pane.tsx:90"
+    ]
+  },
+  "Glissez un élément ou un dossier sur un dossier pour l’y ranger.": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:592"
+    ]
+  },
+  "Granularité de date": {
+    "where": [
+      "components/app/dashboard/view.tsx:547"
+    ]
+  },
+  "Granularité par défaut": {
+    "where": [
+      "components/app/structure/format-editor.tsx:256",
+      "components/app/structure/format-editor.tsx:268"
+    ]
+  },
+  "Graphique": {
+    "where": [
+      "app/(app)/sql/page.tsx:383"
+    ]
+  },
+  "Grille": {
+    "where": [
+      "components/app/question/viz-settings.tsx:675"
+    ]
+  },
+  "Gris": {
+    "where": [
+      "components/app/structure/pickers.tsx:20"
+    ]
+  },
+  "Groupe": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:286",
+      "app/(app)/admin/settings/page.tsx:287",
+      "components/app/share-dialog.tsx:112"
+    ]
+  },
+  "Groupe créé": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:328"
+    ]
+  },
+  "Groupe renommé": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:332"
+    ]
+  },
+  "Groupe supprimé": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:348"
+    ]
+  },
+  "Groupes": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:38",
+      "app/(app)/admin/groups/page.tsx:282",
+      "app/(app)/admin/groups/page.tsx:359"
+    ]
+  },
+  "Groupes système": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:293"
+    ]
+  },
+  "Groupes, membres, droits sur les données et les dossiers.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:42"
+    ]
+  },
+  "Hérité": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:349"
+    ]
+  },
+  "Hérité · {access}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:51"
+    ]
+  },
+  "Heure": {
+    "where": [
+      "components/app/structure/format-editor.tsx:242",
+      "components/app/structure/format-editor.tsx:251",
+      "lib/builder.ts:128"
+    ]
+  },
+  "Heure de la journée": {
+    "where": [
+      "lib/builder.ts:134"
+    ]
+  },
+  "Heures": {
+    "where": [
+      "components/app/structure/format-editor.tsx:176"
+    ]
+  },
+  "Heures et minutes": {
+    "where": [
+      "components/app/structure/format-editor.tsx:248"
+    ]
+  },
+  "hh:mm": {
+    "where": [
+      "components/app/structure/format-editor.tsx:248"
+    ]
+  },
+  "hh:mm:ss": {
+    "where": [
+      "components/app/structure/format-editor.tsx:249"
+    ]
+  },
+  "Hier": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:68",
+      "app/(app)/browse/[[...folder]]/page.tsx:78",
+      "lib/builder.ts:144"
+    ]
+  },
+  "Historique": {
+    "where": [
+      "app/(app)/history/page.tsx:100",
+      "app/(app)/sql/page.tsx:272",
+      "components/app/sidebar.tsx:187"
+    ]
+  },
+  "Historique des requêtes": {
+    "where": [
+      "app/(app)/history/page.tsx:120"
+    ]
+  },
+  "horodatage": {
+    "where": [
+      "components/app/question/editor.tsx:100"
+    ]
+  },
+  "Hôte": {
+    "where": [
+      "components/app/data/source-form.tsx:34",
+      "packages/contracts/src/domain.ts:58"
+    ]
+  },
+  "identifiant": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:77"
+    ]
+  },
+  "Identifiant (kid)": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:247"
+    ]
+  },
+  "Identifiant de la métrique.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:65"
+    ]
+  },
+  "Identifiant de la question.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:87"
+    ]
+  },
+  "Identifiant de la table, donné par search_schema.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:47"
+    ]
+  },
+  "Identifiant du tableau de bord.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:109"
+    ]
+  },
+  "Identité": {
+    "where": [
+      "components/app/structure/column-bits.tsx:22",
+      "packages/contracts/src/metadata.ts:12"
+    ]
+  },
+  "Il faut deux dimensions et une mesure.": {
+    "where": [
+      "components/app/visualization.tsx:393"
+    ]
+  },
+  "Image": {
+    "where": [
+      "components/app/structure/pickers.tsx:123",
+      "components/app/structure/pickers.tsx:151",
+      "components/app/structure/pickers.tsx:253"
+    ]
+  },
+  "Inclinés": {
+    "where": [
+      "components/app/question/viz-settings.tsx:667"
+    ]
+  },
+  "Indigo": {
+    "where": [
+      "components/app/structure/pickers.tsx:32"
+    ]
+  },
+  "Injoignable": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:343"
+    ]
+  },
+  "Insérer": {
+    "where": [
+      "app/(app)/sql/page.tsx:145"
+    ]
+  },
+  "Insérer {name}": {
+    "where": [
+      "app/(app)/sql/page.tsx:103"
+    ]
+  },
+  "Insérer un attribut de la personne": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:58",
+      "components/app/admin/row-rule-editor.tsx:60"
+    ]
+  },
+  "Instance de démonstration": {
+    "where": [
+      "app/login/page.tsx:168"
+    ]
+  },
+  "Intégrable (iframe)": {
+    "where": [
+      "components/app/share-dialog.tsx:162"
+    ]
+  },
+  "Intégration": {
+    "where": [
+      "components/app/dashboard/view.tsx:821"
+    ]
+  },
+  "Intégration signée": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:47",
+      "app/(app)/admin/settings/page.tsx:191"
+    ]
+  },
+  "Intégrés": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:73"
+    ]
+  },
+  "Interdit": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:141"
+    ]
+  },
+  "Interroger une métrique": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:61"
+    ]
+  },
+  "Intervalle de confiance (80 %)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:541"
+    ]
+  },
+  "Inverser": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:233"
+    ]
+  },
+  "Invitation annulée": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:592"
+    ]
+  },
+  "Invitation créée": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:364"
+    ]
+  },
+  "Invitations": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:37"
+    ]
+  },
+  "Invitations en attente": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:494"
+    ]
+  },
+  "Invitée par": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:247"
+    ]
+  },
+  "Inviter": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:422",
+      "app/(app)/admin/people/page.tsx:473"
+    ]
+  },
+  "Inviter par e-mail": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:472"
+    ]
+  },
+  "Inviter une personne": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:398",
+      "app/(app)/admin/people/page.tsx:548"
+    ]
+  },
+  "IP": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:128"
+    ]
+  },
+  "J’ai copié le jeton": {
+    "where": [
+      "app/(app)/account/page.tsx:257"
+    ]
+  },
+  "J’ai copié le secret": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:256"
+    ]
+  },
+  "Jamais": {
+    "where": [
+      "app/(app)/account/page.tsx:304",
+      "app/(app)/admin/people/page.tsx:214",
+      "components/app/admin/common.tsx:95"
+    ]
+  },
+  "Jamais connecté": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:71"
+    ]
+  },
+  "Jamais synchronisée": {
+    "where": [
+      "components/app/data/source-look.tsx:36"
+    ]
+  },
+  "jamais utilisé": {
+    "where": [
+      "app/(app)/account/page.tsx:202",
+      "components/app/docs/token-dialog.tsx:67"
+    ]
+  },
+  "Jauge": {
+    "where": [
+      "lib/viz.ts:133"
+    ]
+  },
+  "Jaune": {
+    "where": [
+      "components/app/structure/pickers.tsx:24"
+    ]
+  },
+  "Jeton créé": {
+    "where": [
+      "app/(app)/account/page.tsx:252",
+      "components/app/docs/token-dialog.tsx:114"
+    ]
+  },
+  "Jeton d'intégration": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:187"
+    ]
+  },
+  "Jeton révoqué": {
+    "where": [
+      "app/(app)/account/page.tsx:333"
+    ]
+  },
+  "Jeton révoqué.": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:51"
+    ]
+  },
+  "Jetons": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:46"
+    ]
+  },
+  "Jetons d'intégration": {
+    "where": [
+      "app/(app)/account/page.tsx:171",
+      "app/(app)/account/page.tsx:349",
+      "app/(app)/account/page.tsx:366"
+    ]
+  },
+  "Joindre": {
+    "where": [
+      "components/app/question/notebook.tsx:174"
+    ]
+  },
+  "Joindre des données": {
+    "where": [
+      "components/app/question/notebook.tsx:312"
+    ]
+  },
+  "Jointure à droite": {
+    "where": [
+      "lib/builder.ts:250"
+    ]
+  },
+  "Jointure à gauche": {
+    "where": [
+      "lib/builder.ts:248"
+    ]
+  },
+  "Jointure complète": {
+    "where": [
+      "lib/builder.ts:251"
+    ]
+  },
+  "Jointure interne": {
+    "where": [
+      "lib/builder.ts:249"
+    ]
+  },
+  "Jour": {
+    "where": [
+      "components/app/structure/format-editor.tsx:262",
+      "lib/builder.ts:129"
+    ]
+  },
+  "Jour de la semaine": {
+    "where": [
+      "lib/builder.ts:135"
+    ]
+  },
+  "Jour du mois": {
+    "where": [
+      "lib/builder.ts:136"
+    ]
+  },
+  "Journal d'audit": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:84",
+      "app/(app)/admin/audit/page.tsx:194",
+      "components/app/sidebar.tsx:207"
+    ]
+  },
+  "Jours": {
+    "where": [
+      "components/app/structure/format-editor.tsx:177"
+    ]
+  },
+  "JSON": {
+    "where": [
+      "components/app/structure/column-bits.tsx:45",
+      "packages/contracts/src/metadata.ts:79"
+    ]
+  },
+  "kg, km, €, jours…": {
+    "where": [
+      "components/app/structure/column-panel.tsx:121"
+    ]
+  },
+  "kid : {id}": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:220"
+    ]
+  },
+  "L’accès se règle sur la source entière, puis s’affine par schéma ou par table. « Hérité » reprend le niveau du dessus.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:33"
+    ]
+  },
+  "L'année dernière": {
+    "where": [
+      "lib/builder.ts:156"
+    ]
+  },
+  "L’attribut « {key} » apparaît deux fois.": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:31"
+    ]
+  },
+  "L’envoi d’e-mails n’est pas configuré : vous obtiendrez un lien à lui transmettre.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:400"
+    ]
+  },
+  "L’état du moteur de requêtes, le cache des résultats, le copilot et l’intégration signée.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:330"
+    ]
+  },
+  "L’ordre compte : deux couleurs voisines doivent bien se distinguer. En thème sombre, chaque couleur est ajustée pour rester lisible.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:350"
+    ]
+  },
+  "L’ordre du résultat": {
+    "where": [
+      "components/app/question/viz-settings.tsx:558"
+    ]
+  },
+  "La colonne d’affichage nomme une ligne quand une autre table y fait référence.": {
+    "where": [
+      "components/app/structure/table-editor.tsx:119"
+    ]
+  },
+  "La condition {n} est incomplète.": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:113"
+    ]
+  },
+  "La connexion est testée avec le pilote natif, puis le catalogue est créé dans Trino et la structure synchronisée.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:50"
+    ]
+  },
+  "La couleur {i} est trop pâle, trop sombre ou trop grise pour un graphique.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:312"
+    ]
+  },
+  "La dernière valeur ressort, les autres s’estompent": {
+    "where": [
+      "components/app/question/viz-settings.tsx:491"
+    ]
+  },
+  "La durée par défaut de l’instance. Une source, une question ou un tableau de bord peut fixer la sienne.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:121"
+    ]
+  },
+  "La partie prévue est dessinée en pointillés verts. Automatique choisit la saison quand la série en couvre deux (12 mois, 4 trimestres, 7 jours), sinon une tendance lissée.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:544"
+    ]
+  },
+  "La plus basse valeur ressort, les autres s’estompent": {
+    "where": [
+      "components/app/question/viz-settings.tsx:490"
+    ]
+  },
+  "La plus grande valeur d’abord": {
+    "where": [
+      "components/app/question/viz-settings.tsx:559"
+    ]
+  },
+  "La plus haute valeur ressort, les autres s’estompent": {
+    "where": [
+      "components/app/question/viz-settings.tsx:489"
+    ]
+  },
+  "La plus petite valeur d’abord": {
+    "where": [
+      "components/app/question/viz-settings.tsx:560"
+    ]
+  },
+  "La requête a échoué": {
+    "where": [
+      "components/app/question/editor.tsx:470"
+    ]
+  },
+  "La synchronisation a échoué": {
+    "where": [
+      "components/app/data/sync-panel.tsx:193"
+    ]
+  },
+  "Laissez vide pour conserver la valeur enregistrée.": {
+    "where": [
+      "components/app/data/source-form.tsx:116"
+    ]
+  },
+  "Langue": {
+    "where": [
+      "components/app/sidebar.tsx:252"
+    ]
+  },
+  "Langue du navigateur": {
+    "where": [
+      "components/app/sidebar.tsx:259"
+    ]
+  },
+  "Large": {
+    "where": [
+      "components/app/question/viz-settings.tsx:621"
+    ]
+  },
+  "Largeur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:623"
+    ]
+  },
+  "Largeur des barres": {
+    "where": [
+      "components/app/question/viz-settings.tsx:614"
+    ]
+  },
+  "Latitude": {
+    "where": [
+      "components/app/structure/column-bits.tsx:51",
+      "packages/contracts/src/metadata.ts:85"
+    ]
+  },
+  "Le catalogue « {catalog} » sera retiré de Trino. Cette action est définitive.": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:264"
+    ]
+  },
+  "Le catalogue ne change pas : le SQL le cite.": {
+    "where": [
+      "components/app/data/source-form.tsx:243"
+    ]
+  },
+  "Le copilot se configure par les variables d’environnement de l’API (fournisseur, modèle, clé).": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:371"
+    ]
+  },
+  "Le détail des outils et la configuration des clients MCP sont dans « API et MCP ».": {
+    "where": [
+      "app/(app)/account/page.tsx:239"
+    ]
+  },
+  "Le lien d’une invitation n’est montré qu’à sa création. S’il est perdu, annulez l’invitation et invitez la personne à nouveau.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:258"
+    ]
+  },
+  "Le lien envoyé à {email} ne fonctionnera plus.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:585"
+    ]
+  },
+  "Le mot de passe compte au moins 10 caractères.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:288"
+    ]
+  },
+  "Le nouveau mot de passe compte au moins 10 caractères.": {
+    "where": [
+      "app/(app)/account/page.tsx:113"
+    ]
+  },
+  "Le partage s’ajoute aux droits du dossier. Les personnes ne voient jamais que les données auxquelles elles ont droit.": {
+    "where": [
+      "components/app/share-dialog.tsx:66"
+    ]
+  },
+  "Le résultat de la carte se charge…": {
+    "where": [
+      "components/app/dashboard/view.tsx:196"
+    ]
+  },
+  "Le serveur MCP d'eodia insights donne à Claude, ou à tout client MCP, les mêmes données que vous : sources, tables, métriques, questions et tableaux de bord. Chaque requête passe par Trino sous les droits du propriétaire du jeton.": {
+    "where": [
+      "components/app/docs/mcp.tsx:30"
+    ]
+  },
+  "Le serveur MCP ne détient aucun secret : il relaie le jeton de chaque appel à l’API.": {
+    "where": [
+      "components/app/docs/mcp.tsx:75"
+    ]
+  },
+  "Le type a changé à la dernière synchronisation : {from} → {to}. Vérifiez le format et le type sémantique.": {
+    "where": [
+      "components/app/structure/column-panel.tsx:82"
+    ]
+  },
+  "Le worker garde ses résultats au chaud, sous les droits de son auteur.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:77"
+    ]
+  },
+  "Lecture": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:413",
+      "components/app/admin/common.tsx:48",
+      "components/app/admin/common.tsx:67"
+    ]
+  },
+  "Lecture de la table": {
+    "where": [
+      "components/app/copilot.tsx:35"
+    ]
+  },
+  "Lecture des métriques": {
+    "where": [
+      "components/app/copilot.tsx:36"
+    ]
+  },
+  "Lecture seule": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:76"
+    ]
+  },
+  "Légende": {
+    "where": [
+      "components/app/question/viz-settings.tsx:636",
+      "components/app/question/viz-settings.tsx:707"
+    ]
+  },
+  "Légende sous le nombre": {
+    "where": [
+      "components/app/question/viz-settings.tsx:727"
+    ]
+  },
+  "Les administrateurs lisent tout": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:395"
+    ]
+  },
+  "Les administrateurs lisent tout : leurs droits ne se règlent pas.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:135"
+    ]
+  },
+  "Les administrateurs ont tous les droits, sur toutes les sources et tous les dossiers.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:143"
+    ]
+  },
+  "Les attributs décrivent la personne pour les règles de ligne : une règle « region = {attribute} » ne lui laisse voir que les lignes de sa région. Un attribut absent ne donne accès à aucune ligne.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:175"
+    ]
+  },
+  "Les attributs des personnes peuvent venir des claims OIDC.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:388"
+    ]
+  },
+  "Les couleurs {a} et {b} se confondent pour un daltonien.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:310"
+    ]
+  },
+  "Les couleurs {a} et {b} sont trop proches.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:311"
+    ]
+  },
+  "Les deux saisies du nouveau mot de passe diffèrent.": {
+    "where": [
+      "app/(app)/account/page.tsx:114"
+    ]
+  },
+  "Les droits d’un dossier valent pour son contenu et ses sous-dossiers, sauf réglage plus fin. « Gestion » permet de régler les droits du dossier. Les dossiers personnels restent privés.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:151"
+    ]
+  },
+  "Les droits s’accordent aux groupes, jamais aux personnes.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:283"
+    ]
+  },
+  "Les erreurs portent un code stable et un message en français, prêt à afficher.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:87"
+    ]
+  },
+  "Les exemples lisent le jeton dans la variable EODIA_TOKEN. Il porte vos droits : gardez-le secret.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:190"
+    ]
+  },
+  "Les intégrations signées avec ce secret cesseront de s’afficher immédiatement.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:306"
+    ]
+  },
+  "Les invitations partent par e-mail.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:387"
+    ]
+  },
+  "Les membres du groupe liront à nouveau toutes les lignes de cette table.": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:173"
+    ]
+  },
+  "Les membres lisent les lignes qui remplissent": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:192"
+    ]
+  },
+  "Les noms sont en anglais : truck, star, euro, user…": {
+    "where": [
+      "components/app/structure/pickers.tsx:159"
+    ]
+  },
+  "Les permissions s’additionnent d’un groupe à l’autre, et Trino les applique partout.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:26"
+    ]
+  },
+  "Les personnes autorisées peuvent écrire des requêtes dans le dialecte de la base, transmises telles quelles.": {
+    "where": [
+      "components/app/data/source-form.tsx:307"
+    ]
+  },
+  "Les prochaines requêtes interrogeront à nouveau les sources.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:139"
+    ]
+  },
+  "Les questions créées dans ce tableau de bord sont supprimées avec lui ; celles rangées dans un dossier restent.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:228"
+    ]
+  },
+  "Les règles sont appliquées par Trino lui-même, qui interroge l’endpoint OPA de l’API : SQL, éditeur visuel, copilot, API et MCP passent tous par là.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:35"
+    ]
+  },
+  "Les requêtes apparaîtront ici dès leur exécution.": {
+    "where": [
+      "app/(app)/history/page.tsx:161"
+    ]
+  },
+  "Les requêtes passent par Trino : citez les tables comme catalogue.schéma.table, joignez des sources différentes.": {
+    "where": [
+      "app/(app)/sql/page.tsx:436"
+    ]
+  },
+  "Les tableaux de bord qui l’affichent perdront la carte.": {
+    "where": [
+      "components/app/question/editor.tsx:618"
+    ]
+  },
+  "Les valeurs possibles non choisies": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:234"
+    ]
+  },
+  "Les valeurs que les autres filtres excluent": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:228"
+    ]
+  },
+  "Les visiteurs intégrés lisent les données avec les droits de ce groupe, et ses règles de lignes s’appliquent à leurs attributs.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:279"
+    ]
+  },
+  "Libellé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:505",
+      "components/app/structure/column-panel.tsx:93",
+      "components/app/structure/column-panel.tsx:94"
+    ]
+  },
+  "Libellé de {name}": {
+    "where": [
+      "components/app/structure/column-list.tsx:126"
+    ]
+  },
+  "Libellé de {value}": {
+    "where": [
+      "components/app/structure/values-editor.tsx:111"
+    ]
+  },
+  "Libellé de la table": {
+    "where": [
+      "components/app/structure/table-editor.tsx:52"
+    ]
+  },
+  "Libellé, description, type sémantique, format et valeurs de la colonne.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:110"
+    ]
+  },
+  "Libellés": {
+    "where": [
+      "components/app/question/viz-settings.tsx:670"
+    ]
+  },
+  "Libellés de l’axe horizontal": {
+    "where": [
+      "components/app/question/viz-settings.tsx:661"
+    ]
+  },
+  "Libellés, descriptions, types sémantiques, formats et valeurs ; les colonnes sont rapprochées par leur nom, les absentes restent inchangées.": {
+    "where": [
+      "components/app/structure/json-tools.tsx:109"
+    ]
+  },
+  "Libellés, descriptions, types sémantiques, relations et valeurs dans « Structure ».": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:41"
+    ]
+  },
+  "Lien": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:539"
+    ]
+  },
+  "Liens et intégration": {
+    "where": [
+      "components/app/share-dialog.tsx:75"
+    ]
+  },
+  "Lieux": {
+    "where": [
+      "lib/icon-library.ts:34"
+    ]
+  },
+  "Lieux et transports": {
+    "where": [
+      "lib/icon-library.ts:78"
+    ]
+  },
+  "Ligne de la médiane": {
+    "where": [
+      "components/app/question/viz-settings.tsx:499"
+    ]
+  },
+  "Ligne de la moyenne": {
+    "where": [
+      "components/app/question/viz-settings.tsx:498"
+    ]
+  },
+  "Lignes": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:204",
+      "components/app/question/viz-settings.tsx:762",
+      "lib/viz.ts:136"
+    ]
+  },
+  "Lignes filtrées": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:168"
+    ]
+  },
+  "Limite": {
+    "where": [
+      "components/app/question/notebook.tsx:514"
+    ]
+  },
+  "Linéaire": {
+    "where": [
+      "components/app/question/viz-settings.tsx:647"
+    ]
+  },
+  "Lisible": {
+    "where": [
+      "components/app/admin/common.tsx:62",
+      "packages/contracts/src/permissions.ts:43"
+    ]
+  },
+  "Lisible, y compris pour les daltoniens.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:347"
+    ]
+  },
+  "Lissé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:593"
+    ]
+  },
+  "Lissée": {
+    "where": [
+      "components/app/question/viz-settings.tsx:535"
+    ]
+  },
+  "Liste les métriques enregistrées : des agrégats définis une fois (chiffre d'affaires, panier moyen…).": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:54"
+    ]
+  },
+  "Liste les sources de données lisibles par le propriétaire du jeton, avec leur moteur et leur catalogue Trino : en SQL, une table se cite catalogue.schéma.table.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:30"
+    ]
+  },
+  "Liste partielle : seules les premières valeurs sont affichées.": {
+    "where": [
+      "components/app/structure/values-editor.tsx:90"
+    ]
+  },
+  "Logarithmique": {
+    "where": [
+      "components/app/question/viz-settings.tsx:648"
+    ]
+  },
+  "Long ({example})": {
+    "where": [
+      "components/app/structure/format-editor.tsx:31"
+    ]
+  },
+  "Longitude": {
+    "where": [
+      "components/app/structure/column-bits.tsx:52",
+      "packages/contracts/src/metadata.ts:86"
+    ]
+  },
+  "Longueur moyenne": {
+    "where": [
+      "components/app/structure/column-bits.tsx:180"
+    ]
+  },
+  "Maj + clic : une plage · Ctrl + clic : seulement celle-ci · ↑ ↓ Espace · Ctrl + A : tout": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:403"
+    ]
+  },
+  "Maj + clic pour ajouter d’autres catégories.": {
+    "where": [
+      "components/app/dashboard/view.tsx:680"
+    ]
+  },
+  "Manuelle": {
+    "where": [
+      "components/app/data/source-form.tsx:294",
+      "components/app/data/source-look.tsx:58"
+    ]
+  },
+  "Manuelle uniquement": {
+    "where": [
+      "components/app/data/source-form.tsx:294"
+    ]
+  },
+  "Marches": {
+    "where": [
+      "components/app/question/viz-settings.tsx:594"
+    ]
+  },
+  "Masque de {col}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:118"
+    ]
+  },
+  "Masque enregistré": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:98"
+    ]
+  },
+  "Masquée": {
+    "where": [
+      "components/app/admin/common.tsx:61",
+      "components/app/structure/column-bits.tsx:71",
+      "components/app/structure/format-editor.tsx:247"
+    ]
+  },
+  "Masquée : la valeur est remplacée (NULL par défaut). Cachée : la colonne n’existe plus pour le groupe.": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:197"
+    ]
+  },
+  "Masquer les règles": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:186"
+    ]
+  },
+  "max": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:143"
+    ]
+  },
+  "Maximum": {
+    "where": [
+      "components/app/question/viz-settings.tsx:657",
+      "components/app/question/viz-settings.tsx:736",
+      "components/app/structure/column-bits.tsx:178"
+    ]
+  },
+  "MCP": {
+    "where": [
+      "app/(app)/history/page.tsx:28"
+    ]
+  },
+  "Médiane": {
+    "where": [
+      "lib/builder.ts:118",
+      "lib/viz.ts:686"
+    ]
+  },
+  "Membres": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:228",
+      "app/(app)/admin/people/page.tsx:505",
+      "components/app/share-dialog.tsx:149"
+    ]
+  },
+  "Membres connectés uniquement": {
+    "where": [
+      "components/app/share-dialog.tsx:149"
+    ]
+  },
+  "Membres enregistrés": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:67"
+    ]
+  },
+  "Menu": {
+    "where": [
+      "components/app/topbar.tsx:41"
+    ]
+  },
+  "Mesure": {
+    "where": [
+      "components/app/question/notebook.tsx:361",
+      "components/app/structure/column-bits.tsx:27",
+      "packages/contracts/src/metadata.ts:43"
+    ]
+  },
+  "Mesures": {
+    "where": [
+      "components/app/question/viz-settings.tsx:458"
+    ]
+  },
+  "Métadonnées": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:41"
+    ]
+  },
+  "Méthode": {
+    "where": [
+      "components/app/question/viz-settings.tsx:528",
+      "components/app/question/viz-settings.tsx:538"
+    ]
+  },
+  "Métrique": {
+    "where": [
+      "components/app/look.tsx:53",
+      "components/app/question/editor.tsx:306",
+      "components/app/question/editor.tsx:558"
+    ]
+  },
+  "Métriques": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:550",
+      "components/app/docs/mcp-tools.ts:53",
+      "components/app/question/editor.tsx:146"
+    ]
+  },
+  "Mettre à jour": {
+    "where": [
+      "components/app/question/pickers.tsx:217"
+    ]
+  },
+  "Microsoft SQL Server et Azure SQL.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:18"
+    ]
+  },
+  "Millisecondes": {
+    "where": [
+      "components/app/structure/format-editor.tsx:173"
+    ]
+  },
+  "min": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:142"
+    ]
+  },
+  "Minimum": {
+    "where": [
+      "components/app/question/viz-settings.tsx:654",
+      "components/app/structure/column-bits.tsx:177",
+      "lib/builder.ts:119"
+    ]
+  },
+  "Minuscules, chiffres et _ ; commence par une lettre.": {
+    "where": [
+      "components/app/data/source-form.tsx:157"
+    ]
+  },
+  "Minute": {
+    "where": [
+      "lib/builder.ts:127"
+    ]
+  },
+  "Minutes": {
+    "where": [
+      "components/app/structure/format-editor.tsx:175"
+    ]
+  },
+  "Mise en avant": {
+    "where": [
+      "components/app/question/viz-settings.tsx:481"
+    ]
+  },
+  "Modèle": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:368",
+      "components/app/look.tsx:52",
+      "components/app/question/editor.tsx:306"
+    ]
+  },
+  "Modèles": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:549",
+      "components/app/question/editor.tsx:146",
+      "components/app/question/pickers.tsx:99"
+    ]
+  },
+  "Modification": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:413",
+      "components/app/admin/common.tsx:68",
+      "components/app/question/editor.tsx:570"
+    ]
+  },
+  "Modifications enregistrées": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:118"
+    ]
+  },
+  "Modifications non enregistrées": {
+    "where": [
+      "components/app/question/editor.tsx:307"
+    ]
+  },
+  "Modifié": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:390"
+    ]
+  },
+  "Modifié par {name}": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:120"
+    ]
+  },
+  "Modifier": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:132",
+      "components/app/admin/row-rule-editor.tsx:152",
+      "components/app/dashboard/view.tsx:845"
+    ]
+  },
+  "Mois": {
+    "where": [
+      "components/app/structure/format-editor.tsx:264",
+      "lib/builder.ts:131"
+    ]
+  },
+  "Mois de l'année": {
+    "where": [
+      "lib/builder.ts:138"
+    ]
+  },
+  "Mois dernier": {
+    "where": [
+      "lib/builder.ts:150"
+    ]
+  },
+  "Mon compte": {
+    "where": [
+      "app/(app)/account/page.tsx:349",
+      "app/(app)/account/page.tsx:353"
+    ]
+  },
+  "Mon dossier": {
+    "where": [
+      "lib/folders.ts:5"
+    ]
+  },
+  "Mon profil": {
+    "where": [
+      "components/app/sidebar.tsx:235"
+    ]
+  },
+  "MongoDB": {
+    "where": [
+      "packages/contracts/src/domain.ts:147"
+    ]
+  },
+  "mongodb://utilisateur:motdepasse@hote:27017/": {
+    "where": [
+      "components/app/data/source-form.tsx:48",
+      "packages/contracts/src/domain.ts:157"
+    ]
+  },
+  "Montant": {
+    "where": [
+      "components/app/structure/column-bits.tsx:58",
+      "packages/contracts/src/metadata.ts:92"
+    ]
+  },
+  "Mot de passe": {
+    "where": [
+      "app/(app)/account/page.tsx:107",
+      "app/(app)/admin/people/page.tsx:57",
+      "app/(app)/admin/people/page.tsx:319"
+    ]
+  },
+  "Mot de passe :": {
+    "where": [
+      "app/login/page.tsx:186"
+    ]
+  },
+  "Mot de passe (10 caractères au moins)": {
+    "where": [
+      "app/invitation/[token]/page.tsx:59"
+    ]
+  },
+  "Mot de passe actuel": {
+    "where": [
+      "app/(app)/account/page.tsx:131"
+    ]
+  },
+  "Mot de passe changé": {
+    "where": [
+      "app/(app)/account/page.tsx:121"
+    ]
+  },
+  "mot entier": {
+    "where": [
+      "components/app/sql-editor.tsx:130"
+    ]
+  },
+  "Moteur": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:138"
+    ]
+  },
+  "Moteur Trino": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:343"
+    ]
+  },
+  "Motif": {
+    "where": [
+      "components/app/structure/format-editor.tsx:236"
+    ]
+  },
+  "Motif personnalisé": {
+    "where": [
+      "components/app/structure/format-editor.tsx:33"
+    ]
+  },
+  "Mots-clés, par exemple « client région ».": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:39"
+    ]
+  },
+  "Moyenne": {
+    "where": [
+      "components/app/structure/column-bits.tsx:179",
+      "lib/builder.ts:117",
+      "lib/viz.ts:686"
+    ]
+  },
+  "MySQL / MariaDB": {
+    "where": [
+      "packages/contracts/src/domain.ts:82"
+    ]
+  },
+  "MySQL et MariaDB.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:17"
+    ]
+  },
+  "n'est pas": {
+    "where": [
+      "lib/builder.ts:161"
+    ]
+  },
+  "n’est pas parmi": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:24"
+    ]
+  },
+  "n'est pas vide": {
+    "where": [
+      "lib/builder.ts:179"
+    ]
+  },
+  "n’est pas vide": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:31"
+    ]
+  },
+  "N’importe quel connecteur Trino : Iceberg, Hive, ClickHouse…": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:22"
+    ]
+  },
+  "natif {type}": {
+    "where": [
+      "components/app/structure/column-panel.tsx:76"
+    ]
+  },
+  "Nature": {
+    "where": [
+      "components/app/question/editor.tsx:551",
+      "components/app/question/editor.tsx:560",
+      "lib/icon-library.ts:79"
+    ]
+  },
+  "Nature et vie": {
+    "where": [
+      "lib/icon-library.ts:69"
+    ]
+  },
+  "ne contient pas": {
+    "where": [
+      "lib/builder.ts:163"
+    ]
+  },
+  "nom": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:77"
+    ]
+  },
+  "Nom": {
+    "where": [
+      "app/(app)/account/page.tsx:92",
+      "app/(app)/account/page.tsx:283",
+      "app/(app)/admin/people/page.tsx:164"
+    ]
+  },
+  "Nom (ex. marge)": {
+    "where": [
+      "components/app/question/notebook.tsx:537"
+    ]
+  },
+  "Nom d’attribut invalide : « {key} ». Lettres, chiffres et _ ; pas de chiffre en tête.": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:29"
+    ]
+  },
+  "Nom d'entité": {
+    "where": [
+      "components/app/structure/column-bits.tsx:33",
+      "packages/contracts/src/metadata.ts:67"
+    ]
+  },
+  "Nom de l’attribut": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:55"
+    ]
+  },
+  "Nom de l’onglet": {
+    "where": [
+      "app/(app)/sql/page.tsx:295"
+    ]
+  },
+  "Nom de service": {
+    "where": [
+      "components/app/data/source-form.tsx:43",
+      "packages/contracts/src/domain.ts:122"
+    ]
+  },
+  "Nom des courbes au bout du tracé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:635"
+    ]
+  },
+  "Nom du catalogue": {
+    "where": [
+      "components/app/data/source-form.tsx:234"
+    ]
+  },
+  "Nom du dossier": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:241",
+      "app/(app)/browse/[[...folder]]/page.tsx:242"
+    ]
+  },
+  "Nom du filtre": {
+    "where": [
+      "components/app/dashboard/view.tsx:465"
+    ]
+  },
+  "Nom du snippet": {
+    "where": [
+      "app/(app)/sql/page.tsx:157"
+    ]
+  },
+  "Nom et pourcentage": {
+    "where": [
+      "components/app/question/viz-settings.tsx:699"
+    ]
+  },
+  "Nom et valeur": {
+    "where": [
+      "components/app/question/viz-settings.tsx:700"
+    ]
+  },
+  "Nom qualifié Trino, colonnes (type, type sémantique, clés, description) et valeurs des colonnes de catégorie.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:46"
+    ]
+  },
+  "nombre": {
+    "where": [
+      "components/app/question/editor.tsx:100"
+    ]
+  },
+  "Nombre": {
+    "where": [
+      "components/app/dashboard/view.tsx:546",
+      "components/app/question/editor.tsx:91",
+      "lib/viz.ts:130"
+    ]
+  },
+  "Nombre cumulé": {
+    "where": [
+      "lib/builder.ts:122"
+    ]
+  },
+  "Nombre de lignes": {
+    "where": [
+      "lib/builder.ts:114"
+    ]
+  },
+  "Nombre maximal de lignes lues (défaut 200).": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:100"
+    ]
+  },
+  "Non": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:118",
+      "lib/format.ts:193"
+    ]
+  },
+  "Non configuré": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:380",
+      "app/(app)/admin/settings/page.tsx:383"
+    ]
+  },
+  "Non enregistrées": {
+    "where": [
+      "components/app/structure/values-editor.tsx:122"
+    ]
+  },
+  "Non envoyé : le lien a été transmis à la main": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:250"
+    ]
+  },
+  "non nulle": {
+    "where": [
+      "components/app/structure/column-panel.tsx:77"
+    ]
+  },
+  "Non relié": {
+    "where": [
+      "components/app/dashboard/view.tsx:171"
+    ]
+  },
+  "none, stacked ou percent.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:123"
+    ]
+  },
+  "Normale": {
+    "where": [
+      "components/app/question/viz-settings.tsx:620",
+      "components/app/question/viz-settings.tsx:750",
+      "components/app/structure/column-bits.tsx:70"
+    ]
+  },
+  "Note": {
+    "where": [
+      "components/app/structure/column-bits.tsx:65",
+      "components/app/structure/format-editor.tsx:24",
+      "packages/contracts/src/metadata.ts:99"
+    ]
+  },
+  "Note maximale": {
+    "where": [
+      "components/app/structure/format-editor.tsx:187"
+    ]
+  },
+  "Nouveau": {
+    "where": [
+      "components/app/topbar.tsx:63"
+    ]
+  },
+  "Nouveau dossier": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:255",
+      "app/(app)/layout.tsx:52"
+    ]
+  },
+  "Nouveau groupe": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:286",
+      "app/(app)/admin/groups/page.tsx:317"
+    ]
+  },
+  "Nouveau jeton": {
+    "where": [
+      "app/(app)/account/page.tsx:184",
+      "app/(app)/account/page.tsx:279"
+    ]
+  },
+  "Nouveau mot de passe": {
+    "where": [
+      "app/(app)/account/page.tsx:135"
+    ]
+  },
+  "Nouveau secret": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:203"
+    ]
+  },
+  "Nouveau secret d’intégration": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:278"
+    ]
+  },
+  "Nouveau tableau de bord": {
+    "where": [
+      "app/(app)/layout.tsx:66"
+    ]
+  },
+  "Nouveautés": {
+    "where": [
+      "app/(app)/page.tsx:119"
+    ]
+  },
+  "Nouvel onglet": {
+    "where": [
+      "app/(app)/sql/page.tsx:324",
+      "components/app/dashboard/view.tsx:928",
+      "components/app/dashboard/view.tsx:930"
+    ]
+  },
+  "Nouvelle conversation": {
+    "where": [
+      "components/app/copilot.tsx:230",
+      "components/app/copilot.tsx:234"
+    ]
+  },
+  "Nouvelle question": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:620",
+      "app/(app)/dashboard/[id]/page.tsx:205",
+      "app/(app)/page.tsx:70"
+    ]
+  },
+  "Nouvelle section": {
+    "where": [
+      "components/app/dashboard/view.tsx:814"
+    ]
+  },
+  "Nuage de points": {
+    "where": [
+      "lib/viz.ts:140"
+    ]
+  },
+  "NULL (par défaut)": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:117"
+    ]
+  },
+  "nullable": {
+    "where": [
+      "components/app/structure/column-panel.tsx:77"
+    ]
+  },
+  "Nulls": {
+    "where": [
+      "components/app/structure/column-bits.tsx:176"
+    ]
+  },
+  "Numéros de ligne": {
+    "where": [
+      "components/app/question/viz-settings.tsx:743"
+    ]
+  },
+  "Objectif": {
+    "where": [
+      "components/app/question/viz-settings.tsx:502",
+      "components/app/question/viz-settings.tsx:506",
+      "components/app/question/viz-settings.tsx:736"
+    ]
+  },
+  "objectif {goal}": {
+    "where": [
+      "components/app/visualization.tsx:199"
+    ]
+  },
+  "Objets": {
+    "where": [
+      "lib/icon-library.ts:80"
+    ]
+  },
+  "Océan": {
+    "where": [
+      "lib/palettes.ts:33"
+    ]
+  },
+  "OIDC (SSO)": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:379"
+    ]
+  },
+  "OK": {
+    "where": [
+      "components/app/structure/pickers.tsx:207",
+      "components/app/structure/pickers.tsx:287"
+    ]
+  },
+  "Onglet": {
+    "where": [
+      "components/app/dashboard/view.tsx:935",
+      "components/app/move-dialog.tsx:174",
+      "components/app/move-dialog.tsx:179"
+    ]
+  },
+  "Opérateur": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:209",
+      "components/app/question/pickers.tsx:187"
+    ]
+  },
+  "Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.": {
+    "where": [
+      "components/app/data/source-form.tsx:40",
+      "packages/contracts/src/domain.ts:91"
+    ]
+  },
+  "Oracle": {
+    "where": [
+      "packages/contracts/src/domain.ts:117"
+    ]
+  },
+  "Oracle Database, par nom de service.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:19"
+    ]
+  },
+  "Orange": {
+    "where": [
+      "components/app/structure/pickers.tsx:22"
+    ]
+  },
+  "ORCLPDB1": {
+    "where": [
+      "packages/contracts/src/domain.ts:122"
+    ]
+  },
+  "Ordre des catégories": {
+    "where": [
+      "components/app/question/viz-settings.tsx:553",
+      "components/app/question/viz-settings.tsx:562"
+    ]
+  },
+  "Origine": {
+    "where": [
+      "app/(app)/history/page.tsx:135"
+    ]
+  },
+  "ou": {
+    "where": [
+      "app/login/page.tsx:138",
+      "components/app/admin/row-rule-editor.tsx:143",
+      "components/app/admin/row-rule-editor.tsx:207"
+    ]
+  },
+  "Où": {
+    "where": [
+      "components/app/question/notebook.tsx:139"
+    ]
+  },
+  "Ou choisissez la colonne sur chaque carte.": {
+    "where": [
+      "components/app/dashboard/view.tsx:534"
+    ]
+  },
+  "Ou collez un emoji": {
+    "where": [
+      "components/app/structure/pickers.tsx:205"
+    ]
+  },
+  "ou null": {
+    "where": [
+      "components/app/docs/schema-tree.tsx:46"
+    ]
+  },
+  "Oui": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:117",
+      "lib/format.ts:193"
+    ]
+  },
+  "Outil MCP": {
+    "where": [
+      "components/app/docs/mcp.tsx:114"
+    ]
+  },
+  "Outils": {
+    "where": [
+      "components/app/docs/mcp.tsx:88"
+    ]
+  },
+  "Outils MCP": {
+    "where": [
+      "components/app/docs/nav.tsx:106"
+    ]
+  },
+  "Ouvrir": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:282",
+      "app/(app)/browse/[[...folder]]/page.tsx:338",
+      "app/(app)/dashboard/[id]/page.tsx:162"
+    ]
+  },
+  "Ouvrir « API et MCP »": {
+    "where": [
+      "app/(app)/account/page.tsx:241"
+    ]
+  },
+  "Ouvrir dans l'éditeur": {
+    "where": [
+      "app/(app)/history/page.tsx:86"
+    ]
+  },
+  "Ouvrir la question": {
+    "where": [
+      "components/app/dashboard/view.tsx:287"
+    ]
+  },
+  "Ouvrir la structure": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:205"
+    ]
+  },
+  "Page intégrée": {
+    "where": [
+      "components/app/dashboard/view.tsx:820"
+    ]
+  },
+  "Panier moyen": {
+    "where": [
+      "app/login/page.tsx:36"
+    ]
+  },
+  "par": {
+    "where": [
+      "components/app/question/notebook.tsx:390"
+    ]
+  },
+  "Par": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:396"
+    ]
+  },
+  "Par défaut": {
+    "where": [
+      "components/app/dashboard/view.tsx:474"
+    ]
+  },
+  "Par défaut ({example})": {
+    "where": [
+      "components/app/structure/format-editor.tsx:29"
+    ]
+  },
+  "Paramètres de chemin": {
+    "where": [
+      "components/app/docs/endpoint.tsx:36"
+    ]
+  },
+  "Paramètres de connexion": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:129"
+    ]
+  },
+  "Paramètres de requête": {
+    "where": [
+      "components/app/docs/endpoint.tsx:37"
+    ]
+  },
+  "Parcourez vos dossiers : chaque dossier porte ses droits, et chaque élément peut aussi être partagé avec une personne ou un groupe.": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:647"
+    ]
+  },
+  "Parcourir les dossiers partagés": {
+    "where": [
+      "app/(app)/page.tsx:72"
+    ]
+  },
+  "Part de valeurs nulles": {
+    "where": [
+      "components/app/structure/column-bits.tsx:196"
+    ]
+  },
+  "Partage": {
+    "where": [
+      "app/(app)/history/page.tsx:30"
+    ]
+  },
+  "Partager": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:443",
+      "app/(app)/dashboard/[id]/page.tsx:174",
+      "components/app/question/editor.tsx:351"
+    ]
+  },
+  "Partager « {name} »": {
+    "where": [
+      "components/app/share-dialog.tsx:65"
+    ]
+  },
+  "Partages": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:45"
+    ]
+  },
+  "Parts au plus (le reste devient « Autres »)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:708"
+    ]
+  },
+  "Parts proportionnelles en rayon (rose)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:689"
+    ]
+  },
+  "pas de cache": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:40"
+    ]
+  },
+  "Pas de cache": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:64"
+    ]
+  },
+  "Pas de format d’affichage pour une colonne de type {type}.": {
+    "where": [
+      "components/app/structure/format-editor.tsx:114"
+    ]
+  },
+  "Pas de rafraîchissement": {
+    "where": [
+      "components/app/dashboard/refresh-timer.tsx:18"
+    ]
+  },
+  "Pas encore d’empreinte : lancez la passe « Empreinte » de la synchronisation.": {
+    "where": [
+      "components/app/structure/column-panel.tsx:128"
+    ]
+  },
+  "Pas encore de partage direct.": {
+    "where": [
+      "components/app/share-dialog.tsx:106"
+    ]
+  },
+  "Pays": {
+    "where": [
+      "components/app/structure/column-bits.tsx:46",
+      "packages/contracts/src/metadata.ts:80"
+    ]
+  },
+  "période": {
+    "where": [
+      "lib/builder.ts:173"
+    ]
+  },
+  "Période": {
+    "where": [
+      "components/app/dashboard/view.tsx:543"
+    ]
+  },
+  "Période précise": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:73"
+    ]
+  },
+  "périodes": {
+    "where": [
+      "components/app/question/viz-settings.tsx:517"
+    ]
+  },
+  "Permission enregistrée": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:68"
+    ]
+  },
+  "Permissions": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:39",
+      "app/(app)/admin/groups/page.tsx:200",
+      "app/(app)/admin/permissions/page.tsx:63"
+    ]
+  },
+  "Personnalisé": {
+    "where": [
+      "components/app/admin/common.tsx:246"
+    ]
+  },
+  "Personnalisée": {
+    "where": [
+      "components/app/question/viz-settings.tsx:296"
+    ]
+  },
+  "Personne ne correspond.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:512"
+    ]
+  },
+  "Personne ou groupe": {
+    "where": [
+      "components/app/share-dialog.tsx:81"
+    ]
+  },
+  "Personnes": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:36",
+      "app/(app)/admin/people/page.tsx:494",
+      "app/(app)/admin/people/page.tsx:604"
+    ]
+  },
+  "Personnes et groupes": {
+    "where": [
+      "components/app/share-dialog.tsx:71"
+    ]
+  },
+  "Personnes et invitations": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:570"
+    ]
+  },
+  "Picto": {
+    "where": [
+      "components/app/structure/pickers.tsx:139",
+      "components/app/structure/pickers.tsx:141"
+    ]
+  },
+  "Pictos": {
+    "where": [
+      "components/app/structure/pickers.tsx:149"
+    ]
+  },
+  "Pilote natif pour les clés, commentaires et volumes.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:16"
+    ]
+  },
+  "Planning": {
+    "where": [
+      "components/app/data/sync-panel.tsx:138"
+    ]
+  },
+  "Plein écran": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:184"
+    ]
+  },
+  "Plus": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:178",
+      "components/app/question/editor.tsx:339"
+    ]
+  },
+  "Plus ancien": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:71"
+    ]
+  },
+  "Plus basse": {
+    "where": [
+      "components/app/question/viz-settings.tsx:490"
+    ]
+  },
+  "Plus haute": {
+    "where": [
+      "components/app/question/viz-settings.tsx:489"
+    ]
+  },
+  "Plusieurs valeurs": {
+    "where": [
+      "components/app/dashboard/view.tsx:470"
+    ]
+  },
+  "Points": {
+    "where": [
+      "components/app/question/viz-settings.tsx:599",
+      "components/app/question/viz-settings.tsx:608"
+    ]
+  },
+  "Port": {
+    "where": [
+      "components/app/data/source-form.tsx:36",
+      "packages/contracts/src/domain.ts:59"
+    ]
+  },
+  "Portail clients": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:283"
+    ]
+  },
+  "Poser une question": {
+    "where": [
+      "components/app/docs/mcp.tsx:65"
+    ]
+  },
+  "Posez une question sur vos données : le copilote cherche les tables, écrit le SQL et vous propose des questions ou des tableaux de bord à appliquer.": {
+    "where": [
+      "components/app/copilot.tsx:254"
+    ]
+  },
+  "POST /api/v1/query exécute du SQL Trino ou une requête du builder, sous vos permissions.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:74"
+    ]
+  },
+  "PostgreSQL": {
+    "where": [
+      "packages/contracts/src/domain.ts:70"
+    ]
+  },
+  "Pour des catégories ordonnées (tranches, niveaux) : du plus clair au plus foncé, 5 au plus.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:466"
+    ]
+  },
+  "Pour des valeurs d’ordres de grandeur très différents": {
+    "where": [
+      "components/app/question/viz-settings.tsx:648"
+    ]
+  },
+  "Pourcentage": {
+    "where": [
+      "components/app/question/viz-settings.tsx:696",
+      "components/app/structure/column-bits.tsx:62",
+      "components/app/structure/format-editor.tsx:21"
+    ]
+  },
+  "Pourpre": {
+    "where": [
+      "components/app/structure/pickers.tsx:34"
+    ]
+  },
+  "précédent": {
+    "where": [
+      "components/app/sql-editor.tsx:126"
+    ]
+  },
+  "Préchargé": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:76"
+    ]
+  },
+  "Préfixe": {
+    "where": [
+      "components/app/question/viz-settings.tsx:716",
+      "components/app/structure/format-editor.tsx:199"
+    ]
+  },
+  "Premiers pas": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:62"
+    ]
+  },
+  "prendre la valeur actuelle": {
+    "where": [
+      "components/app/dashboard/view.tsx:477"
+    ]
+  },
+  "Présentation": {
+    "where": [
+      "components/app/docs/nav.tsx:94"
+    ]
+  },
+  "prévision": {
+    "where": [
+      "lib/viz.ts:745"
+    ]
+  },
+  "Prévision": {
+    "where": [
+      "components/app/question/viz-settings.tsx:513",
+      "lib/viz.ts:674"
+    ]
+  },
+  "Prix": {
+    "where": [
+      "components/app/structure/column-bits.tsx:59",
+      "packages/contracts/src/metadata.ts:93"
+    ]
+  },
+  "Profil": {
+    "where": [
+      "app/(app)/account/page.tsx:74",
+      "app/(app)/account/page.tsx:349",
+      "app/(app)/account/page.tsx:366"
+    ]
+  },
+  "Profil enregistré": {
+    "where": [
+      "app/(app)/account/page.tsx:83"
+    ]
+  },
+  "Progression": {
+    "where": [
+      "lib/viz.ts:132"
+    ]
+  },
+  "Prolonger la tendance de": {
+    "where": [
+      "components/app/question/viz-settings.tsx:514"
+    ]
+  },
+  "Proposition": {
+    "where": [
+      "components/app/copilot.tsx:113"
+    ]
+  },
+  "Proposition de description": {
+    "where": [
+      "components/app/copilot.tsx:40"
+    ]
+  },
+  "Proposition de question": {
+    "where": [
+      "components/app/copilot.tsx:38"
+    ]
+  },
+  "Proposition de tableau de bord": {
+    "where": [
+      "components/app/copilot.tsx:39"
+    ]
+  },
+  "Propriété": {
+    "where": [
+      "components/app/data/source-form.tsx:331"
+    ]
+  },
+  "Propriétés": {
+    "where": [
+      "components/app/data/source-form.tsx:50",
+      "packages/contracts/src/domain.ts:176"
+    ]
+  },
+  "Propriétés du catalogue Trino": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:153",
+      "components/app/data/source-form.tsx:321"
+    ]
+  },
+  "Propulsé par {product}": {
+    "where": [
+      "components/app/public-view.tsx:24"
+    ]
+  },
+  "Public : aucun jeton requis.": {
+    "where": [
+      "components/app/docs/endpoint.tsx:96"
+    ]
+  },
+  "Quantité": {
+    "where": [
+      "components/app/structure/column-bits.tsx:63",
+      "packages/contracts/src/metadata.ts:97"
+    ]
+  },
+  "Que voulez-vous savoir aujourd’hui ?": {
+    "where": [
+      "app/(app)/page.tsx:65"
+    ]
+  },
+  "Quel est le chiffre d’affaires par région sur les 6 derniers mois ?": {
+    "where": [
+      "components/app/copilot.tsx:257"
+    ]
+  },
+  "Quels clients ont passé le plus de commandes cette année ?": {
+    "where": [
+      "components/app/copilot.tsx:259"
+    ]
+  },
+  "Question": {
+    "where": [
+      "app/(app)/history/page.tsx:25",
+      "components/app/dashboard/view.tsx:812",
+      "components/app/look.tsx:51"
+    ]
+  },
+  "Question ajoutée à « {name} ».": {
+    "where": [
+      "components/app/question/editor.tsx:243"
+    ]
+  },
+  "Question déplacée dans « {name} ».": {
+    "where": [
+      "components/app/question/editor.tsx:609"
+    ]
+  },
+  "Question déplacée.": {
+    "where": [
+      "components/app/question/editor.tsx:609"
+    ]
+  },
+  "Question en cours": {
+    "where": [
+      "components/app/copilot.tsx:218"
+    ]
+  },
+  "Question enregistrée, avec sa visualisation.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:119"
+    ]
+  },
+  "Question enregistrée.": {
+    "where": [
+      "components/app/question/editor.tsx:247"
+    ]
+  },
+  "Question sans titre": {
+    "where": [
+      "components/app/question/editor.tsx:305"
+    ]
+  },
+  "Questions": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:42",
+      "app/(app)/browse/[[...folder]]/page.tsx:547",
+      "components/app/question/editor.tsx:146"
+    ]
+  },
+  "Questions et tableaux de bord": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:76"
+    ]
+  },
+  "Questions, tableaux de bord, tables, dossiers…": {
+    "where": [
+      "components/app/palette.tsx:51"
+    ]
+  },
+  "Quota": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:369"
+    ]
+  },
+  "Radar": {
+    "where": [
+      "lib/viz.ts:142"
+    ]
+  },
+  "Rafraîchir": {
+    "where": [
+      "components/app/dashboard/view.tsx:279",
+      "components/app/dashboard/view.tsx:851"
+    ]
+  },
+  "Rafraîchissement automatique": {
+    "where": [
+      "components/app/dashboard/refresh-timer.tsx:41",
+      "components/app/dashboard/refresh-timer.tsx:45",
+      "components/app/dashboard/refresh-timer.tsx:50"
+    ]
+  },
+  "Rangez questions et tableaux de bord ; les droits du dossier s’appliquent à son contenu.": {
+    "where": [
+      "app/(app)/layout.tsx:53"
+    ]
+  },
+  "Rangez-le comme un mot de passe (gestionnaire de secrets, variable d’environnement). En cas de fuite, révoquez-le ici.": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:130"
+    ]
+  },
+  "Réactiver": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:86"
+    ]
+  },
+  "Recherche dans le schéma": {
+    "where": [
+      "components/app/copilot.tsx:34"
+    ]
+  },
+  "Recherche les questions, modèles, métriques et tableaux de bord enregistrés.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:77"
+    ]
+  },
+  "Rechercher": {
+    "where": [
+      "components/app/palette.tsx:47",
+      "components/app/sql-editor.tsx:123"
+    ]
+  },
+  "Rechercher dans le dossier…": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:524"
+    ]
+  },
+  "Rechercher dans le schéma": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:37"
+    ]
+  },
+  "Rechercher un endpoint…": {
+    "where": [
+      "components/app/docs/nav.tsx:87"
+    ]
+  },
+  "Rechercher un tableau de bord…": {
+    "where": [
+      "components/app/move-dialog.tsx:137"
+    ]
+  },
+  "Rechercher une colonne…": {
+    "where": [
+      "components/app/structure/column-list.tsx:46"
+    ]
+  },
+  "Rechercher une personne…": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:91",
+      "app/(app)/admin/people/page.tsx:470"
+    ]
+  },
+  "Rechercher une question, un modèle, une métrique…": {
+    "where": [
+      "components/app/dashboard/view.tsx:392"
+    ]
+  },
+  "Rechercher une source…": {
+    "where": [
+      "app/(app)/data/page.tsx:127"
+    ]
+  },
+  "Rechercher une table…": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:39",
+      "components/app/structure/tree.tsx:60"
+    ]
+  },
+  "Rechercher…": {
+    "where": [
+      "components/app/topbar.tsx:95",
+      "components/ui/combobox.tsx:98"
+    ]
+  },
+  "Redimensionner le volet (double-clic : taille par défaut)": {
+    "where": [
+      "components/ui/pane.tsx:89"
+    ]
+  },
+  "Référence": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:46"
+    ]
+  },
+  "region": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:54"
+    ]
+  },
+  "Région": {
+    "where": [
+      "components/app/structure/column-bits.tsx:47",
+      "packages/contracts/src/metadata.ts:81"
+    ]
+  },
+  "Réglage de l’instance": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:142",
+      "components/app/data/source-form.tsx:300"
+    ]
+  },
+  "Réglages": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:48",
+      "app/(app)/admin/settings/page.tsx:329",
+      "app/(app)/admin/settings/page.tsx:399"
+    ]
+  },
+  "Réglages du cache enregistrés": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:107"
+    ]
+  },
+  "Réglages du tableau de bord": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:42"
+    ]
+  },
+  "Règle de lignes enregistrée": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:121"
+    ]
+  },
+  "Règle supprimée": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:179"
+    ]
+  },
+  "Règles de restriction": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:186"
+    ]
+  },
+  "Regroupement": {
+    "where": [
+      "components/app/question/notebook.tsx:433"
+    ]
+  },
+  "Regroupement par période.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:67"
+    ]
+  },
+  "Réinitialiser les filtres": {
+    "where": [
+      "components/app/dashboard/view.tsx:780"
+    ]
+  },
+  "Rejoindre eodia insights": {
+    "where": [
+      "app/invitation/[token]/page.tsx:49"
+    ]
+  },
+  "Relation ajoutée.": {
+    "where": [
+      "components/app/structure/relations.tsx:211"
+    ]
+  },
+  "Relation retirée.": {
+    "where": [
+      "components/app/structure/relations.tsx:228"
+    ]
+  },
+  "Relations": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:70"
+    ]
+  },
+  "Relative ({example})": {
+    "where": [
+      "components/app/structure/format-editor.tsx:32"
+    ]
+  },
+  "Relié à {count} cartes sur {total}": {
+    "one": "Relié à {count} carte sur {total}",
+    "other": "Relié à {count} cartes sur {total}",
+    "where": [
+      "components/app/dashboard/view.tsx:499"
+    ]
+  },
+  "Relier « {label} » à": {
+    "where": [
+      "components/app/dashboard/view.tsx:180"
+    ]
+  },
+  "Relier toutes les cartes": {
+    "where": [
+      "components/app/dashboard/view.tsx:505"
+    ]
+  },
+  "Remise": {
+    "where": [
+      "components/app/structure/column-bits.tsx:61",
+      "packages/contracts/src/metadata.ts:95"
+    ]
+  },
+  "remplacer": {
+    "where": [
+      "components/app/sql-editor.tsx:131"
+    ]
+  },
+  "Remplacer": {
+    "where": [
+      "components/app/sql-editor.tsx:124"
+    ]
+  },
+  "Rendre toutes les couleurs à la palette": {
+    "where": [
+      "components/app/question/viz-settings.tsx:424"
+    ]
+  },
+  "Renommer": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:205",
+      "app/(app)/admin/groups/page.tsx:206",
+      "components/app/dashboard/view.tsx:313"
+    ]
+  },
+  "Renommer le groupe": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:317"
+    ]
+  },
+  "Replier": {
+    "where": [
+      "app/(app)/history/page.tsx:45",
+      "components/app/docs/schema-tree.tsx:39",
+      "components/app/sidebar.tsx:115"
+    ]
+  },
+  "Replier la ligne": {
+    "where": [
+      "components/app/sql-editor.tsx:134"
+    ]
+  },
+  "Réponses": {
+    "where": [
+      "components/app/docs/endpoint.tsx:121"
+    ]
+  },
+  "Requête": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:400",
+      "components/app/question/editor.tsx:565"
+    ]
+  },
+  "Requête {n}": {
+    "where": [
+      "app/(app)/sql/page.tsx:55"
+    ]
+  },
+  "Requête SELECT Trino, à défaut de question_id.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:121"
+    ]
+  },
+  "Requête SQL": {
+    "where": [
+      "app/(app)/page.tsx:71",
+      "components/app/topbar.tsx:72"
+    ]
+  },
+  "Requêtes": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:320"
+    ]
+  },
+  "Requêtes sur {source}": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:296"
+    ]
+  },
+  "requis": {
+    "where": [
+      "components/app/docs/endpoint.tsx:53",
+      "components/app/docs/mcp.tsx:132",
+      "components/app/docs/schema-tree.tsx:48"
+    ]
+  },
+  "respecter la casse": {
+    "where": [
+      "components/app/sql-editor.tsx:128"
+    ]
+  },
+  "REST, MCP ou les deux. Il agit avec vos droits et s’affiche une seule fois.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:66"
+    ]
+  },
+  "Restreint": {
+    "where": [
+      "components/app/admin/common.tsx:49",
+      "packages/contracts/src/permissions.ts:30"
+    ]
+  },
+  "Résultat": {
+    "where": [
+      "app/(app)/sql/page.tsx:380",
+      "components/app/question/viz-settings.tsx:558"
+    ]
+  },
+  "résultat du {when}": {
+    "where": [
+      "components/app/visualization.tsx:381"
+    ]
+  },
+  "Résultats en cache": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:90"
+    ]
+  },
+  "Résume un tableau de bord : onglets, filtres et cartes, avec la question de chaque carte.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:108"
+    ]
+  },
+  "Résumer": {
+    "where": [
+      "components/app/question/notebook.tsx:354"
+    ]
+  },
+  "retirée": {
+    "where": [
+      "components/app/structure/column-list.tsx:106",
+      "components/app/structure/column-panel.tsx:72",
+      "components/app/structure/table-editor.tsx:61"
+    ]
+  },
+  "Retirer": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:61",
+      "components/app/admin/attributes-editor.tsx:62",
+      "components/app/dashboard/view.tsx:319"
+    ]
+  },
+  "Retirer des favoris": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:440"
+    ]
+  },
+  "Retirer du groupe": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:121",
+      "app/(app)/admin/groups/page.tsx:122"
+    ]
+  },
+  "Retirer la condition": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:224",
+      "components/app/admin/row-rule-editor.tsx:225"
+    ]
+  },
+  "Retirer la valeur par défaut": {
+    "where": [
+      "components/app/dashboard/view.tsx:480"
+    ]
+  },
+  "Retour": {
+    "where": [
+      "components/app/data/source-form.tsx:374"
+    ]
+  },
+  "Retrouvez vos tableaux de bord et vos questions.": {
+    "where": [
+      "app/login/page.tsx:126"
+    ]
+  },
+  "Revenir à la couleur de la palette": {
+    "where": [
+      "components/app/question/viz-settings.tsx:382"
+    ]
+  },
+  "Révoquer": {
+    "where": [
+      "app/(app)/account/page.tsx:217",
+      "app/(app)/account/page.tsx:218",
+      "app/(app)/account/page.tsx:327"
+    ]
+  },
+  "Révoquer « {name} » ?": {
+    "where": [
+      "app/(app)/account/page.tsx:325",
+      "app/(app)/admin/settings/page.tsx:305"
+    ]
+  },
+  "Révoquez un jeton à tout moment depuis « Créer un jeton » : l’assistant perd l’accès immédiatement.": {
+    "where": [
+      "components/app/docs/mcp.tsx:83"
+    ]
+  },
+  "Rien": {
+    "where": [
+      "components/app/question/viz-settings.tsx:488",
+      "components/app/question/viz-settings.tsx:695"
+    ]
+  },
+  "Rôle": {
+    "where": [
+      "components/app/data/source-form.tsx:46",
+      "packages/contracts/src/domain.ts:142"
+    ]
+  },
+  "Rose": {
+    "where": [
+      "components/app/structure/pickers.tsx:35"
+    ]
+  },
+  "Rose vif": {
+    "where": [
+      "components/app/structure/pickers.tsx:36"
+    ]
+  },
+  "Rouge": {
+    "where": [
+      "components/app/structure/pickers.tsx:21"
+    ]
+  },
+  "run_sql est en lecture seule et s’exécute dans Trino : permissions de tables, colonnes masquées et règles de ligne s’appliquent.": {
+    "where": [
+      "components/app/docs/mcp.tsx:79"
+    ]
+  },
+  "Saison": {
+    "where": [
+      "components/app/question/viz-settings.tsx:536"
+    ]
+  },
+  "Sans description": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:150"
+    ]
+  },
+  "Sans expiration": {
+    "where": [
+      "app/(app)/account/page.tsx:214"
+    ]
+  },
+  "Sans mot de passe, la personne se connectera par l’authentification unique (OIDC) de votre organisation.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:308"
+    ]
+  },
+  "Sans SMTP, les invitations se transmettent par lien.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:387"
+    ]
+  },
+  "Sarcelle": {
+    "where": [
+      "components/app/structure/pickers.tsx:28"
+    ]
+  },
+  "Schéma": {
+    "where": [
+      "app/(app)/sql/page.tsx:270",
+      "components/app/data/sync-panel.tsx:18"
+    ]
+  },
+  "Schéma {name}": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:45"
+    ]
+  },
+  "schéma.table": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:193",
+      "app/(app)/data/page.tsx:32",
+      "app/(app)/structure/[[...path]]/page.tsx:127"
+    ]
+  },
+  "Schémas": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:234",
+      "components/app/data/sync-panel.tsx:69"
+    ]
+  },
+  "Schémas, tables, colonnes, clés et commentaires.": {
+    "where": [
+      "components/app/data/sync-panel.tsx:18"
+    ]
+  },
+  "Score": {
+    "where": [
+      "components/app/structure/column-bits.tsx:64",
+      "packages/contracts/src/metadata.ts:98"
+    ]
+  },
+  "Script de reporting, Claude Desktop…": {
+    "where": [
+      "app/(app)/account/page.tsx:284"
+    ]
+  },
+  "Scripts, intégrations, SDK": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:37"
+    ]
+  },
+  "Se connecter": {
+    "where": [
+      "app/login/page.tsx:162"
+    ]
+  },
+  "Se déconnecter": {
+    "where": [
+      "components/app/sidebar.tsx:275"
+    ]
+  },
+  "Secondes": {
+    "where": [
+      "components/app/structure/format-editor.tsx:174"
+    ]
+  },
+  "Secret": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:251"
+    ]
+  },
+  "Secret créé": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:243"
+    ]
+  },
+  "Secret révoqué": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:313"
+    ]
+  },
+  "Sécurité": {
+    "where": [
+      "components/app/docs/mcp.tsx:71"
+    ]
+  },
+  "SELECT * FROM catalogue.schema.table": {
+    "where": [
+      "components/app/sql-editor.tsx:172"
+    ]
+  },
+  "SELECT, WITH, SHOW, DESCRIBE ou EXPLAIN.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:99"
+    ]
+  },
+  "Sélectionnez un élément pour le prévisualiser.": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:646"
+    ]
+  },
+  "Selon le nombre de points : affichés jusqu’à 24": {
+    "where": [
+      "components/app/question/viz-settings.tsx:604"
+    ]
+  },
+  "sem. du {day}": {
+    "where": [
+      "lib/format.ts:136"
+    ]
+  },
+  "Semaine": {
+    "where": [
+      "components/app/structure/format-editor.tsx:263",
+      "lib/builder.ts:130"
+    ]
+  },
+  "Semaine de l'année": {
+    "where": [
+      "lib/builder.ts:137"
+    ]
+  },
+  "Semaine dernière": {
+    "where": [
+      "lib/builder.ts:148"
+    ]
+  },
+  "Séparateurs de milliers": {
+    "where": [
+      "components/app/structure/format-editor.tsx:206",
+      "components/app/structure/format-editor.tsx:207"
+    ]
+  },
+  "Serveur MCP": {
+    "where": [
+      "app/(app)/account/page.tsx:40",
+      "app/(app)/account/page.tsx:238",
+      "components/app/sidebar.tsx:241"
+    ]
+  },
+  "Ses membres perdent les droits que ce groupe leur donnait. Les personnes, elles, restent.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:340"
+    ]
+  },
+  "Seul un administrateur peut changer une adresse e-mail.": {
+    "where": [
+      "app/(app)/account/page.tsx:98"
+    ]
+  },
+  "Seulement les premières (le reste devient « Autres »)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:565"
+    ]
+  },
+  "Seuls les administrateurs accordent ces droits.": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:179"
+    ]
+  },
+  "SMTP": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:382"
+    ]
+  },
+  "SMTP n’est pas configuré : les invitations se transmettent par lien.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:558"
+    ]
+  },
+  "Snippets": {
+    "where": [
+      "app/(app)/sql/page.tsx:271"
+    ]
+  },
+  "Snowflake": {
+    "where": [
+      "packages/contracts/src/domain.ts:128"
+    ]
+  },
+  "Somme": {
+    "where": [
+      "lib/builder.ts:116"
+    ]
+  },
+  "Somme cumulée": {
+    "where": [
+      "lib/builder.ts:123"
+    ]
+  },
+  "Source": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:82",
+      "components/app/admin/permission-matrix.tsx:318",
+      "components/app/data/source-form.tsx:224"
+    ]
+  },
+  "Source « {name} » ajoutée : synchronisation lancée.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:62"
+    ]
+  },
+  "Source de données": {
+    "where": [
+      "components/app/topbar.tsx:83"
+    ]
+  },
+  "Source supprimée.": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:274"
+    ]
+  },
+  "Sources": {
+    "where": [
+      "app/(app)/data/page.tsx:108",
+      "app/(app)/page.tsx:143",
+      "components/app/structure/tree.tsx:65"
+    ]
+  },
+  "Sources connectées": {
+    "where": [
+      "app/(app)/data/page.tsx:122"
+    ]
+  },
+  "Sources de données": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:40",
+      "app/(app)/data/[id]/page.tsx:178",
+      "app/(app)/data/page.tsx:67"
+    ]
+  },
+  "Sous le jeton de l’appelant : le résultat est celui que son propriétaire verrait, en tableau markdown de 50 lignes au plus.": {
+    "where": [
+      "components/app/docs/mcp.tsx:153"
+    ]
+  },
+  "SQL": {
+    "where": [
+      "components/app/admin/common.tsx:55",
+      "packages/contracts/src/permissions.ts:36"
+    ]
+  },
+  "SQL exécuté": {
+    "where": [
+      "components/app/question/editor.tsx:455"
+    ]
+  },
+  "SQL natif": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:405",
+      "app/(app)/data/[id]/page.tsx:141",
+      "app/(app)/data/page.tsx:38"
+    ]
+  },
+  "SQL natif : envoyé tel quel à la source via system.query, réservé aux personnes sans restriction.": {
+    "where": [
+      "components/app/question/editor.tsx:445"
+    ]
+  },
+  "SQL natif · {name}": {
+    "where": [
+      "app/(app)/sql/page.tsx:347"
+    ]
+  },
+  "SQL Server": {
+    "where": [
+      "packages/contracts/src/domain.ts:99"
+    ]
+  },
+  "SQL Trino": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:404"
+    ]
+  },
+  "SSL": {
+    "where": [
+      "packages/contracts/src/domain.ts:77",
+      "packages/contracts/src/domain.ts:94"
+    ]
+  },
+  "Statut": {
+    "where": [
+      "components/app/structure/column-bits.tsx:36",
+      "packages/contracts/src/metadata.ts:70"
+    ]
+  },
+  "Statuts": {
+    "where": [
+      "lib/icon-library.ts:10",
+      "lib/icon-library.ts:75"
+    ]
+  },
+  "Stocké en ratio": {
+    "where": [
+      "components/app/structure/format-editor.tsx:212",
+      "components/app/structure/format-editor.tsx:215"
+    ]
+  },
+  "Structure": {
+    "where": [
+      "app/(app)/data/page.tsx:53",
+      "app/(app)/structure/[[...path]]/page.tsx:48",
+      "components/app/copilot.tsx:220"
+    ]
+  },
+  "Style": {
+    "where": [
+      "components/app/structure/format-editor.tsx:127"
+    ]
+  },
+  "Style de date": {
+    "where": [
+      "components/app/structure/format-editor.tsx:222",
+      "components/app/structure/format-editor.tsx:227"
+    ]
+  },
+  "Style de nombre": {
+    "where": [
+      "components/app/structure/format-editor.tsx:132"
+    ]
+  },
+  "Suffixe": {
+    "where": [
+      "components/app/question/viz-settings.tsx:719",
+      "components/app/structure/format-editor.tsx:202"
+    ]
+  },
+  "suggérée": {
+    "where": [
+      "components/app/dashboard/view.tsx:522"
+    ]
+  },
+  "suivant": {
+    "where": [
+      "components/app/sql-editor.tsx:125"
+    ]
+  },
+  "Supprimer": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:212",
+      "components/app/dialogs.tsx:138",
+      "components/app/question/editor.tsx:410"
+    ]
+  },
+  "Supprimer « {name} » ?": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:339",
+      "app/(app)/dashboard/[id]/page.tsx:227",
+      "app/(app)/data/[id]/page.tsx:263"
+    ]
+  },
+  "Supprimer l’onglet": {
+    "where": [
+      "components/app/dashboard/view.tsx:912"
+    ]
+  },
+  "Supprimer la règle": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:154",
+      "components/app/admin/row-rule-editor.tsx:155"
+    ]
+  },
+  "Supprimer la règle de lignes ?": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:172"
+    ]
+  },
+  "Supprimer la source": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:253"
+    ]
+  },
+  "Supprimer la source retire son catalogue de Trino, ses métadonnées et ses permissions. Les questions qui l’utilisent ne fonctionneront plus.": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:251"
+    ]
+  },
+  "Supprimer le filtre": {
+    "where": [
+      "components/app/dashboard/view.tsx:487"
+    ]
+  },
+  "Supprimer le groupe": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:210",
+      "app/(app)/admin/groups/page.tsx:211"
+    ]
+  },
+  "Sur chaque part": {
+    "where": [
+      "components/app/question/viz-settings.tsx:690",
+      "components/app/question/viz-settings.tsx:702"
+    ]
+  },
+  "Surfaces autorisées": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:154"
+    ]
+  },
+  "Synchronisation": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:245"
+    ]
+  },
+  "Synchronisation du schéma": {
+    "where": [
+      "components/app/data/source-form.tsx:286",
+      "components/app/data/source-form.tsx:290"
+    ]
+  },
+  "Synchronisation en cours": {
+    "where": [
+      "components/app/data/source-look.tsx:38"
+    ]
+  },
+  "Synchronisation et options": {
+    "where": [
+      "components/app/data/source-form.tsx:283"
+    ]
+  },
+  "Synchronisation terminée": {
+    "where": [
+      "components/app/data/sync-panel.tsx:188"
+    ]
+  },
+  "synchronisée {when}": {
+    "where": [
+      "components/app/structure/table-editor.tsx:60"
+    ]
+  },
+  "Synchronisée {when}": {
+    "where": [
+      "components/app/data/source-look.tsx:66"
+    ]
+  },
+  "Synchroniser le schéma de la base de données": {
+    "where": [
+      "components/app/data/sync-panel.tsx:178"
+    ]
+  },
+  "Système": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:150",
+      "components/app/admin/common.tsx:244",
+      "components/app/admin/common.tsx:245"
+    ]
+  },
+  "T{quarter}": {
+    "where": [
+      "lib/format.ts:119"
+    ]
+  },
+  "T{quarter} {year}": {
+    "where": [
+      "lib/format.ts:132"
+    ]
+  },
+  "Table et colonnes": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:70"
+    ]
+  },
+  "Tableau": {
+    "where": [
+      "lib/viz.ts:129"
+    ]
+  },
+  "Tableau croisé": {
+    "where": [
+      "lib/viz.ts:143"
+    ]
+  },
+  "Tableau de bord": {
+    "where": [
+      "components/app/copilot.tsx:219",
+      "components/app/docs/mcp-tools.ts:107",
+      "components/app/look.tsx:54"
+    ]
+  },
+  "Tableau de bord enregistré.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:168"
+    ]
+  },
+  "Tableaux": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:545"
+    ]
+  },
+  "Tableaux de bord": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:43",
+      "app/(app)/dashboard/[id]/page.tsx:109",
+      "app/(app)/page.tsx:72"
+    ]
+  },
+  "Tableaux de bord, questions et exploration de données, open source.": {
+    "where": [
+      "app/layout.tsx:24"
+    ]
+  },
+  "Tables": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:213",
+      "app/(app)/data/[id]/page.tsx:235",
+      "app/(app)/data/page.tsx:109"
+    ]
+  },
+  "Taille": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:94"
+    ]
+  },
+  "Technique": {
+    "where": [
+      "components/app/structure/column-bits.tsx:72",
+      "lib/icon-library.ts:58",
+      "packages/contracts/src/metadata.ts:195"
+    ]
+  },
+  "Télécharger la spécification OpenAPI 3.1": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:197"
+    ]
+  },
+  "Téléphone": {
+    "where": [
+      "components/app/structure/column-bits.tsx:44",
+      "packages/contracts/src/metadata.ts:78"
+    ]
+  },
+  "Temps": {
+    "where": [
+      "components/app/structure/column-bits.tsx:26",
+      "lib/icon-library.ts:42",
+      "packages/contracts/src/metadata.ts:32"
+    ]
+  },
+  "Tendance": {
+    "where": [
+      "lib/viz.ts:131"
+    ]
+  },
+  "Tendance et saison (Holt-Winters)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:536"
+    ]
+  },
+  "Tendance lissée (Holt)": {
+    "where": [
+      "components/app/question/viz-settings.tsx:535"
+    ]
+  },
+  "Terminé": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:376",
+      "components/app/dashboard/view.tsx:490",
+      "components/app/docs/token-dialog.tsx:196"
+    ]
+  },
+  "Terre": {
+    "where": [
+      "lib/palettes.ts:38"
+    ]
+  },
+  "Test de la connexion et création du catalogue Trino…": {
+    "where": [
+      "components/app/data/source-form.tsx:393"
+    ]
+  },
+  "Tester la connexion": {
+    "where": [
+      "components/app/data/source-form.tsx:379"
+    ]
+  },
+  "texte": {
+    "where": [
+      "components/app/question/editor.tsx:100"
+    ]
+  },
+  "Texte": {
+    "where": [
+      "components/app/dashboard/view.tsx:545",
+      "components/app/dashboard/view.tsx:818",
+      "components/app/question/editor.tsx:91"
+    ]
+  },
+  "Texte en Markdown ; citez un filtre avec {{id_du_filtre}}": {
+    "where": [
+      "components/app/dashboard/view.tsx:342"
+    ]
+  },
+  "Texte recherché ; vide : les plus récents.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:78"
+    ]
+  },
+  "Thème clair": {
+    "where": [
+      "components/app/sidebar.tsx:245"
+    ]
+  },
+  "Thème sombre": {
+    "where": [
+      "components/app/sidebar.tsx:248"
+    ]
+  },
+  "Tirez d’une colonne vers la clé d’une autre table pour déclarer une relation ; sélectionnez une relation déclarée et appuyez sur Suppr pour la retirer.": {
+    "where": [
+      "components/app/structure/relations.tsx:251"
+    ]
+  },
+  "Titre": {
+    "where": [
+      "components/app/dashboard/view.tsx:815",
+      "components/app/structure/column-bits.tsx:34",
+      "packages/contracts/src/metadata.ts:68"
+    ]
+  },
+  "Titre affiché.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:124"
+    ]
+  },
+  "Titre de section": {
+    "where": [
+      "components/app/dashboard/view.tsx:238"
+    ]
+  },
+  "Total": {
+    "where": [
+      "components/app/visualization.tsx:417",
+      "lib/viz.ts:315"
+    ]
+  },
+  "Total au centre": {
+    "where": [
+      "components/app/question/viz-settings.tsx:687"
+    ]
+  },
+  "Total au-dessus des piles": {
+    "where": [
+      "components/app/question/viz-settings.tsx:634"
+    ]
+  },
+  "Totaux": {
+    "where": [
+      "components/app/question/viz-settings.tsx:765"
+    ]
+  },
+  "Toujours": {
+    "where": [
+      "components/app/question/viz-settings.tsx:605"
+    ]
+  },
+  "Tous les jours": {
+    "where": [
+      "components/app/data/source-form.tsx:293",
+      "components/app/data/source-look.tsx:57"
+    ]
+  },
+  "tout": {
+    "where": [
+      "components/app/sql-editor.tsx:127"
+    ]
+  },
+  "Tout": {
+    "where": [
+      "app/(app)/browse/[[...folder]]/page.tsx:543",
+      "components/app/dashboard/value-list.tsx:221"
+    ]
+  },
+  "Tout le monde est déjà membre": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:92"
+    ]
+  },
+  "tout remplacer": {
+    "where": [
+      "components/app/sql-editor.tsx:132"
+    ]
+  },
+  "Toute lecture de données passe par Trino sous votre identité : vos règles de ligne et vos colonnes masquées s’appliquent aussi par l’API.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:85"
+    ]
+  },
+  "Toute personne": {
+    "where": [
+      "components/app/share-dialog.tsx:148"
+    ]
+  },
+  "Toute personne disposant du lien": {
+    "where": [
+      "components/app/share-dialog.tsx:148"
+    ]
+  },
+  "Toute requête passe par Trino, qui consulte l’endpoint OPA de l’API pour appliquer les permissions.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:363"
+    ]
+  },
+  "Toutes": {
+    "where": [
+      "app/(app)/page.tsx:128",
+      "components/app/question/viz-settings.tsx:566"
+    ]
+  },
+  "Toutes les 15 minutes": {
+    "where": [
+      "components/app/dashboard/refresh-timer.tsx:21"
+    ]
+  },
+  "Toutes les 5 minutes": {
+    "where": [
+      "components/app/dashboard/refresh-timer.tsx:20"
+    ]
+  },
+  "Toutes les actions": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:99"
+    ]
+  },
+  "Toutes les colonnes": {
+    "where": [
+      "components/app/question/notebook.tsx:441",
+      "components/app/structure/relations.tsx:246"
+    ]
+  },
+  "toutes les conditions": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:197"
+    ]
+  },
+  "Toutes les données": {
+    "where": [
+      "components/app/copilot.tsx:216"
+    ]
+  },
+  "Toutes les heures": {
+    "where": [
+      "components/app/dashboard/refresh-timer.tsx:22",
+      "components/app/data/source-form.tsx:292",
+      "components/app/data/source-look.tsx:56"
+    ]
+  },
+  "Toutes les minutes": {
+    "where": [
+      "components/app/dashboard/refresh-timer.tsx:19"
+    ]
+  },
+  "Toutes les origines": {
+    "where": [
+      "app/(app)/history/page.tsx:134"
+    ]
+  },
+  "Toutes les personnes": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:110",
+      "app/(app)/history/page.tsx:146",
+      "app/(app)/history/page.tsx:147"
+    ]
+  },
+  "Toutes les sources": {
+    "where": [
+      "components/app/sidebar.tsx:173"
+    ]
+  },
+  "Toutes les valeurs possibles (Ctrl + A)": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:222"
+    ]
+  },
+  "tpch, iceberg, hive, clickhouse…": {
+    "where": [
+      "packages/contracts/src/domain.ts:172"
+    ]
+  },
+  "tpch.splits-per-node=4": {
+    "where": [
+      "packages/contracts/src/domain.ts:179"
+    ]
+  },
+  "Tracé": {
+    "where": [
+      "components/app/question/viz-settings.tsx:587",
+      "components/app/question/viz-settings.tsx:596"
+    ]
+  },
+  "Transformer en métrique": {
+    "where": [
+      "components/app/question/editor.tsx:396"
+    ]
+  },
+  "Transformer en modèle": {
+    "where": [
+      "components/app/question/editor.tsx:393"
+    ]
+  },
+  "Transmettez ce lien à {email} : il n’est montré qu’une fois et reste valable 7 jours.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:366"
+    ]
+  },
+  "Tri": {
+    "where": [
+      "components/app/question/notebook.tsx:493"
+    ]
+  },
+  "Tri et regroupement": {
+    "where": [
+      "components/app/question/viz-settings.tsx:552"
+    ]
+  },
+  "Trier et limiter": {
+    "where": [
+      "components/app/question/notebook.tsx:471"
+    ]
+  },
+  "Trimestre": {
+    "where": [
+      "components/app/structure/format-editor.tsx:265",
+      "lib/builder.ts:132"
+    ]
+  },
+  "Trimestre de l'année": {
+    "where": [
+      "lib/builder.ts:139"
+    ]
+  },
+  "Trimestre dernier": {
+    "where": [
+      "lib/builder.ts:154"
+    ]
+  },
+  "Trino SQL (toutes les sources)": {
+    "where": [
+      "app/(app)/sql/page.tsx:347"
+    ]
+  },
+  "Trino SQL sur toutes vos sources": {
+    "where": [
+      "app/(app)/page.tsx:71"
+    ]
+  },
+  "Type": {
+    "where": [
+      "components/app/question/editor.tsx:92"
+    ]
+  },
+  "type changé": {
+    "where": [
+      "components/app/structure/column-list.tsx:110"
+    ]
+  },
+  "Type changé à la dernière synchro : {from} → {to}": {
+    "where": [
+      "components/app/structure/column-list.tsx:108"
+    ]
+  },
+  "Type d’action": {
+    "where": [
+      "app/(app)/admin/audit/page.tsx:103"
+    ]
+  },
+  "Type de jointure": {
+    "where": [
+      "components/app/question/notebook.tsx:135",
+      "components/app/question/notebook.tsx:136"
+    ]
+  },
+  "Type sémantique": {
+    "where": [
+      "components/app/structure/column-bits.tsx:79",
+      "components/app/structure/column-panel.tsx:108"
+    ]
+  },
+  "Un clic choisit la valeur · ↑ ↓ Espace": {
+    "where": [
+      "components/app/dashboard/value-list.tsx:406"
+    ]
+  },
+  "Un e-mail est parti vers {email}. Vous pouvez aussi lui transmettre ce lien :": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:366"
+    ]
+  },
+  "Un jeton agit avec vos droits, ni plus ni moins : vos permissions de données, de colonnes et de lignes s’appliquent à tout ce qu’il lit.": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:118"
+    ]
+  },
+  "Un jeton agit en votre nom, avec vos droits : pour un script qui appelle l’API REST, ou pour brancher un assistant IA sur le serveur MCP.": {
+    "where": [
+      "app/(app)/account/page.tsx:188"
+    ]
+  },
+  "Un jeton MCP seul ne sert pas sur l’API REST : il ne vaut que pour les assistants.": {
+    "where": [
+      "components/app/docs/mcp.tsx:53"
+    ]
+  },
+  "Un jeton ne vaut que pour les surfaces qu’il déclare : un jeton MCP seul est refusé sur l’API REST.": {
+    "where": [
+      "components/app/docs/docs-viewer.tsx:86"
+    ]
+  },
+  "Un jeton sans expiration : à révoquer s’il n’est plus utile": {
+    "where": [
+      "app/(app)/account/page.tsx:304"
+    ]
+  },
+  "Un lien s’exécute avec les droits de son auteur : un visiteur ne voit jamais plus que vous, et ne choisit pas ce que filtrent les cartes.": {
+    "where": [
+      "components/app/share-dialog.tsx:196"
+    ]
+  },
+  "Un logo, une photo, un drapeau… par son adresse (https). Il s’affiche petit et carré, partout où le picto apparaît.": {
+    "where": [
+      "components/app/structure/pickers.tsx:223"
+    ]
+  },
+  "Un modèle sert de source à d’autres questions, comme une table, et le copilote le voit comme tel.": {
+    "where": [
+      "components/app/question/editor.tsx:574"
+    ]
+  },
+  "Un snippet est un fragment SQL réutilisable : citez-le avec {{snippet: nom}}.": {
+    "where": [
+      "app/(app)/sql/page.tsx:154"
+    ]
+  },
+  "Une agrégation nommée, réutilisable partout": {
+    "where": [
+      "components/app/question/editor.tsx:558"
+    ]
+  },
+  "Une baisse est une bonne nouvelle": {
+    "where": [
+      "components/app/question/viz-settings.tsx:733"
+    ]
+  },
+  "une des formes": {
+    "where": [
+      "components/app/docs/openapi.ts:132"
+    ]
+  },
+  "Une des formes suivantes :": {
+    "where": [
+      "components/app/docs/schema-tree.tsx:85"
+    ]
+  },
+  "Une erreur est survenue.": {
+    "where": [
+      "components/app/admin/common.tsx:86"
+    ]
+  },
+  "Une erreur renvoie {body} avec un message en français, prêt à afficher.": {
+    "where": [
+      "components/app/docs/endpoint.tsx:140"
+    ]
+  },
+  "Une expression Trino sur la colonne ; vide, la valeur devient NULL.": {
+    "where": [
+      "components/app/admin/permission-matrix.tsx:109"
+    ]
+  },
+  "Une métrique est réutilisable dans le builder, les cartes de tableau de bord, le copilote et la MCP : « Résumer → Métriques ».": {
+    "where": [
+      "components/app/question/editor.tsx:573"
+    ]
+  },
+  "Une personne reçoit l’union des droits de tous ses groupes, « Tous les utilisateurs » compris.": {
+    "where": [
+      "app/(app)/admin/permissions/page.tsx:31"
+    ]
+  },
+  "Une propriété par ligne, au format clé=valeur, comme dans un fichier de catalogue.": {
+    "where": [
+      "components/app/data/source-form.tsx:51",
+      "packages/contracts/src/domain.ts:180"
+    ]
+  },
+  "Une question : un résultat à lire": {
+    "where": [
+      "components/app/question/editor.tsx:556"
+    ]
+  },
+  "Une question en français, une réponse chiffrée": {
+    "where": [
+      "app/(app)/page.tsx:73"
+    ]
+  },
+  "Une table virtuelle, réutilisable comme source": {
+    "where": [
+      "components/app/question/editor.tsx:557"
+    ]
+  },
+  "Une valeur ou {{user.region}}": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:217"
+    ]
+  },
+  "Une valeur peut citer un attribut de la personne qui lit : {example}. Une personne sans cet attribut ne voit aucune ligne : un attribut manquant n’ouvre jamais l’accès.": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:107"
+    ]
+  },
+  "Unité": {
+    "where": [
+      "components/app/structure/column-panel.tsx:120",
+      "components/app/structure/column-panel.tsx:121"
+    ]
+  },
+  "Unité de durée": {
+    "where": [
+      "components/app/structure/format-editor.tsx:179"
+    ]
+  },
+  "Unité stockée": {
+    "where": [
+      "components/app/structure/format-editor.tsx:168"
+    ]
+  },
+  "URL": {
+    "where": [
+      "components/app/structure/column-bits.tsx:41",
+      "packages/contracts/src/metadata.ts:75"
+    ]
+  },
+  "URL d'image": {
+    "where": [
+      "components/app/structure/column-bits.tsx:42",
+      "packages/contracts/src/metadata.ts:76"
+    ]
+  },
+  "URL de l’image": {
+    "where": [
+      "components/app/structure/pickers.tsx:270"
+    ]
+  },
+  "Utilisateur": {
+    "where": [
+      "components/app/data/source-form.tsx:37",
+      "packages/contracts/src/domain.ts:63"
+    ]
+  },
+  "Utilisation": {
+    "where": [
+      "app/(app)/account/page.tsx:231"
+    ]
+  },
+  "utilisé {when}": {
+    "where": [
+      "app/(app)/account/page.tsx:202"
+    ]
+  },
+  "utilisé le {date}": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:67"
+    ]
+  },
+  "Utiliser cette image": {
+    "where": [
+      "components/app/structure/pickers.tsx:228"
+    ]
+  },
+  "valeur": {
+    "where": [
+      "components/app/question/editor.tsx:101"
+    ]
+  },
+  "Valeur": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:218",
+      "components/app/data/source-form.tsx:339",
+      "components/app/question/viz-settings.tsx:697"
+    ]
+  },
+  "Valeur 1, valeur 2… ou {{user.region}}": {
+    "where": [
+      "components/app/admin/row-rule-editor.tsx:217"
+    ]
+  },
+  "Valeur de l’attribut": {
+    "where": [
+      "components/app/admin/attributes-editor.tsx:60"
+    ]
+  },
+  "Valeur invalide": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:119"
+    ]
+  },
+  "Valeurs": {
+    "where": [
+      "components/app/data/sync-panel.tsx:20",
+      "components/app/data/sync-panel.tsx:73",
+      "components/app/question/viz-settings.tsx:764"
+    ]
+  },
+  "Valeurs des variables d'une question SQL, par nom.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:88"
+    ]
+  },
+  "Valeurs distinctes": {
+    "where": [
+      "components/app/structure/column-bits.tsx:175",
+      "lib/builder.ts:115"
+    ]
+  },
+  "Valeurs distinctes des colonnes catégorielles.": {
+    "where": [
+      "components/app/data/sync-panel.tsx:20"
+    ]
+  },
+  "Valeurs enregistrées.": {
+    "where": [
+      "components/app/structure/values-editor.tsx:65"
+    ]
+  },
+  "Valeurs séparées par des virgules": {
+    "where": [
+      "components/app/dashboard/parameters.tsx:110"
+    ]
+  },
+  "Valeurs sur les marques": {
+    "where": [
+      "components/app/question/viz-settings.tsx:633"
+    ]
+  },
+  "Variables de la question, par nom.": {
+    "where": [
+      "components/app/docs/mcp-tools.ts:120"
+    ]
+  },
+  "Vers l’onglet": {
+    "where": [
+      "components/app/dashboard/view.tsx:293"
+    ]
+  },
+  "Vers un autre tableau de bord…": {
+    "where": [
+      "components/app/dashboard/view.tsx:306"
+    ]
+  },
+  "Version": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:345"
+    ]
+  },
+  "Vert": {
+    "where": [
+      "components/app/structure/pickers.tsx:26"
+    ]
+  },
+  "Verticaux": {
+    "where": [
+      "components/app/question/viz-settings.tsx:668"
+    ]
+  },
+  "Vider": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:140"
+    ]
+  },
+  "Vider le cache": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:84"
+    ]
+  },
+  "Vider le cache ?": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:138"
+    ]
+  },
+  "Ville": {
+    "where": [
+      "components/app/structure/column-bits.tsx:48",
+      "packages/contracts/src/metadata.ts:82"
+    ]
+  },
+  "Violet": {
+    "where": [
+      "components/app/structure/pickers.tsx:33"
+    ]
+  },
+  "Visibilité": {
+    "where": [
+      "components/app/structure/column-bits.tsx:105",
+      "components/app/structure/column-panel.tsx:111",
+      "components/app/structure/table-editor.tsx:101"
+    ]
+  },
+  "Visualisation": {
+    "where": [
+      "components/app/dashboard/view.tsx:328",
+      "components/app/question/editor.tsx:455",
+      "components/app/question/editor.tsx:518"
+    ]
+  },
+  "Vive": {
+    "where": [
+      "lib/palettes.ts:28"
+    ]
+  },
+  "Voir les {n} autres": {
+    "where": [
+      "components/app/question/viz-settings.tsx:415"
+    ]
+  },
+  "Voir les relations": {
+    "where": [
+      "app/(app)/structure/[[...path]]/page.tsx:132"
+    ]
+  },
+  "Vos données prennent du sens.": {
+    "where": [
+      "app/layout.tsx:29"
+    ]
+  },
+  "Vos groupes": {
+    "where": [
+      "app/(app)/admin/groups/page.tsx:299"
+    ]
+  },
+  "Vos jetons": {
+    "where": [
+      "components/app/docs/token-dialog.tsx:188"
+    ]
+  },
+  "Votre application signe un jeton (JWT HS256) avec un secret ; eodia insights affiche le tableau de bord ou la question demandés, filtres verrouillés, avec les droits du groupe choisi. Les attributs du visiteur alimentent les règles de lignes.": {
+    "where": [
+      "app/(app)/admin/settings/page.tsx:208"
+    ]
+  },
+  "Votre profil, votre mot de passe et vos jetons d’accès à l’API et au serveur MCP.": {
+    "where": [
+      "app/(app)/account/page.tsx:354"
+    ]
+  },
+  "Vous ne pouvez pas vous désactiver vous-même.": {
+    "where": [
+      "app/(app)/admin/people/page.tsx:86"
+    ]
+  },
+  "vs {period} · {value}": {
+    "where": [
+      "components/app/visualization.tsx:179"
+    ]
+  },
+  "Vue d’ensemble": {
+    "where": [
+      "components/app/dashboard/view.tsx:928"
+    ]
+  },
+  "xy12345.eu-west-1": {
+    "where": [
+      "packages/contracts/src/domain.ts:137"
+    ]
+  },
+  "Zone sensible": {
+    "where": [
+      "app/(app)/data/[id]/page.tsx:250"
+    ]
+  }
+}

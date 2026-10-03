@@ -2,6 +2,7 @@
  * Lecture du document OpenAPI 3.1 servi par l'API : la liste des endpoints, leurs schémas
  * (références résolues) et des exemples de corps pour les extraits curl et fetch.
  */
+import { $t, msg } from '@/lib/i18n'
 
 export const METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
 export type Method = (typeof METHODS)[number]
@@ -85,7 +86,7 @@ export function endpointsOf(doc: OpenApiDoc): { tag: string; endpoints: Endpoint
     for (const method of METHODS) {
       const op = ops[method]
       if (!op) continue
-      const tag = op.tags?.[0] ?? 'Autres'
+      const tag = op.tags?.[0] ?? msg('Autres')
       const body = op.requestBody?.content?.['application/json']?.schema
       const e: Endpoint = {
         id: endpointId(method, path),
@@ -128,7 +129,7 @@ export function typeLabel(schema: JsonSchema, doc: OpenApiDoc): string {
   const { schema: s, ref } = resolve(schema, doc)
   if (s.const !== undefined) return JSON.stringify(s.const)
   if (s.enum) return s.enum.length === 1 ? JSON.stringify(s.enum[0]) : 'enum'
-  if (s.oneOf || s.anyOf) return 'une des formes'
+  if (s.oneOf || s.anyOf) return $t('une des formes')
   const t = types(s).filter((x) => x !== 'null')
   if (t[0] === 'array') return `${s.items ? typeLabel(s.items, doc) : 'any'}[]`
   if (t[0] === 'object' || (!t.length && s.properties)) return ref ?? 'object'
@@ -142,15 +143,15 @@ export const isNullable = (schema: JsonSchema): boolean =>
 /** Length, bounds, item counts: what a value must respect, in a few words. */
 export function constraintsOf(s: JsonSchema): string[] {
   const out: string[] = []
-  if (s.minLength !== undefined && s.maxLength !== undefined) out.push(`${s.minLength}–${s.maxLength} car.`)
-  else if (s.maxLength !== undefined) out.push(`≤ ${s.maxLength} car.`)
-  else if (s.minLength !== undefined && s.minLength > 0) out.push(`≥ ${s.minLength} car.`)
+  if (s.minLength !== undefined && s.maxLength !== undefined) out.push($t('{min}–{max} car.', { min: s.minLength, max: s.maxLength }))
+  else if (s.maxLength !== undefined) out.push($t('≤ {max} car.', { max: s.maxLength }))
+  else if (s.minLength !== undefined && s.minLength > 0) out.push($t('≥ {min} car.', { min: s.minLength }))
   if (s.minimum !== undefined) out.push(`≥ ${s.minimum}`)
   if (typeof s.exclusiveMinimum === 'number') out.push(`> ${s.exclusiveMinimum}`)
   if (s.maximum !== undefined) out.push(`≤ ${s.maximum}`)
-  if (s.minItems !== undefined && s.minItems > 0) out.push(`≥ ${s.minItems} él.`)
-  if (s.maxItems !== undefined) out.push(`≤ ${s.maxItems} él.`)
-  if (s.default !== undefined) out.push(`défaut ${JSON.stringify(s.default)}`)
+  if (s.minItems !== undefined && s.minItems > 0) out.push($t('≥ {min} él.', { min: s.minItems }))
+  if (s.maxItems !== undefined) out.push($t('≤ {max} él.', { max: s.maxItems }))
+  if (s.default !== undefined) out.push($t('défaut {value}', { value: JSON.stringify(s.default) }))
   return out
 }
 

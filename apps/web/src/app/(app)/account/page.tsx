@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, msg } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -37,7 +37,7 @@ interface ApiToken {
   readonly expires_at: string | null
 }
 
-const SURFACE_LABELS: Record<Surface, string> = { rest: 'API REST', mcp: 'Serveur MCP' }
+const SURFACE_LABELS: Record<Surface, string> = { rest: msg('API REST'), mcp: msg('Serveur MCP') }
 
 function Profile({ me }: { me: Me }) {
   const qc = useQueryClient()

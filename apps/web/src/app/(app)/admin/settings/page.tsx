@@ -217,7 +217,7 @@ function EmbedCard() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium">{s.name}</div>
-                <div className="truncate font-mono text-xs text-muted-foreground">kid : {s.id}</div>
+                <div className="truncate font-mono text-xs text-muted-foreground">{$t('kid : {id}', { id: s.id })}</div>
               </div>
               <Chip color="indigo">{s.group_name}</Chip>
               <span className="hidden text-xs text-muted-foreground md:inline">{dateTime(s.created_at)}</span>

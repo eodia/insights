@@ -1,3 +1,4 @@
+import './locale'
 import type { ResultColumn, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import type { McpUiHostContext } from '@modelcontextprotocol/ext-apps'
 /**

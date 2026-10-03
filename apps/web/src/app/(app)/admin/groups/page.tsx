@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { $t, $tp } from '@/lib/i18n'
+import { $t, $tp, msg } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -37,9 +37,9 @@ import { Pane } from '@/components/ui/pane'
 import { TabRow } from '@/components/ui/tab-row'
 
 const RIGHTS: readonly { right: AdminRight; label: string; help: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { right: 'manage_sources', label: 'Gérer les sources', help: 'Connecter des bases, modifier leurs réglages, lancer une synchronisation.', icon: Database },
-  { right: 'manage_metadata', label: 'Gérer les métadonnées', help: 'Libellés, descriptions, types sémantiques, relations et valeurs dans « Structure ».', icon: FolderCog },
-  { right: 'manage_permissions', label: 'Gérer les permissions', help: 'Groupes, membres, droits sur les données et les dossiers.', icon: Shield },
+  { right: 'manage_sources', label: msg('Gérer les sources'), help: msg('Connecter des bases, modifier leurs réglages, lancer une synchronisation.'), icon: Database },
+  { right: 'manage_metadata', label: msg('Gérer les métadonnées'), help: msg('Libellés, descriptions, types sémantiques, relations et valeurs dans « Structure ».'), icon: FolderCog },
+  { right: 'manage_permissions', label: msg('Gérer les permissions'), help: msg('Groupes, membres, droits sur les données et les dossiers.'), icon: Shield },
 ]
 
 function Members({ group }: { group: Group }) {
@@ -113,7 +113,7 @@ function Members({ group }: { group: Group }) {
             <Avatar name={m.name} color={m.color} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">
-                {m.name} {m.id === me?.id ? <span className="text-muted-foreground">({$t('vous')})</span> : null}
+                {m.name} {m.id === me?.id ? <span className="text-muted-foreground">{$t('(vous)')}</span> : null}
               </div>
               <div className="truncate text-xs text-muted-foreground">{m.email}</div>
             </div>

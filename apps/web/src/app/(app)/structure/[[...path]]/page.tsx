@@ -11,7 +11,7 @@ import { StructureTree, TableGlyph } from '@/components/app/structure/tree'
 import { usePatchColumn, usePatchTable } from '@/components/app/structure/use-metadata'
 import { Button } from '@/components/ui/button'
 import { formatCount } from '@/lib/format'
-import { $t } from '@/lib/i18n'
+import { $t, $tp } from '@/lib/i18n'
 import { useDatasources, useMe, useTable, useTables } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -124,7 +124,7 @@ function Structure({ segments }: { segments: string[] }) {
                   <div className="min-w-0 flex-1">
                     <h1 className="text-2xl font-semibold tracking-tight">{source.name}</h1>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                      <CatalogName catalog={source.catalog} suffix=".schéma.table" />
+                      <CatalogName catalog={source.catalog} suffix={`.${$t('schéma.table')}`} />
                       <span>· {syncSummary(source)}</span>
                     </div>
                   </div>
@@ -148,7 +148,7 @@ function Structure({ segments }: { segments: string[] }) {
                           {t.schema}.{t.name}
                         </div>
                         <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{t.description || t.native_comment || $t('Sans description')}</div>
-                        {t.row_count != null ? <div className="mt-2 font-mono text-[11px] text-muted-foreground">{$t('≈ {n} lignes', { n: formatCount(t.row_count) })}</div> : null}
+                        {t.row_count != null ? <div className="mt-2 font-mono text-[11px] text-muted-foreground">{$tp(t.row_count, '≈ {n} ligne', '≈ {n} lignes', { n: formatCount(t.row_count) })}</div> : null}
                       </div>
                     </Link>
                   ))}

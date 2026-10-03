@@ -52,7 +52,7 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
   const [principal, setPrincipal] = useState<string | null>(null)
   const [access, setAccess] = useState<'view' | 'edit'>('view')
   const options = [
-    ...(directory?.groups ?? []).filter((g) => g.kind !== 'admin').map((g) => ({ value: `group:${g.id}`, label: `${g.name} (${$t('groupe')})` })),
+    ...(directory?.groups ?? []).filter((g) => g.kind !== 'admin').map((g) => ({ value: `group:${g.id}`, label: $t('{name} (groupe)', { name: g.name }) })),
     ...(directory?.users ?? []).map((u) => ({ value: `user:${u.id}`, label: `${u.name} · ${u.email}` })),
   ]
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ['shares', kind, id] }), qc.invalidateQueries({ queryKey: ['links', kind, id] })])

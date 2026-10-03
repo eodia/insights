@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { LOOK_HEX } from '@/lib/format'
-import { $t, intlLocale } from '@/lib/i18n'
+import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Ban, ImagePlus, Palette, Shapes, Smile } from 'lucide-react'
 import { iconNames } from 'lucide-react/dynamic'
@@ -17,23 +17,23 @@ import { EMOJI_GROUPS, ICON_GROUPS } from '@/lib/icon-library'
 import { useEffect, useRef, useState } from 'react'
 
 export const COLOR_NAMES: Record<LookColor, string> = {
-  gray: 'Gris',
-  red: 'Rouge',
-  orange: 'Orange',
-  amber: 'Ambre',
-  yellow: 'Jaune',
-  lime: 'Citron vert',
-  green: 'Vert',
-  emerald: 'Émeraude',
-  teal: 'Sarcelle',
-  cyan: 'Cyan',
-  sky: 'Ciel',
-  blue: 'Bleu',
-  indigo: 'Indigo',
-  violet: 'Violet',
-  purple: 'Pourpre',
-  pink: 'Rose',
-  rose: 'Rose vif',
+  gray: msg('Gris'),
+  red: msg('Rouge'),
+  orange: msg('Orange'),
+  amber: msg('Ambre'),
+  yellow: msg('Jaune'),
+  lime: msg('Citron vert'),
+  green: msg('Vert'),
+  emerald: msg('Émeraude'),
+  teal: msg('Sarcelle'),
+  cyan: msg('Cyan'),
+  sky: msg('Ciel'),
+  blue: msg('Bleu'),
+  indigo: msg('Indigo'),
+  violet: msg('Violet'),
+  purple: msg('Pourpre'),
+  pink: msg('Rose'),
+  rose: msg('Rose vif'),
 }
 
 /** The palette's colours as dots, and « none ». */

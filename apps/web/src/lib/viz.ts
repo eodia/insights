@@ -7,7 +7,7 @@
 import type { ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { LOOK_HEX, formatValue } from './format'
-import { $t } from './i18n'
+import { $t, intlLocale, msg } from './i18n'
 import { FORECAST_UNITS, type Forecast, forecast, nextPeriods } from './forecast'
 import { PALETTES, schemeColors } from './palettes'
 
@@ -126,22 +126,22 @@ export function vizFits(type: VisualizationType, result: Result): boolean {
 }
 
 export const VIZ_LABELS: Record<VisualizationType, string> = {
-  table: 'Tableau',
-  scalar: 'Nombre',
-  trend: 'Tendance',
-  progress: 'Progression',
-  gauge: 'Jauge',
-  bar: 'Barres',
-  row: 'Barres horizontales',
-  line: 'Lignes',
-  area: 'Aires',
-  combo: 'Combiné',
-  pie: 'Camembert',
-  scatter: 'Nuage de points',
-  funnel: 'Entonnoir',
-  radar: 'Radar',
-  pivot: 'Tableau croisé',
-  map: 'Carte',
+  table: msg('Tableau'),
+  scalar: msg('Nombre'),
+  trend: msg('Tendance'),
+  progress: msg('Progression'),
+  gauge: msg('Jauge'),
+  bar: msg('Barres'),
+  row: msg('Barres horizontales'),
+  line: msg('Lignes'),
+  area: msg('Aires'),
+  combo: msg('Combiné'),
+  pie: msg('Camembert'),
+  scatter: msg('Nuage de points'),
+  funnel: msg('Entonnoir'),
+  radar: msg('Radar'),
+  pivot: msg('Tableau croisé'),
+  map: msg('Carte'),
 }
 
 const keyOf = (v: unknown) => (v === null || v === undefined ? '∅' : String(v))
@@ -241,6 +241,10 @@ export const FORECAST_GREEN = { light: '#2da31d', dark: '#42cd2a' } as const
 /** Names of the series a tooltip leaves out (the forecast interval's two halves). */
 const HIDDEN = '\u200b'
 
+/** A share in percent (`12.5` → `12,5 %`), as the language writes it. */
+const percentText = (value: number, decimals = 1) =>
+  new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: decimals }).format(value / 100)
+
 export interface ColorTarget {
   /** Its key in `settings.series`. */
   readonly key: string
@@ -304,7 +308,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
         ...base,
         tooltip: { ...base.tooltip, trigger: 'item', formatter: (p: unknown) => {
           const q = p as { name: string; value: number; percent: number; marker: string }
-          return `${q.marker} ${q.name}<br/><b>${formatValue(q.value, m)}</b> · ${q.percent.toFixed(1)} %`
+          return `${q.marker} ${q.name}<br/><b>${formatValue(q.value, m)}</b> · ${percentText(q.percent)}`
         } },
         legend: { show: settings.legend !== false, orient: 'vertical', right: 8, top: 'middle', type: 'scroll', icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { color: c.secondary } },
         title: donut && settings.total !== false
@@ -328,7 +332,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
               fontSize: 11,
               formatter: (params: unknown) => {
                 const p = params as { name: string; value: number; percent: number }
-                const pc = `${Math.round(p.percent)} %`
+                const pc = percentText(p.percent, 0)
                 const v = formatValue(p.value, m, { compact: true })
                 switch (settings.slice_labels ?? 'percent') {
                   case 'value':
@@ -364,7 +368,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
         grid: { left: 8, right: 16, top: 16, bottom: 8, containLabel: true },
         tooltip: { ...base.tooltip, trigger: 'item', formatter: (p: unknown) => {
           const v = (p as { value: unknown[] }).value
-          return `${mx.label} : <b>${formatValue(v[0], mx)}</b><br/>${my.label} : <b>${formatValue(v[1], my)}</b>`
+          return `${$t('{column} : {value}', { column: mx.label, value: `<b>${formatValue(v[0], mx)}</b>` })}<br/>${$t('{column} : {value}', { column: my.label, value: `<b>${formatValue(v[1], my)}</b>` })}`
         } },
         xAxis: { type: isNumeric(mx) ? 'value' : 'category', axisLabel: { formatter: axisLabel(mx), color: c.muted }, splitLine: { lineStyle: { color: c.grid, type: 'dashed' } }, axisLine: { lineStyle: { color: c.grid } } },
         yAxis: { type: 'value', axisLabel: { formatter: axisLabel(my), color: c.muted }, splitLine: { lineStyle: { color: c.grid, type: 'dashed' } } },
@@ -461,6 +465,13 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
   const horizon = Math.min(Math.max(Math.round(settings.forecast ?? 0), 0), 36)
   let forecasts: (Forecast | null)[] = []
   let forecastFrom: number | undefined
+  // The forecast series, by name: the legend and the tooltip tell them apart.
+  const forecastNames = new Set<string>()
+  const forecastName = (series: string) => {
+    const name = $t('{series} · prévision', { series })
+    forecastNames.add(name)
+    return name
+  }
   if (horizon > 0 && isTemporal(x) && unit && FORECAST_UNITS.includes(unit) && type !== 'row' && settings.stack !== 'percent') {
     const future = nextPeriods(categories[categories.length - 1], unit, horizon)
     forecasts = future ? series.map((s) => (s.key === '__other__' ? null : forecast(s.values, horizon, settings.forecast_method ?? 'auto', unit))) : []
@@ -489,7 +500,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     type: settings.y_scale === 'log' ? ('log' as const) : ('value' as const),
     ...(settings.y_min !== undefined && settings.y_min !== null ? { min: settings.y_min } : {}),
     ...(settings.y_max !== undefined && settings.y_max !== null ? { max: percent ? 100 : settings.y_max } : percent ? { max: 100 } : {}),
-    axisLabel: { color: c.muted, formatter: percent ? (v: number) => `${v} %` : axisLabel(metric) },
+    axisLabel: { color: c.muted, formatter: percent ? (v: number) => percentText(v) : axisLabel(metric) },
     splitLine: { show: settings.grid_lines !== false, lineStyle: { color: c.grid, type: 'dashed' as const } },
     ...(settings.y_axis === false ? { show: false } : {}),
     ...(settings.y_label ? { name: settings.y_label, nameTextStyle: { color: c.muted } } : {}),
@@ -547,7 +558,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
               const v = p.value as number | null
               if (v === null || v === undefined) return ''
               const shown = spot >= 0 && !settings.values ? p.dataIndex === spot : fewEnough || v === hi || v === lo || p.dataIndex === lastIndex
-              return shown ? (percent ? `${Math.round(v)} %` : formatValue(v, s.metric, { compact: true })) : ''
+              return shown ? (percent ? percentText(v, 0) : formatValue(v, s.metric, { compact: true })) : ''
             },
           }
         : undefined
@@ -624,7 +635,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       })
       out.push({
         type: 'line',
-        name: `${s.name} · ${$t('prévision')}`,
+        name: forecastName(s.name),
         data,
         ...(stack ? { stack: 'forecast' } : {}),
         smooth: settings.line_style === 'smooth',
@@ -719,7 +730,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
               // Several forecasts wear their series' colour in dashes: the legend need not repeat them.
               data: out
                 .map((o) => (o as { name?: string }).name)
-                .filter((name): name is string => !!name && !name.startsWith(HIDDEN) && (series.length === 1 || !name.endsWith(` · ${$t('prévision')}`))),
+                .filter((name): name is string => !!name && !name.startsWith(HIDDEN) && (series.length === 1 || !forecastNames.has(name))),
             }
           : undefined,
       tooltip: {
@@ -729,7 +740,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
           ? {
               formatter: (params: unknown) => {
                 const list = (Array.isArray(params) ? params : [params]) as { seriesName: string; value: unknown; marker: string; axisValueLabel: string; dataIndex: number }[]
-                const shown = list.filter((p) => !p.seriesName.startsWith(HIDDEN) && p.value !== null && p.value !== undefined && (p.dataIndex >= (forecastFrom as number) || !p.seriesName.endsWith($t('prévision'))))
+                const shown = list.filter((p) => !p.seriesName.startsWith(HIDDEN) && p.value !== null && p.value !== undefined && (p.dataIndex >= (forecastFrom as number) || !forecastNames.has(p.seriesName)))
                 if (!shown.length) return ''
                 const head = `${list[0]?.axisValueLabel ?? ''}${(list[0]?.dataIndex ?? 0) >= (forecastFrom as number) ? ` · <i>${$t('prévision')}</i>` : ''}`
                 return [head, ...shown.map((p) => `${p.marker} ${p.seriesName} <b style="float:right;margin-left:16px">${formatValue(typeof p.value === 'object' && p.value !== null && 'value' in p.value ? (p.value as { value: unknown }).value : p.value, metric ?? x)}</b>`)].join('<br/>')
@@ -737,7 +748,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
             }
           : {}),
         axisPointer: { type: type === 'line' || type === 'area' ? 'line' : 'shadow', lineStyle: { color: c.muted }, shadowStyle: { color: theme.dark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.035)' } },
-        valueFormatter: (v) => (percent ? `${Number(v).toFixed(1)} %` : formatValue(v, metric ?? x)),
+        valueFormatter: (v) => (percent ? percentText(Number(v)) : formatValue(v, metric ?? x)),
       },
       dataZoom: many && !horizontal ? [{ type: 'inside' }, { type: 'slider', height: 16, bottom: 4, borderColor: 'transparent', fillerColor: theme.dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)', showDetail: false }] : undefined,
       xAxis: horizontal ? valAxis : catAxis,

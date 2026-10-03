@@ -3,7 +3,7 @@
 import { $t } from '@/lib/i18n'
 import { Bot, KeyRound, Plug, ShieldCheck, Terminal } from 'lucide-react'
 import { CopyButton } from './code'
-import { Section } from './endpoint'
+import { Section, around } from './endpoint'
 import { MCP_TOOLS, type McpTool, mcpUrl } from './mcp-tools'
 import type { Selection } from './nav'
 
@@ -56,9 +56,11 @@ export function McpSetup({ onSelect, onToken }: { onSelect: (s: Selection) => vo
             </button>
           </Step>
           <Step n={2} title={$t('Déclarer le serveur dans le client')}>
-            {$t('En HTTP avec l’en-tête Authorization, ou en stdio : le client lance alors')}{' '}
-            <code className="font-mono text-xs text-foreground">npx tsx apps/mcp/src/server.ts --stdio</code>{' '}
-            {$t('avec EODIA_URL et EODIA_TOKEN dans son environnement. Les configurations sont à droite.')}
+            {around(
+              $t('En HTTP avec l’en-tête Authorization, ou en stdio : le client lance alors {command} avec EODIA_URL et EODIA_TOKEN dans son environnement. Les configurations sont à droite.'),
+              'command',
+              <code className="font-mono text-xs text-foreground">npx tsx apps/mcp/src/server.ts --stdio</code>,
+            )}
           </Step>
           <Step n={3} title={$t('Poser une question')}>
             {$t('« Quel est le chiffre d’affaires par mois cette année ? » : l’assistant trouve la métrique, l’interroge et répond avec les chiffres que vous verriez dans l’application.')}

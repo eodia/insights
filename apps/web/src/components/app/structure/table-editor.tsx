@@ -5,8 +5,8 @@ import { Chip } from '@/components/app/look'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
 import { Label } from '@/components/ui/label'
-import { formatAgo, formatCount } from '@/lib/format'
-import { $t } from '@/lib/i18n'
+import { formatAgo } from '@/lib/format'
+import { $t, $tp } from '@/lib/i18n'
 import { useUi } from '@/lib/store'
 import { Sparkles } from 'lucide-react'
 import { VisibilitySelect } from './column-bits'
@@ -55,8 +55,8 @@ export function TableEditor({
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground/80">
               {source?.catalog ?? '…'}.{table.schema}.{table.name}
             </code>
-            {table.row_count != null ? <span>{$t('≈ {n} lignes', { n: formatCount(table.row_count) })}</span> : null}
-            <span>· {$t('{n} colonnes', { n: active.length })}</span>
+            {table.row_count != null ? <span>{$tp(table.row_count, '≈ {count} ligne', '≈ {count} lignes')}</span> : null}
+            <span>· {$tp(active.length, '{count} colonne', '{count} colonnes')}</span>
             {table.synced_at ? <span>· {$t('synchronisée {when}', { when: formatAgo(table.synced_at) })}</span> : null}
             {table.status === 'removed' ? <Chip>{$t('retirée')}</Chip> : null}
           </div>

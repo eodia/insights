@@ -7,7 +7,7 @@ import { Combobox } from '@/components/ui/combobox'
 import { Hint } from '@/components/ui/tooltip'
 import { ApiError, api } from '@/lib/api'
 import { formatAgo } from '@/lib/format'
-import { $t, intlLocale } from '@/lib/i18n'
+import { $t, intlLocale, msg } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -39,6 +39,36 @@ export interface PermissionsOverview {
   readonly attributes: readonly string[]
 }
 
+/**
+ * The words of `@eodia/contracts` (`DATA_ACCESS_LABELS`, `QUERY_LEVEL_LABELS`, `COLUMN_ACCESS_LABELS`,
+ * `FOLDER_ACCESS_LABELS`), marked here for the catalog: the same French, translated where shown.
+ */
+export const DATA_ACCESS_TEXT: Record<DataAccess, string> = {
+  none: msg('Aucun accès'),
+  read: msg('Lecture'),
+  restricted: msg('Restreint'),
+}
+
+export const QUERY_LEVEL_TEXT: Record<QueryLevel, string> = {
+  none: msg('Aucune requête'),
+  builder: msg('Éditeur visuel'),
+  sql: msg('SQL'),
+  native: msg('SQL natif'),
+}
+
+export const COLUMN_ACCESS_TEXT: Record<ColumnAccess, string> = {
+  hidden: msg('Cachée'),
+  masked: msg('Masquée'),
+  read: msg('Lisible'),
+}
+
+export const FOLDER_ACCESS_TEXT: Record<FolderAccess, string> = {
+  none: msg('Aucun'),
+  view: msg('Lecture'),
+  edit: msg('Modification'),
+  manage: msg('Gestion'),
+}
+
 export interface Member {
   readonly id: string
   readonly name: string
@@ -66,14 +96,14 @@ export function ago(iso: string | null | undefined): string {
 }
 
 export function formatBytes(n: number): string {
-  const units = ['o', 'Ko', 'Mo', 'Go', 'To']
+  const units = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte']
   let v = n
   let i = 0
   while (v >= 1024 && i < units.length - 1) {
     v /= 1024
     i++
   }
-  return `${new Intl.NumberFormat(intlLocale(), { maximumFractionDigits: i === 0 ? 0 : 1 }).format(v)} ${units[i]}`
+  return new Intl.NumberFormat(intlLocale(), { style: 'unit', unit: units[i], maximumFractionDigits: i === 0 ? 0 : 1 }).format(v)
 }
 
 // ── Mise en page ────────────────────────────────────────────────────────────
@@ -211,9 +241,9 @@ export function AdminOnly({ right, children }: { right?: 'manage_permissions'; c
 // ── Groupes ─────────────────────────────────────────────────────────────────
 
 export const GROUP_KIND_LABELS: Record<Group['kind'], string> = {
-  admin: 'Système',
-  all: 'Système',
-  custom: 'Personnalisé',
+  admin: msg('Système'),
+  all: msg('Système'),
+  custom: msg('Personnalisé'),
 }
 
 /** The round tile of a group in a list. */

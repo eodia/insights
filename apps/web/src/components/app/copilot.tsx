@@ -7,10 +7,11 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { api, postStream } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, $tp, msg } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { VIZ_LABELS } from '@/lib/viz'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, Database, History, LayoutDashboard, Loader2, Plus, Search, Send, Sparkles, Table2, Wrench, X, BarChart3 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -30,13 +31,13 @@ type Entry =
   | { role: 'assistant'; text: string; tools: { name: string; ok?: boolean; summary?: string }[]; proposals: Proposal[]; error?: string; done: boolean }
 
 const TOOL_LABELS: Record<string, [string, typeof Search]> = {
-  search_schema: ['Recherche dans le schéma', Search],
-  describe_table: ['Lecture de la table', Table2],
-  list_metrics: ['Lecture des métriques', BarChart3],
-  run_query: ['Exécution de la requête', Database],
-  propose_question: ['Proposition de question', BarChart3],
-  propose_dashboard: ['Proposition de tableau de bord', LayoutDashboard],
-  propose_metadata: ['Proposition de description', Table2],
+  search_schema: [msg('Recherche dans le schéma'), Search],
+  describe_table: [msg('Lecture de la table'), Table2],
+  list_metrics: [msg('Lecture des métriques'), BarChart3],
+  run_query: [msg('Exécution de la requête'), Database],
+  propose_question: [msg('Proposition de question'), BarChart3],
+  propose_dashboard: [msg('Proposition de tableau de bord'), LayoutDashboard],
+  propose_metadata: [msg('Proposition de description'), Table2],
 }
 
 /** Hands a draft question to the question page, which opens it. */
@@ -73,7 +74,7 @@ function ProposalCard({ p }: { p: Proposal }) {
           const placed = placedAfter(d.cards, tab, cardsIn.map((c) => ({ ...c, tab })))
           await api.patch(`/v1/dashboards/${p.dashboard}`, { cards: [...d.cards, ...placed] })
           await qc.invalidateQueries({ queryKey: keys.dashboard(p.dashboard) })
-          toast.success($t('{n} cartes ajoutées au tableau de bord.', { n: placed.length }))
+          toast.success($tp(placed.length, '{count} carte ajoutée au tableau de bord.', '{count} cartes ajoutées au tableau de bord.'))
         } else {
           const placed = placedAfter([], null, cardsIn)
           const d = await api.post<Dashboard>('/v1/dashboards', { name: p.name, folder: me?.personal_folder, cards: placed })
@@ -119,7 +120,7 @@ function ProposalCard({ p }: { p: Proposal }) {
             <div key={c.title} className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-primary" />
               <span className="flex-1 truncate">{c.title}</span>
-              <span className="text-muted-foreground">{c.visualization.type}</span>
+              <span className="text-muted-foreground">{c.visualization.type in VIZ_LABELS ? $t(VIZ_LABELS[c.visualization.type as keyof typeof VIZ_LABELS]) : c.visualization.type}</span>
             </div>
           ))
         ) : (
@@ -129,7 +130,7 @@ function ProposalCard({ p }: { p: Proposal }) {
               <div key={c.name} className="flex gap-2">
                 <span className="w-28 shrink-0 truncate font-mono">{c.name}</span>
                 <span className="flex-1 truncate">{c.label}</span>
-                {c.semantic ? <span className="text-muted-foreground">{SEMANTIC_LABELS[c.semantic as keyof typeof SEMANTIC_LABELS] ?? c.semantic}</span> : null}
+                {c.semantic ? <span className="text-muted-foreground">{c.semantic in SEMANTIC_LABELS ? $t(SEMANTIC_LABELS[c.semantic as keyof typeof SEMANTIC_LABELS]) : c.semantic}</span> : null}
               </div>
             ))}
           </>
@@ -230,6 +231,7 @@ export function CopilotPanel() {
           <Button
             variant="ghost"
             size="icon-sm"
+            aria-label={$t('Nouvelle conversation')}
             onClick={() => {
               abort.current?.abort()
               setEntries([])

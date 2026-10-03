@@ -20,6 +20,8 @@ export interface SharedContent {
 export function PublicView({ content, runner, runQuestion, embed }: { content: SharedContent; runner: Runner; runQuestion: () => Promise<RunResult>; embed: boolean }) {
   const q = content.question
   const result = useQuery({ queryKey: ['public-question', q?.id], queryFn: runQuestion, enabled: !!q, retry: false })
+  // The product's name keeps its weight wherever the language puts it.
+  const poweredBy = $t('Propulsé par {product}').split('{product}')
   return (
     <div className={cn('flex h-screen flex-col bg-background', embed && 'bg-transparent')}>
       {!embed ? (
@@ -54,7 +56,7 @@ export function PublicView({ content, runner, runQuestion, embed }: { content: S
       ) : null}
       {!embed ? (
         <footer className="border-t px-6 py-2 text-center text-xs text-muted-foreground">
-          {$t('Propulsé par')} <span className="font-medium text-foreground">eodia insights</span>
+          {poweredBy[0]}<span className="font-medium text-foreground">eodia insights</span>{poweredBy[1]}
         </footer>
       ) : null}
     </div>

@@ -11,7 +11,7 @@ import { ResultFooter, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { type RunResult, api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, $tp, intlLocale } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
 import { draggable, useDropFolder } from '@/lib/dnd'
 import { keys, useDashboard, useFolderItems, useFolders, useMe, useQuestion } from '@/lib/queries'
@@ -74,10 +74,10 @@ function groupOf(iso: string): string {
 function when(iso: string): string {
   const d = new Date(iso)
   const days = Math.round((Date.now() - d.getTime()) / 86_400_000)
-  if (days < 1) return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  if (days < 1) return d.toLocaleTimeString(intlLocale(), { hour: '2-digit', minute: '2-digit' })
   if (days < 2) return $t('Hier')
-  if (days < 7) return `${days} j`
-  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+  if (days < 7) return $tp(days, '{count} j', '{count} j')
+  return d.toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short' })
 }
 
 function Row({
@@ -388,7 +388,7 @@ function Details({
             [$t('Dossier'), folder ? folderLabel(folder, me?.id) : '—'],
             [
               $t('Modifié'),
-              new Date(item.updated_at).toLocaleString(undefined, {
+              new Date(item.updated_at).toLocaleString(intlLocale(), {
                 dateStyle: 'medium',
                 timeStyle: 'short',
               }),
@@ -401,7 +401,7 @@ function Details({
                     q.query.kind === 'builder'
                       ? $t('Éditeur visuel')
                       : q.query.kind === 'sql'
-                        ? 'SQL Trino'
+                        ? $t('SQL Trino')
                         : $t('SQL natif'),
                   ],
                 ]

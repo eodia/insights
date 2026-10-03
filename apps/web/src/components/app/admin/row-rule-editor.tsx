@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Input } from '@/components/ui/input'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, msg } from '@/lib/i18n'
 import { useQueryClient } from '@tanstack/react-query'
 import { Braces, Filter, Loader2, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
@@ -18,17 +18,17 @@ import { toast } from 'sonner'
 type Policy = PermissionsOverview['rows'][number]
 
 export const OP_LABELS: Record<RowOp, string> = {
-  eq: 'est égal à',
-  ne: 'est différent de',
-  in: 'est parmi',
-  not_in: 'n’est pas parmi',
-  gt: 'est supérieur à',
-  gte: 'est supérieur ou égal à',
-  lt: 'est inférieur à',
-  lte: 'est inférieur ou égal à',
-  contains: 'contient',
-  empty: 'est vide',
-  not_empty: 'n’est pas vide',
+  eq: msg('est égal à'),
+  ne: msg('est différent de'),
+  in: msg('est parmi'),
+  not_in: msg('n’est pas parmi'),
+  gt: msg('est supérieur à'),
+  gte: msg('est supérieur ou égal à'),
+  lt: msg('est inférieur à'),
+  lte: msg('est inférieur ou égal à'),
+  contains: msg('contient'),
+  empty: msg('est vide'),
+  not_empty: msg('n’est pas vide'),
 }
 
 const LIST_OPS: readonly RowOp[] = ['in', 'not_in']
@@ -103,6 +103,8 @@ export function RowRuleEditor({ group, table, columns, policy, attributes }: { g
   const set = (i: number, patch: Partial<Draft>) => setDrafts(drafts.map((d, j) => (j === i ? { ...d, ...patch } : d)))
   const columnOptions = columns.map((c) => ({ value: c.name, label: c.label && c.label !== c.name ? `${c.label} (${c.name})` : c.name }))
   const opOptions = ROW_OPS.map((op) => ({ value: op, label: $t(OP_LABELS[op]) }))
+  // One sentence, cut around the example the code element shows.
+  const attributeHelp = $t('Une valeur peut citer un attribut de la personne qui lit : {example}. Une personne sans cet attribut ne voit aucune ligne : un attribut manquant n’ouvre jamais l’accès.').split('{example}')
 
   const save = async () => {
     const conditions = drafts.map((d) => toCondition(d, columns))
@@ -232,9 +234,9 @@ export function RowRuleEditor({ group, table, columns, policy, attributes }: { g
       </Button>
       <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={$t('Description, pour les autres administrateurs (facultative)')} aria-label={$t('Description')} />
       <p className="text-xs text-muted-foreground">
-        {$t('Une valeur peut citer un attribut de la personne qui lit : ')}
+        {attributeHelp[0]}
         <code className="font-mono">{'{{user.region}}'}</code>
-        {$t('. Une personne sans cet attribut ne voit aucune ligne : un attribut manquant n’ouvre jamais l’accès.')}
+        {attributeHelp[1]}
       </p>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <div className="flex gap-2">

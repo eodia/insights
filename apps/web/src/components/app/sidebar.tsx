@@ -7,11 +7,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { api } from '@/lib/api'
-import { $t } from '@/lib/i18n'
+import { $t, LOCALES, LOCALE_NAMES, chooseLocale, rememberedLocale } from '@/lib/i18n'
 import { draggable, useDropFolder } from '@/lib/dnd'
 import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
@@ -28,6 +33,7 @@ import {
   History,
   Home,
   KeyRound,
+  Languages,
   LogOut,
   Moon,
   Network,
@@ -241,6 +247,24 @@ export function Sidebar() {
           <DropdownMenuItem onSelect={() => setTheme(true)}>
             <Moon /> {$t('Thème sombre')}
           </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Languages /> {$t('Langue')}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup
+                value={rememberedLocale() ?? 'auto'}
+                onValueChange={(v) => chooseLocale(v === 'auto' ? null : (v as (typeof LOCALES)[number]))}
+              >
+                <DropdownMenuRadioItem value="auto">{$t('Langue du navigateur')}</DropdownMenuRadioItem>
+                {LOCALES.map((l) => (
+                  <DropdownMenuRadioItem key={l} value={l} lang={l}>
+                    {LOCALE_NAMES[l]}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={async () => {

@@ -8,53 +8,10 @@ import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react
 import type * as React from 'react'
 import { useEffect, useRef } from 'react'
 import { type DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker'
-import {
-  type DayPickerLocale,
-  cs,
-  da,
-  de,
-  enGB,
-  es,
-  fi,
-  fr,
-  hu,
-  it,
-  ja,
-  ko,
-  nb,
-  nl,
-  pl,
-  ptBR,
-  ro,
-  sv,
-  tr,
-  uk,
-  zhCN,
-} from 'react-day-picker/locale'
+import { type DayPickerLocale, enUS, es, fr } from 'react-day-picker/locale'
 
 /** Each language's calendar: its months, its weekdays, what a screen reader hears. */
-const DAY_PICKER_LOCALES: Readonly<Record<Locale, DayPickerLocale>> = {
-  fr,
-  en: enGB,
-  de,
-  es,
-  it,
-  'pt-BR': ptBR,
-  nl,
-  pl,
-  cs,
-  sv,
-  da,
-  nb,
-  fi,
-  ro,
-  hu,
-  tr,
-  uk,
-  ja,
-  'zh-CN': zhCN,
-  ko,
-}
+const DAY_PICKER_LOCALES: Readonly<Record<Locale, DayPickerLocale>> = { fr, en: enUS, es }
 
 /**
  * The shadcn calendar, in the reader's language: weeks start on Monday — or on Sunday,
