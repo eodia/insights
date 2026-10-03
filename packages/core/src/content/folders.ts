@@ -86,6 +86,7 @@ export async function updateFolder(
   if (!row) throw notFound('Dossier introuvable.')
   if (!atLeastAccess(idx.folder(id), 'edit')) throw forbidden()
   if (row.personal_owner_id && (patch.parent !== undefined || patch.archived)) throw invalid('Un dossier personnel ne se déplace ni ne s’archive.')
+  if (patch.parent === null && row.parent_id !== null && !idx.admin) throw forbidden('Seul un administrateur range un dossier à la racine.')
   if (patch.parent !== undefined && patch.parent !== null) {
     if (!atLeastAccess(idx.folder(patch.parent), 'edit')) throw forbidden('Vous ne pouvez pas déplacer le dossier ici.')
     if (idx.path(patch.parent).some((p) => p.id === id) || patch.parent === id) throw invalid('Un dossier ne peut pas se ranger dans lui-même.')

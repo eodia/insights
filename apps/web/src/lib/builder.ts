@@ -100,6 +100,12 @@ export function pruneJoins(query: BuilderQuery): BuilderQuery {
   for (const b of query.breakouts ?? []) cite(b)
   for (const f of query.fields ?? []) cite(f)
   for (const s of query.sort ?? []) if (s.target.kind === 'column') cite(s.target.column)
+  // A join the person added stays, with the joins its condition goes through.
+  for (const j of query.joins ?? []) {
+    if (!j.explicit) continue
+    used.add(j.alias)
+    cite(j.left)
+  }
   const joins = (query.joins ?? []).filter((j) => used.has(j.alias))
   return { ...query, joins }
 }
@@ -204,3 +210,36 @@ export function aggregationLabel(a: Aggregation, options: readonly ColumnOption[
 }
 
 export const semanticLabel = (s?: string | null) => (s ? (SEMANTIC_LABELS as Record<string, string>)[s] ?? s : '')
+
+/** An alias for a new join on `table`, free in the query and among the implicit ones. */
+export function joinAlias(query: BuilderQuery, table: TableMeta, options: readonly ColumnOption[]): string {
+  const taken = new Set([...(query.joins ?? []).map((j) => j.alias), ...options.flatMap((o) => (o.join ? [o.join.alias] : []))])
+  const base = table.name.toLowerCase().replace(/[^a-z0-9_]/g, '_') || 'jointure'
+  let alias = base
+  for (let i = 2; taken.has(alias); i++) alias = `${base}_${i}`
+  return alias
+}
+
+/**
+ * The condition a join on `target` most likely takes: a key of the source that points to it,
+ * or a key of it that points to the source; otherwise, a column of the same name.
+ */
+export function suggestedCondition(source: TableMeta | null, target: TableMeta): { left: ColumnRef; right: string } | null {
+  if (!source) return null
+  const own = source.columns ?? []
+  const theirs = target.columns ?? []
+  const forward = own.find((c) => c.fk?.table === target.id)
+  if (forward?.fk) return { left: { field: forward.name }, right: forward.fk.name }
+  const backward = theirs.find((c) => c.fk?.table === source.id)
+  if (backward?.fk) return { left: { field: backward.fk.name }, right: backward.name }
+  const same = theirs.find((c) => own.some((o) => o.name === c.name) && /(^id$|_id$|^code)/i.test(c.name))
+  if (same) return { left: { field: same.name }, right: same.name }
+  return null
+}
+
+export const JOIN_LABELS: Record<Join['kind'], string> = {
+  left: 'Jointure à gauche',
+  inner: 'Jointure interne',
+  right: 'Jointure à droite',
+  full: 'Jointure complète',
+}

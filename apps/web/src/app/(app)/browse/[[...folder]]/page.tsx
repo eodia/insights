@@ -12,12 +12,24 @@ import { Input } from '@/components/ui/input'
 import { type RunResult, api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
+import { draggable, useDropFolder } from '@/lib/dnd'
 import { keys, useDashboard, useFolderItems, useFolders, useMe, useQuestion } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { VIZ_LABELS } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowUpRight, FolderOpen, Loader2, PanelRight, Search, Share2, Star } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CornerLeftUp,
+  FolderOpen,
+  FolderPlus,
+  Loader2,
+  PanelRight,
+  Search,
+  Share2,
+  Star,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useMemo, useState } from 'react'
@@ -67,10 +79,25 @@ function when(iso: string): string {
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
-function Row({ item, active, onSelect }: { item: ItemSummary; active: boolean; onSelect: () => void }) {
+function Row({
+  item,
+  active,
+  onSelect,
+}: { item: ItemSummary; active: boolean; onSelect: () => void }) {
   return (
-    <button
-      type="button"
+    // A div, not a button: Firefox does not drag a button.
+    <div
+      {...draggable({ kind: item.kind, id: item.id, name: item.name, folder: item.folder })}
+      // biome-ignore lint/a11y/useSemanticElements: a button cannot be dragged everywhere
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') window.location.href = itemHref(item)
+        else if (e.key === ' ') {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
       onClick={onSelect}
       onDoubleClick={() => (window.location.href = itemHref(item))}
       className={cn(
@@ -78,29 +105,140 @@ function Row({ item, active, onSelect }: { item: ItemSummary; active: boolean; o
         active ? 'bg-muted' : 'hover:bg-muted/60',
       )}
     >
-      {active ? <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-primary" /> : null}
+      {active ? (
+        <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-primary" />
+      ) : null}
       <ItemTile kind={item.kind} />
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2">
           <span className="flex-1 truncate font-semibold">{item.name}</span>
           <span className="shrink-0 text-xs text-muted-foreground">{when(item.updated_at)}</span>
         </div>
-        <div className="truncate text-sm text-muted-foreground">{item.description || (item.updated_by ? $t('Modifié par {name}', { name: item.updated_by.name }) : '')}</div>
+        <div className="truncate text-sm text-muted-foreground">
+          {item.description ||
+            (item.updated_by ? $t('Modifié par {name}', { name: item.updated_by.name }) : '')}
+        </div>
         <div className="flex items-center gap-1.5">
-          <Chip color={item.kind === 'dashboard' ? 'green' : item.kind === 'model' ? 'violet' : item.kind === 'metric' ? 'amber' : 'sky'}>{$t(KIND_LABELS[item.kind])}</Chip>
-          {item.viz && item.kind === 'question' ? <Chip>{$t(VIZ_LABELS[item.viz as keyof typeof VIZ_LABELS] ?? item.viz)}</Chip> : null}
+          <Chip
+            color={
+              item.kind === 'dashboard'
+                ? 'green'
+                : item.kind === 'model'
+                  ? 'violet'
+                  : item.kind === 'metric'
+                    ? 'amber'
+                    : 'sky'
+            }
+          >
+            {$t(KIND_LABELS[item.kind])}
+          </Chip>
+          {item.viz && item.kind === 'question' ? (
+            <Chip>{$t(VIZ_LABELS[item.viz as keyof typeof VIZ_LABELS] ?? item.viz)}</Chip>
+          ) : null}
           {item.bookmarked ? <Star className="size-3.5 fill-amber-400 text-amber-400" /> : null}
           <span className="flex-1" />
-          {item.updated_by ? <Avatar name={item.updated_by.name} color={item.updated_by.color} size="sm" /> : null}
+          {item.updated_by ? (
+            <Avatar name={item.updated_by.name} color={item.updated_by.color} size="sm" />
+          ) : null}
         </div>
       </div>
+    </div>
+  )
+}
+
+/** A sub-folder: opened by a click, filed elsewhere by a drag, and a place to drop items on. */
+function FolderTile({
+  folder,
+  label,
+  draggableAs,
+  icon,
+}: { folder: string | null; label: string; draggableAs?: Folder; icon?: React.ReactNode }) {
+  const drop = useDropFolder(folder, label)
+  return (
+    <Link
+      href={folder ? `/browse/${folder}` : '/browse'}
+      {...(draggableAs
+        ? draggable({ kind: 'folder', id: draggableAs.id, name: label, folder: draggableAs.parent })
+        : {})}
+      {...drop.props}
+      className={cn(
+        'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm hover:bg-muted/60',
+        drop.over && 'border-primary bg-primary/5 ring-2 ring-primary/30',
+      )}
+    >
+      {icon}
+      <span className="truncate">{label}</span>
+    </Link>
+  )
+}
+
+/** A new sub-folder, named where it will appear. */
+function NewFolderTile({ parent }: { parent: string | null }) {
+  const qc = useQueryClient()
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState('')
+  const create = async () => {
+    const n = name.trim()
+    setEditing(false)
+    setName('')
+    if (!n) return
+    try {
+      await api.post<Folder>('/v1/folders', { name: n, parent })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: keys.folders }),
+        qc.invalidateQueries({ queryKey: ['folder-items'] }),
+      ])
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-primary px-3 py-1.5 text-sm">
+        <FolderPlus className="size-4 shrink-0 text-primary" />
+        <input
+          // biome-ignore lint/a11y/noAutofocus: the field appears on the click that asks for it
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={create}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+            else if (e.key === 'Escape') {
+              setName('')
+              setEditing(false)
+            }
+          }}
+          placeholder={$t('Nom du dossier')}
+          aria-label={$t('Nom du dossier')}
+          className="h-7 min-w-0 flex-1 bg-transparent outline-none"
+        />
+      </div>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2.5 text-left text-sm text-muted-foreground hover:border-primary hover:text-primary"
+    >
+      <FolderPlus className="size-4 shrink-0" />
+      <span className="truncate">{$t('Nouveau dossier')}</span>
     </button>
   )
 }
 
-function QuestionPreview({ id, details, onToggleDetails }: { id: string; details: boolean; onToggleDetails: () => void }) {
+function QuestionPreview({
+  id,
+  details,
+  onToggleDetails,
+}: { id: string; details: boolean; onToggleDetails: () => void }) {
   const { data: q } = useQuestion(id)
-  const run = useQuery({ queryKey: ['preview-run', id], queryFn: () => api.post<RunResult>(`/v1/questions/${id}/run`, {}), retry: false })
+  const run = useQuery({
+    queryKey: ['preview-run', id],
+    queryFn: () => api.post<RunResult>(`/v1/questions/${id}/run`, {}),
+    retry: false,
+  })
   if (!q) return <Loader2 className="m-auto size-5 animate-spin text-muted-foreground" />
   return (
     <div className="flex h-full flex-col">
@@ -116,7 +254,14 @@ function QuestionPreview({ id, details, onToggleDetails }: { id: string; details
           </Link>
         </Button>
         <Hint label={$t('Afficher ou masquer le détail')}>
-          <Button size="icon-sm" variant={details ? 'secondary' : 'ghost'} onClick={onToggleDetails} aria-label={$t('Afficher ou masquer le détail')} aria-pressed={details} className="hidden xl:inline-flex">
+          <Button
+            size="icon-sm"
+            variant={details ? 'secondary' : 'ghost'}
+            onClick={onToggleDetails}
+            aria-label={$t('Afficher ou masquer le détail')}
+            aria-pressed={details}
+            className="hidden xl:inline-flex"
+          >
             <PanelRight />
           </Button>
         </Hint>
@@ -127,7 +272,9 @@ function QuestionPreview({ id, details, onToggleDetails }: { id: string; details
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : run.error ? (
-          <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{(run.error as Error).message}</p>
+          <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {(run.error as Error).message}
+          </p>
         ) : run.data ? (
           <div className="h-full rounded-xl border p-3">
             <Visualization result={run.data} viz={q.visualization} />
@@ -148,7 +295,8 @@ function DashboardPreview({ id }: { id: string }) {
   const { data: d, error } = useDashboard(id)
   if (error) return <p className="p-8 text-sm text-destructive">{(error as Error).message}</p>
   if (!d) return <Loader2 className="m-auto size-5 animate-spin text-muted-foreground" />
-  const runner: Runner = (card, values, { fresh }) => api.post<RunResult>(`/v1/dashboards/${d.id}/cards/${card.id}/run`, { values, fresh })
+  const runner: Runner = (card, values, { fresh }) =>
+    api.post<RunResult>(`/v1/dashboards/${d.id}/cards/${card.id}/run`, { values, fresh })
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-start gap-3 px-6 pt-4 pb-1">
@@ -163,20 +311,40 @@ function DashboardPreview({ id }: { id: string }) {
         </Button>
       </div>
       <div className="min-h-0 flex-1">
-        <DashboardView key={d.updated_at} dashboard={d} runner={runner} editable={false} autoRefresh={d.auto_refresh} />
+        <DashboardView
+          key={d.updated_at}
+          dashboard={d}
+          runner={runner}
+          editable={false}
+          autoRefresh={d.auto_refresh}
+        />
       </div>
     </div>
   )
 }
 
-function Details({ item, folder, onShare }: { item: ItemSummary; folder?: Folder; onShare: () => void }) {
+function Details({
+  item,
+  folder,
+  onShare,
+}: { item: ItemSummary; folder?: Folder; onShare: () => void }) {
   const { data: me } = useMe()
   const qc = useQueryClient()
   const { data: q } = useQuestion(item.kind !== 'dashboard' ? item.id : null)
   return (
-    <Pane as="aside" id="browse.details" side="right" defaultSize={340} min={260} max={560} className="hidden overflow-y-auto border-l xl:block">
+    <Pane
+      as="aside"
+      id="browse.details"
+      side="right"
+      defaultSize={340}
+      min={260}
+      max={560}
+      className="hidden overflow-y-auto border-l xl:block"
+    >
       <div className="flex h-12 items-center gap-6 border-b px-5 text-[15px]">
-        <span className="relative py-3 font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary">{$t('Détails')}</span>
+        <span className="relative py-3 font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary">
+          {$t('Détails')}
+        </span>
       </div>
       <div className="space-y-6 p-5">
         <div className="flex items-center gap-3">
@@ -189,10 +357,36 @@ function Details({ item, folder, onShare }: { item: ItemSummary; folder?: Folder
         <dl className="space-y-3 text-sm">
           {[
             [$t('Dossier'), folder ? folderLabel(folder, me?.id) : '—'],
-            [$t('Modifié'), new Date(item.updated_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })],
+            [
+              $t('Modifié'),
+              new Date(item.updated_at).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              }),
+            ],
             [$t('Par'), item.updated_by?.name ?? '—'],
-            ...(q ? [[$t('Requête'), q.query.kind === 'builder' ? $t('Éditeur visuel') : q.query.kind === 'sql' ? 'SQL Trino' : $t('SQL natif')]] : []),
-            ...(q ? [[$t('Accès'), { view: $t('Lecture'), edit: $t('Modification'), manage: $t('Gestion') }[q.access]]] : []),
+            ...(q
+              ? [
+                  [
+                    $t('Requête'),
+                    q.query.kind === 'builder'
+                      ? $t('Éditeur visuel')
+                      : q.query.kind === 'sql'
+                        ? 'SQL Trino'
+                        : $t('SQL natif'),
+                  ],
+                ]
+              : []),
+            ...(q
+              ? [
+                  [
+                    $t('Accès'),
+                    { view: $t('Lecture'), edit: $t('Modification'), manage: $t('Gestion') }[
+                      q.access
+                    ],
+                  ],
+                ]
+              : []),
           ].map(([k, v]) => (
             <div key={k} className="flex gap-3">
               <dt className="w-24 shrink-0 text-muted-foreground">{k}</dt>
@@ -205,11 +399,16 @@ function Details({ item, folder, onShare }: { item: ItemSummary; folder?: Folder
             variant="outline"
             size="sm"
             onClick={async () => {
-              await api.post('/v1/bookmarks', { kind: item.kind, id: item.id, on: !item.bookmarked })
+              await api.post('/v1/bookmarks', {
+                kind: item.kind,
+                id: item.id,
+                on: !item.bookmarked,
+              })
               await qc.invalidateQueries({ queryKey: ['folder-items'] })
             }}
           >
-            <Star className={cn(item.bookmarked && 'fill-amber-400 text-amber-400')} /> {item.bookmarked ? $t('Retirer des favoris') : $t('Favori')}
+            <Star className={cn(item.bookmarked && 'fill-amber-400 text-amber-400')} />{' '}
+            {item.bookmarked ? $t('Retirer des favoris') : $t('Favori')}
           </Button>
           <Button variant="outline" size="sm" onClick={onShare}>
             <Share2 /> {$t('Partager')}
@@ -235,8 +434,12 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   const folder = folders.find((f) => f.id === folderId)
   const byId = new Map(folders.map((f) => [f.id, f]))
   const path: Folder[] = []
-  for (let cursor = folder; cursor; cursor = cursor.parent ? byId.get(cursor.parent) : undefined) path.unshift(cursor)
-  useCrumbs([{ label: $t('Dossiers'), href: '/browse' }, ...path.map((f) => ({ label: folderLabel(f, me?.id), href: `/browse/${f.id}` }))])
+  for (let cursor = folder; cursor; cursor = cursor.parent ? byId.get(cursor.parent) : undefined)
+    path.unshift(cursor)
+  useCrumbs([
+    { label: $t('Dossiers'), href: '/browse' },
+    ...path.map((f) => ({ label: folderLabel(f, me?.id), href: `/browse/${f.id}` })),
+  ])
 
   const items = data?.items ?? []
   const counts = useMemo(() => {
@@ -255,16 +458,42 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
     groups.set(g, [...(groups.get(g) ?? []), i])
   }
   const current = visible.find((i) => i.id === selected) ?? visible[0]
-  const subfolders = folderId === 'root' ? folders.filter((f) => f.parent === null && (!f.personal || f.personal === me?.id)) : (data?.folders ?? [])
+  // Where the folder sits: its parent, or the root for a shared folder at the top (personal ones stay put).
+  const parent: Folder | null | undefined = !folder
+    ? undefined
+    : folder.parent
+      ? byId.get(folder.parent)
+      : folder.personal
+        ? undefined
+        : null
+  const canCreate =
+    folderId === 'root' ? !!me?.is_admin : folder?.access === 'edit' || folder?.access === 'manage'
+  const subfolders =
+    folderId === 'root'
+      ? folders.filter((f) => f.parent === null && (!f.personal || f.personal === me?.id))
+      : (data?.folders ?? [])
 
   return (
     <div className="flex h-full">
       {/* List */}
-      <Pane as="section" id="browse.list" side="left" defaultSize={380} min={280} max={640} className="flex flex-col border-r">
+      <Pane
+        as="section"
+        id="browse.list"
+        side="left"
+        defaultSize={380}
+        min={280}
+        max={640}
+        className="flex flex-col border-r"
+      >
         <div className="flex items-center gap-2 p-3">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher dans le dossier…')} className="h-10 rounded-lg pl-9" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={$t('Rechercher dans le dossier…')}
+              className="h-10 rounded-lg pl-9"
+            />
           </div>
         </div>
         <TabRow className="gap-5 border-b px-4 text-sm">
@@ -273,35 +502,83 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className={cn('relative py-2.5 whitespace-nowrap', tab === t ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground hover:text-foreground')}
+              className={cn(
+                'relative py-2.5 whitespace-nowrap',
+                tab === t
+                  ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
-              {t === 'all' ? $t('Tout') : t === 'dashboard' ? $t('Tableaux') : t === 'question' ? $t('Questions') : t === 'model' ? $t('Modèles') : $t('Métriques')}{' '}
+              {t === 'all'
+                ? $t('Tout')
+                : t === 'dashboard'
+                  ? $t('Tableaux')
+                  : t === 'question'
+                    ? $t('Questions')
+                    : t === 'model'
+                      ? $t('Modèles')
+                      : $t('Métriques')}{' '}
               <span className="text-xs text-muted-foreground">{counts[t] ?? 0}</span>
             </button>
           ))}
         </TabRow>
         <div className="flex-1 overflow-y-auto px-2 pb-4">
-          {subfolders.length > 0 && tab === 'all' && !search ? (
+          {(subfolders.length > 0 || canCreate || parent !== undefined) &&
+          tab === 'all' &&
+          !search ? (
             <div className="px-2 pt-4">
-              <div className="mb-2 px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Dossiers')}</div>
-              <div className="grid grid-cols-2 gap-2">
-                {subfolders.map((f) => (
-                  <Link key={f.id} href={`/browse/${f.id}`} className="flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm hover:bg-muted/60">
-                    {f.icon ? <LookIcon name={f.icon} color={f.color} /> : <FolderOpen className="size-4 text-muted-foreground" />}
-                    <span className="truncate">{folderLabel(f, me?.id)}</span>
-                  </Link>
-                ))}
+              <div className="mb-2 px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {$t('Dossiers')}
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                {parent !== undefined ? (
+                  <FolderTile
+                    folder={parent?.id ?? null}
+                    label={parent ? folderLabel(parent, me?.id) : $t('Dossiers')}
+                    icon={<CornerLeftUp className="size-4 text-muted-foreground" />}
+                  />
+                ) : null}
+                {subfolders.map((f) => (
+                  <FolderTile
+                    key={f.id}
+                    folder={f.id}
+                    label={folderLabel(f, me?.id)}
+                    {...(f.personal ? {} : { draggableAs: f })}
+                    icon={
+                      f.icon ? (
+                        <LookIcon name={f.icon} color={f.color} />
+                      ) : (
+                        <FolderOpen className="size-4 text-muted-foreground" />
+                      )
+                    }
+                  />
+                ))}
+                {canCreate ? (
+                  <NewFolderTile parent={folderId === 'root' ? null : folderId} />
+                ) : null}
+              </div>
+              {subfolders.length > 0 || parent !== undefined ? (
+                <p className="mt-2 px-1 text-[11px] text-muted-foreground">
+                  {$t('Glissez un élément ou un dossier sur un dossier pour l’y ranger.')}
+                </p>
+              ) : null}
             </div>
           ) : null}
-          {isLoading ? <Loader2 className="mx-auto mt-10 size-5 animate-spin text-muted-foreground" /> : null}
+          {isLoading ? (
+            <Loader2 className="mx-auto mt-10 size-5 animate-spin text-muted-foreground" />
+          ) : null}
           {[...groups.entries()].map(([g, list]) => (
             <div key={g} className="pt-4">
               <div className="mb-1 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 {g} <span className="ml-1 font-normal">{list.length}</span>
               </div>
               {list.map((i) => (
-                <Row key={i.id} item={i} active={current?.id === i.id} onSelect={() => setSelected(i.id)} />
+                <Row
+                  key={i.id}
+                  item={i}
+                  active={current?.id === i.id}
+                  onSelect={() => setSelected(i.id)}
+                />
               ))}
             </div>
           ))}
@@ -324,19 +601,39 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
           current.kind === 'dashboard' ? (
             <DashboardPreview key={current.id} id={current.id} />
           ) : (
-            <QuestionPreview key={current.id} id={current.id} details={details} onToggleDetails={toggleDetails} />
+            <QuestionPreview
+              key={current.id}
+              id={current.id}
+              details={details}
+              onToggleDetails={toggleDetails}
+            />
           )
         ) : (
           <div className="m-auto max-w-sm space-y-2 text-center">
             <FolderOpen className="mx-auto size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{folder ? folder.description || $t('Sélectionnez un élément pour le prévisualiser.') : $t('Parcourez vos dossiers : chaque dossier porte ses droits, et chaque élément peut aussi être partagé avec une personne ou un groupe.')}</p>
+            <p className="text-sm text-muted-foreground">
+              {folder
+                ? folder.description || $t('Sélectionnez un élément pour le prévisualiser.')
+                : $t(
+                    'Parcourez vos dossiers : chaque dossier porte ses droits, et chaque élément peut aussi être partagé avec une personne ou un groupe.',
+                  )}
+            </p>
           </div>
         )}
       </section>
 
-      {current && current.kind !== 'dashboard' && details ? <Details item={current} {...(folder ? { folder } : {})} onShare={() => setShare(true)} /> : null}
-      {current ? <ShareDialog open={share} onOpenChange={setShare} kind={current.kind} id={current.id} name={current.name} /> : null}
+      {current && current.kind !== 'dashboard' && details ? (
+        <Details item={current} {...(folder ? { folder } : {})} onShare={() => setShare(true)} />
+      ) : null}
+      {current ? (
+        <ShareDialog
+          open={share}
+          onOpenChange={setShare}
+          kind={current.kind}
+          id={current.id}
+          name={current.name}
+        />
+      ) : null}
     </div>
   )
 }
-

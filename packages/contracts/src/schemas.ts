@@ -55,6 +55,7 @@ export const BuilderQuerySchema = z.object({
         kind: z.enum(JOIN_KINDS),
         left: ColumnRefSchema,
         right: z.string().min(1).max(256),
+        explicit: z.boolean().optional(),
       }),
     )
     .max(QUERY_LIMITS.joins)

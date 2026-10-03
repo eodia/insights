@@ -491,8 +491,16 @@ class Compilation {
     })
 
     if (!grouped) {
+      // By default, the source's columns, then those of each join the person added.
       const fields: ColumnRef[] =
-        q.fields && q.fields.length > 0 ? [...q.fields] : this.base.columns.map((c) => ({ field: c.name }))
+        q.fields && q.fields.length > 0
+          ? [...q.fields]
+          : [
+              ...this.base.columns.map((c) => ({ field: c.name })),
+              ...(q.joins ?? [])
+                .filter((j) => j.explicit)
+                .flatMap((j) => (this.joins.get(j.alias)?.columns ?? []).map((c) => ({ join: j.alias, field: c.name }))),
+            ]
       for (const f of fields) {
         const r = this.resolve(f)
         const name = columnName(f)

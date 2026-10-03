@@ -12,11 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
+import { draggable, useDropFolder } from '@/lib/dnd'
+import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import {
   BookOpen,
   ChevronDown,
+  ChevronRight,
   ChevronsUpDown,
   Code2,
   Database,
@@ -72,17 +75,63 @@ function NavItem({
   )
 }
 
-function FolderLink({ folder, active }: { folder: Folder; active: boolean }) {
+/**
+ * A folder of the tree: its sub-folders unfold under it, and an item or folder dragged onto it
+ * is filed there.
+ */
+function FolderNode({ folder, folders, depth, path, me }: { folder: Folder; folders: readonly Folder[]; depth: number; path: string; me: string | undefined }) {
+  const children = folders.filter((f) => f.parent === folder.id)
+  const href = `/browse/${folder.id}`
+  const active = path === href || path.startsWith(`${href}/`)
+  // Unfolded on the way to the open folder, and as the person chooses.
+  const current = path.startsWith('/browse/') ? path.split('/')[2] : undefined
+  const onPath = !!current && (current === folder.id || folders.find((f) => f.id === current)?.path.some((p) => p.id === folder.id))
+  const [open, setOpen] = useState<boolean | null>(null)
+  const unfolded = open ?? onPath
+  const label = folderLabel(folder, me)
+  const drop = useDropFolder(folder.id, label)
   return (
-    <NavItem href={`/browse/${folder.id}`} label={folder.personal ? $t('Mon dossier') : folder.name} active={active} sub>
-      {folder.icon ? (
-        <LookIcon name={folder.icon} color={folder.color} className="size-4 shrink-0" />
-      ) : folder.personal ? (
-        <FolderLock className="size-4 shrink-0 text-muted-foreground" />
-      ) : (
-        <FolderClosed className="size-4 shrink-0 text-muted-foreground" />
-      )}
-    </NavItem>
+    <>
+      <Link
+        href={href}
+        {...(folder.personal ? {} : draggable({ kind: 'folder', id: folder.id, name: label, folder: folder.parent }))}
+        {...drop.props}
+        style={{ paddingLeft: 16 + depth * 14 }}
+        className={cn(
+          'group flex h-9 items-center gap-2 rounded-lg pr-2 text-sm text-muted-foreground transition-colors',
+          active ? 'bg-sidebar-accent font-medium text-foreground' : 'hover:bg-sidebar-accent/70',
+          drop.over && 'bg-primary/10 text-foreground ring-2 ring-primary/40',
+        )}
+      >
+        {children.length ? (
+          <button
+            type="button"
+            aria-label={unfolded ? $t('Replier') : $t('Déplier')}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setOpen(!unfolded)
+            }}
+            className="-ml-1 rounded p-0.5 hover:bg-sidebar-accent"
+          >
+            <ChevronRight className={cn('size-3.5 transition-transform', unfolded && 'rotate-90')} />
+          </button>
+        ) : (
+          <span className="w-[18px] shrink-0" />
+        )}
+        {folder.icon ? (
+          <LookIcon name={folder.icon} color={folder.color} className="size-4 shrink-0" />
+        ) : folder.personal ? (
+          <FolderLock className="size-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <FolderClosed className="size-4 shrink-0 text-muted-foreground" />
+        )}
+        <span className="truncate">{label}</span>
+      </Link>
+      {unfolded
+        ? children.map((c) => <FolderNode key={c.id} folder={c} folders={folders} depth={depth + 1} path={path} me={me} />)
+        : null}
+    </>
   )
 }
 
@@ -124,7 +173,7 @@ export function Sidebar() {
         <NavItem href="/" icon={Home} label={$t('Accueil')} active={path === '/'} />
         <NavItem href="/browse" icon={FolderClosed} label={$t('Dossiers')} active={path === '/browse'} />
         {roots.map((f) => (
-          <FolderLink key={f.id} folder={f} active={is(`/browse/${f.id}`)} />
+          <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />
         ))}
         <NavItem href="/sql" icon={Code2} label={$t('Éditeur SQL')} active={is('/sql')} />
         <NavItem href="/data" icon={Database} label={$t('Sources de données')} active={is('/data')} />

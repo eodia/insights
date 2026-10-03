@@ -37,7 +37,8 @@ import type { RunResult } from '@/lib/api'
 import { api } from '@/lib/api'
 import { valueLabel as valueLabelFor } from './parameters'
 import { $t } from '@/lib/i18n'
-import { useQuestion, useTables } from '@/lib/queries'
+import { folderLabel } from '@/lib/folders'
+import { useFolders, useMe, useQuestion, useTables } from '@/lib/queries'
 import { type ColumnOption, columnOptions } from '@/lib/builder'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -47,6 +48,7 @@ import {
   Copy,
   Ellipsis,
   ExternalLink,
+  FolderClosed,
   GripVertical,
   Heading,
   Link2,
@@ -310,6 +312,15 @@ function QuestionPicker({ open, onOpenChange, onPick, onNew }: { open: boolean; 
   const [q, setQ] = useState('')
   const { data } = useQuery({ queryKey: ['search', q, 'picker'], queryFn: () => api.get<{ items: ItemSummary[] }>(`/v1/search?q=${encodeURIComponent(q)}`), enabled: open })
   const items = (data?.items ?? []).filter((i) => i.kind !== 'dashboard')
+  const { data: folders = [] } = useFolders()
+  const { data: me } = useMe()
+  const byId = new Map(folders.map((f) => [f.id, f]))
+  // Where it is filed: the folder, under its parents.
+  const where = (id: string | null) => {
+    const f = id ? byId.get(id) : undefined
+    if (!f) return null
+    return [...f.path.map((p) => byId.get(p.id) ?? { ...p, personal: null }), f].map((x) => folderLabel(x, me?.id)).join(' › ')
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -339,6 +350,12 @@ function QuestionPicker({ open, onOpenChange, onPick, onNew }: { open: boolean; 
                 <div className="truncate text-sm font-medium">{i.name}</div>
                 {i.description ? <div className="truncate text-xs text-muted-foreground">{i.description}</div> : null}
               </div>
+              {where(i.folder) ? (
+                <span className="flex max-w-[45%] shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                  <FolderClosed className="size-3.5 shrink-0" />
+                  <span className="truncate">{where(i.folder)}</span>
+                </span>
+              ) : null}
             </button>
           ))}
         </div>

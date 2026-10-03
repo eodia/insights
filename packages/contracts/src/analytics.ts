@@ -125,6 +125,11 @@ export interface Join {
   readonly kind: JoinKind
   readonly left: ColumnRef
   readonly right: string
+  /**
+   * Added by the person, not through a key for a column they picked: it stays when no step
+   * cites it, and its columns are shown with the source's.
+   */
+  readonly explicit?: boolean
 }
 
 /**

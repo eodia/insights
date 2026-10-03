@@ -74,6 +74,20 @@ describe('compileBuilder', () => {
     expect(columns[2]?.semantic).toBe('amount')
   })
 
+  it('shows the columns of a join the person added', () => {
+    const { sql, columns } = compileBuilder(
+      {
+        kind: 'builder',
+        source: { kind: 'table', id: 't-orders' },
+        joins: [{ alias: 'clients', source: { kind: 'table', id: 't-clients' }, kind: 'inner', left: { field: 'client_id' }, right: 'id', explicit: true }],
+      },
+      ctx,
+    )
+    expect(sql).toContain(`INNER JOIN "boutique"."public"."clients" AS "clients" ON "s"."client_id" = "clients"."id"`)
+    expect(columns.map((c) => c.name)).toEqual(['id', 'client_id', 'statut', 'montant_total', 'passee_le', 'clients.id', 'clients.ville'])
+    expect(columns[6]?.label).toBe('Clients → Ville')
+  })
+
   it('escapes every value', () => {
     const { sql } = compileBuilder(
       {
