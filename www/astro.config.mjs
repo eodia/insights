@@ -59,7 +59,7 @@ export default defineConfig({
 						{ slug: 'fonctionnalites/questions' },
 						{ slug: 'fonctionnalites/modeles-et-metriques' },
 						{ slug: 'fonctionnalites/visualisations' },
-						{ slug: 'fonctionnalites/previsions', badge: { text: 'Nouveau', variant: 'success' } },
+						{ slug: 'fonctionnalites/previsions', badge: { text: { fr: 'Nouveau', en: 'New' }, variant: 'success' } },
 						{ slug: 'fonctionnalites/tableaux-de-bord' },
 						{ slug: 'fonctionnalites/copilot' },
 						{ slug: 'fonctionnalites/partage' },

@@ -448,9 +448,9 @@ export default {
 		folders: ['Sales', '2026', 'Support'],
 		drag: 'Revenue by month',
 		items: {
-			associative: { title: 'Associative filters', text: 'Chosen in green, possible in white, excluded in grey — as in Qlik. Each value shows its share of the rows; Shift + click for a range, Ctrl + click for just one.', href: '/fonctionnalites/tableaux-de-bord/#des-filtres-associatifs' },
-			click: { title: 'Shift + click on a chart', text: 'Pick several bars: the whole dashboard filters, and the chart keeps its other categories, faded, so you can add to them.', href: '/fonctionnalites/tableaux-de-bord/#cliquer-sur-un-graphique-pour-filtrer' },
-			palettes: { title: 'Palettes for everyone', text: 'Six palettes and your own, checked for colour blindness, in light and dark. One colour per value, kept in every chart.', href: '/fonctionnalites/visualisations/#les-couleurs' },
+			associative: { title: 'Associative filters', text: 'Chosen in green, possible in white, excluded in grey — as in Qlik. Each value shows its share of the rows; Shift + click for a range, Ctrl + click for just one.', href: '/fonctionnalites/tableaux-de-bord/#associative-filters' },
+			click: { title: 'Shift + click on a chart', text: 'Pick several bars: the whole dashboard filters, and the chart keeps its other categories, faded, so you can add to them.', href: '/fonctionnalites/tableaux-de-bord/#click-a-chart-to-filter' },
+			palettes: { title: 'Palettes for everyone', text: 'Six palettes and your own, checked for colour blindness, in light and dark. One colour per value, kept in every chart.', href: '/fonctionnalites/visualisations/#colors' },
 			radar: { title: 'Radar, top N, highlights', text: 'Make the maximum stand out, draw the average, keep the top ten, compare profiles on a radar: the chart says something.', href: '/fonctionnalites/visualisations/' },
 			mcp: { title: 'Your charts in Claude', text: 'The MCP server draws the chart right in the conversation (MCP Apps), with eodia insights’ colours, formats and permissions.', href: '/integrations/mcp/' },
 			organize: { title: 'Tidy without thinking', text: 'Sub-folders, drag and drop, questions created inside a dashboard, cards moved between tabs; icons, emoji and images.', href: '/fonctionnalites/partage/' },
