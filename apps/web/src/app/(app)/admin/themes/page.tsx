@@ -2,6 +2,7 @@
 
 import { AdminOnly, Empty, PageHeader, Spinner } from '@/components/app/admin/common'
 import { ConfirmDialog } from '@/components/app/dialogs'
+import { LookIcon } from '@/components/app/look'
 import { Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
@@ -216,10 +217,10 @@ const SAMPLE_SHARES: Result = {
 
 function Preview({ name, settings }: { name: string; settings: ThemeSettings }) {
   const card = 'theme-card flex flex-col rounded-xl border bg-card p-3 shadow-xs'
-  const kpis: [string, Result, VisualizationSettings][] = [
-    [$t('Ventes actives'), SAMPLE_TREND(18000, 600, 900), { spark: 'line' }],
-    [$t('Chiffre d’affaires'), SAMPLE_TREND(12000, 300, 700), { spark: 'area' }],
-    [$t('Taux de conversion'), SAMPLE_TREND(16, -0.4, 0.8), { spark: 'line' }],
+  const kpis: [string, string, Result, VisualizationSettings][] = [
+    [$t('Ventes actives'), 'target', SAMPLE_TREND(18000, 600, 900), { spark: 'line' }],
+    [$t('Chiffre d’affaires'), 'wallet', SAMPLE_TREND(12000, 300, 700), { spark: 'area' }],
+    [$t('Taux de conversion'), 'chart-line', SAMPLE_TREND(16, -0.4, 0.8), { spark: 'line' }],
   ]
   return (
     <ThemeScope theme={settings} className="space-y-3 rounded-xl border p-4">
@@ -236,9 +237,14 @@ function Preview({ name, settings }: { name: string; settings: ThemeSettings }) 
         <span className="rounded-md px-2 py-1 text-muted-foreground">{$t('Détail')}</span>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        {kpis.map(([title, result, viz]) => (
+        {kpis.map(([title, icon, result, viz]) => (
           <div key={title} className={cn(card, 'h-32')}>
-            <span className="theme-title text-xs font-semibold">{title}</span>
+            <span className="flex items-center gap-2">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+                <LookIcon name={icon} className="size-3.5" />
+              </span>
+              <span className="theme-title text-xs font-semibold">{title}</span>
+            </span>
             <div className="min-h-0 flex-1">
               <Visualization result={result} viz={{ type: 'trend' as VisualizationType, settings: viz }} compact />
             </div>

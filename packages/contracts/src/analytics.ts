@@ -779,6 +779,8 @@ export interface DashboardCard {
   readonly kind: CardKind
   /** Shown above the card; for a question, its label when empty. */
   readonly title?: string
+  /** A pictogram before the title: a lucide name, `emoji:…` or `img:https://…`. */
+  readonly icon?: string
   /** A saved question, by identifier… */
   readonly question?: string
   /** …or a question kept in the card alone. */

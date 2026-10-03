@@ -181,3 +181,7 @@ Un tableau marqué **Préchargé** (dans ses **Réglages**) est tenu au chaud pa
 les 15 minutes, il exécute ses cartes avec les valeurs par défaut des filtres, **sous les droits
 de son auteur**. Les personnes qui ont les mêmes droits que l’auteur trouvent alors leurs
 résultats déjà prêts ; les autres déclenchent leurs propres requêtes, comme d’habitude.
+
+:::tip[Un pictogramme devant le titre]
+En modification, le bouton à gauche du titre d’une carte choisit son pictogramme — un picto, un emoji ou une image —, affiché ensuite dans une pastille devant le titre, et dans le PDF.
+:::

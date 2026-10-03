@@ -16,7 +16,8 @@ import type {
   Visualization as Viz,
 } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, cardSize, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
-import { ItemTile } from '@/components/app/look'
+import { ItemTile, LookIcon } from '@/components/app/look'
+import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
 import { ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
@@ -255,6 +256,15 @@ function CardFrame(props: CardProps) {
       {(isQuestion || title || editing) && card.kind !== 'text' ? (
         <div className="flex h-11 shrink-0 items-center gap-2 px-4">
           {editing ? <GripVertical className="card-handle size-4 shrink-0 cursor-move text-muted-foreground" /> : null}
+          {editing ? (
+            <span className="card-still shrink-0">
+              <IconPicker value={card.icon ?? null} onChange={(icon) => onChange({ icon: icon ?? undefined })} size="xs" />
+            </span>
+          ) : card.icon ? (
+            <span className="theme-card-icon flex size-7 shrink-0 items-center justify-center rounded-lg border bg-muted/40 text-muted-foreground">
+              <LookIcon name={card.icon} className="size-4" />
+            </span>
+          ) : null}
           {editing && editingTitle ? (
             <input autoFocus value={card.title ?? title} onChange={(e) => onChange({ title: e.target.value })} onBlur={() => setEditingTitle(false)} className="card-still flex-1 bg-transparent text-[15px] font-semibold outline-none" />
           ) : (

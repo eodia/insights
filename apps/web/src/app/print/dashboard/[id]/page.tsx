@@ -1,6 +1,7 @@
 'use client'
 
 import { substitute } from '@/components/app/dashboard/view'
+import { LookIcon } from '@/components/app/look'
 import { Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { type RunResult, api } from '@/lib/api'
@@ -102,9 +103,14 @@ function PrintCard({
   return (
     <div className="theme-card flex h-full flex-col overflow-hidden rounded-xl border bg-card">
       {title && card.kind !== 'text' ? (
-        <h3 className="theme-title shrink-0 truncate px-4 pt-3 pb-1 text-[14px] font-semibold">
-          {title}
-        </h3>
+        <div className="flex shrink-0 items-center gap-2 px-4 pt-3 pb-1">
+          {card.icon ? (
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+              <LookIcon name={card.icon} className="size-3.5" />
+            </span>
+          ) : null}
+          <h3 className="theme-title truncate text-[14px] font-semibold">{title}</h3>
+        </div>
       ) : null}
       <div className="min-h-0 flex-1 px-3 pb-3">
         {card.kind === 'text' ? (

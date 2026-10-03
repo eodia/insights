@@ -178,3 +178,7 @@ A dashboard marked **Preloaded** (in its **Settings**) is kept warm by the worke
 every 15 minutes, it runs its cards with the filters’ default values, **under its author’s
 permissions**. People who have the same permissions as the author then find their results
 already ready; the others trigger their own queries, as usual.
+
+:::tip[An icon before the title]
+In edit mode, the button left of a card's title picks its icon — an icon, an emoji or an image — then shown in a small badge before the title, and in the PDF.
+:::
