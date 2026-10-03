@@ -1,0 +1,52 @@
+# Stack de développement d'eodia insights.
+# - catalog : la base applicative (utilisateurs, questions, tableaux de bord…)
+# - trino   : le moteur unique d'exécution ; ses catalogues sont recréés par l'API (catalog.store=memory)
+# - demo-pg / demo-mongo : deux sources d'exemple pour la démo inter-bases
+name: eodia-insights
+
+services:
+  catalog:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: eodia
+      POSTGRES_PASSWORD: eodia
+      POSTGRES_DB: eodia
+    ports: ['127.0.0.1:55435:5432']
+    volumes: [catalog-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U eodia']
+      interval: 5s
+      retries: 20
+
+  trino:
+    image: trinodb/trino:483
+    environment:
+      CATALOG_MANAGEMENT: dynamic
+      EODIA_OPA_URL: ${EODIA_OPA_URL:-http://host.docker.internal:4100/internal/opa/dev-opa-secret}
+    ports: ['127.0.0.1:58080:8080']
+    extra_hosts: ['host.docker.internal:host-gateway']
+    volumes:
+      - ./docker/trino/etc/config.properties:/etc/trino/config.properties:ro
+      - ./docker/trino/etc/access-control.properties:/etc/trino/access-control.properties:ro
+      - ./docker/trino/etc/jvm.config:/etc/trino/jvm.config:ro
+    healthcheck:
+      test: ['CMD', 'curl', '-fs', 'http://localhost:8080/v1/info']
+      interval: 5s
+      retries: 60
+
+  demo-pg:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: boutique
+    ports: ['127.0.0.1:55434:5432']
+    volumes: ['./docker/demo/boutique.sql:/docker-entrypoint-initdb.d/01-boutique.sql:ro']
+
+  demo-mongo:
+    image: mongo:8
+    ports: ['127.0.0.1:57017:27017']
+    volumes: ['./docker/demo/mongo-init.js:/docker-entrypoint-initdb.d/01-init.js:ro']
+
+volumes:
+  catalog-data:

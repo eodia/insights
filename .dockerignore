@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/*.log
+**/.env
+**/.env.*
+.git
+.playwright-mcp
+docker-compose*.yml

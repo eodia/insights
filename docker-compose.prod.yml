@@ -1,0 +1,168 @@
+# Déploiement de production d'eodia insights.
+#
+#   cp .env.example .env    # ou exportez les variables ci-dessous
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Services : catalog (PostgreSQL de l'application), trino (moteur unique ; il demande chaque
+# autorisation à l'API via l'endpoint OPA interne), api, worker, web, mcp, caddy (HTTPS).
+# Une seule image (Dockerfile à la racine) sert api, worker, web et mcp.
+#
+# ── Variables (fichier .env à côté de ce fichier, ou environnement) ─────────────
+# Obligatoires
+#   EODIA_DOMAIN               nom de domaine public (Caddy obtient le certificat) — ex. bi.exemple.fr
+#   EODIA_SECRET_KEY           64 caractères hexadécimaux : chiffre les secrets des sources (openssl rand -hex 32)
+#   EODIA_OPA_SECRET           secret du chemin de l'endpoint OPA appelé par Trino (openssl rand -hex 24)
+#   EODIA_DB_PASSWORD          mot de passe du PostgreSQL du catalogue
+# Facultatives (valeurs par défaut entre parenthèses)
+#   EODIA_PUBLIC_URL           adresse publique (https://$EODIA_DOMAIN) ; https:// rend le cookie Secure
+#   EODIA_ACME_EMAIL           contact Let's Encrypt
+#   EODIA_DATABASE_SCHEMA      schéma du catalogue (eodia)
+#   EODIA_TRINO_SERVICE_USER   utilisateur Trino du service (eodia-service)
+#   EODIA_TRINO_PASSWORD       mot de passe Trino, si Trino exige une authentification
+#   EODIA_SESSION_DAYS         durée d'une session (14)
+#   EODIA_MAX_ROWS             lignes lues au plus par requête de l'interface (2000)
+#   EODIA_QUERY_TIMEOUT_MS     délai maximal d'une requête (120000)
+#   EODIA_CACHE_TTL            durée du cache de résultats en secondes (300)
+#   EODIA_PASSWORD_LOGIN       connexion par mot de passe, 0 pour la couper (1)
+#   EODIA_OIDC_ISSUER, EODIA_OIDC_CLIENT_ID, EODIA_OIDC_CLIENT_SECRET, EODIA_OIDC_LABEL,
+#   EODIA_OIDC_SCOPES, EODIA_OIDC_ATTRIBUTE_CLAIMS, EODIA_OIDC_GROUPS_CLAIM
+#                              SSO OpenID Connect (Keycloak, Entra ID…)
+#   EODIA_SMTP_URL, EODIA_SMTP_FROM
+#                              envoi des invitations par e-mail
+#   EODIA_AI_PROVIDER          anthropic | openai | mistral | openai-compatible | none
+#   EODIA_AI_API_KEY (ou ANTHROPIC_API_KEY / OPENAI_API_KEY), EODIA_AI_MODEL, EODIA_AI_BASE_URL,
+#   EODIA_AI_HOURLY_QUOTA (60) copilot
+#   EODIA_DEMO                 1 : crée l'instance de démonstration (0)
+#   EODIA_IMAGE                image à utiliser (eodia-insights:latest)
+
+name: eodia-insights-prod
+
+x-app: &app
+  image: ${EODIA_IMAGE:-eodia-insights:latest}
+  build:
+    context: .
+    args:
+      # Next fige ses rewrites au build ; derrière Caddy, /api/* ne passe de toute façon pas par lui.
+      EODIA_API_URL: http://api:4100
+  restart: unless-stopped
+  environment: &app-env
+    NODE_ENV: production
+    EODIA_DATABASE_URL: postgres://eodia:${EODIA_DB_PASSWORD:?EODIA_DB_PASSWORD manquant}@catalog:5432/eodia
+    EODIA_DATABASE_SCHEMA: ${EODIA_DATABASE_SCHEMA:-eodia}
+    EODIA_SECRET_KEY: ${EODIA_SECRET_KEY:?EODIA_SECRET_KEY manquant (openssl rand -hex 32)}
+    EODIA_OPA_SECRET: ${EODIA_OPA_SECRET:?EODIA_OPA_SECRET manquant}
+    EODIA_TRINO_URL: http://trino:8080
+    EODIA_TRINO_SERVICE_USER: ${EODIA_TRINO_SERVICE_USER:-eodia-service}
+    EODIA_TRINO_PASSWORD: ${EODIA_TRINO_PASSWORD:-}
+    EODIA_PUBLIC_URL: ${EODIA_PUBLIC_URL:-https://${EODIA_DOMAIN:?EODIA_DOMAIN manquant}}
+    EODIA_SESSION_DAYS: ${EODIA_SESSION_DAYS:-14}
+    EODIA_MAX_ROWS: ${EODIA_MAX_ROWS:-2000}
+    EODIA_QUERY_TIMEOUT_MS: ${EODIA_QUERY_TIMEOUT_MS:-120000}
+    EODIA_CACHE_TTL: ${EODIA_CACHE_TTL:-300}
+    EODIA_PASSWORD_LOGIN: ${EODIA_PASSWORD_LOGIN:-1}
+    EODIA_OIDC_ISSUER: ${EODIA_OIDC_ISSUER:-}
+    EODIA_OIDC_CLIENT_ID: ${EODIA_OIDC_CLIENT_ID:-}
+    EODIA_OIDC_CLIENT_SECRET: ${EODIA_OIDC_CLIENT_SECRET:-}
+    EODIA_OIDC_LABEL: ${EODIA_OIDC_LABEL:-}
+    EODIA_OIDC_SCOPES: ${EODIA_OIDC_SCOPES:-}
+    EODIA_OIDC_ATTRIBUTE_CLAIMS: ${EODIA_OIDC_ATTRIBUTE_CLAIMS:-}
+    EODIA_OIDC_GROUPS_CLAIM: ${EODIA_OIDC_GROUPS_CLAIM:-}
+    EODIA_SMTP_URL: ${EODIA_SMTP_URL:-}
+    EODIA_SMTP_FROM: ${EODIA_SMTP_FROM:-}
+    EODIA_AI_PROVIDER: ${EODIA_AI_PROVIDER:-}
+    EODIA_AI_API_KEY: ${EODIA_AI_API_KEY:-}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    EODIA_AI_MODEL: ${EODIA_AI_MODEL:-}
+    EODIA_AI_BASE_URL: ${EODIA_AI_BASE_URL:-}
+    EODIA_AI_HOURLY_QUOTA: ${EODIA_AI_HOURLY_QUOTA:-60}
+    EODIA_DEMO: ${EODIA_DEMO:-0}
+    # Les jobs tournent dans le service worker, pas dans l'API.
+    EODIA_INPROCESS_WORKER: '0'
+
+services:
+  catalog:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eodia
+      POSTGRES_PASSWORD: ${EODIA_DB_PASSWORD:?EODIA_DB_PASSWORD manquant}
+      POSTGRES_DB: eodia
+    volumes: [catalog-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U eodia']
+      interval: 5s
+      retries: 20
+
+  trino:
+    image: trinodb/trino:483
+    restart: unless-stopped
+    environment:
+      CATALOG_MANAGEMENT: dynamic
+      # Trino demande chaque autorisation à l'API : allow, batch, row-filters, column-masks.
+      EODIA_OPA_URL: http://api:4100/internal/opa/${EODIA_OPA_SECRET:?EODIA_OPA_SECRET manquant}
+    volumes:
+      - ./docker/trino/etc/config.properties:/etc/trino/config.properties:ro
+      - ./docker/trino/etc/access-control.properties:/etc/trino/access-control.properties:ro
+      - ./docker/trino/etc/jvm.config:/etc/trino/jvm.config:ro
+    healthcheck:
+      test: ['CMD', 'curl', '-fs', 'http://localhost:8080/v1/info']
+      interval: 5s
+      retries: 60
+
+  api:
+    <<: *app
+    command: ['api']
+    depends_on:
+      catalog: { condition: service_healthy }
+      # Pas d'attente de Trino : l'API doit écouter avant que Trino ne l'interroge.
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:4100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      start_period: 30s
+      retries: 6
+
+  worker:
+    <<: *app
+    command: ['worker']
+    depends_on:
+      api: { condition: service_healthy }
+      trino: { condition: service_healthy }
+
+  web:
+    <<: *app
+    command: ['web']
+    environment:
+      <<: *app-env
+      EODIA_API_URL: http://api:4100
+    depends_on:
+      api: { condition: service_healthy }
+
+  mcp:
+    <<: *app
+    command: ['mcp']
+    environment:
+      NODE_ENV: production
+      # Le serveur MCP ne détient aucun secret : il relaie le jeton de chaque appel à l'API.
+      EODIA_API_URL: http://api:4100
+      EODIA_MCP_PORT: '4200'
+    depends_on:
+      api: { condition: service_healthy }
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      EODIA_DOMAIN: ${EODIA_DOMAIN:?EODIA_DOMAIN manquant}
+      EODIA_ACME_EMAIL: ${EODIA_ACME_EMAIL:-}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [web, api, mcp]
+
+volumes:
+  catalog-data:
+  caddy-data:
+  caddy-config:

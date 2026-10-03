@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+.turbo
+.env
+*.log
+.playwright-mcp
+*.tsbuildinfo
+next-env.d.ts

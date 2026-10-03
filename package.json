@@ -1,0 +1,41 @@
+{
+  "name": "eodia-insights",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "biome check . && node scripts/catalog.mjs check",
+    "format": "biome format --write .",
+    "test": "turbo run test:unit",
+    "test:int": "turbo run test:int",
+    "catalog": "node scripts/catalog.mjs",
+    "stack": "docker compose up -d",
+    "stack:down": "docker compose down",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "tsx": "^4.19.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "esbuild",
+      "oracledb",
+      "snowflake-sdk",
+      "sharp",
+      "msgpackr-extract",
+      "unrs-resolver"
+    ]
+  }
+}
