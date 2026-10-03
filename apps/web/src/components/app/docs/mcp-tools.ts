@@ -109,6 +109,22 @@ export const MCP_TOOLS: readonly McpTool[] = [
     example: { dashboard_id: '<id>' },
     calls: ['GET /api/v1/dashboards/{id}', 'GET /api/v1/questions/{id}'],
   },
+  {
+    name: 'show_chart',
+    title: 'Afficher un graphique',
+    description:
+      'Affiche un graphique dans la conversation (MCP Apps : Claude, ChatGPT, VS Code…), dessiné comme dans l’application, d’une question enregistrée ou d’une requête SQL. Un client sans MCP Apps reçoit le résultat en texte.',
+    params: [
+      { name: 'question_id', type: 'string', required: false, description: 'Question enregistrée, avec sa visualisation.' },
+      { name: 'parameters', type: 'object', required: false, description: 'Variables de la question, par nom.' },
+      { name: 'sql', type: 'string', required: false, description: 'Requête SELECT Trino, à défaut de question_id.' },
+      { name: 'visualization', type: 'string', required: false, description: 'bar, row, line, area, combo, pie, funnel, scatter, scalar, gauge, table…' },
+      { name: 'stack', type: 'string', required: false, description: 'none, stacked ou percent.' },
+      { name: 'title', type: 'string', required: false, description: 'Titre affiché.' },
+    ],
+    example: { sql: "select date_trunc('month', passee_le) as mois, statut, count(*) as commandes from boutique.public.commandes group by 1, 2", visualization: 'bar', stack: 'stacked' },
+    calls: ['GET /api/v1/questions/{id}', 'POST /api/v1/questions/{id}/run', 'POST /api/v1/query'],
+  },
 ]
 
 /**

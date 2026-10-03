@@ -21,10 +21,10 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { type RunResult, api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
-import { keys, useDashboard, useMe } from '@/lib/queries'
+import { keys, useDashboard } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { Copy, Ellipsis, Loader2, Maximize, Plus, Settings2, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
+import { Copy, Ellipsis, Loader2, Maximize, Plus, Settings2, Share2, Star, Trash2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, use, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -99,9 +99,7 @@ function DashboardScreen({ id }: { id: string }) {
   const params = useSearchParams()
   const router = useRouter()
   const qc = useQueryClient()
-  const { data: me } = useMe()
   const { data: dashboard, error } = useDashboard(id)
-  const openCopilot = useUi((s) => s.openCopilot)
   const setCopilotContext = useUi((s) => s.setCopilotContext)
   const [share, setShare] = useState(false)
   const [settings, setSettings] = useState(false)
@@ -175,11 +173,6 @@ function DashboardScreen({ id }: { id: string }) {
               <Button size="sm" variant="outline" onClick={() => setShare(true)}>
                 <Share2 /> {$t('Partager')}
               </Button>
-              {me?.ai_enabled ? (
-                <Button size="sm" variant="ghost" onClick={() => openCopilot({ kind: 'dashboard', id })}>
-                  <Sparkles className="text-violet-500" /> {$t('Copilote')}
-                </Button>
-              ) : null}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="icon-sm" variant="ghost" aria-label={$t('Plus')}>

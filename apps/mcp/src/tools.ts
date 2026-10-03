@@ -18,7 +18,9 @@ import type {
   Question,
   TableMeta,
 } from '@eodia/contracts'
-import { FILTER_OPS } from '@eodia/contracts'
+import { FILTER_OPS, VISUALIZATIONS } from '@eodia/contracts'
+import { registerAppTool } from '@modelcontextprotocol/ext-apps/server'
+import { CHART_URI, registerChartApp } from './app'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
@@ -159,9 +161,21 @@ export const TOOL_NAMES = [
   'run_question',
   'run_sql',
   'get_dashboard',
+  'show_chart',
 ] as const
 
+/** Rows handed to the chart view: enough for any chart, light enough for the conversation. */
+const CHART_ROWS = 1000
+
+/** The chart forms `show_chart` draws; the others fall back to a table. */
+const CHART_TYPES = VISUALIZATIONS.filter((v) => v !== 'map' && v !== 'pivot')
+
+/** The web application, for « Ouvrir » links. */
+const webUrl = () => (process.env.EODIA_PUBLIC_URL ?? process.env.EODIA_URL ?? '').replace(/\/+$/, '')
+
 export function registerTools(server: McpServer, api: EodiaApi): void {
+  registerChartApp(server)
+
   server.registerTool(
     'list_datasources',
     {
@@ -450,5 +464,72 @@ export function registerTools(server: McpServer, api: EodiaApi): void {
         }
         return parts.join('\n\n')
       }),
+  )
+
+  registerAppTool(
+    server,
+    'show_chart',
+    {
+      title: 'Afficher un graphique',
+      description:
+        "Affiche un graphique dans la conversation (MCP Apps), dessiné comme dans eodia insights : soit une question enregistrée (question_id, avec sa visualisation), soit une requête SQL Trino en lecture seule (sql) avec la forme voulue. Le résultat textuel est aussi renvoyé. Pour un graphique par période, groupez par une date tronquée (date_trunc) ; pour des séries, une deuxième dimension. À utiliser quand la personne veut voir des chiffres plutôt que les lire.",
+      inputSchema: {
+        question_id: z.string().optional().describe('Question enregistrée à afficher (voir list_questions)'),
+        parameters: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional().describe('Variables de la question, par nom'),
+        sql: z.string().min(1).max(100_000).optional().describe('Requête SELECT Trino, si aucune question_id'),
+        visualization: z.enum(CHART_TYPES as [string, ...string[]]).optional().describe('Forme : bar, row, line, area, combo, pie, funnel, scatter, scalar, gauge, table… (défaut : celle de la question, sinon déduite du résultat)'),
+        stack: z.enum(['none', 'stacked', 'percent']).optional().describe('Empilement des séries (barres, aires)'),
+        title: z.string().max(200).optional().describe('Titre affiché au-dessus du graphique'),
+      },
+      annotations: READ_ONLY,
+      _meta: { ui: { resourceUri: CHART_URI } },
+    },
+    async ({ question_id, parameters, sql, visualization, stack, title }) => {
+      let structured: Record<string, unknown> | undefined
+      const out = await guarded(async () => {
+        if (!question_id && !sql) throw new ToolInputError('Donnez question_id ou sql.')
+        let result: QueryResult & { looks?: unknown }
+        let name: string
+        let subtitle: string | undefined
+        let viz: { type: string; settings?: Record<string, unknown> } | undefined
+        let url: string | undefined
+        const web = webUrl()
+        if (question_id) {
+          const id = encodeURIComponent(question_id)
+          const [q, r] = await Promise.all([
+            api.get<Question>(`/v1/questions/${id}`),
+            api.post<QueryResult>(`/v1/questions/${id}/run`, parameters ? { parameters } : {}),
+          ])
+          result = r
+          name = q.name
+          subtitle = q.description ?? undefined
+          viz = { type: q.visualization.type, ...(q.visualization.settings ? { settings: q.visualization.settings as Record<string, unknown> } : {}) }
+          if (web) url = `${web}/question/${q.id}`
+        } else {
+          const statement = (sql as string).replace(/^(\s|--[^\n]*\n|\/\*[\s\S]*?\*\/)+/, '')
+          if (!/^(select|with|values|table)\b/i.test(statement)) throw new ToolInputError('show_chart lit des données : SELECT, WITH, VALUES ou TABLE uniquement.')
+          result = await api.post<QueryResult>('/v1/query', { query: { kind: 'sql', sql }, limit: CHART_ROWS })
+          name = 'Requête SQL'
+          if (web) url = `${web}/question/new?sql=${encodeURIComponent(sql as string)}`
+        }
+        if (visualization) viz = { type: visualization, ...(viz?.type === visualization && viz.settings ? { settings: viz.settings } : {}) }
+        if (stack) viz = { type: viz?.type ?? 'bar', settings: { ...(viz?.settings ?? {}), stack } }
+        const rows = result.rows.slice(0, CHART_ROWS)
+        structured = {
+          title: title ?? name,
+          ...(subtitle ? { subtitle } : {}),
+          ...(url ? { url } : {}),
+          ...(viz ? { visualization: viz } : {}),
+          result: {
+            columns: result.columns,
+            rows,
+            ...(result.looks ? { looks: result.looks } : {}),
+            truncated: !!result.truncated || result.rows.length > rows.length,
+          },
+        }
+        return `**${title ?? name}**${viz ? ` (${viz.type})` : ''} — graphique affiché à la personne.\n\n${resultMarkdown(result)}`
+      })
+      return structured && !out.isError ? { ...out, structuredContent: structured } : out
+    },
   )
 }
