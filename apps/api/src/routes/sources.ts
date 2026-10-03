@@ -20,6 +20,7 @@ import {
   listDatasources,
   listRelations,
   linkedValues,
+  scopedColumnValues,
   listTables,
   patchColumn,
   patchTable,
@@ -164,6 +165,18 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
   }, async (c) => {
     const input = bodyOf(c, Linked)
     return ok(c, { values: (await linkedValues(c.get('core'), actorOf(c).dataUser ?? actorOf(c).userId, param(c, 'id'), input.filters, input.search ?? '')).map((value) => ({ value })) })
+  })
+
+  route(app, {
+    method: 'post',
+    path: '/api/v1/columns/:id/values/scope',
+    tags: stags,
+    summary: 'Valeurs d’une colonne avec leurs effectifs, dans et hors du périmètre des autres filtres',
+    description: 'Lu en direct sous les droits du lecteur. `scoped` compte les lignes que retiennent les autres filtres de la même table : 0 = valeur exclue.',
+    body: Linked,
+  }, async (c) => {
+    const input = bodyOf(c, Linked)
+    return ok(c, await scopedColumnValues(c.get('core'), actorOf(c), param(c, 'id'), input.filters, input.search ?? ''))
   })
 
   route(app, { method: 'put', path: '/api/v1/columns/:id/values', tags: stags, summary: 'Libellés, couleurs et pictos des valeurs', body: ValuesInput }, async (c) => {

@@ -65,6 +65,7 @@ import {
   Search,
   Trash2,
   Type,
+  X,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
@@ -121,22 +122,47 @@ interface CardProps {
   onMoveElsewhere?: () => void
 }
 
+/** Whether a result column can be what a filter restricts. */
+function fitsParameter(parameter: DashboardParameter, c: ResultColumn): boolean {
+  switch (parameter.type) {
+    case 'date':
+      return c.type === 'date' || c.type === 'datetime'
+    case 'temporal_unit':
+      return c.type === 'date' || c.type === 'datetime' || !!c.unit
+    case 'number':
+      return c.type === 'number' && !c.unit
+    default:
+      return (c.type === 'text' || c.type === 'number' || c.type === 'boolean') && !c.unit
+  }
+}
+
+/** A column several cards share: what « Relier toutes les cartes » offers. */
+interface Candidate {
+  readonly key: string
+  readonly label: string
+  readonly cards: ReadonlyMap<string, ColumnRef>
+}
+
+/** The columns of the loaded cards a filter could restrict, the most shared first. */
+function candidates(parameter: DashboardParameter, cards: readonly DashboardCard[], results: ReadonlyMap<string, RunResult>): Candidate[] {
+  const out = new Map<string, { label: string; cards: Map<string, ColumnRef> }>()
+  for (const card of cards) {
+    if (card.kind !== 'question') continue
+    for (const c of results.get(card.id)?.columns ?? []) {
+      if (!c.source || !fitsParameter(parameter, c)) continue
+      const key = c.source.column ?? `${c.source.table}.${c.source.field}`
+      const entry = out.get(key) ?? { label: c.label.replace(/ : .*$/, '').replace(/^.* → /, ''), cards: new Map<string, ColumnRef>() }
+      if (!entry.cards.has(card.id)) entry.cards.set(card.id, { field: c.source.field, ...(c.source.join ? { join: c.source.join } : {}) })
+      out.set(key, entry)
+    }
+  }
+  return [...out.entries()].map(([key, v]) => ({ key, ...v })).sort((a, b) => b.cards.size - a.cards.size || a.label.localeCompare(b.label))
+}
+
 function MappingSelect({ card, result, parameter, onChange, variables, sourceColumns }: { card: DashboardCard; result?: RunResult; parameter: DashboardParameter; onChange: (m: CardMapping[]) => void; variables: readonly string[]; sourceColumns: readonly ColumnOption[] }) {
   const current = (card.mappings ?? []).find((m) => m.parameter === parameter.id)
   const value = current ? ('column' in current.target ? `c:${refKey(current.target.column)}` : `v:${current.target.variable}`) : 'none'
-  const fits = (c: ResultColumn) => {
-    const t = c.type
-    switch (parameter.type) {
-      case 'date':
-      case 'temporal_unit':
-        return t === 'date' || t === 'datetime'
-      case 'number':
-        return t === 'number'
-      default:
-        return t === 'text' || t === 'number' || t === 'boolean'
-    }
-  }
-  const cols = (result?.columns ?? []).filter((c) => c.source && (fits(c) || (parameter.type === 'temporal_unit' && c.unit)))
+  const cols = (result?.columns ?? []).filter((c) => c.source && fitsParameter(parameter, c))
   const fitsKind = (k: string) =>
     parameter.type === 'date' || parameter.type === 'temporal_unit' ? k === 'date' || k === 'datetime' : parameter.type === 'number' ? k === 'number' : ['text', 'number', 'boolean'].includes(k)
   const options = [
@@ -390,6 +416,121 @@ function QuestionPicker({ open, onOpenChange, onPick, onNew }: { open: boolean; 
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+/**
+ * A filter's settings while the dashboard is edited: its name and behaviour, its default, and
+ * the cards it restricts — tied one by one on each card, or all at once to a shared column.
+ */
+function FilterSettings({
+  parameter,
+  current,
+  cards,
+  results,
+  onPatch,
+  onMap,
+  onRemove,
+  onClose,
+}: {
+  parameter: DashboardParameter
+  current: ParameterValue | null
+  cards: readonly DashboardCard[]
+  results: ReadonlyMap<string, RunResult>
+  onPatch: (patch: Partial<DashboardParameter>) => void
+  /** Ties (a column) or unties (`null`) the filter on each card given. */
+  onMap: (byCard: Map<string, ColumnRef | null>) => void
+  onRemove: () => void
+  onClose: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const questions = cards.filter((c) => c.kind === 'question')
+  const tied = questions.filter((c) => (c.mappings ?? []).some((m) => m.parameter === parameter.id))
+  const unloaded = questions.filter((c) => !results.has(c.id)).length
+  const list = candidates(parameter, questions, results)
+  const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+  const suggested = list.find((c) => fold(c.label) === fold(parameter.label))?.key ?? list[0]?.key
+  const typeLabel = PARAM_TYPES.find((t) => t.type === parameter.type)?.label ?? parameter.type
+  const share = questions.length ? tied.length / questions.length : 0
+  const defaultLabel = valueLabelFor(parameter, parameter.default ?? null)
+  return (
+    <div className="space-y-3 border-b bg-primary/5 px-6 py-3 text-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{$t(typeLabel)}</span>
+        <Input value={parameter.label} onChange={(e) => onPatch({ label: e.target.value })} aria-label={$t('Nom du filtre')} className="h-8 w-52 bg-background" />
+        <span className="font-mono text-xs text-muted-foreground">{`{{${parameter.id}}}`}</span>
+        {parameter.type === 'category' ? (
+          <label className="flex items-center gap-2 text-xs">
+            <Switch checked={parameter.multiple !== false} onCheckedChange={(v) => onPatch({ multiple: v })} />
+            {$t('Plusieurs valeurs')}
+          </label>
+        ) : null}
+        <span className="flex items-center gap-1.5 text-xs">
+          <span className="text-muted-foreground">{$t('Par défaut')}</span>
+          <span className="font-medium">{defaultLabel || $t('aucune valeur')}</span>
+          <button type="button" className="text-primary hover:underline disabled:opacity-40 disabled:no-underline" disabled={!parameterHasValue(current)} onClick={() => onPatch({ default: current })}>
+            {$t('prendre la valeur actuelle')}
+          </button>
+          {defaultLabel ? (
+            <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => onPatch({ default: null })} aria-label={$t('Retirer la valeur par défaut')}>
+              <X className="size-3.5" />
+            </button>
+          ) : null}
+        </span>
+        <span className="flex-1" />
+        <Button size="sm" variant="ghost" className="text-destructive" onClick={onRemove}>
+          <Trash2 /> {$t('Supprimer le filtre')}
+        </Button>
+        <Button size="sm" onClick={onClose}>
+          {$t('Terminé')}
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${share * 100}%` }} />
+          </div>
+          <span className="text-xs">
+            {$t('Relié à {n} carte(s) sur {total}', { n: tied.length, total: questions.length })}
+          </span>
+        </div>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="outline" className="h-7 bg-background" disabled={list.length === 0}>
+              <Link2 /> {$t('Relier toutes les cartes')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-1">
+            <div className="px-2 pt-1.5 pb-2 text-xs text-muted-foreground">{$t('À quelle colonne relier « {label} » sur chaque carte qui l’a ?', { label: parameter.label })}</div>
+            {list.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => {
+                  onMap(new Map(c.cards))
+                  setOpen(false)
+                  toast.success($t('« {label} » relié à {n} carte(s).', { label: parameter.label, n: c.cards.size }))
+                }}
+                className={cn('flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent', c.key === suggested && 'bg-primary/5')}
+              >
+                <span className="flex-1 truncate">{c.label}</span>
+                {c.key === suggested ? <span className="text-[10px] font-semibold tracking-wide text-primary uppercase">{$t('suggérée')}</span> : null}
+                <span className="text-xs text-muted-foreground tabular-nums">{$t('{n} carte(s)', { n: c.cards.size })}</span>
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+        {tied.length ? (
+          <Button size="sm" variant="ghost" className="h-7" onClick={() => onMap(new Map(tied.map((c) => [c.id, null])))}>
+            {$t('Délier toutes')}
+          </Button>
+        ) : null}
+        <span className="text-xs text-muted-foreground">
+          {$t('Ou choisissez la colonne sur chaque carte.')}
+          {unloaded ? ` ${$t('{n} carte(s) d’autres onglets : ouvrez-les pour les relier.', { n: unloaded })}` : ''}
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -669,44 +810,33 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
 
       {/* The selected filter's settings, while editing */}
       {editing && selectedParameter ? (
-        <div className="flex flex-wrap items-center gap-3 border-b bg-primary/5 px-6 py-2 text-sm">
-          <span className="font-medium">{$t('Filtre')}</span>
-          <Input value={selectedParameter.label} onChange={(e) => setDraft((d) => ({ ...d, parameters: d.parameters.map((p) => (p.id === selectedParameter.id ? { ...p, label: e.target.value } : p)) }))} className="h-8 w-48" />
-          <span className="font-mono text-xs text-muted-foreground">{`{{${selectedParameter.id}}}`}</span>
-          {selectedParameter.type === 'category' ? (
-            <label className="flex items-center gap-2 text-xs">
-              <Switch checked={selectedParameter.multiple !== false} onCheckedChange={(v) => setDraft((d) => ({ ...d, parameters: d.parameters.map((p) => (p.id === selectedParameter.id ? { ...p, multiple: v } : p)) }))} />
-              {$t('Plusieurs valeurs')}
-            </label>
-          ) : null}
-          <button
-            type="button"
-            className="text-xs text-primary hover:underline"
-            onClick={() => setDraft((d) => ({ ...d, parameters: d.parameters.map((p) => (p.id === selectedParameter.id ? { ...p, default: values[p.id] ?? null } : p)) }))}
-          >
-            {$t('Valeur actuelle par défaut')}
-          </button>
-          <span className="text-xs text-muted-foreground">{$t('Choisissez, sur chaque carte, la colonne que ce filtre restreint.')}</span>
-          <span className="flex-1" />
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-destructive"
-            onClick={() => {
-              setDraft((d) => ({
-                ...d,
-                parameters: d.parameters.filter((p) => p.id !== selectedParameter.id),
-                cards: d.cards.map((c) => ({ ...c, mappings: (c.mappings ?? []).filter((m) => m.parameter !== selectedParameter.id) })),
-              }))
-              setSelectedParam(null)
-            }}
-          >
-            <Trash2 /> {$t('Supprimer le filtre')}
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setSelectedParam(null)}>
-            {$t('Terminé')}
-          </Button>
-        </div>
+        <FilterSettings
+          parameter={selectedParameter}
+          current={values[selectedParameter.id] ?? null}
+          cards={draft.cards}
+          results={results.current}
+          onPatch={(patch) => setDraft((d) => ({ ...d, parameters: d.parameters.map((p) => (p.id === selectedParameter.id ? { ...p, ...patch } : p)) }))}
+          onMap={(byCard) =>
+            setDraft((d) => ({
+              ...d,
+              cards: d.cards.map((c) => {
+                if (!byCard.has(c.id)) return c
+                const others = (c.mappings ?? []).filter((m) => m.parameter !== selectedParameter.id)
+                const column = byCard.get(c.id)
+                return { ...c, mappings: column ? [...others, { parameter: selectedParameter.id, target: { column } }] : others }
+              }),
+            }))
+          }
+          onRemove={() => {
+            setDraft((d) => ({
+              ...d,
+              parameters: d.parameters.filter((p) => p.id !== selectedParameter.id),
+              cards: d.cards.map((c) => ({ ...c, mappings: (c.mappings ?? []).filter((m) => m.parameter !== selectedParameter.id) })),
+            }))
+            setSelectedParam(null)
+          }}
+          onClose={() => setSelectedParam(null)}
+        />
       ) : null}
 
       {/* Tabs */}

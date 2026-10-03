@@ -20,7 +20,7 @@ import type { Snapshot } from '../access/snapshot'
 import { audit } from '../audit'
 import type { Actor, Core } from '../context'
 import { AppError, notFound } from '../errors'
-import { liveValues } from './sync'
+import { liveValues, scopedValues } from './sync'
 
 interface TableRow {
   id: string
@@ -245,9 +245,52 @@ export async function columnValues(core: Core, actor: Actor, columnId: string, s
       complete: live.length < 100,
     }
   }
+  // Described values the data no longer holds (no count while the others have one) are not offered.
+  const counted = stored.some((v) => v.count !== null && v.count !== undefined)
   return {
-    values: stored.map(({ position: _p, ...v }) => v),
+    values: stored.filter((v) => !counted || (v.count !== null && v.count !== undefined)).map(({ position: _p, ...v }) => v),
     complete: true,
+  }
+}
+
+/** A value of an associative filter list: its look, its rows, and its rows within the other filters. */
+export interface ScopedValue extends ColumnValue {
+  readonly count: number
+  readonly scoped: number
+}
+
+/**
+ * The values of a column for a dashboard filter, read live under the reader's identity — the
+ * values the data holds, not those described in « Structure » —, with their looks and counts.
+ */
+export async function scopedColumnValues(
+  core: Core,
+  actor: Actor,
+  columnId: string,
+  filters: readonly { column: string; values: readonly string[] }[],
+  search = '',
+): Promise<{ values: ScopedValue[]; complete: boolean }> {
+  const snap = await core.snapshot()
+  const col = await core.db.one<{ table_id: string; datasource_id: string; schema_name: string; name: string }>(
+    'SELECT c.table_id, t.datasource_id, t.schema_name, c.name FROM db_column c JOIN db_table t ON t.id = c.table_id WHERE c.id = $1',
+    [columnId],
+  )
+  if (!col) throw notFound('Colonne introuvable.')
+  const reader = actor.dataUser ?? actor.userId
+  if (tableAccess(snap, reader, col.datasource_id, col.schema_name, col.table_id).access === 'none') throw notFound('Colonne introuvable.')
+  const t = snap.tables.get(col.table_id)
+  if (t && columnAccess(snap, reader, t, col.name).access !== 'read') return { values: [], complete: true }
+  const limit = 500
+  const live = await scopedValues(core, reader, columnId, filters, search, limit)
+  const looks = new Map(
+    (await core.db.many<ColumnValue>('SELECT value, label, color, icon, image_url FROM column_value WHERE column_id = $1', [columnId])).map((v) => [v.value, v]),
+  )
+  return {
+    values: live.map((v) => {
+      const look = looks.get(v.value)
+      return { ...v, ...(look ? { label: look.label, color: look.color, icon: look.icon, image_url: look.image_url } : {}) }
+    }),
+    complete: live.length < limit,
   }
 }
 

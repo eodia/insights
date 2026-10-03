@@ -365,9 +365,11 @@ async function valuesPass(core: Core, ds: DsRow, progress: Progress): Promise<nu
           tx,
         )
       }
-      // Values gone from the data leave, unless someone described them.
+      // Values gone from the data leave, unless someone described them — except a value whose
+      // characters were lost to a wrong encoding (U+FFFD): it can never match the data again.
       await core.db.exec(
-        `DELETE FROM column_value WHERE column_id = $1 AND NOT (value = ANY($2)) AND label IS NULL AND color IS NULL AND icon IS NULL AND image_url IS NULL`,
+        `DELETE FROM column_value WHERE column_id = $1 AND NOT (value = ANY($2))
+           AND ((label IS NULL AND color IS NULL AND icon IS NULL AND image_url IS NULL) OR strpos(value, chr(65533)) > 0)`,
         [c.id, values],
         tx,
       )
@@ -429,4 +431,44 @@ export async function linkedValues(
     { user: userId, timeoutMs: 30_000 },
   )
   return res.data.map((r) => String(r[0]))
+}
+
+/**
+ * Every value of a column with two counts, read live under the reader's rights: its rows, and
+ * its rows within the other filters' choices (`scoped`) — what an associative filter list
+ * needs to put the possible values first and grey the excluded ones. Only the other filters
+ * on the same table narrow it.
+ */
+export async function scopedValues(
+  core: Core,
+  userId: string,
+  columnId: string,
+  filters: readonly { column: string; values: readonly string[] }[],
+  search = '',
+  limit = 500,
+): Promise<{ value: string; count: number; scoped: number }[]> {
+  const ids = [columnId, ...filters.map((f) => f.column)]
+  const cols = await core.db.many<{ id: string; name: string; table_id: string; schema_name: string; table_name: string; catalog: string }>(
+    `SELECT c.id, c.name, c.table_id, t.schema_name, t.name AS table_name, d.catalog FROM db_column c JOIN db_table t ON t.id = c.table_id
+     JOIN datasource d ON d.id = t.datasource_id WHERE c.id = ANY($1)`,
+    [ids],
+  )
+  const target = cols.find((c) => c.id === columnId)
+  if (!target) return []
+  const col = q(target.name)
+  const scope: string[] = []
+  for (const f of filters) {
+    const other = cols.find((c) => c.id === f.column)
+    if (!other || other.table_id !== target.table_id || other.id === target.id || f.values.length === 0) continue
+    scope.push(`CAST(${q(other.name)} AS varchar) IN (${f.values.map((v) => quoteTrinoString(String(v))).join(', ')})`)
+  }
+  const where = [`${col} IS NOT NULL`]
+  if (search) where.push(`strpos(lower(CAST(${col} AS varchar)), lower(${quoteTrinoString(search)})) > 0`)
+  const scoped = scope.length ? `count_if(${scope.join(' AND ')})` : 'count(*)'
+  const res = await core.engine.run(
+    `SELECT CAST(${col} AS varchar), count(*), ${scoped} FROM ${q(target.catalog)}.${q(target.schema_name)}.${q(target.table_name)}
+     WHERE ${where.join(' AND ')} GROUP BY 1 ORDER BY 3 DESC, 2 DESC, 1 LIMIT ${Math.min(Math.max(limit, 1), 1000)}`,
+    { user: userId, timeoutMs: 30_000 },
+  )
+  return res.data.map((r) => ({ value: String(r[0]), count: Number(r[1]) || 0, scoped: Number(r[2]) || 0 }))
 }

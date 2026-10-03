@@ -2,15 +2,15 @@
 
 import type { DashboardParameter, ParameterValue, TemporalTruncation } from '@eodia/contracts'
 import { TEMPORAL_UNITS, parameterHasValue } from '@eodia/contracts'
-import { ValuesChecklist } from '@/components/app/question/pickers'
+import { ValueList } from './value-list'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { DATE_PRESETS, UNIT_LABELS } from '@/lib/builder'
-import { $t } from '@/lib/i18n'
+import { $t, intlLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Calendar, ChevronDown, Hash, ListFilter, Type, X, Clock } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 export type Values = Record<string, ParameterValue | null>
 
@@ -32,7 +32,27 @@ export function valueLabel(p: DashboardParameter, v: ParameterValue | null | und
 
 const ICONS = { date: Calendar, category: ListFilter, text: Type, number: Hash, temporal_unit: Clock } as const
 
-function Editor({ p, value, columnId, linked, onChange }: { p: DashboardParameter; value: ParameterValue | null | undefined; columnId?: string; linked: { column: string; values: string[] }[]; onChange: (v: ParameterValue | null) => void }) {
+function Editor({
+  p,
+  value,
+  columnId,
+  linked,
+  onChange,
+  onPick,
+  onShare,
+  onDone,
+}: {
+  p: DashboardParameter
+  value: ParameterValue | null | undefined
+  columnId?: string
+  linked: { column: string; values: string[] }[]
+  /** A choice that closes the editor. */
+  onChange: (v: ParameterValue | null) => void
+  /** A choice among others: the list stays open. */
+  onPick: (v: ParameterValue | null) => void
+  onShare: (share: number | null) => void
+  onDone: () => void
+}) {
   const [text, setText] = useState(typeof value === 'string' ? value : '')
   const [range, setRange] = useState<[string, string]>(() => {
     const s = typeof value === 'string' && value.includes('~') ? value.split('~') : ['', '']
@@ -74,9 +94,17 @@ function Editor({ p, value, columnId, linked, onChange }: { p: DashboardParamete
       )
     case 'category':
       return (
-        <div className="w-72 space-y-2 p-3">
+        <div className={columnId ? '' : 'w-72 space-y-2 p-3'}>
           {columnId ? (
-            <ValuesChecklist columnId={columnId} linked={linked} selected={(Array.isArray(value) ? value : value ? [value] : []).map(String)} onChange={(v) => onChange(p.multiple === false ? (v.slice(-1) as string[]) : v)} />
+            <ValueList
+              columnId={columnId}
+              linked={linked}
+              multiple={p.multiple !== false}
+              selected={(Array.isArray(value) ? value : value ? [value] : []).map(String)}
+              onChange={(v) => onPick(v.length ? v : null)}
+              onShare={onShare}
+              onDone={onDone}
+            />
           ) : (
             <>
               <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={$t('Valeurs séparées par des virgules')} className="h-8" />
@@ -141,6 +169,9 @@ export function ParameterBar({
   onSelect?: (id: string) => void
 }) {
   const [open, setOpen] = useState<string | null>(null)
+  // The share of the rows each category filter keeps, as its list last said.
+  const [shares, setShares] = useState<Record<string, number | null>>({})
+  const setShare = useCallback((id: string, share: number | null) => setShares((s) => (s[id] === share ? s : { ...s, [id]: share })), [])
   if (parameters.length === 0) return null
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -163,6 +194,11 @@ export function ParameterBar({
                 <Icon className="size-4 text-muted-foreground" />
                 <span className={cn(has ? 'text-muted-foreground' : '')}>{p.label}</span>
                 {has ? <span className="font-medium">{valueLabel(p, v)}</span> : null}
+                {has && p.type === 'category' && typeof shares[p.id] === 'number' ? (
+                  <span className="rounded bg-emerald-500/15 px-1.5 text-[11px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                    {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(shares[p.id] as number)}
+                  </span>
+                ) : null}
                 {has && !editing ? (
                   <span
                     role="button"
@@ -193,6 +229,9 @@ export function ParameterBar({
                   onChange(p.id, nv)
                   setOpen(null)
                 }}
+                onPick={(nv) => onChange(p.id, nv)}
+                onShare={(share) => setShare(p.id, share)}
+                onDone={() => setOpen(null)}
               />
             </PopoverContent>
           </Popover>
