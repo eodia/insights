@@ -3,6 +3,7 @@
 import type { BuilderQuery, Dashboard, ItemSummary, Question, QuestionQuery, SqlVariable, Visualization as Viz, VisualizationType } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, SQL_VARIABLE_TYPES, cardSize, placedAfter, sqlVariableNames } from '@eodia/contracts'
 import { ConfirmDialog, SaveDialog } from '@/components/app/dialogs'
+import { MoveDialog } from '@/components/app/move-dialog'
 import { ShareDialog } from '@/components/app/share-dialog'
 import { type SqlError, SqlEditor } from '@/components/app/sql-editor'
 import { DataTable, type PointClick, ResultFooter, Visualization } from '@/components/app/visualization'
@@ -238,7 +239,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
       await api.post<Question>('/v1/questions', { ...body, folder: null, dashboard: draft.dashboard.id, tab: draft.tab ?? null })
       await qc.invalidateQueries({ queryKey: keys.dashboard(draft.dashboard.id) })
       toast.success($t('Question ajoutée à « {name} ».', { name: draft.dashboard.name }))
-      router.push(`/dashboard/${draft.dashboard.id}`)
+      router.push(`/dashboard/${draft.dashboard.id}${draft.tab ? `?tab=${encodeURIComponent(draft.tab)}` : ''}`)
     } else {
       const q = await api.post<Question>('/v1/questions', body)
       toast.success($t('Question enregistrée.'))
@@ -348,13 +349,12 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                 <Share2 /> {$t('Partager')}
               </DropdownMenuItem>
             ) : null}
-            {draft.dashboard ? (
-              draft.id && canEdit ? (
-                <DropdownMenuItem onSelect={() => setMoveOpen(true)}>
-                  <FolderInput /> {$t('Déplacer dans un dossier')}
-                </DropdownMenuItem>
-              ) : null
-            ) : (
+            {draft.id && canEdit ? (
+              <DropdownMenuItem onSelect={() => setMoveOpen(true)}>
+                <FolderInput /> {$t('Déplacer…')}
+              </DropdownMenuItem>
+            ) : null}
+            {draft.dashboard ? null : (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <LayoutDashboard className="size-4" /> {$t('Ajouter à un tableau de bord')}
@@ -587,21 +587,25 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         initial={{ name: draft.name, description: draft.description, folder: draft.folder }}
         onSubmit={(v) => save(v)}
       />
-      {draft.id && draft.dashboard ? (
-        <SaveDialog
+      {draft.id ? (
+        <MoveDialog
           open={moveOpen}
           onOpenChange={setMoveOpen}
-          title={$t('Déplacer dans un dossier')}
-          description={$t('Elle reste sur « {name} » et se range dans le dossier choisi, avec ses droits.', { name: draft.dashboard.name })}
-          withDescription={false}
-          submitLabel={$t('Déplacer')}
-          initial={{ name: draft.name, folder: null }}
-          onSubmit={async (v) => {
-            const q = await api.patch<Question>(`/v1/questions/${draft.id}`, { name: v.name, dashboard: null, folder: v.folder })
-            setDraft((d) => ({ ...d, name: q.name, folder: q.folder, dashboard: q.dashboard }))
-            await qc.invalidateQueries({ queryKey: keys.question(q.id) })
-            await qc.invalidateQueries({ queryKey: ['folder-items'] })
-            toast.success($t('Question déplacée.'))
+          name={draft.name}
+          targets={draft.type === 'question' ? ['folder', 'dashboard'] : ['folder']}
+          current={{ folder: draft.folder, dashboard: draft.dashboard?.id ?? null }}
+          onMove={async (target) => {
+            const q = await api.patch<Question>(
+              `/v1/questions/${draft.id}`,
+              target.kind === 'folder' ? { folder: target.folder, ...(draft.dashboard ? { dashboard: null } : {}) } : { dashboard: target.dashboard, tab: target.tab },
+            )
+            setDraft((d) => ({ ...d, folder: q.folder, dashboard: q.dashboard }))
+            await Promise.all([
+              qc.invalidateQueries({ queryKey: keys.question(q.id) }),
+              qc.invalidateQueries({ queryKey: ['folder-items'] }),
+              qc.invalidateQueries({ queryKey: ['dashboard'] }),
+            ])
+            toast.success(q.dashboard ? $t('Question déplacée dans « {name} ».', { name: q.dashboard.name }) : $t('Question déplacée.'))
           }}
         />
       ) : null}

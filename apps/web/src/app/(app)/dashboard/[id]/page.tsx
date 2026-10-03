@@ -127,6 +127,10 @@ function DashboardScreen({ id }: { id: string }) {
     return api.post<RunResult>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/run`, { values, fresh })
   }
   const editable = dashboard.access !== 'view'
+  // The open tab lives in the address: a link opens it, and Back and Forward go from tab to tab.
+  const tab = params.get('tab')
+  const dashboardHref = (t: string | null) => `/dashboard/${dashboard.id}${t ? `?tab=${encodeURIComponent(t)}` : ''}`
+  const newQuestionHref = (t: string | null) => `/question/new?dashboard=${dashboard.id}${t ? `&tab=${encodeURIComponent(t)}` : ''}`
 
   return (
     <div ref={root} className="flex h-full flex-col bg-background">
@@ -148,12 +152,23 @@ function DashboardScreen({ id }: { id: string }) {
             setRefresh(next)
             if (editable) await api.patch(`/v1/dashboards/${dashboard.id}`, { auto_refresh: next })
           }}
-          onNewQuestion={(tab) => router.push(`/question/new?dashboard=${dashboard.id}${tab ? `&tab=${encodeURIComponent(tab)}` : ''}`)}
+          onNewQuestion={(tab) => router.push(newQuestionHref(tab))}
+          tab={tab}
+          onTabChange={(next) => router.push(dashboardHref(next), { scroll: false })}
+          onMoveCard={async (cardId, to, toTab) => {
+            await api.post(`/v1/dashboards/${dashboard.id}/cards/${cardId}/move`, { dashboard: to, tab: toTab })
+            await Promise.all([qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) }), qc.invalidateQueries({ queryKey: keys.dashboard(to) })])
+            if (to === dashboard.id) return
+            const target = await qc.fetchQuery({ queryKey: keys.dashboard(to), queryFn: () => api.get<Dashboard>(`/v1/dashboards/${to}`) })
+            toast.success($t('Carte déplacée dans « {name} ».', { name: target.name }), {
+              action: { label: $t('Ouvrir'), onClick: () => router.push(`/dashboard/${to}${toTab ? `?tab=${encodeURIComponent(toTab)}` : ''}`) },
+            })
+          }}
           onSave={async (d) => {
             await api.patch(`/v1/dashboards/${dashboard.id}`, d)
             await qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) })
             toast.success($t('Tableau de bord enregistré.'))
-            if (params.get('edit')) router.replace(`/dashboard/${dashboard.id}`)
+            if (params.get('edit')) router.replace(dashboardHref(tab))
           }}
           toolbar={
             <>
@@ -193,7 +208,7 @@ function DashboardScreen({ id }: { id: string }) {
                   </DropdownMenuItem>
                   {editable ? (
                     <>
-                      <DropdownMenuItem onSelect={() => router.push(`/question/new?dashboard=${dashboard.id}`)}>
+                      <DropdownMenuItem onSelect={() => router.push(newQuestionHref(tab))}>
                         <Plus /> {$t('Nouvelle question')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setSettings(true)}>

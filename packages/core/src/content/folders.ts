@@ -262,10 +262,12 @@ export async function homeItems(core: Core, actor: Actor) {
   return { recent, bookmarks, latest }
 }
 
-export async function search(core: Core, actor: Actor, text: string, limit = 30) {
+export async function search(core: Core, actor: Actor, text: string, limit = 30, kind?: ItemKind) {
   const idx = await contentIndex(core, actor.userId)
   const like = `%${text.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
-  const items = await itemsWhere(core, actor, idx, '(name ILIKE $1 OR description ILIKE $1)', [like])
+  const items = kind
+    ? await itemsWhere(core, actor, idx, '(name ILIKE $1 OR description ILIKE $1) AND kind = $2', [like, kind])
+    : await itemsWhere(core, actor, idx, '(name ILIKE $1 OR description ILIKE $1)', [like])
   const folders = (await core.db.many<FolderRow>('SELECT * FROM folder WHERE NOT archived AND name ILIKE $1 LIMIT 50', [like]))
     .filter((f) => idx.folder(f.id) !== 'none' && (!f.personal_owner_id || f.personal_owner_id === actor.userId))
     .map((f) => dto(f, idx))

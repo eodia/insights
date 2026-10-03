@@ -27,6 +27,7 @@ import {
   listFolders,
   listShares,
   listSnippets,
+  moveCard,
   recordView,
   runCard,
   runQuery,
@@ -52,6 +53,7 @@ const RunSaved = z.object({
   fresh: z.boolean().optional(),
   execution_id: z.string().max(64).optional(),
 })
+const CardMove = z.object({ dashboard: z.string().min(1).max(64), tab: z.string().max(60).nullable().optional() })
 const CardRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional() })
 const ExportInput = Run.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(120).optional() })
 const HistoryQuery = z.object({ all: z.enum(['0', '1']).optional(), origin: z.string().optional(), errors: z.enum(['0', '1']).optional(), before: z.string().optional() })
@@ -138,8 +140,10 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   // ── Dossiers ──
   const ftags = ['Dossiers']
   route(app, { method: 'get', path: '/api/v1/home', tags: ftags, summary: "Récents, favoris et nouveautés de l'accueil" }, async (c) => ok(c, await homeItems(c.get('core'), actorOf(c))))
-  route(app, { method: 'get', path: '/api/v1/search', tags: ftags, summary: 'Rechercher', query: z.object({ q: z.string().max(200) }) }, async (c) =>
-    ok(c, await search(c.get('core'), actorOf(c), c.req.query('q') ?? '')),
+  route(app, { method: 'get', path: '/api/v1/search', tags: ftags, summary: 'Rechercher', query: z.object({ q: z.string().max(200), kind: z.enum(['question', 'model', 'metric', 'dashboard']).optional() }) }, async (c) => {
+    const kind = c.req.query('kind') as 'question' | 'model' | 'metric' | 'dashboard' | undefined
+    return ok(c, await search(c.get('core'), actorOf(c), c.req.query('q') ?? '', kind ? 200 : 30, kind))
+  },
   )
   route(app, { method: 'post', path: '/api/v1/bookmarks', tags: ftags, summary: 'Ajouter ou retirer un favori', body: Bookmark }, async (c) => {
     const b = bodyOf(c, Bookmark)
@@ -249,6 +253,17 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   }, async (c) => {
     const input = bodyOf(c, CardRun)
     return ok(c, await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { ...(input.fresh ? { fresh: true } : {}) }))
+  })
+  route(app, {
+    method: 'post',
+    path: '/api/v1/dashboards/:id/cards/:card/move',
+    tags: dtags,
+    summary: 'Déplacer une carte vers un autre onglet ou un autre tableau de bord',
+    description: 'Ses liens aux filtres ne suivent pas d’un tableau à l’autre ; une question créée dans le tableau quitté la suit.',
+    body: CardMove,
+  }, async (c) => {
+    const input = bodyOf(c, CardMove)
+    return ok(c, await moveCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.dashboard, input.tab ?? null))
   })
 }
 

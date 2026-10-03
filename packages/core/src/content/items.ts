@@ -142,6 +142,12 @@ export async function updateQuestion(core: Core, actor: Actor, id: string, input
   if (!atLeastAccess(current.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier cette question.')
   const merged = { ...current, ...input, dashboard: undefined } as QuestionInput
   checkMetric(merged)
+  // Moved into a dashboard: it belongs to it from now on, with its card.
+  if (input.dashboard && input.dashboard !== current.dashboard?.id) {
+    await moveQuestionToDashboard(core, actor, current, input.dashboard, input.tab ?? null)
+    const { dashboard: _d, tab: _t, folder: _f, ...rest } = input
+    return Object.keys(rest).length ? updateQuestion(core, actor, id, rest) : getQuestion(core, actor, id)
+  }
   // A dashboard's question stays in it, until it is moved to a folder (`dashboard: null`).
   const leaves = current.dashboard !== null && input.dashboard === null
   const dashboard = leaves ? null : (current.dashboard?.id ?? null)
@@ -172,6 +178,83 @@ export async function updateQuestion(core: Core, actor: Actor, id: string, input
   )
   await audit(core, actor, `${merged.type ?? 'question'}.update`, { kind: merged.type ?? 'question', id }, { fields: Object.keys(input) })
   return getQuestion(core, actor, id)
+}
+
+/** The cards of a dashboard, rewritten as they are now. */
+async function writeCards(core: Core, actor: Actor, id: string, cards: readonly DashboardCard[]): Promise<void> {
+  await core.db.exec('UPDATE dashboard SET cards = $2, updated_by = $3, updated_at = now() WHERE id = $1', [id, JSON.stringify(cards), actor.userId])
+}
+
+/** A card where a dashboard's cards end: in `tab` if it has it, else its first. */
+function cardPlaced(target: Dashboard, card: Omit<DashboardCard, 'x' | 'y' | 'tab'>, tab: string | null | undefined): DashboardCard {
+  const where = target.tabs.some((t) => t.id === tab) ? (tab as string) : (target.tabs[0]?.id ?? null)
+  const [placed] = placedAfter(target.cards, where, [{ ...card, tab: where }])
+  return placed as DashboardCard
+}
+
+const newCardId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
+
+/**
+ * Gives a question to a dashboard: a question of another dashboard takes its cards along; one
+ * from a folder must not be shown elsewhere — it would then depend on this dashboard's rights.
+ */
+async function moveQuestionToDashboard(core: Core, actor: Actor, q: Question, dashboardId: string, tab: string | null): Promise<void> {
+  const target = await checkDashboard(core, actor, dashboardId, q.type)
+  if (q.dashboard) {
+    const from = await getDashboard(core, actor, q.dashboard.id)
+    if (!atLeastAccess(from.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier le tableau de bord où elle se trouve.')
+    const moving = from.cards.filter((c) => c.question === q.id)
+    await writeCards(core, actor, from.id, from.cards.filter((c) => c.question !== q.id))
+    let cards = [...target.cards]
+    for (const c of moving.length ? moving : [{ id: newCardId(), kind: 'question' as const, question: q.id, ...cardSize('question', q.visualization.type) }]) {
+      const { x: _x, y: _y, tab: _t, mappings: _m, ...rest } = c as DashboardCard
+      cards = [...cards, cardPlaced({ ...target, cards }, rest, tab)]
+    }
+    await writeCards(core, actor, target.id, cards)
+  } else {
+    const elsewhere = await core.db.one<{ n: number }>(
+      'SELECT count(*)::int AS n FROM dashboard WHERE id <> $2 AND NOT archived AND position($1 IN cards::text) > 0',
+      [q.id, target.id],
+    )
+    if ((elsewhere?.n ?? 0) > 0) throw new AppError('CONFLICT', `Elle figure sur ${elsewhere?.n} autre(s) tableau(x) de bord : retirez-l’en d’abord, ou ajoutez-la plutôt qu’elle ne déménage.`)
+    if (!target.cards.some((c) => c.question === q.id)) {
+      const size = cardSize('question', q.visualization.type)
+      await writeCards(core, actor, target.id, [...target.cards, cardPlaced(target, { id: newCardId(), kind: 'question', question: q.id, w: Math.min(size.w, DASHBOARD_COLUMNS), h: size.h }, tab)])
+    }
+  }
+  await core.db.exec('UPDATE question SET dashboard_id = $2, folder_id = NULL, archived = false, updated_by = $3, updated_at = now() WHERE id = $1', [q.id, target.id, actor.userId])
+  await audit(core, actor, 'question.move', { kind: 'question', id: q.id }, { dashboard: target.id })
+}
+
+/**
+ * Moves a card to another tab or another dashboard. Its filters' ties stay only within the
+ * same dashboard; a question of the dashboard it leaves goes with it.
+ */
+export async function moveCard(core: Core, actor: Actor, fromId: string, cardId: string, toId: string, tab: string | null): Promise<Dashboard> {
+  const from = await getDashboard(core, actor, fromId)
+  if (!atLeastAccess(from.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier ce tableau de bord.')
+  const card = from.cards.find((c) => c.id === cardId)
+  if (!card) throw notFound('Carte introuvable.')
+  const { x: _x, y: _y, tab: _t, ...rest } = card
+  const rest_ = rest as Omit<DashboardCard, 'x' | 'y' | 'tab'>
+  if (toId === fromId) {
+    const others = from.cards.filter((c) => c.id !== cardId)
+    await writeCards(core, actor, from.id, [...others, cardPlaced({ ...from, cards: others }, rest_, tab)])
+    await audit(core, actor, 'dashboard.update', { kind: 'dashboard', id: from.id }, { moved: cardId, tab })
+    return getDashboard(core, actor, from.id)
+  }
+  const target = await getDashboard(core, actor, toId)
+  if (!atLeastAccess(target.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier le tableau de bord visé.')
+  const { mappings: _m, ...moved } = rest_
+  const remaining = from.cards.filter((c) => c.id !== cardId)
+  await writeCards(core, actor, target.id, [...target.cards, cardPlaced(target, moved, tab)])
+  await writeCards(core, actor, from.id, remaining)
+  // The question of the dashboard it leaves follows it — unless another of its cards still shows it.
+  if (card.question && !remaining.some((c) => c.question === card.question)) {
+    await core.db.exec('UPDATE question SET dashboard_id = $2, updated_at = now() WHERE id = $1 AND dashboard_id = $3', [card.question, target.id, from.id])
+  }
+  await audit(core, actor, 'dashboard.card.move', { kind: 'dashboard', id: from.id }, { card: cardId, to: target.id, tab })
+  return getDashboard(core, actor, target.id)
 }
 
 export async function deleteQuestion(core: Core, actor: Actor, id: string): Promise<void> {

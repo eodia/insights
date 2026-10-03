@@ -27,6 +27,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
@@ -44,6 +47,8 @@ import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
+  ArrowRightLeft,
+  LayoutDashboard,
   BarChart3,
   Copy,
   Ellipsis,
@@ -69,6 +74,7 @@ import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 import { ParameterBar, type Values } from './parameters'
 import { RefreshTimer } from './refresh-timer'
+import { MoveDialog } from '@/components/app/move-dialog'
 import { TabRow } from '@/components/ui/tab-row'
 
 export type Runner = (card: DashboardCard, values: Values, opts: { fresh: boolean; draft: boolean }) => Promise<RunResult>
@@ -109,6 +115,10 @@ interface CardProps {
   onDuplicate: () => void
   onFullscreen: () => void
   publicMode: boolean
+  /** The other tabs it can go to, and where else it can go — when it can move. */
+  moveTabs?: readonly DashboardTab[]
+  onMoveToTab?: (tab: string) => void
+  onMoveElsewhere?: () => void
 }
 
 function MappingSelect({ card, result, parameter, onChange, variables, sourceColumns }: { card: DashboardCard; result?: RunResult; parameter: DashboardParameter; onChange: (m: CardMapping[]) => void; variables: readonly string[]; sourceColumns: readonly ColumnOption[] }) {
@@ -162,7 +172,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, values, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onChange, onRemove, onDuplicate, onFullscreen, publicMode } = props
+  const { card, parameters, values, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere } = props
   const isQuestion = card.kind === 'question'
   const { data: question } = useQuestion(isQuestion && card.question && !publicMode ? card.question : null)
   const relevant = useMemo(() => relevantValues(card, values), [card, values])
@@ -244,6 +254,25 @@ function CardFrame(props: CardProps) {
               {card.question && !publicMode ? (
                 <DropdownMenuItem onSelect={() => window.open(`/question/${card.question}`, '_self')}>
                   <ExternalLink /> {$t('Ouvrir la question')}
+                </DropdownMenuItem>
+              ) : null}
+              {onMoveToTab && moveTabs.length > 0 ? (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <ArrowRightLeft className="size-4" /> {$t('Vers l’onglet')}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-52">
+                    {moveTabs.map((t) => (
+                      <DropdownMenuItem key={t.id} onSelect={() => onMoveToTab(t.id)}>
+                        {t.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              ) : null}
+              {onMoveElsewhere ? (
+                <DropdownMenuItem onSelect={onMoveElsewhere}>
+                  <LayoutDashboard /> {$t('Vers un autre tableau de bord…')}
                 </DropdownMenuItem>
               ) : null}
               {editing ? (
@@ -385,14 +414,26 @@ export interface DashboardViewProps {
   onAutoRefreshChange?: (seconds: number | null) => void
   /** Opens the editor for a new question of this dashboard, whose card goes to `tab`. */
   onNewQuestion?: (tab: string | null) => void
+  /** The tab shown, when the page keeps it (in its address); otherwise kept here. */
+  tab?: string | null
+  onTabChange?: (tab: string) => void
+  /** Moves a card to a tab or another dashboard, on the server. */
+  onMoveCard?: (cardId: string, dashboard: string, tab: string | null) => Promise<void>
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   const [draft, setDraft] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
   const initialValues = useMemo(() => Object.fromEntries(dashboard.parameters.map((p) => [p.id, p.default ?? null])) as Values, [dashboard.parameters])
   const [values, setValues] = useState<Values>(initialValues)
-  const [tab, setTab] = useState<string | null>(dashboard.tabs[0]?.id ?? null)
+  const [tabState, setTabState] = useState<string | null>(dashboard.tabs[0]?.id ?? null)
+  const tab = tabProp !== undefined ? tabProp : tabState
+  const setTab = (id: string) => {
+    if (id === tab) return
+    if (onTabChange) onTabChange(id)
+    else setTabState(id)
+  }
+  const [moving, setMoving] = useState<DashboardCard | null>(null)
   const [tick, setTick] = useState(0)
   const [fresh, setFresh] = useState(false)
   const [selectedParam, setSelectedParam] = useState<string | null>(null)
@@ -500,6 +541,30 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     }
     setPicker(false)
     onNewQuestion(currentTab)
+  }
+
+  const draftChanged = () => JSON.stringify(draft) !== JSON.stringify({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
+  // A card changes tab within the edit in progress; outside it, at once on the server.
+  const moveToTab = async (card: DashboardCard, to: string) => {
+    if (editing) {
+      setDraft((d) => {
+        const others = d.cards.filter((c) => c.id !== card.id)
+        const [placed] = placedAfter(others, to, [{ ...card, tab: to }])
+        return { ...d, cards: [...others, placed as DashboardCard] }
+      })
+      return
+    }
+    try {
+      await onMoveCard?.(card.id, dashboard.id, to)
+      toast.success($t('Carte déplacée.'))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+  // To another dashboard: the edit in progress is saved first.
+  const moveElsewhere = async (card: DashboardCard, to: string, toTab: string | null) => {
+    if (editing && onSave && draftChanged()) await onSave(draft)
+    await onMoveCard?.(card.id, to, toTab)
   }
 
   const activeFilters = Object.values(values).filter((v) => parameterHasValue(v)).length
@@ -744,6 +809,14 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
                   onDuplicate={() => addCards([{ ...card, id: newId('c') }])}
+                  {...(onMoveCard && editable && !publicMode && card.kind !== 'heading'
+                    ? {
+                        moveTabs: tabs.filter((t) => t.id !== currentTab),
+                        onMoveToTab: (to: string) => void moveToTab(card, to),
+                        // A card saved already: the server moves what it knows.
+                        ...(dashboard.cards.some((c) => c.id === card.id) ? { onMoveElsewhere: () => setMoving(card) } : {}),
+                      }
+                    : {})}
                   onFullscreen={() => setFullscreenCard(card)}
                   publicMode={publicMode}
                 />
@@ -762,6 +835,21 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           setPicker(false)
         }}
       />
+      {moving ? (
+        <MoveDialog
+          open
+          onOpenChange={(o) => !o && setMoving(null)}
+          name={moving.title || $t('Carte')}
+          targets={['dashboard']}
+          current={{ dashboard: dashboard.id, tab: moving.tab }}
+          onMove={async (target) => {
+            if (target.kind !== 'dashboard') return
+            if (target.dashboard === dashboard.id) await moveToTab(moving, target.tab ?? '')
+            else await moveElsewhere(moving, target.dashboard, target.tab)
+            setMoving(null)
+          }}
+        />
+      ) : null}
       <Dialog open={!!fullscreenCard} onOpenChange={(o) => !o && setFullscreenCard(null)}>
         <DialogContent className="h-[85vh] max-w-[90vw] sm:max-w-[90vw]">
           <DialogHeader>
