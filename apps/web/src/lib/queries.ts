@@ -62,7 +62,7 @@ export const useTable = (id: string | null | undefined) =>
   useQuery({ queryKey: keys.table(id ?? ''), queryFn: () => api.get<TableMeta & { columns: ColumnMeta[] }>(`/v1/tables/${id}?removed=1`), enabled: !!id })
 export const useQuestion = (id: string | null | undefined) =>
   useQuery({ queryKey: keys.question(id ?? ''), queryFn: () => api.get<Question>(`/v1/questions/${id}`), enabled: !!id })
-export const useDashboard = (id: string) => useQuery({ queryKey: keys.dashboard(id), queryFn: () => api.get<Dashboard>(`/v1/dashboards/${id}`) })
+export const useDashboard = (id: string | null) => useQuery({ queryKey: keys.dashboard(id ?? ''), queryFn: () => api.get<Dashboard>(`/v1/dashboards/${id}`), enabled: !!id })
 export const useModels = () => useQuery({ queryKey: ['models'], queryFn: () => api.get<ItemSummary[]>('/v1/models') })
 export const useMetrics = () => useQuery({ queryKey: ['metrics'], queryFn: () => api.get<ItemSummary[]>('/v1/metrics') })
 export const useDirectory = () =>

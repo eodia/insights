@@ -13,7 +13,7 @@ export default function QuestionPage({ params }: { params: Promise<{ id: string 
   return (
     <QuestionEditor
       key={q.id}
-      initial={{ id: q.id, name: q.name, description: q.description, type: q.type, folder: q.folder, query: q.query, visualization: q.visualization, access: q.access }}
+      initial={{ id: q.id, name: q.name, description: q.description, type: q.type, folder: q.folder, dashboard: q.dashboard, query: q.query, visualization: q.visualization, access: q.access }}
     />
   )
 }

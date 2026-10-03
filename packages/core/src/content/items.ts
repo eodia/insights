@@ -8,7 +8,6 @@ import type {
   DashboardParameter,
   DashboardTab,
   Filter,
-  ItemKind,
   Question,
   QuestionInput,
   QuestionQuery,
@@ -16,17 +15,21 @@ import type {
   SourceRef,
   Visualization,
 } from '@eodia/contracts'
-import { DASHBOARD_LIMITS } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, DASHBOARD_LIMITS, cardSize, placedAfter } from '@eodia/contracts'
 import { audit } from '../audit'
 import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { AppError, forbidden, invalid, notFound } from '../errors'
-import { atLeastAccess, contentIndex } from './access'
+import { QUESTION_ROWS, atLeastAccess, contentIndex, questionAccess } from './access'
 import { assertItemAccess, itemsWhere } from './folders'
 
 interface QuestionRow {
   id: string
   folder_id: string | null
+  dashboard_id: string | null
+  dashboard_name: string | null
+  dashboard_folder: string | null
+  dashboard_owner: string | null
   type: Question['type']
   kind: QuestionQuery['kind']
   name: string
@@ -42,8 +45,6 @@ interface QuestionRow {
   updated_at: Date
 }
 
-const kindOfItem = (type: Question['type']): ItemKind => (type === 'question' ? 'question' : type)
-
 async function questionDto(core: Core, r: QuestionRow, access: Question['access']): Promise<Question> {
   const users = await summaryOf(core, [r.created_by, r.updated_by])
   return {
@@ -52,6 +53,7 @@ async function questionDto(core: Core, r: QuestionRow, access: Question['access'
     name: r.name,
     description: r.description,
     folder: r.folder_id,
+    dashboard: r.dashboard_id ? { id: r.dashboard_id, name: r.dashboard_name ?? '' } : null,
     query: r.query,
     visualization: r.visualization,
     columns_meta: r.columns_meta,
@@ -66,10 +68,10 @@ async function questionDto(core: Core, r: QuestionRow, access: Question['access'
 }
 
 export async function getQuestion(core: Core, actor: Actor, id: string): Promise<Question> {
-  const r = await core.db.one<QuestionRow>('SELECT * FROM question WHERE id = $1', [id])
+  const r = await core.db.one<QuestionRow>(`${QUESTION_ROWS} WHERE q.id = $1`, [id])
   if (!r) throw notFound('Question introuvable.')
   const idx = await contentIndex(core, actor.userId)
-  const access = idx.item(kindOfItem(r.type), r.id, r.folder_id, r.created_by)
+  const access = questionAccess(idx, r)
   if (access === 'none') throw notFound('Question introuvable.')
   return questionDto(core, r, access)
 }
@@ -93,12 +95,22 @@ async function checkFolder(core: Core, actor: Actor, folder: string | null | und
   return target
 }
 
+/** The dashboard a question is created in: the person must be able to edit it. */
+async function checkDashboard(core: Core, actor: Actor, id: string, type: Question['type'] | undefined): Promise<Dashboard> {
+  if ((type ?? 'question') !== 'question') throw invalid('Un modèle ou une métrique se range dans un dossier.')
+  const d = await getDashboard(core, actor, id)
+  if (!atLeastAccess(d.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier ce tableau de bord.')
+  return d
+}
+
 export async function createQuestion(core: Core, actor: Actor, input: QuestionInput): Promise<Question> {
   checkMetric(input)
-  const folder = await checkFolder(core, actor, input.folder)
+  // A question created in a dashboard belongs to it, and sits in no folder.
+  const dashboard = input.dashboard ? await checkDashboard(core, actor, input.dashboard, input.type) : null
+  const folder = dashboard ? null : await checkFolder(core, actor, input.folder)
   const row = await core.db.one<{ id: string }>(
-    `INSERT INTO question (folder_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10) RETURNING id`,
+    `INSERT INTO question (folder_id, dashboard_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by)
+     VALUES ($1, $11, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10) RETURNING id`,
     [
       folder,
       input.type ?? 'question',
@@ -110,22 +122,38 @@ export async function createQuestion(core: Core, actor: Actor, input: QuestionIn
       input.columns_meta ?? null,
       input.cache_ttl ?? null,
       actor.userId,
+      dashboard?.id ?? null,
     ],
   )
   const id = row?.id as string
-  await audit(core, actor, `${input.type ?? 'question'}.create`, { kind: input.type ?? 'question', id }, { name: input.name })
+  await audit(core, actor, `${input.type ?? 'question'}.create`, { kind: input.type ?? 'question', id }, { name: input.name, ...(dashboard ? { dashboard: dashboard.id } : {}) })
+  if (dashboard) {
+    // Its card goes below the others, in the tab it was created from.
+    const tab = dashboard.tabs.some((t) => t.id === input.tab) ? (input.tab as string) : (dashboard.tabs[0]?.id ?? null)
+    const size = cardSize('question', input.visualization.type as Visualization['type'])
+    const [card] = placedAfter(dashboard.cards, tab, [{ id: `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, tab, kind: 'question' as const, question: id, w: Math.min(size.w, DASHBOARD_COLUMNS), h: size.h }])
+    await core.db.exec('UPDATE dashboard SET cards = $2, updated_by = $3, updated_at = now() WHERE id = $1', [dashboard.id, JSON.stringify([...dashboard.cards, card]), actor.userId])
+  }
   return getQuestion(core, actor, id)
 }
 
 export async function updateQuestion(core: Core, actor: Actor, id: string, input: Partial<QuestionInput> & { archived?: boolean }): Promise<Question> {
   const current = await getQuestion(core, actor, id)
   if (!atLeastAccess(current.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier cette question.')
-  const merged = { ...current, ...input } as QuestionInput
+  const merged = { ...current, ...input, dashboard: undefined } as QuestionInput
   checkMetric(merged)
-  const folder = input.folder !== undefined && input.folder !== current.folder ? await checkFolder(core, actor, input.folder) : current.folder
+  // A dashboard's question stays in it, until it is moved to a folder (`dashboard: null`).
+  const leaves = current.dashboard !== null && input.dashboard === null
+  const dashboard = leaves ? null : (current.dashboard?.id ?? null)
+  if (dashboard && (merged.type ?? 'question') !== 'question') throw invalid('Un modèle ou une métrique se range dans un dossier : déplacez d’abord la question.')
+  const folder = dashboard
+    ? null
+    : leaves || (input.folder !== undefined && input.folder !== current.folder)
+      ? await checkFolder(core, actor, input.folder)
+      : current.folder
   await core.db.exec(
     `UPDATE question SET folder_id = $2, type = $3, kind = $4, name = $5, description = $6, query = $7, visualization = $8,
-       columns_meta = $9, cache_ttl = $10, archived = $11, updated_by = $12, updated_at = now() WHERE id = $1`,
+       columns_meta = $9, cache_ttl = $10, archived = $11, updated_by = $12, dashboard_id = $13, updated_at = now() WHERE id = $1`,
     [
       id,
       folder,
@@ -139,6 +167,7 @@ export async function updateQuestion(core: Core, actor: Actor, id: string, input
       merged.cache_ttl ?? null,
       input.archived ?? current.archived,
       actor.userId,
+      dashboard,
     ],
   )
   await audit(core, actor, `${merged.type ?? 'question'}.update`, { kind: merged.type ?? 'question', id }, { fields: Object.keys(input) })
@@ -234,7 +263,7 @@ export async function getDashboard(core: Core, actor: Actor, id: string): Promis
   }
 }
 
-function checkDashboard(input: Partial<DashboardInput>): void {
+function checkCards(input: Partial<DashboardInput>): void {
   for (const card of (input.cards ?? []) as unknown as DashboardCard[]) {
     if (typeof card.id !== 'string' || typeof card.kind !== 'string') throw invalid('Carte invalide.')
     if ((card.text ?? '').length > DASHBOARD_LIMITS.html) throw invalid('Texte de carte trop long.')
@@ -242,7 +271,7 @@ function checkDashboard(input: Partial<DashboardInput>): void {
 }
 
 export async function createDashboard(core: Core, actor: Actor, input: DashboardInput): Promise<Dashboard> {
-  checkDashboard(input)
+  checkCards(input)
   const folder = await checkFolder(core, actor, input.folder)
   const row = await core.db.one<{ id: string }>(
     `INSERT INTO dashboard (folder_id, name, description, tabs, cards, parameters, auto_refresh, cache_ttl, preload, created_by, updated_by)
@@ -268,7 +297,7 @@ export async function createDashboard(core: Core, actor: Actor, input: Dashboard
 export async function updateDashboard(core: Core, actor: Actor, id: string, input: Partial<DashboardInput> & { archived?: boolean }): Promise<Dashboard> {
   const current = await getDashboard(core, actor, id)
   if (!atLeastAccess(current.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier ce tableau de bord.')
-  checkDashboard(input)
+  checkCards(input)
   const folder = input.folder !== undefined && input.folder !== current.folder ? await checkFolder(core, actor, input.folder) : current.folder
   await core.db.exec(
     `UPDATE dashboard SET folder_id = $2, name = $3, description = $4, tabs = $5, cards = $6, parameters = $7, auto_refresh = $8,
@@ -288,13 +317,17 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
       actor.userId,
     ],
   )
+  // Its own questions follow its cards: one no card cites any more is archived, and comes back with it.
+  if (input.cards) {
+    await core.db.exec('UPDATE question SET archived = NOT (position(id::text IN $2) > 0) WHERE dashboard_id = $1', [id, JSON.stringify(input.cards)])
+  }
   await audit(core, actor, 'dashboard.update', { kind: 'dashboard', id }, { fields: Object.keys(input) })
   return getDashboard(core, actor, id)
 }
 
 export async function duplicateDashboard(core: Core, actor: Actor, id: string, folder?: string | null): Promise<Dashboard> {
   const d = await getDashboard(core, actor, id)
-  return createDashboard(core, actor, {
+  const copy = await createDashboard(core, actor, {
     name: `${d.name} (copie)`,
     description: d.description,
     folder: folder ?? d.folder,
@@ -305,6 +338,20 @@ export async function duplicateDashboard(core: Core, actor: Actor, id: string, f
     cache_ttl: d.cache_ttl,
     preload: d.preload,
   })
+  // Its own questions are copied with it, and its cards point to the copies.
+  const own = await core.db.many<{ id: string }>('SELECT id FROM question WHERE dashboard_id = $1 AND NOT archived', [id])
+  if (own.length === 0) return copy
+  let cards = JSON.stringify(copy.cards)
+  for (const q of own) {
+    const row = await core.db.one<{ id: string }>(
+      `INSERT INTO question (folder_id, dashboard_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by)
+       SELECT NULL, $2, type, kind, name, description, query, visualization, columns_meta, cache_ttl, $3, $3 FROM question WHERE id = $1 RETURNING id`,
+      [q.id, copy.id, actor.userId],
+    )
+    if (row) cards = cards.split(q.id).join(row.id)
+  }
+  await core.db.exec('UPDATE dashboard SET cards = $2 WHERE id = $1', [copy.id, cards])
+  return getDashboard(core, actor, copy.id)
 }
 
 export async function deleteDashboard(core: Core, actor: Actor, id: string): Promise<void> {

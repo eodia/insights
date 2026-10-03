@@ -298,7 +298,7 @@ function CardFrame(props: CardProps) {
   )
 }
 
-function QuestionPicker({ open, onOpenChange, onPick }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (q: ItemSummary) => void }) {
+function QuestionPicker({ open, onOpenChange, onPick, onNew }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (q: ItemSummary) => void; onNew?: () => void }) {
   const [q, setQ] = useState('')
   const { data } = useQuery({ queryKey: ['search', q, 'picker'], queryFn: () => api.get<{ items: ItemSummary[] }>(`/v1/search?q=${encodeURIComponent(q)}`), enabled: open })
   const items = (data?.items ?? []).filter((i) => i.kind !== 'dashboard')
@@ -313,6 +313,17 @@ function QuestionPicker({ open, onOpenChange, onPick }: { open: boolean; onOpenC
           <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={$t('Rechercher une question, un modèle, une métrique…')} className="pl-9" />
         </div>
         <div className="max-h-[380px] space-y-1 overflow-y-auto">
+          {onNew ? (
+            <button type="button" onClick={onNew} className="flex w-full items-center gap-3 rounded-lg border border-dashed px-2 py-2 text-left hover:bg-accent">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Plus className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">{$t('Nouvelle question')}</div>
+                <div className="truncate text-xs text-muted-foreground">{$t('Créée dans ce tableau de bord, sans passer par un dossier')}</div>
+              </div>
+            </button>
+          ) : null}
           {items.map((i) => (
             <button key={i.id} type="button" onClick={() => onPick(i)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-accent">
               <ItemTile kind={i.kind} className="size-8" />
@@ -345,9 +356,11 @@ export interface DashboardViewProps {
   onSave?: (d: Pick<Dashboard, 'tabs' | 'cards' | 'parameters'>) => Promise<void>
   toolbar?: React.ReactNode
   autoRefresh?: number | null
+  /** Opens the editor for a new question of this dashboard, whose card goes to `tab`. */
+  onNewQuestion?: (tab: string | null) => void
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onNewQuestion }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   const [draft, setDraft] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
   const initialValues = useMemo(() => Object.fromEntries(dashboard.parameters.map((p) => [p.id, p.default ?? null])) as Values, [dashboard.parameters])
@@ -438,6 +451,25 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     } finally {
       setSaving(false)
     }
+  }
+
+  // A new question leaves the page: the changes in progress are saved first.
+  const newQuestion = async () => {
+    if (!onNewQuestion) return
+    const changed = JSON.stringify(draft) !== JSON.stringify({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
+    if (changed && onSave) {
+      setSaving(true)
+      try {
+        await onSave(draft)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : String(err))
+        return
+      } finally {
+        setSaving(false)
+      }
+    }
+    setPicker(false)
+    onNewQuestion(currentTab)
   }
 
   const activeFilters = Object.values(values).filter((v) => parameterHasValue(v)).length
@@ -693,6 +725,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       <QuestionPicker
         open={picker}
         onOpenChange={setPicker}
+        {...(onNewQuestion && editable ? { onNew: newQuestion } : {})}
         onPick={(q) => {
           addCards([{ id: newId('c'), kind: 'question', question: q.id, ...cardSize('question', (q.viz ?? 'bar') as VisualizationType) }])
           setPicker(false)
