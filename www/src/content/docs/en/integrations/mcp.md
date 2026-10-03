@@ -13,7 +13,7 @@ permissions. It serves several people at once, each with their own token.
 
 ## Creating a token
 
-From **My profile** (*Mon profil*) or the **API and MCP** page (*API et MCP*), create a token with the **MCP** surface checked
+From **My profile** or the **API and MCP** page, create a token with the **MCP** surface checked
 (see [tokens](/insights/en/integrations/api-rest/#tokens)). It starts with `eoi_` and is
 displayed only once. A token limited to MCP cannot be used on the REST API.
 
@@ -23,7 +23,7 @@ The server speaks **Streamable HTTP**, stateless, on `POST /mcp`:
 
 | Context | Address |
 |---|---|
-| Production (behind Caddy) | `https://bi.exemple.fr/mcp` |
+| Production (behind Caddy) | `https://bi.example.com/mcp` |
 | Development | `http://localhost:4200/mcp` (`pnpm --filter @eodia/mcp dev`) |
 
 Each request carries the `Authorization: Bearer eoi_…` header. For a client that accepts an
@@ -34,7 +34,7 @@ HTTP configuration (Cursor, VS Code…):
   "mcpServers": {
     "eodia-insights": {
       "type": "http",
-      "url": "https://bi.exemple.fr/mcp",
+      "url": "https://bi.example.com/mcp",
       "headers": { "Authorization": "Bearer eoi_…" }
     }
   }
@@ -44,7 +44,7 @@ HTTP configuration (Cursor, VS Code…):
 With **Claude Code**:
 
 ```bash
-claude mcp add --transport http eodia-insights https://bi.exemple.fr/mcp \
+claude mcp add --transport http eodia-insights https://bi.example.com/mcp \
   --header "Authorization: Bearer $EODIA_TOKEN"
 ```
 
@@ -55,7 +55,7 @@ With **Claude Desktop**, through the `mcp-remote` bridge (`claude_desktop_config
   "mcpServers": {
     "eodia-insights": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://bi.exemple.fr/mcp", "--header", "Authorization:${EODIA_AUTH}"],
+      "args": ["-y", "mcp-remote", "https://bi.example.com/mcp", "--header", "Authorization:${EODIA_AUTH}"],
       "env": { "EODIA_AUTH": "Bearer eoi_…" }
     }
   }
@@ -76,8 +76,8 @@ For a client that launches the server itself, from a clone of the repository, wi
   "mcpServers": {
     "eodia-insights": {
       "command": "npx",
-      "args": ["tsx", "/chemin/vers/eodia-insights/apps/mcp/src/server.ts", "--stdio"],
-      "env": { "EODIA_URL": "https://bi.exemple.fr", "EODIA_TOKEN": "eoi_…" }
+      "args": ["tsx", "/path/to/eodia-insights/apps/mcp/src/server.ts", "--stdio"],
+      "env": { "EODIA_URL": "https://bi.example.com", "EODIA_TOKEN": "eoi_…" }
     }
   }
 }
@@ -114,14 +114,14 @@ at most.
 (`io.modelcontextprotocol/ui`): clients that support it — Claude, ChatGPT, VS Code… — draw
 the chart **in the conversation**, in a sandboxed frame. It is built as in
 the application: same chart types (radar included), same palettes, same formats, same value
-colors; it follows the client's light or dark theme, and **Open ↗** (*Ouvrir ↗*) leads to the question in
+colors; it follows the client's light or dark theme, and **Open ↗** leads to the question in
 eodia insights (`EODIA_PUBLIC_URL`).
 
 A client without MCP Apps receives the same result as a Markdown table. The page is a single HTML
 file, with no external resource: the clients' default security policy is enough.
 
 ```text
-Montre-moi les commandes par mois et par statut, en barres empilées.
+Show me the orders by month and by status, as stacked bars.
 ```
 
 ## What an agent does not do

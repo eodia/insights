@@ -21,7 +21,7 @@ written in SQL requires the SQL level from its reader.
 
 ## The visual editor
 
-**New › Question** (*Nouveau › Question*) (or **Explore a table** from the home page) opens the
+**New › Question** (or **Explore a table** from the home page) opens the
 step-by-step editor:
 
 | Step | What you do there |
@@ -61,7 +61,7 @@ source.
 
 ## The SQL editor
 
-**SQL editor** (*Éditeur SQL*) (or **New › SQL query**) is written in Trino SQL:
+**SQL editor** (or **New › SQL query**) is written in Trino SQL:
 
 - **autocompletion** knows `catalog.schema.table` and the columns of every table you
   can read, and nothing else;
@@ -91,7 +91,7 @@ WHERE {{snippet: commandes_payees}}
 
 ### Native SQL
 
-The **Dialect** selector offers, in addition to "Trino SQL (all sources)", a **native SQL**
+The **Dialect** selector offers, in addition to "Trino SQL (all data sources)", a **native SQL**
 for each source that allows it: the query is sent **as is** to the database, in its
 own dialect, through Trino's `system.query` function. MongoDB and raw Trino connectors
 don't have one.
@@ -138,7 +138,7 @@ A date accepts a date (`2026-03-01`), a relative period (`today`, `yesterday`,
 ## Visualizations
 
 Sixteen chart types, organized by purpose — key figures, compare (including the **radar**), trend,
-breakdown, relationship, detail —, with color-blind-safe palettes, highlighting
+distribution, relationship, detail —, with color-blind-safe palettes, highlighting
 of a value, the average, sorting, top N… and **forecasts** that extend a
 line in green dashes. Everything is described in [Visualizations](/insights/en/fonctionnalites/visualisations/)
 and [Forecasts](/insights/en/fonctionnalites/previsions/).

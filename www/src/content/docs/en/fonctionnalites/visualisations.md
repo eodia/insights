@@ -15,10 +15,10 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 | Family | Types | For |
 |---|---|---|
 | **Key figures** | Number, Trend, Progress, Gauge | a figure, its change, its share of a goal |
-| **Compare** | Bars, Horizontal bars, **Radar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
-| **Trend** | Lines, Areas, Combo, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
-| **Breakdown** | Pie (on several rings), **Treemap**, Funnel | shares, shares of shares, stages |
-| **Relationship** | Scatter plot | two measures against each other |
+| **Compare** | Bar, Row, **Radar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
+| **Trend** | Line, Area, Combo, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
+| **Distribution** | Pie (on several rings), **Treemap**, Funnel | shares, shares of shares, stages |
+| **Relationship** | Scatter | two measures against each other |
 | **Detail** | Table, Pivot table, Map | rows, a cross-tabulated measure, values by region |
 
 ### Shares on several levels
@@ -31,7 +31,7 @@ and the breadcrumb at the top takes you back. Three levels at most.
 
 ### Calendar
 
-One value per day, laid out on the calendar of the three most recent years: a **dot** that
+One value per day, laid out on the calendar of the three most recent years: **Points**, a dot that
 grows with the value, or **colored squares** with their legend. Weekdays, seasons and gaps show
 at a glance. Clicking a day filters the dashboard.
 
@@ -47,30 +47,30 @@ itself takes the period's color.
 A **bar race** plays the periods one after another: at each date the bars take their value and
 overtake each other, the period is written large in the corner, and a timeline at the bottom
 lets you play, pause or jump to a date. A **line race** draws the lines over time, each named at
-its tip with its value; *Replay* starts it again.
+its tip with its value; **Replay** starts it again.
 
 They need a date (the race moves forward with it), a measure, and competitors: the values of a
-second dimension (countries, products) or several measures. Settings: the speed (slow, normal,
-fast), how many bars are shown (5 to 20), **Accumulate periods** for a race on the running total
-rather than each month's value, and whether it starts on opening.
+second dimension (countries, products) or several measures. Settings: the **Speed** (slow, normal,
+fast), how many **Bars shown** (5 to 20), **Accumulate periods** for a race on the running total
+rather than each month's value, and **Start the race on open**.
 
 ## Colors
 
-**Six palettes**, each an ordering of hues: **eodia** (default), **Vive**, **Océan**,
-**Terre**, **Douce** and **Dégradé** (from light to dark, for ordered categories — 5 at
+**Six palettes**, each an ordering of hues: **eodia** (default), **Vivid**, **Ocean**,
+**Earth**, **Soft** and **Gradient** (from light to dark, for ordered categories — 5 at
 most). All are **validated in light and dark mode**: two neighboring colors can be told apart,
 including by a color-blind person (protanopia, deuteranopia), and each one stays legible on the background.
 
-**Custom** (*Personnalisée*) builds your own palette, up to 8 colors in order. It is checked
+**Custom** builds your own palette, up to 8 colors in order. It is checked
 while you build it, against the same thresholds: neighboring colors confused by a color-blind
 person, too close, too pale or too gray. In dark theme, each color is adjusted to stay
 legible.
 
-**Color of each element**: each series, slice or bar can take its own color —
+**Color of each item**: each series, slice or bar can take its own color —
 from the palette, from the application or any color at all —, and go back to the palette.
 
 The order of priority: the color chosen for the element, then the value's color in
-[Structure](/insights/en/fonctionnalites/sources/#values) ("livrée" in green, "annulée" in
+[Structure](/insights/en/fonctionnalites/sources/#values) ("delivered" in green, "cancelled" in
 red, in every chart), then the palette. "Other" stays gray.
 
 ## Making a chart speak
@@ -81,8 +81,8 @@ red, in every chart), then the palette. "Other" stays gray.
 | **Average line**, **median line** | a reference line, with its value |
 | **Goal** | a line at the target value, with its label |
 | **Category order** | that of the result, descending or ascending |
-| **Only the top** | the N largest categories; the rest in "Other" (which counts neither in the average nor in the highlight) |
-| **Extend the trend** | see [Forecasts](/insights/en/fonctionnalites/previsions/) |
+| **Only the top ones** | the N largest categories; the rest in "Other" (which counts neither in the average nor in the highlight) |
+| **Extend the trend by** | see [Forecasts](/insights/en/fonctionnalites/previsions/) |
 
 ## Shape and labels
 

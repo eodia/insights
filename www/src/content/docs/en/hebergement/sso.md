@@ -13,17 +13,17 @@ A single provider is declared per instance, through
 On the provider side, register a web application with this redirect address:
 
 ```text
-https://bi.exemple.fr/api/auth/oidc/callback
+https://bi.example.com/api/auth/oidc/callback
 ```
 
 It is derived from `EODIA_PUBLIC_URL`: check that this variable does give the instance's public
 address. Then, on the eodia insights side:
 
 ```bash
-EODIA_OIDC_ISSUER=https://sso.exemple.fr/realms/entreprise
+EODIA_OIDC_ISSUER=https://sso.example.com/realms/company
 EODIA_OIDC_CLIENT_ID=eodia-insights
 EODIA_OIDC_CLIENT_SECRET=…
-EODIA_OIDC_LABEL="Se connecter avec le compte de l’entreprise"
+EODIA_OIDC_LABEL="Sign in with the company account"
 ```
 
 | Variable | Default | Role |
@@ -31,7 +31,7 @@ EODIA_OIDC_LABEL="Se connecter avec le compte de l’entreprise"
 | `EODIA_OIDC_ISSUER` | — | the issuer; its configuration is read at `<issuer>/.well-known/openid-configuration` |
 | `EODIA_OIDC_CLIENT_ID` | — | the client identifier |
 | `EODIA_OIDC_CLIENT_SECRET` | — | the client secret, if the client is confidential |
-| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | the label of the button on the sign-in screen |
+| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | the label of the button on the sign-in screen, not translated: set it for your readers, e.g. `Sign in with SSO` |
 | `EODIA_OIDC_SCOPES` | `openid email profile` | the requested scopes |
 
 Sign-in follows the *authorization code* flow with **PKCE**. The ID token is verified with the
@@ -46,8 +46,7 @@ The first time a person signs in:
 - otherwise, an account is **created**, with the address and name sent by the provider.
 
 The provider must therefore send an e-mail address (`email`). An account deactivated in
-**Administration › People** (*Administration › Personnes*) can no longer sign in, not even
-through SSO.
+**Administration › People** can no longer sign in, not even through SSO.
 
 An administrator can also create a person **without a password**: they will sign in through
 SSO, and their account will be linked by their address.
@@ -74,11 +73,11 @@ EODIA_OIDC_GROUPS_CLAIM=groups
 With this variable, the provider's groups are **mirrored** at every sign-in: the person is
 removed from their custom groups, then added to those whose **name** appears in the claim. The
 groups must exist in eodia insights under the same name; those that do not exist are ignored. A
-leading slash is removed (`/Ventes` becomes `Ventes`, as Keycloak writes them).
+leading slash is removed (`/Sales` becomes `Sales`, as Keycloak writes them).
 
 :::caution[The Administrators group]
-A group name received in the claim that matches **Administrators** (*Administrateurs*) makes the
-person an administrator. This group is never removed by mirroring: remove it by hand. So keep
+A group name received in the claim that matches the name of the administrators group
+(`Administrateurs` on a new instance, unless renamed) makes the person an administrator. This group is never removed by mirroring: remove it by hand. So keep
 control of the group names your provider sends.
 :::
 
@@ -93,5 +92,5 @@ sign-in. On a fresh instance, the screen that creates the first administrator is
 give it **the e-mail address of the administrator's account at the provider**, since they will
 then sign in through SSO and their account will be found by that address.
 
-**Administration › Settings** (*Administration › Réglages*) shows whether SSO and e-mail sending
+**Administration › Settings** shows whether SSO and e-mail sending
 are configured.

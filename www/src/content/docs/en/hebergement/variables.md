@@ -63,7 +63,7 @@ makes already-stored secrets unreadable: generate it once, and back it up with t
 | `EODIA_OIDC_ISSUER` | — | the OpenID Connect issuer; enables SSO |
 | `EODIA_OIDC_CLIENT_ID` | — | the OIDC client identifier |
 | `EODIA_OIDC_CLIENT_SECRET` | — | its secret, for a confidential client |
-| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | the label of the sign-in button |
+| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | the label of the sign-in button, not translated: e.g. `Sign in with SSO` |
 | `EODIA_OIDC_SCOPES` | `openid email profile` | the requested scopes |
 | `EODIA_OIDC_ATTRIBUTE_CLAIMS` | — | the claims copied into attributes, comma-separated: `region,departement` |
 | `EODIA_OIDC_GROUPS_CLAIM` | — | the claim that carries the groups to mirror |
@@ -74,7 +74,7 @@ See [Single sign-on](/insights/en/hebergement/sso/).
 
 | Variable | Default | Role |
 |---|---|---|
-| `EODIA_SMTP_URL` | — | the outgoing server, as an SMTP connection URL: `smtps://utilisateur:motdepasse@smtp.exemple.fr:465` |
+| `EODIA_SMTP_URL` | — | the outgoing server, as an SMTP connection URL: `smtps://user:password@smtp.example.com:465` |
 | `EODIA_SMTP_FROM` | `eodia insights <noreply@localhost>` | the sender |
 
 Without SMTP, no e-mail is sent: an invitation's link is displayed so it can be passed on by hand.

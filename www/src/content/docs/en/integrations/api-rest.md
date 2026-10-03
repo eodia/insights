@@ -9,11 +9,11 @@ the token it presents.
 
 | Address | Purpose |
 |---|---|
-| `https://bi.exemple.fr/api/v1/…` | the API, served behind Caddy (in development: `http://localhost:4100`, or `http://localhost:3100`, which relays `/api/*`) |
+| `https://bi.example.com/api/v1/…` | the API, served behind Caddy (in development: `http://localhost:4100`, or `http://localhost:3100`, which relays `/api/*`) |
 | `/api/v1/openapi.json` | the **OpenAPI 3.1** specification, generated from the route schemas |
 | `/api/health` | the status of the API and Trino, without authentication |
 
-The application's **API and MCP** page (*API et MCP*) presents the same reference, filterable, with a
+The application's **API and MCP** page presents the same reference, filterable, with a
 `curl` and `fetch` example for each endpoint and a button to download the specification.
 
 ## Tokens
@@ -21,11 +21,11 @@ The application's **API and MCP** page (*API et MCP*) presents the same referenc
 An **integration token** starts with `eoi_` and is passed in the `Authorization` header:
 
 ```bash
-curl https://bi.exemple.fr/api/v1/me \
+curl https://bi.example.com/api/v1/me \
   -H "Authorization: Bearer $EODIA_TOKEN"
 ```
 
-You create it from **My profile** (*Mon profil*) or the **API and MCP** page, with:
+You create it from **My profile** or the **API and MCP** page, with:
 
 - a **name**, which says where it is used ("Reporting script", "Claude Desktop");
 - its **surfaces**: **REST API**, **MCP**, or both. A token is only accepted on the
@@ -33,7 +33,7 @@ You create it from **My profile** (*Mon profil*) or the **API and MCP** page, wi
 - an **expiration**: 30 days, 90 days, 1 year, or never.
 
 The token is **displayed only once**: only its hash is kept. The list of your tokens
-shows when each was last used, and **Revoke** (*Révoquer*) cuts them off immediately. A token cannot
+shows when each was last used, and **Revoke** cuts them off immediately. A token cannot
 create another token, and it stops working if its owner is deactivated. Creations and
 revocations are recorded in the audit log.
 
@@ -54,7 +54,7 @@ rejected (`CSRF`). A `Bearer` token does not need it.
 under the caller's identity:
 
 ```bash
-curl -X POST https://bi.exemple.fr/api/v1/query \
+curl -X POST https://bi.example.com/api/v1/query \
   -H "Authorization: Bearer $EODIA_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -97,8 +97,8 @@ rejects a SQL query. See [Permissions](/insights/en/fonctionnalites/droits/#the-
 | **Copilot** | conversation over SSE (`POST /api/v1/copilot`), saved conversations |
 | **Administration** | people, invitations, groups, permissions, audit log, cache, integration secrets |
 
-Administration routes require the corresponding permissions (**Manage sources** (*Gérer les sources*), **Manage
-metadata** (*Gérer les métadonnées*), **Manage permissions** (*Gérer les permissions*)) or being an administrator. A few public routes,
+Administration routes require the corresponding permissions (**Manage data sources**, **Manage
+metadata**, **Manage permissions**) or being an administrator. A few public routes,
 without a token, handle sign-in (`/api/auth/…`) and shared content (`/api/public/…`).
 
 ## Errors
@@ -106,10 +106,12 @@ without a token, handle sign-in (`/api/auth/…`) and shared content (`/api/publ
 An error returns an HTTP status and a body of the form:
 
 ```json
-{ "error": { "code": "DATA_ACCESS_DENIED", "message": "Accès aux données refusé : …" } }
+{ "error": { "code": "DATA_ACCESS_DENIED", "message": "Data access denied: …" } }
 ```
 
-The `code` is stable and machine-readable; the `message` is in French, ready to display.
+The `code` is stable and machine-readable; the `message` is ready to display, in the
+caller’s language: the one chosen in the interface (`eodia-locale` cookie), otherwise the
+`Accept-Language` header, otherwise English.
 
 | Code | Status | Meaning |
 |---|---|---|

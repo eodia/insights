@@ -9,8 +9,8 @@ range within which what comes next is likely to fall.
 
 ## Extending a trend
 
-In the **Visualization** panel, **Forecast** section: **Extend the trend by** (*Prolonger la
-tendance de*) N periods — **+3**, **+6** or **+12** in one click, up to 36.
+In the **Visualization** panel, **Forecast** section: **Extend the trend by** N
+periods — **+3**, **+6** or **+12** in one click, up to 36.
 
 | What you need | |
 |---|---|

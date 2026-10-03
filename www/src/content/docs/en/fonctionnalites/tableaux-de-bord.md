@@ -9,8 +9,8 @@ different permissions see different numbers on the same dashboard.
 
 ## Editing a dashboard
 
-**Edit** (*Modifier*) opens a **draft**: nothing is visible to others until **Save**
-(*Enregistrer*), and **Cancel** (*Annuler*) discards the changes. In it, you move and resize
+**Edit** opens a **draft**: nothing is visible to others until **Save**, and
+**Cancel** discards the changes. In it, you move and resize
 cards with the mouse, and add tabs, cards and filters.
 
 | Limit | Value |
@@ -24,21 +24,21 @@ cards with the mouse, and add tabs, cards and filters.
 | Card | Content |
 |---|---|
 | **Question** | a saved question, model or metric, with its visualization — or a different one, specific to the card |
-| **Heading** | a section heading |
+| **Title** | a section heading |
 | **Text** | Markdown; `{{filter_id}}` displays a filter's value |
 | **Embedded page** | a page from elsewhere, by its URL |
 
-**Add a question** (*Ajouter une question*) searches the questions, models and metrics you can
+**Add a question** searches the questions, models and metrics you can
 read; each one shows its folder. A question can also come from its own screen (**Add to a
-dashboard**, *Ajouter à un tableau de bord*) or from a suggestion by the
+dashboard**) or from a suggestion by the
 [copilot](/insights/en/fonctionnalites/copilot/).
 
 A card's title opens its question. Its menu lets you **refresh** it, **expand** it to full
 screen, **open the question**, **duplicate** it, **remove** it — removing a card does not delete
 the question —, and **move** it:
 
-- **To tab ›** (*Vers l’onglet ›*) sends it to another tab of the same dashboard;
-- **To another dashboard…** (*Vers un autre tableau de bord…*) places it on another dashboard,
+- **To tab ›** sends it to another tab of the same dashboard;
+- **To another dashboard…** places it on another dashboard,
   in the chosen tab. Its links to filters stay behind: filters are not the same from one
   dashboard to another.
 
@@ -47,7 +47,7 @@ The open tab is part of the URL (`?tab=…`): a link opens the right tab, and th
 
 ### A question created in the dashboard
 
-**New question** (*Nouvelle question*), in **Add a question** or in the dashboard’s **…** menu,
+**New question**, in **Add a question** or in the dashboard’s **…** menu,
 opens the editor; when you save, the card is placed in the tab you started from and the
 dashboard reopens. This question **belongs to the dashboard**:
 
@@ -55,23 +55,23 @@ dashboard reopens. This question **belongs to the dashboard**:
 - it takes the dashboard’s permissions (sharing the dashboard shares it too);
 - it is copied with the dashboard and deleted with it; removing its card archives it, putting
   the card back restores it;
-- **Move…** (*Déplacer…*), in the editor, files it in a folder (it becomes a question like any
+- **Move…**, in the editor, files it in a folder (it becomes a question like any
   other) or sends it to another dashboard.
 
 ## Filters
 
-**Filter** (*Filtre*) adds a filter to the dashboard. Five types:
+**Filter** adds a filter to the dashboard. Five types:
 
 | Type | Value | Connects to |
 |---|---|---|
-| **Period** | a predefined period (`Ce mois-ci` — this month, `12 derniers mois` — last 12 months…) or a specific one | a date column |
+| **Period** | a predefined period (`This month`, `Last 12 months`…) or a specific one | a date column |
 | **Category** | one or more values, chosen from the list of the column’s values | a text, number or boolean column |
 | **Text** | a text, searched for in the column | a text column |
 | **Number** | equal to, between, at least, at most | a numeric column |
 | **Date granularity** | day, week, month… among those offered | a grouped date column |
 
-Each filter has a label, an identifier (`{{periode}}`) and a **default value** (**Current value
-as default**, *Valeur actuelle par défaut*, takes the one currently displayed). A category
+Each filter has a label, an identifier (`{{periode}}`) and a **default value** (**use the current value**
+takes the one currently displayed). A category
 filter may or may not accept multiple values.
 
 **Configuring a filter.** In edit mode, select a filter: a panel shows its type, its name,
@@ -80,10 +80,9 @@ cards it drives.
 
 **Connecting a filter to cards.** Each card offers the column the filter restricts — a column of
 its table or of a related table — or, for a SQL question, one of its
-[variables](/insights/en/fonctionnalites/questions/#variables). **Connect all cards** (*Relier
-toutes les cartes*) does it all at once: it lists the columns the cards have in common, with the
-number of cards that have each one, and suggests the one bearing the filter’s name. **Disconnect
-all** (*Délier toutes*) removes the links. A card that is not connected ignores the filter.
+[variables](/insights/en/fonctionnalites/questions/#variables). **Link all cards** does it all at once: it lists the columns the cards have in common, with the
+number of cards that have each one, and suggests the one bearing the filter’s name. **Unlink
+all** removes the links. A card that is not connected ignores the filter.
 
 ### Associative filters
 
@@ -111,8 +110,8 @@ the ones defined in [Structure](/insights/en/fonctionnalites/sources/).
 | **Delete** | no value |
 | **Enter** | close |
 
-The **All** (*Tout*), **Excluded** (*Exclues*, the grayed-out values), **Invert** (*Inverser*)
-and **Clear** (*Effacer*) buttons do the rest. Selections apply as you go; the list keeps the
+The **All**, **Excluded** (the grayed-out values), **Invert** and **Clear**
+buttons do the rest. Selections apply as you go; the list keeps the
 order it had when opened. Only filters set on the **same table** restrict the possible values.
 
 ### Click a chart to filter
@@ -144,7 +143,7 @@ see [Forecasts](/insights/en/fonctionnalites/previsions/).
 
 - **Auto-refresh**: the timer in the toolbar — never, every minute, every 5 or 15 minutes, or
   every hour; its gauge fills up until the next refresh.
-- **Refresh** (*Rafraîchir*) reruns the cards, bypassing the cache.
+- **Refresh** reruns the cards, bypassing the cache.
 - **Full screen**, for a wall display.
 - **Duplicate**, **Add to favorites**, **Share** (see
   [Sharing](/insights/en/fonctionnalites/partage/)).
@@ -161,21 +160,21 @@ editor queries are never cached, and any permission change clears the cache.
 The retention time is decided from the most specific to the most general:
 
 1. the **question**’s (configurable through the API, field `cache_ttl`);
-2. the **dashboard**’s (**Settings › Cache**, *Réglages › Cache*: no cache, 5 minutes, 1 hour,
+2. the **dashboard**’s (**Settings › Cache**: no cache, 5 minutes, 1 hour,
    24 hours, or the instance’s);
 3. the one of the **sources** read (the shortest, if several set one);
-4. the **instance**’s, in **Administration › Settings** (*Administration › Réglages*): a fixed
+4. the **instance**’s, in **Administration › Settings**: a fixed
    duration, or an **adaptive duration**, proportional to the time the query took (a 10-second
    query is kept about 17 minutes, between 1 minute and 24 hours);
 5. failing that, `EODIA_CACHE_TTL` (300 seconds).
 
 Results are kept in the PostgreSQL catalog, shared by all replicas, with a small in-memory cache
-in front. **Clear the cache** (*Vider le cache*), in **Administration › Settings**, forces the
+in front. **Clear cache**, in **Administration › Settings**, forces the
 next queries to hit the sources again.
 
 ### Preloaded dashboards
 
-A dashboard marked **Preloaded** (*Préchargé*, in its **Settings**) is kept warm by the worker:
+A dashboard marked **Preloaded** (in its **Settings**) is kept warm by the worker:
 every 15 minutes, it runs its cards with the filters’ default values, **under its author’s
 permissions**. People who have the same permissions as the author then find their results
 already ready; the others trigger their own queries, as usual.

@@ -5,8 +5,8 @@ description: The eodia insights AI assistant — providers, what it can do, its 
 
 The **copilot** is an assistant that knows your sources: it searches for tables, reads their
 descriptions, writes Trino SQL, and **suggests** questions, dashboards or table descriptions to
-you. It opens from the **Copilot** (*Copilote*) button in the top bar, from the home page (“Ask
-the copilot”, *Demander au copilote*), in the SQL editor, a question, a dashboard or the
+you. It opens from the **Copilot** button in the top bar, from the home page (**Ask the
+copilot**), in the SQL editor, a question, a dashboard or the
 Structure screen.
 
 It is optional: without a configured provider, its buttons do not appear.
@@ -18,10 +18,10 @@ The panel keeps the **context** of the screen it is opened from:
 | Screen | What you might ask it |
 |---|---|
 | Home, or all data | “What is the revenue by region over the last 6 months?” |
-| SQL editor | write a query; **Fix with the copilot** (*Corriger avec le copilote*) passes it the Trino error |
+| SQL editor | write a query; **Fix with the copilot** passes it the Trino error |
 | Question | modify or explain the current question |
 | Dashboard | “Build a customer service dashboard”, or add cards |
-| Structure | **Describe with the copilot** (*Décrire avec le copilot*): labels, descriptions and semantic types of a table |
+| Structure | **Describe with the copilot**: labels, descriptions and semantic types of a table |
 
 To do so, it has tools:
 
@@ -40,12 +40,12 @@ The descriptions, semantic types and values you enter in
 the better your tables are described, the more accurate its answers.
 
 Answers arrive **continuously** (streaming), and conversations are **kept per person**: **New
-conversation** (*Nouvelle conversation*) starts another one.
+conversation** starts another one.
 
 ## It suggests, you apply
 
 The copilot **changes nothing by itself**. A suggestion appears in the panel with an **Apply**
-(*Appliquer*) (or **Open**, *Ouvrir*) button: the question opens in the editor, the cards are
+(or **Open**) button: the question opens in the editor, the cards are
 added to the dashboard, the description is written into Structure — only when you click.
 
 ## Its safeguards
@@ -53,8 +53,8 @@ added to the dashboard, the description is written into Structure — only when 
 - **It reads under your permissions.** `run_query` goes through Trino under your identity, like
   any other query: your row rules apply, hidden columns do not exist for it, and masked columns
   reach it masked.
-- **It runs nothing without your consent.** The **Allow running queries (under your
-  permissions)** switch (*Autoriser l’exécution de requêtes (sous vos droits)*), off by default,
+- **It runs nothing without your consent.** The **Allow running queries (with your
+  permissions)** switch, off by default,
   applies to the conversation. When it is off, the copilot writes queries without running them.
 - **It only receives an excerpt** of each result: 40 rows at most.
 - **A quota** limits the number of messages per person per hour.
@@ -89,9 +89,9 @@ EODIA_AI_API_KEY=…
 
 # An OpenAI-compatible server (gateway, local model…)
 EODIA_AI_PROVIDER=openai-compatible
-EODIA_AI_BASE_URL=https://llm.exemple.fr/v1
+EODIA_AI_BASE_URL=https://llm.example.com/v1
 EODIA_AI_API_KEY=…
-EODIA_AI_MODEL=mon-modele
+EODIA_AI_MODEL=my-model
 ```
 
 :::note[A key is always required]
@@ -99,6 +99,6 @@ Without a key, the copilot stays disabled, including for `openai-compatible`: gi
 `EODIA_AI_API_KEY` a value even if your server does not check it.
 :::
 
-**Administration › Settings** (*Administration › Réglages*) shows the provider, the model, the
+**Administration › Settings** shows the provider, the model, the
 quota and whether the configuration is complete. When a person reaches their quota, the copilot
 tells them so and invites them to try again later.

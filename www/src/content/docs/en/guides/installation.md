@@ -60,7 +60,7 @@ configuration).
 Next to `docker-compose.prod.yml`, create a `.env` file with the four required values:
 
 ```bash
-EODIA_DOMAIN=bi.exemple.fr
+EODIA_DOMAIN=bi.example.com
 EODIA_SECRET_KEY=<openssl rand -hex 32>
 EODIA_OPA_SECRET=<openssl rand -hex 24>
 EODIA_DB_PASSWORD=<a strong password>
@@ -87,7 +87,7 @@ source passwords and the embedding secrets can no longer be read.
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-On first start, the API applies the catalog migrations. Then open `https://bi.exemple.fr`:
+On first start, the API applies the catalog migrations. Then open `https://bi.example.com`:
 **the first screen creates the administrator account**.
 
 :::caution[The first visit creates the administrator]

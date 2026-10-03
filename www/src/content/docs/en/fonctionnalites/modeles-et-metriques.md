@@ -3,7 +3,7 @@ title: Models and metrics
 description: Curated virtual tables and named aggregates, defined once and reused everywhere.
 ---
 
-A question can change its nature. From the **More** (*Plus*) menu of the question editor:
+A question can change its nature. From the **More** menu of the question editor:
 
 | Nature | What it is | Where it is used |
 |---|---|---|
@@ -21,7 +21,7 @@ the **Data** step of the visual editor, it appears under **Models**, next to the
 Use it to freeze a preparation that everyone keeps redoing: a join, a business
 filter, renamed columns.
 
-The demo model, **Commandes enrichies**, joins each order to its customer's region,
+The demo model, **Enriched orders**, joins each order to its customer's region,
 city and segment:
 
 ```sql

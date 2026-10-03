@@ -13,21 +13,21 @@ The visitor has no account on the instance, and never sees the secret.
 
 ## 1. Create a secret
 
-In **Administration › Settings › Signed embedding** (*Administration › Réglages › Intégration signée*), an administrator creates a **secret**:
+In **Administration › Settings › Signed embedding**, an administrator creates a **secret**:
 
 - a **name**, which says where it is used ("Customer portal");
 - a **group**: visitors will read data with this group's permissions, and its row rules
   will apply to their attributes.
 
 The secret is **displayed only once**: store it in your application's server configuration.
-Its identifier, the **kid**, remains visible in the list. **Revoking** (*Révoquer*) a secret
+Its identifier, the **kid**, remains visible in the list. **Revoking** a secret
 immediately cuts off all embeddings signed with it. Creation and revocation are recorded
 in the audit log.
 
 :::tip[A dedicated group]
 Create a group specific to the embedding, with **Restricted** access on the relevant tables, and
 row rules that reference the visitor's attributes — for example
-`client_id est égal à {{user.client_id}}`. See [Permissions](/insights/en/fonctionnalites/droits/#rows).
+`client_id is equal to {{user.client_id}}`. See [Permissions](/insights/en/fonctionnalites/droits/#rows).
 :::
 
 ## 2. Sign a token
@@ -61,7 +61,7 @@ const token = jwt.sign(
 ## 3. Display
 
 ```html
-<iframe src="https://bi.exemple.fr/embed?token=<token>" width="100%" height="720" frameborder="0"></iframe>
+<iframe src="https://bi.example.com/embed?token=<token>" width="100%" height="720" frameborder="0"></iframe>
 ```
 
 The visitor sees the dashboard, its tabs and its filters — except the locked filters,

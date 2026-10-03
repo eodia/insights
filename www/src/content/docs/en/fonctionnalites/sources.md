@@ -6,7 +6,7 @@ description: Connect a database from one of seven engines, sync it, then describ
 A **source** is a database connected to eodia insights. Each source becomes a
 **Trino catalog**: its tables are referenced in SQL as `catalog.schema.table`, and a single query
 can join several sources. Adding, editing or deleting a source requires the
-**Manage sources** permission.
+**Manage data sources** permission.
 
 ## The seven engines
 
@@ -31,7 +31,7 @@ left empty in the edit form, they keep their value.
 
 ## Adding a source
 
-**Data sources › Add a source** (*Sources de données › Ajouter une source*), then the engine and
+**Data sources › Add a data source**, then the engine and
 the connection form.
 
 1. **Test connection** tries the engine's **native driver**. Native drivers are used only for
@@ -40,7 +40,7 @@ the connection form.
    (`CREATE CATALOG … USING …`), saves the source, then starts the sync. A source
    that Trino refuses to open is not saved.
 
-The **catalog name** is derived from the source name (`Ventes Europe` → `ventes_europe`):
+The **catalog name** is derived from the source name (`Sales Europe` → `sales_europe`):
 lowercase letters, digits and `_`, starting with a letter. It never changes afterwards, since
 SQL references it.
 
@@ -72,7 +72,7 @@ questions that use it stop working.
 
 ## Syncing
 
-**Sync database schema** starts a background job in three passes, whose progress the screen
+**Sync the database schema** starts a background job in three passes, whose progress the screen
 follows live:
 
 1. **Schema**: the schemas, tables and columns read from Trino's `information_schema`,
@@ -123,7 +123,7 @@ permission: to forbid a column, see [Permissions](/insights/en/fonctionnalites/d
 | **Semantic type** | what the column means (see below) |
 | **Format** | how its values are displayed |
 | **Foreign key** | the column it points to in another table |
-| **Unit** | `kg`, `km`, `€`, `jours`… |
+| **Unit** | `kg`, `km`, `€`, `days`… |
 
 The screen also shows the column's **fingerprint** (sample, distinct values, nulls,
 minimum, maximum, average), its Trino type and its native type, and flags a type change
@@ -155,7 +155,7 @@ the visual editor's implicit joins and the copilot's context.
 
 For a category column, the **Values** tab lists the values found by the
 sync. Each one gets a **label**, a **color**, an **icon** or an **image**:
-`expédiée` then displays as "Expédiée", in blue, with a truck. Results, filters and
+`shipped` then displays as "Shipped", in blue, with a truck. Results, filters and
 **charts** reuse this appearance: a colored value keeps its color in every
 series, slice and bar (see [Visualizations](/insights/en/fonctionnalites/visualisations/#colors)).
 
