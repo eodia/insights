@@ -21,7 +21,7 @@ import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 import { Pane } from '@/components/ui/pane'
 
-type Proposal =
+export type Proposal =
   | { id: string; kind: 'question'; name: string; description?: string; query: unknown; visualization: unknown }
   | { id: string; kind: 'dashboard'; dashboard?: string; name: string; cards: { title: string; query: unknown; visualization: { type: string }; w: number }[] }
   | { id: string; kind: 'metadata'; table: string; patch: { label?: string; description?: string }; columns: { name: string; label?: string; description?: string; semantic?: string }[] }
@@ -45,7 +45,7 @@ export function stashDraft(draft: unknown): void {
   sessionStorage.setItem('eodia-draft', JSON.stringify(draft))
 }
 
-function ProposalCard({ p }: { p: Proposal }) {
+export function ProposalCard({ p }: { p: Proposal }) {
   const router = useRouter()
   const qc = useQueryClient()
   const { data: me } = useMe()

@@ -52,12 +52,22 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+/** The assistant's mark: a small turning ring, as on its screen. */
+function AssistantIcon({ className }: { className?: string }) {
+  return (
+    <span className={cn('ai-orb inline-block', className)} style={{ ['--ai-ring' as string]: '2px' }}>
+      <span />
+    </span>
+  )
+}
+
 function NavItem({
   href,
   icon: Icon,
   label,
   active,
   sub = false,
+  badge,
   children,
 }: {
   href: string
@@ -65,6 +75,8 @@ function NavItem({
   label: string
   active: boolean
   sub?: boolean
+  /** After the label, on the right. */
+  badge?: React.ReactNode
   children?: React.ReactNode
 }) {
   return (
@@ -78,6 +90,7 @@ function NavItem({
     >
       {children ?? (Icon ? <Icon className={cn('size-[18px] shrink-0', sub ? 'size-4' : '', active ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground')} /> : null)}
       <span className="truncate">{label}</span>
+      {badge ? <span className="ml-auto">{badge}</span> : null}
     </Link>
   )
 }
@@ -178,6 +191,15 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         <NavItem href="/" icon={Home} label={$t('Accueil')} active={path === '/'} />
+        {me?.ai_enabled !== false ? (
+          <NavItem
+            href="/assistant"
+            icon={AssistantIcon}
+            label={$t('Assistant IA')}
+            active={path.startsWith('/assistant')}
+            badge={<span className="rounded-full bg-gradient-to-r from-primary to-violet-500 px-1.5 py-px text-[10px] font-semibold text-white">{$t('Nouveau')}</span>}
+          />
+        ) : null}
         <NavItem href="/browse" icon={FolderClosed} label={$t('Dossiers')} active={path === '/browse'} />
         {roots.map((f) => (
           <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />

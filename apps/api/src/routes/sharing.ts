@@ -2,6 +2,7 @@ import { z } from '@hono/zod-openapi'
 import { type ParameterValue, requestLocaleOf } from '@eodia/contracts'
 import {
   AppError,
+  assistantInfo,
   type CopilotContext,
   copilotTurn,
   createShareLink,
@@ -14,6 +15,7 @@ import {
   openEmbed,
   openShareLink,
   readConversation,
+  renameConversation,
   revokeShareLink,
   runCard,
   runQuestion,
@@ -33,6 +35,8 @@ const LinkInput = z.object({
 })
 const LinkPatch = LinkInput.omit({ item_kind: true, item_id: true }).partial()
 const PublicRun = z.object({ values: z.record(z.string(), z.any()).optional(), parameters: z.record(z.string(), z.any()).optional() })
+const ConversationPatch = z.object({ title: z.string().trim().min(1).max(120) })
+
 const CopilotInput = z.object({
   conversation: z.string().nullish(),
   message: z.string().min(1).max(8000),
@@ -136,7 +140,15 @@ export function sharingRoutes(app: ReturnType<typeof newApp>) {
       }
     })
   })
-  route(app, { method: 'get', path: '/api/v1/copilot/conversations', tags: ctags, summary: 'Conversations du copilot' }, async (c) => ok(c, await listConversations(c.get('core'), actorOf(c))))
+  route(app, { method: 'get', path: '/api/v1/copilot/info', tags: ctags, summary: 'Le modèle qui répond' }, async (c) => ok(c, assistantInfo(c.get('core'))))
+  route(app, { method: 'get', path: '/api/v1/copilot/conversations', tags: ctags, summary: 'Conversations du copilot' }, async (c) => {
+    const kind = c.req.query('kind')
+    return ok(c, await listConversations(c.get('core'), actorOf(c), kind === 'assistant' || kind === 'panel' ? kind : undefined))
+  })
+  route(app, { method: 'patch', path: '/api/v1/copilot/conversations/:id', tags: ctags, summary: 'Renommer une conversation', body: ConversationPatch }, async (c) => {
+    await renameConversation(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, ConversationPatch).title)
+    return ok(c)
+  })
   route(app, { method: 'get', path: '/api/v1/copilot/conversations/:id', tags: ctags, summary: 'Lire une conversation' }, async (c) => ok(c, await readConversation(c.get('core'), actorOf(c), param(c, 'id'))))
   route(app, { method: 'delete', path: '/api/v1/copilot/conversations/:id', tags: ctags, summary: 'Supprimer une conversation' }, async (c) => {
     await deleteConversation(c.get('core'), actorOf(c), param(c, 'id'))

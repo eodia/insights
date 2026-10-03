@@ -232,4 +232,6 @@ export default {
   "Supprimer un thème (administrateurs)": "Delete a theme (administrators)",
   "Thème introuvable.": "Theme not found.",
   "Thème non créé.": "Theme not created.",
+  "Le modèle qui répond": "Which model answers",
+  "Renommer une conversation": "Rename a conversation",
 } as Readonly<Record<string, string>>

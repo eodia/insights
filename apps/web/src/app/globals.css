@@ -347,3 +347,102 @@
 [data-themed] .theme-surface {
   background: var(--theme-bg, var(--surface));
 }
+
+/* ── Assistant IA ─────────────────────────────────────────────────────────── */
+@property --ai-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes ai-spin {
+  to {
+    --ai-angle: 360deg;
+  }
+}
+@keyframes ai-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+@keyframes ai-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes ai-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* A ring of light that turns — faster while the assistant works. */
+.ai-orb {
+  --ai-c1: var(--primary);
+  --ai-c2: #22d3ee;
+  --ai-c3: #8b5cf6;
+  position: relative;
+  border-radius: 9999px;
+  aspect-ratio: 1;
+}
+.ai-orb::before,
+.ai-orb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(from var(--ai-angle), var(--ai-c1), var(--ai-c2), var(--ai-c3), var(--ai-c1));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--ai-ring, 3px)), #000 calc(100% - var(--ai-ring, 3px) + 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--ai-ring, 3px)), #000 calc(100% - var(--ai-ring, 3px) + 1px));
+  animation: ai-spin 5s linear infinite;
+}
+.ai-orb::after {
+  filter: blur(calc(var(--ai-ring, 3px) * 3));
+  opacity: 0.8;
+}
+.ai-orb > span {
+  position: absolute;
+  inset: 22%;
+  border-radius: inherit;
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklch, var(--ai-c2) 55%, transparent), transparent 60%),
+    radial-gradient(circle at 70% 70%, color-mix(in oklch, var(--ai-c3) 45%, transparent), transparent 65%);
+  filter: blur(6px);
+  animation: ai-breathe 4s ease-in-out infinite;
+}
+.ai-orb[data-busy]::before,
+.ai-orb[data-busy]::after {
+  animation-duration: 1.2s;
+}
+.ai-orb[data-busy] > span {
+  animation-duration: 1.4s;
+}
+.ai-grid {
+  background-image: linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 20%, transparent 75%);
+}
+.ai-glow {
+  background: radial-gradient(ellipse 50% 40% at 50% 0%, color-mix(in oklch, var(--primary) 14%, transparent), transparent 70%);
+}
+.ai-shimmer {
+  background: linear-gradient(90deg, var(--muted-foreground) 0%, var(--foreground) 50%, var(--muted-foreground) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ai-shimmer 1.8s linear infinite;
+}
+.ai-rise {
+  animation: ai-rise 0.35s ease-out both;
+}

@@ -26,6 +26,8 @@ export type CopilotContext =
   | { readonly kind: 'question'; readonly id?: string; readonly query?: unknown }
   | { readonly kind: 'dashboard'; readonly id: string }
   | { readonly kind: 'structure'; readonly table: string }
+  /** The assistant's own screen: it answers, and shows data as charts, within the chosen sources. */
+  | { readonly kind: 'assistant'; readonly sources?: readonly string[] }
 
 export type CopilotEvent =
   | { type: 'conversation'; id: string }
@@ -33,6 +35,7 @@ export type CopilotEvent =
   | { type: 'tool'; name: string; input: unknown }
   | { type: 'tool_result'; name: string; ok: boolean; summary: string }
   | { type: 'proposal'; proposal: Proposal }
+  | { type: 'chart'; chart: Chart }
   | { type: 'done' }
   | { type: 'error'; message: string }
 
@@ -40,6 +43,15 @@ export type Proposal =
   | { id: string; kind: 'question'; name: string; description?: string; query: unknown; visualization: unknown }
   | { id: string; kind: 'dashboard'; dashboard?: string; name: string; cards: unknown[]; parameters?: unknown[] }
   | { id: string; kind: 'metadata'; table: string; patch: unknown; columns: unknown[] }
+
+/** A chart the assistant shows in the conversation: the screen runs its query under the person's identity. */
+export interface Chart {
+  readonly id: string
+  readonly title: string
+  readonly description?: string
+  readonly query: unknown
+  readonly visualization: { readonly type: string; readonly settings?: Record<string, unknown> }
+}
 
 const MAX_STEPS = 12
 const ROWS_SHOWN = 40
@@ -90,6 +102,21 @@ const TOOLS: readonly ToolSpec[] = [
         visualization: { type: 'string', enum: [...VISUALIZATIONS] },
       },
       required: ['name', 'sql', 'visualization'],
+    },
+  },
+  {
+    name: 'show_chart',
+    description:
+      "Montre des données dans la conversation, en graphique ou en tableau : la requête s'exécute sous les droits de la personne et le résultat s'affiche, interactif, sous ta réponse. Préfère-le à un long tableau Markdown dès qu'il y a des chiffres à montrer.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Titre court du graphique' },
+        description: { type: 'string', description: 'Une phrase sous le titre (facultatif)' },
+        sql: { type: 'string' },
+        visualization: { type: 'string', enum: [...VISUALIZATIONS] },
+      },
+      required: ['title', 'sql', 'visualization'],
     },
   },
   {
@@ -150,6 +177,7 @@ const Inputs = {
   list_metrics: z.object({}).passthrough(),
   run_query: z.object({ sql: z.string().min(1) }),
   propose_question: z.object({ name: z.string(), description: z.string().optional(), sql: z.string(), visualization: z.enum(VISUALIZATIONS) }),
+  show_chart: z.object({ title: z.string(), description: z.string().optional(), sql: z.string().min(1), visualization: z.enum(VISUALIZATIONS) }),
   propose_dashboard: z.object({
     name: z.string(),
     cards: z.array(z.object({ title: z.string(), sql: z.string(), visualization: z.enum(VISUALIZATIONS), width: z.number().int().min(2).max(24).optional() })).min(1).max(20),
@@ -174,6 +202,8 @@ interface ToolEnv {
   readonly allowRun: boolean
   readonly context: CopilotContext
   readonly emit: (e: CopilotEvent) => void
+  /** The id of the tool call being run: a chart keeps it, to be found again in the history. */
+  callId?: string
 }
 
 let proposalSeq = 0
@@ -190,7 +220,8 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
       const { query } = parsed.data as z.infer<typeof Inputs.search_schema>
       const words = query.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\s+/).filter((w) => w.length > 1)
       const fold = (s: string | null | undefined) => (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-      const tables = await listTables(core, actor, { withColumns: true })
+      const only = env.context.kind === 'assistant' && env.context.sources?.length ? new Set(env.context.sources) : null
+      const tables = (await listTables(core, actor, { withColumns: true })).filter((t) => !only || only.has(t.datasource))
       const scored = tables
         .filter((t) => t.visibility !== 'hidden')
         .map((t) => {
@@ -264,6 +295,18 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
       env.emit({ type: 'proposal', proposal })
       return { ok: true, text: `Proposition « ${p.name} » présentée à la personne.`, summary: p.name }
     }
+    case 'show_chart': {
+      const p = parsed.data as z.infer<typeof Inputs.show_chart>
+      const chart: Chart = {
+        id: env.callId ?? proposalId(),
+        title: p.title,
+        ...(p.description ? { description: p.description } : {}),
+        query: QuestionQuerySchema.parse({ kind: 'sql', sql: p.sql.trim().replace(/;+\s*$/, '') }),
+        visualization: { type: p.visualization },
+      }
+      env.emit({ type: 'chart', chart })
+      return { ok: true, text: `Graphique « ${p.title} » affiché sous ta réponse ; ne recopie pas ses chiffres en tableau, commente-les.`, summary: p.title }
+    }
     case 'propose_dashboard': {
       const p = parsed.data as z.infer<typeof Inputs.propose_dashboard>
       const proposal: Proposal = {
@@ -309,6 +352,16 @@ async function contextText(core: Core, actor: Actor, context: CopilotContext): P
     case 'dashboard':
       parts.push(`La personne regarde le tableau de bord ${context.id} ; propose des cartes avec propose_dashboard.`)
       break
+    case 'assistant': {
+      parts.push(
+        "La personne te parle dans l’assistant IA. Réponds en Markdown soigné (titres courts, listes, tableaux quand c'est utile) ; dès qu'il y a des données à montrer, exécute la requête puis affiche-la avec show_chart, et commente ce qu'on y voit.",
+      )
+      if (context.sources?.length) {
+        const names = await core.db.many<{ name: string; catalog: string }>('SELECT name, catalog FROM datasource WHERE id = ANY($1)', [context.sources])
+        parts.push(`Limite-toi à ces sources (catalogues Trino) : ${names.map((n) => `${n.name} (« ${n.catalog} »)`).join(', ')}.`)
+      }
+      break
+    }
     case 'structure': {
       const t = await getTable(core, actor, context.table).catch(() => null)
       if (t) parts.push(`La personne décrit la table ${t.qualified} (id ${t.id}) dans l’écran Structure : utilise describe_table puis propose_metadata.`)
@@ -355,7 +408,8 @@ export async function copilotTurn(
   // The screen's context rides with the person's message: the system prompt stays frozen (cached).
   messages.push({ role: 'user', content: [{ type: 'text', text: `${await contextText(core, actor, input.context)}\n\n${input.message}` }] })
 
-  const env: ToolEnv = { core, actor, allowRun: input.allowRun, context: input.context, emit }
+  // In its own screen, the assistant runs its queries — under the person's identity, as always.
+  const env: ToolEnv = { core, actor, allowRun: input.allowRun || input.context.kind === 'assistant', context: input.context, emit }
   const usedTools: string[] = []
   const started = Date.now()
   let usage = { input: 0, output: 0 }
@@ -377,6 +431,7 @@ export async function copilotTurn(
       for (const call of calls) {
         usedTools.push(call.name)
         emit({ type: 'tool', name: call.name, input: call.input })
+        env.callId = call.id
         const out = await runTool(env, call.name, call.input).catch((err: unknown) => ({ ok: false, text: err instanceof Error ? err.message : String(err), summary: 'erreur' }))
         emit({ type: 'tool_result', name: call.name, ok: out.ok, summary: out.summary })
         results.push({ type: 'tool_result', tool_use_id: call.id, content: out.text, ...(out.ok ? {} : { is_error: true }) })
@@ -396,22 +451,70 @@ export async function copilotTurn(
   }
 }
 
-/** The conversations of a person, newest first; their messages rendered for the panel. */
-export async function listConversations(core: Core, actor: Actor) {
-  return core.db.many('SELECT id, context_kind, context_id, title, updated_at FROM ai_conversation WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50', [actor.userId])
+/** The conversations of a person, newest first — the assistant's, or the panel's. */
+export async function listConversations(core: Core, actor: Actor, kind?: 'assistant' | 'panel') {
+  const where = kind === 'assistant' ? "AND context_kind = 'assistant'" : kind === 'panel' ? "AND context_kind <> 'assistant'" : ''
+  return core.db.many(`SELECT id, context_kind, context_id, title, updated_at FROM ai_conversation WHERE user_id = $1 ${where} ORDER BY updated_at DESC LIMIT 200`, [actor.userId])
 }
 
+/** What a conversation shows, turn by turn: the person's words, and the assistant's text, steps, charts and proposals in order. */
+export type ShownPart =
+  | { readonly type: 'text'; readonly text: string }
+  | { readonly type: 'tool'; readonly name: string; readonly ok: boolean; readonly summary?: string }
+  | { readonly type: 'chart'; readonly chart: Chart }
+  | { readonly type: 'proposal'; readonly proposal: Proposal }
+
 export async function readConversation(core: Core, actor: Actor, id: string) {
-  const row = await core.db.one<{ id: string; title: string; messages: MessageParam[] }>('SELECT id, title, messages FROM ai_conversation WHERE id = $1 AND user_id = $2', [id, actor.userId])
+  const row = await core.db.one<{ id: string; title: string; context_kind: string; messages: MessageParam[] }>('SELECT id, title, context_kind, messages FROM ai_conversation WHERE id = $1 AND user_id = $2', [id, actor.userId])
   if (!row) throw new AppError('NOT_FOUND', 'Conversation introuvable.')
-  // What the panel shows: the person's words and the model's text, without tool plumbing.
-  const shown = row.messages.flatMap((m) => {
-    const blocks = typeof m.content === 'string' ? [{ type: 'text', text: m.content }] : (m.content as { type: string; text?: string }[])
-    const text = blocks.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('')
-    if (!text) return []
-    return [{ role: m.role, text: m.role === 'user' ? text.replace(/^\[Contexte\][\s\S]*?\n\n/, '') : text }]
-  })
-  return { id: row.id, title: row.title, messages: shown }
+  const turns: ({ role: 'user'; text: string } | { role: 'assistant'; parts: ShownPart[] })[] = []
+  const failed = new Set<string>()
+  for (const m of row.messages) {
+    if (m.role !== 'user' || typeof m.content === 'string') continue
+    for (const b of m.content as { type: string; tool_use_id?: string; is_error?: boolean }[]) if (b.type === 'tool_result' && b.is_error && b.tool_use_id) failed.add(b.tool_use_id)
+  }
+  for (const m of row.messages) {
+    const blocks = (typeof m.content === 'string' ? [{ type: 'text', text: m.content }] : m.content) as { type: string; text?: string; id?: string; name?: string; input?: Record<string, unknown> }[]
+    if (m.role === 'user') {
+      const text = blocks.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('')
+      if (text) turns.push({ role: 'user', text: text.replace(/^\[Contexte\][\s\S]*?\n\n/, '') })
+      continue
+    }
+    let last = turns[turns.length - 1]
+    if (!last || last.role !== 'assistant') {
+      last = { role: 'assistant', parts: [] }
+      turns.push(last)
+    }
+    for (const b of blocks) {
+      if (b.type === 'text' && b.text) last.parts.push({ type: 'text', text: b.text })
+      else if (b.type === 'tool_use' && b.name) {
+        const input = b.input ?? {}
+        const ok = !failed.has(b.id ?? '')
+        last.parts.push({ type: 'tool', name: b.name, ok })
+        if (b.name === 'show_chart' && ok && typeof input.sql === 'string') {
+          last.parts.push({
+            type: 'chart',
+            chart: { id: b.id ?? '', title: String(input.title ?? ''), ...(input.description ? { description: String(input.description) } : {}), query: { kind: 'sql', sql: input.sql }, visualization: { type: String(input.visualization ?? 'table') } },
+          })
+        } else if (b.name === 'propose_question' && ok && typeof input.sql === 'string') {
+          last.parts.push({ type: 'proposal', proposal: { id: b.id ?? '', kind: 'question', name: String(input.name ?? ''), query: { kind: 'sql', sql: input.sql }, visualization: { type: String(input.visualization ?? 'table') } } })
+        }
+      }
+    }
+  }
+  // The panel's flat form, kept for it.
+  const messages = turns.map((t) => (t.role === 'user' ? t : { role: 'assistant' as const, text: t.parts.filter((p) => p.type === 'text').map((p) => (p as { text: string }).text).join('') }))
+  return { id: row.id, title: row.title, kind: row.context_kind, turns, messages }
+}
+
+export async function renameConversation(core: Core, actor: Actor, id: string, title: string) {
+  await core.db.exec('UPDATE ai_conversation SET title = $3 WHERE id = $1 AND user_id = $2', [id, actor.userId, title.trim().slice(0, 120)])
+}
+
+/** Which model answers, for the assistant to say so. */
+export function assistantInfo(core: Core) {
+  const provider = providerFor(core.config.ai)
+  return provider ? { enabled: true, provider: provider.name, model: provider.model } : { enabled: false }
 }
 
 export async function deleteConversation(core: Core, actor: Actor, id: string) {
