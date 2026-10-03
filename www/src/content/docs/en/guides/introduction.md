@@ -42,21 +42,28 @@ a hand-written query or an assistant connected to the MCP server. See
 - A **Structure** screen to describe tables: labels, descriptions, semantic types, formats,
   values, relationships.
 - [Questions](/insights/en/fonctionnalites/questions/) built with the visual editor (joins
-  included), in Trino SQL or in native SQL, and sixteen
-  [visualizations](/insights/en/fonctionnalites/visualisations/) — radar included — with
-  palettes everyone can read.
+  included), in Trino SQL or in native SQL, and twenty-two
+  [visualizations](/insights/en/fonctionnalites/visualisations/) — radar, polar bars, bubbles,
+  treemap, calendar, bar and line races, key figures with a sparkline — with palettes everyone
+  can read.
 - [Forecasts](/insights/en/fonctionnalites/previsions/) that extend a line in dotted green, with
   seasonality and a confidence interval.
 - [Models and metrics](/insights/en/fonctionnalites/modeles-et-metriques/): virtual tables and
   named aggregates, defined once.
 - [Dashboards](/insights/en/fonctionnalites/tableaux-de-bord/) with **associative filters**
   (selected, possible, excluded, as in Qlik), selection with **Shift + click** on charts, tabs,
-  automatic refresh and a result cache.
+  automatic refresh that slides values to their new ones, a result cache and **PDF export**.
+- [Themes](/insights/en/fonctionnalites/themes/) — fonts, colors, palette, logo — applied to a
+  folder and inherited by everything in it, down to the PDF.
 - [Permissions](/insights/en/fonctionnalites/droits/) by group, down to the column and the row.
 - [Sharing](/insights/en/fonctionnalites/partage/): folders, item sharing, public links, iframes,
   and [signed embedding](/insights/en/integrations/integration-signee/).
-- A [copilot](/insights/en/fonctionnalites/copilot/) (Anthropic, OpenAI, Mistral or
-  OpenAI-compatible) that finds tables, writes SQL and suggests questions and dashboards.
+- An [AI assistant](/insights/en/fonctionnalites/assistant/) to talk with your data — written
+  answers, interactive charts, saved history, sources of your choice — and a
+  [copilot](/insights/en/fonctionnalites/copilot/) in every screen (Anthropic, OpenAI, Mistral or
+  OpenAI-compatible) that suggests questions and dashboards.
+- An interface in **French, English and Spanish**: the browser's language, or the one chosen in
+  the account menu; API messages follow.
 - A [REST API](/insights/en/integrations/api-rest/) described in OpenAPI 3.1 and an
   [MCP server](/insights/en/integrations/mcp/) for Claude and other assistants, which even draws
   charts in the conversation.

@@ -44,21 +44,29 @@ tableau de bord, une requête écrite à la main ou un assistant branché sur le
 - Un écran **Structure** pour décrire les tables : libellés, descriptions, types sémantiques,
   formats, valeurs, relations.
 - Des [questions](/insights/fonctionnalites/questions/) construites avec l’éditeur visuel (avec
-  ses jointures), en SQL Trino ou en SQL natif, et seize
-  [visualisations](/insights/fonctionnalites/visualisations/) — radar compris — aux palettes
-  lisibles par tous.
+  ses jointures), en SQL Trino ou en SQL natif, et vingt-deux
+  [visualisations](/insights/fonctionnalites/visualisations/) — radar, barres polaires, bulles,
+  carte proportionnelle, calendrier, courses de barres et de courbes, chiffres clés avec courbe
+  miniature — aux palettes lisibles par tous.
 - Des [prévisions](/insights/fonctionnalites/previsions/) qui prolongent une courbe en pointillés
   verts, avec la saison et un intervalle de confiance.
 - Des [modèles et des métriques](/insights/fonctionnalites/modeles-et-metriques/) : des tables
   virtuelles et des agrégats nommés, définis une fois.
 - Des [tableaux de bord](/insights/fonctionnalites/tableaux-de-bord/) avec des **filtres
   associatifs** (choisi, possible, exclu, comme dans Qlik), la sélection au **Maj + clic** sur les
-  graphiques, des onglets, un rafraîchissement automatique et un cache de résultats.
+  graphiques, des onglets, un rafraîchissement automatique qui fait glisser les valeurs, un cache
+  de résultats et l’**export en PDF**.
+- Des [thèmes](/insights/fonctionnalites/themes/) — polices, couleurs, palette, logo — posés sur
+  un dossier et hérités par tout ce qu’il contient, jusqu’au PDF.
 - Des [droits](/insights/fonctionnalites/droits/) par groupe, jusqu’à la colonne et à la ligne.
 - Le [partage](/insights/fonctionnalites/partage/) : dossiers, partage d’élément, liens publics,
   iframe, et [intégration signée](/insights/integrations/integration-signee/).
-- Un [copilot](/insights/fonctionnalites/copilot/) (Anthropic, OpenAI, Mistral ou compatible
-  OpenAI) qui cherche les tables, écrit le SQL et propose des questions et des tableaux de bord.
+- Un [assistant IA](/insights/fonctionnalites/assistant/) pour converser avec ses données —
+  réponses rédigées, graphiques interactifs, historique gardé, sources au choix — et un
+  [copilot](/insights/fonctionnalites/copilot/) dans chaque écran (Anthropic, OpenAI, Mistral ou
+  compatible OpenAI) qui propose des questions et des tableaux de bord.
+- Une interface en **français, anglais et espagnol** : la langue du navigateur, ou celle choisie
+  dans le menu du compte ; les messages de l’API suivent.
 - Une [API REST](/insights/integrations/api-rest/) décrite en OpenAPI 3.1 et un
   [serveur MCP](/insights/integrations/mcp/) pour Claude et les autres assistants, qui dessine
   même les graphiques dans la conversation.

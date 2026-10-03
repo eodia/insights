@@ -11,6 +11,11 @@ Structure screen.
 
 It is optional: without a configured provider, its buttons do not appear.
 
+:::tip[Talk rather than work alongside]
+The same engine has its own screen: the [AI assistant](/insights/en/fonctionnalites/assistant/),
+with a conversation history, interactive charts in its answers and a source filter.
+:::
+
 ## What it can do
 
 The panel keeps the **context** of the screen it is opened from:

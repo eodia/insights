@@ -15,6 +15,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Orb } from '@/components/app/assistant/orb'
 import { api } from '@/lib/api'
 import { $t, LOCALES, LOCALE_NAMES, chooseLocale, rememberedLocale } from '@/lib/i18n'
 import { draggable, useDropFolder } from '@/lib/dnd'
@@ -52,13 +53,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-/** The assistant's mark: a small turning ring, as on its screen. */
+/** The assistant's mark: its ring of light, small. */
 function AssistantIcon({ className }: { className?: string }) {
-  return (
-    <span className={cn('ai-orb inline-block', className)} style={{ ['--ai-ring' as string]: '2px' }}>
-      <span />
-    </span>
-  )
+  return <Orb size={18} className={className} />
 }
 
 function NavItem({

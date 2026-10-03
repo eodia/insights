@@ -143,7 +143,10 @@ see [Forecasts](/insights/en/fonctionnalites/previsions/).
 
 - **Auto-refresh**: the timer in the toolbar — never, every minute, every 5 or 15 minutes, or
   every hour; its gauge fills up until the next refresh.
-- **Refresh** reruns the cards, bypassing the cache.
+- **Refresh** reruns the cards, bypassing the cache. Cards stay on screen while they are
+  recomputed: their marks slide to the new values, as when you change a filter.
+- **Export to PDF**: an A4 layout in the dashboard's [theme](/insights/en/fonctionnalites/themes/),
+  with a cover page, applied filters and page numbers.
 - **Full screen**, for a wall display.
 - **Duplicate**, **Add to favorites**, **Share** (see
   [Sharing](/insights/en/fonctionnalites/partage/)).

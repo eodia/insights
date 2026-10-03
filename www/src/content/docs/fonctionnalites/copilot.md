@@ -11,6 +11,11 @@ l’écran Structure.
 
 Il est facultatif : sans fournisseur configuré, ses boutons restent absents.
 
+:::tip[Converser plutôt que travailler à côté]
+Le même moteur a son écran : l’[assistant IA](/insights/fonctionnalites/assistant/), avec un
+historique de conversations, des graphiques interactifs dans les réponses et un filtre des sources.
+:::
+
 ## Ce qu’il sait faire
 
 Le panneau garde le **contexte** de l’écran d’où on l’ouvre :

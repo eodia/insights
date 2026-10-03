@@ -30,6 +30,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CONVERSATIONS_KEY, type ConversationSummary, History } from './history'
+import { Orb } from './orb'
 import { AnswerParts, type Part } from './parts'
 
 /**
@@ -44,23 +45,6 @@ type Turn =
 
 const SOURCES_KEY = 'eodia-assistant-sources'
 const HISTORY_KEY = 'eodia-assistant-history'
-
-function Orb({
-  size,
-  busy,
-  ring = 3,
-  className,
-}: { size: number; busy?: boolean; ring?: number; className?: string }) {
-  return (
-    <span
-      className={cn('ai-orb inline-block shrink-0', className)}
-      style={{ width: size, height: size, ['--ai-ring' as string]: `${ring}px` }}
-      {...(busy ? { 'data-busy': '' } : {})}
-    >
-      <span />
-    </span>
-  )
-}
 
 function readStored<T>(key: string, fallback: T): T {
   try {
@@ -288,7 +272,7 @@ function Welcome({
   ]
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 pb-16">
-      <Orb size={84} ring={3} className="ai-rise mb-7" />
+      <Orb size={96} className="ai-rise mb-8" />
       <h1 className="ai-rise bg-gradient-to-br from-foreground to-foreground/55 bg-clip-text text-center text-3xl font-semibold tracking-tight text-transparent sm:text-4xl">
         {hello}
       </h1>
@@ -353,7 +337,7 @@ function Answer({ turn }: { turn: Extract<Turn, { role: 'assistant' }> }) {
     .join('\n\n')
   return (
     <div className="ai-rise group flex gap-4">
-      <Orb size={28} ring={2} busy={!turn.done} className="mt-0.5 self-start" />
+      <Orb size={28} busy={!turn.done} className="mt-0.5 self-start" />
       <div className="min-w-0 flex-1 space-y-2 pt-0.5">
         {thinking ? <div className="ai-shimmer text-sm font-medium">{$t('Réflexion…')}</div> : null}
         <AnswerParts parts={turn.parts} />
@@ -589,7 +573,7 @@ export function Assistant() {
             </button>
           </Hint>
           <span className="flex items-center gap-2 rounded-full border bg-background/70 py-1 pr-3 pl-1.5 text-xs backdrop-blur">
-            <Orb size={18} ring={2} busy={busy} />
+            <Orb size={18} busy={busy} />
             <span className="font-medium">{info?.model ?? $t('Assistant IA')}</span>
             {info?.provider ? (
               <span className="text-muted-foreground">· {info.provider}</span>

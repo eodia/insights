@@ -145,7 +145,11 @@ série, mise en avant, moyenne, tri, top N… — voir [Visualisations](/insight
 - **Rafraîchissement automatique** : le chronomètre de la barre — jamais, toutes les minutes,
   toutes les 5 ou 15 minutes, ou toutes les heures ; sa jauge se remplit jusqu’au prochain
   rafraîchissement.
-- **Rafraîchir** relance les cartes en ignorant le cache.
+- **Rafraîchir** relance les cartes en ignorant le cache. Les cartes restent affichées pendant
+  qu’elles se recalculent : leurs marques glissent vers les nouvelles valeurs, comme quand on
+  change un filtre.
+- **Exporter en PDF** : une mise en pages A4 au [thème](/insights/fonctionnalites/themes/) du
+  tableau, avec page de garde, filtres appliqués et pagination.
 - **Plein écran**, pour un écran mural.
 - **Dupliquer**, **Ajouter aux favoris**, **Partager** (voir
   [Partage](/insights/fonctionnalites/partage/)).
