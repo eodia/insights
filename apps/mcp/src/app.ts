@@ -81,9 +81,12 @@ export function chartPage(): Promise<string> {
             b.onResolve({ filter: /^eodia:messages$/ }, () => ({ path: 'messages', namespace: 'eodia' }))
             b.onLoad({ filter: /.*/, namespace: 'eodia' }, async () => {
               const { readFile, readdir } = await import('node:fs/promises')
-              const sources = await Promise.all(
-                (await readdir(lib)).filter((f) => f.endsWith('.ts')).map((f) => readFile(join(lib, f), 'utf8')),
-              )
+              const view = join(here, '../view')
+              const files = [
+                ...(await readdir(lib)).filter((f) => f.endsWith('.ts')).map((f) => join(lib, f)),
+                ...(await readdir(view)).filter((f) => f.endsWith('.ts')).map((f) => join(view, f)),
+              ]
+              const sources = await Promise.all(files.map((f) => readFile(f, 'utf8')))
               const used = (key: string) => sources.some((s) => s.includes(`'${key}'`) || s.includes(`"${key}"`) || s.includes(`\`${key}\``))
               const catalogs: Record<string, Record<string, unknown>> = {}
               for (const file of await readdir(locales)) {

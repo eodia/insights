@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { $t, msg } from '@/lib/i18n'
+import { $t, msg, groupName } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -63,7 +63,7 @@ function Profile({ me }: { me: Me }) {
               <Chip color={me.is_admin ? 'rose' : 'green'}>{role}</Chip>
               {me.groups.map((g) => (
                 <Chip key={g.id} color="indigo">
-                  {g.name}
+                  {groupName(g.name)}
                 </Chip>
               ))}
             </div>

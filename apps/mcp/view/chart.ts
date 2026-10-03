@@ -45,6 +45,7 @@ import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { formatValue } from '../../web/src/lib/format'
 import { autoVisualization, chartOption } from '../../web/src/lib/viz'
+import { $t } from '../../web/src/lib/i18n'
 
 echarts.use([
   HeatmapChart,
@@ -140,8 +141,8 @@ function render(): void {
   if (p.subtitle) titles.append(el('p', 'sub', p.subtitle))
   header.append(titles)
   if (p.url) {
-    const open = el('button', 'open', 'Ouvrir ↗')
-    open.title = 'Ouvrir dans eodia insights'
+    const open = el('button', 'open', $t('Ouvrir ↗'))
+    open.title = $t('Ouvrir dans eodia insights')
     open.addEventListener('click', () => void app.openLink({ url: p.url as string }))
     header.append(open)
   }

@@ -638,6 +638,11 @@
       "components/app/sidebar.tsx:160"
     ]
   },
+  "Administrateurs": {
+    "where": [
+      "lib/i18n.ts:158"
+    ]
+  },
   "Administration": {
     "where": [
       "app/(app)/admin/audit/page.tsx:194",
@@ -1488,6 +1493,11 @@
       "lib/viz.ts:158"
     ]
   },
+  "Carte||type de graphique : une carte géographique": {
+    "where": [
+      "lib/viz.ts:161"
+    ]
+  },
   "Cases colorées": {
     "where": [
       "components/app/question/viz-settings.tsx:824"
@@ -1654,6 +1664,11 @@
   "Chaque période s’ajoute aux précédentes : un total qui grandit.": {
     "where": [
       "components/app/question/viz-settings.tsx:587"
+    ]
+  },
+  "Chaque personne de l’instance en fait partie": {
+    "where": [
+      "lib/i18n.ts:161"
     ]
   },
   "Chaque personne de l’instance fait partie de ce groupe : ses droits sont ceux de tout le monde. Sa liste ne se modifie pas.": {
@@ -4482,13 +4497,17 @@
   "Lignes": {
     "where": [
       "components/app/admin/permission-matrix.tsx:204",
-      "components/app/question/viz-settings.tsx:916",
-      "lib/viz.ts:149"
+      "components/app/question/viz-settings.tsx:916"
     ]
   },
   "Lignes filtrées": {
     "where": [
       "components/app/admin/permission-matrix.tsx:168"
+    ]
+  },
+  "Lignes||type de graphique : des courbes": {
+    "where": [
+      "lib/viz.ts:149"
     ]
   },
   "Limite": {
@@ -5375,6 +5394,16 @@
   "Ouvrir « API et MCP »": {
     "where": [
       "app/(app)/account/page.tsx:241"
+    ]
+  },
+  "Ouvrir ↗": {
+    "where": [
+      "../../mcp/view/chart.ts:144"
+    ]
+  },
+  "Ouvrir dans eodia insights": {
+    "where": [
+      "../../mcp/view/chart.ts:145"
     ]
   },
   "Ouvrir dans l'éditeur": {
@@ -6484,6 +6513,11 @@
       "app/login/page.tsx:162"
     ]
   },
+  "Se connecter avec SSO": {
+    "where": [
+      "app/login/page.tsx:133"
+    ]
+  },
   "Se déconnecter": {
     "where": [
       "components/app/sidebar.tsx:275"
@@ -7085,10 +7119,20 @@
       "components/app/question/viz-settings.tsx:724"
     ]
   },
+  "Tous les droits sur l’instance": {
+    "where": [
+      "lib/i18n.ts:160"
+    ]
+  },
   "Tous les jours": {
     "where": [
       "components/app/data/source-form.tsx:293",
       "components/app/data/source-look.tsx:57"
+    ]
+  },
+  "Tous les utilisateurs": {
+    "where": [
+      "lib/i18n.ts:159"
     ]
   },
   "tout": {

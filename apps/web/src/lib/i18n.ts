@@ -152,3 +152,15 @@ export function chooseLocale(chosen: Locale | null): void {
 }
 
 export { LOCALES, LOCALE_NAMES, type Locale }
+
+/** The two groups every instance has, named in French by the catalogue. */
+const SYSTEM_GROUPS: ReadonlySet<string> = new Set([
+  msg('Administrateurs'),
+  msg('Tous les utilisateurs'),
+  msg('Tous les droits sur l’instance'),
+  msg('Chaque personne de l’instance en fait partie'),
+])
+
+/** A group's name (or the description of a system group) as the reader reads it. */
+export const groupName = (label: string): string =>
+  SYSTEM_GROUPS.has(label.replaceAll("'", '’')) ? $t(label.replaceAll("'", '’')) : label

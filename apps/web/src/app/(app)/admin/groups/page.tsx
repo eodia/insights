@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { $t, $tp, msg } from '@/lib/i18n'
+import { $t, $tp, msg, groupName } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -190,7 +190,7 @@ function GroupDetail({ group, onRename, onDelete }: { group: Group; onRename: ()
         <GroupTile kind={group.kind} className="size-14" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="truncate text-lg font-semibold">{group.name}</h2>
+            <h2 className="truncate text-lg font-semibold">{groupName(group.name)}</h2>
             <Chip color={group.kind === 'custom' ? 'indigo' : 'gray'}>{$t(GROUP_KIND_LABELS[group.kind])}</Chip>
           </div>
           <p className="truncate text-sm text-muted-foreground">{group.description || $tp(group.members, '{count} membre', '{count} membres')}</p>
@@ -266,10 +266,10 @@ function Groups() {
       <GroupTile kind={g.kind} />
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2">
-          <span className="flex-1 truncate font-semibold">{g.name}</span>
+          <span className="flex-1 truncate font-semibold">{groupName(g.name)}</span>
           <span className="shrink-0 text-xs text-muted-foreground">{$tp(g.members, '{count} membre', '{count} membres')}</span>
         </div>
-        {g.description ? <div className="line-clamp-2 text-sm text-muted-foreground">{g.description}</div> : null}
+        {g.description ? <div className="line-clamp-2 text-sm text-muted-foreground">{groupName(g.description)}</div> : null}
       </div>
     </button>
   )

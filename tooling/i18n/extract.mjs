@@ -45,7 +45,7 @@ function walk(dir, found = []) {
   return found
 }
 
-for (const file of walk(path.join(web, 'src'))) {
+for (const file of [...walk(path.join(web, 'src')), ...walk(path.join(root, 'apps/mcp/view'))]) {
   const text = fs.readFileSync(file, 'utf8')
   if (!text.includes('$t') && !text.includes('msg(')) continue
   const sf = ts.createSourceFile(

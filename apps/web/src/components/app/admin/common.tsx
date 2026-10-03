@@ -7,7 +7,7 @@ import { Combobox } from '@/components/ui/combobox'
 import { Hint } from '@/components/ui/tooltip'
 import { ApiError, api } from '@/lib/api'
 import { formatAgo } from '@/lib/format'
-import { $t, intlLocale, msg } from '@/lib/i18n'
+import { $t, intlLocale, msg, groupName } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -263,7 +263,7 @@ export function GroupTile({ kind, className }: { kind: Group['kind']; className?
 }
 
 export function GroupChip({ group }: { group: Pick<Group, 'name' | 'kind'> }) {
-  return <Chip color={group.kind === 'admin' ? 'rose' : group.kind === 'all' ? 'gray' : 'indigo'}>{group.name}</Chip>
+  return <Chip color={group.kind === 'admin' ? 'rose' : group.kind === 'all' ? 'gray' : 'indigo'}>{groupName(group.name)}</Chip>
 }
 
 /** Choosing several groups — « Tous les utilisateurs » is left out: everyone is in it. */

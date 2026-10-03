@@ -130,7 +130,7 @@ function LoginForm() {
         <>
           <Button asChild variant="outline" size="lg" className="w-full">
             <a href={`/api/auth/oidc/start?return=${encodeURIComponent(back)}`}>
-              <KeyRound /> {state.oidc.label}
+              <KeyRound /> {state.oidc.label === 'Se connecter avec SSO' ? $t('Se connecter avec SSO') : state.oidc.label}
             </a>
           </Button>
           {state.password ? (

@@ -4,7 +4,7 @@ import type { Group } from '@eodia/contracts'
 import { AdminOnly, Empty, GroupTile, Notice, Spinner, useGroups, usePermissions } from '@/components/app/admin/common'
 import { DataMatrix, FolderMatrix, groupSummary } from '@/components/app/admin/permission-matrix'
 import { Button } from '@/components/ui/button'
-import { $t, $tp } from '@/lib/i18n'
+import { $t, $tp, groupName } from '@/lib/i18n'
 import { useDatasources, useFolders } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -80,7 +80,7 @@ function Permissions({ initialGroup }: { initialGroup: string | undefined }) {
                 <GroupTile kind={g.kind} />
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="flex-1 truncate font-semibold">{g.name}</span>
+                    <span className="flex-1 truncate font-semibold">{groupName(g.name)}</span>
                     {g.kind === 'admin' ? <Lock className="size-3.5 text-muted-foreground" /> : null}
                   </div>
                   <div className="truncate text-xs text-muted-foreground">{perms ? groupSummary(perms, g) : '…'}</div>

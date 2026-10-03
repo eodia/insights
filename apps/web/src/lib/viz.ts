@@ -146,7 +146,7 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   gauge: msg('Jauge'),
   bar: msg('Barres'),
   row: msg('Barres horizontales'),
-  line: msg('Lignes'),
+  line: msg('Lignes||type de graphique : des courbes'),
   area: msg('Aires'),
   combo: msg('Combiné'),
   pie: msg('Camembert'),
@@ -158,7 +158,7 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   treemap: msg('Carte proportionnelle'),
   calendar: msg('Calendrier'),
   pivot: msg('Tableau croisé'),
-  map: msg('Carte'),
+  map: msg('Carte||type de graphique : une carte géographique'),
 }
 
 const keyOf = (v: unknown) => (v === null || v === undefined ? '∅' : String(v))
