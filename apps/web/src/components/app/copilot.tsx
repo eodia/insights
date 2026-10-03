@@ -177,7 +177,7 @@ export function CopilotPanel() {
         return copy
       })
     try {
-      for await (const { event, data } of postStream('/v1/copilot', { conversation, message, allow_run: allowRun, context }, controller.signal)) {
+      for await (const { event, data } of postStream('/v1/copilot', { ...(conversation ? { conversation } : {}), message, allow_run: allowRun, context }, controller.signal)) {
         const d = data as Record<string, unknown>
         if (event === 'conversation') setConversation(String(d.id))
         else if (event === 'text') update((a) => ({ ...a, text: a.text + String(d.delta) }))

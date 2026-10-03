@@ -33,10 +33,10 @@ const LinkInput = z.object({
 const LinkPatch = LinkInput.omit({ item_kind: true, item_id: true }).partial()
 const PublicRun = z.object({ values: z.record(z.string(), z.any()).optional(), parameters: z.record(z.string(), z.any()).optional() })
 const CopilotInput = z.object({
-  conversation: z.string().optional(),
+  conversation: z.string().nullish(),
   message: z.string().min(1).max(8000),
-  allow_run: z.boolean().optional(),
-  context: z.record(z.string(), z.any()).optional(),
+  allow_run: z.boolean().nullish(),
+  context: z.record(z.string(), z.any()).nullish(),
 })
 
 export function sharingRoutes(app: ReturnType<typeof newApp>) {
