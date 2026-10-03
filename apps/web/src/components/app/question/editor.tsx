@@ -54,6 +54,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Notebook } from './notebook'
 import { VizPicker, VizSettings } from './viz-settings'
+import { Pane } from '@/components/ui/pane'
+import { TabRow } from '@/components/ui/tab-row'
 
 export interface Draft {
   readonly id: string | null
@@ -399,7 +401,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
       <div className="flex min-h-0 flex-1">
         {/* Left: the query */}
         {builder ? (
-          <div className="w-[420px] shrink-0 overflow-y-auto border-r bg-surface p-4">
+          <Pane id="question.notebook" side="left" defaultSize={420} min={300} max={760} className="overflow-y-auto border-r bg-surface p-4">
             <Notebook
               query={builder}
               onChange={(q: BuilderQuery) => update({ query: q })}
@@ -410,21 +412,21 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
               sourceLabel={sourceLabel}
               allowSql={allowSql}
             />
-          </div>
+          </Pane>
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col">
           {!builder ? (
-            <div className="flex h-[42%] min-h-[180px] flex-col border-b">
+            <Pane id="question.sql" side="top" defaultSize={320} min={140} max={900} className="flex flex-col border-b">
               {draft.query.kind === 'native' ? (
                 <div className="border-b px-4 py-1.5 text-xs text-muted-foreground">{$t('SQL natif : envoyé tel quel à la source via system.query, réservé aux personnes sans restriction.')}</div>
               ) : null}
               <SqlEditor value={(draft.query as Exclude<QuestionQuery, BuilderQuery>).sql} tree={tree} onChange={(sql) => update({ query: { ...(draft.query as Exclude<QuestionQuery, BuilderQuery>), sql } })} onRun={() => run()} error={sqlError} />
-            </div>
+            </Pane>
           ) : null}
           {!builder ? <VariablesBar variables={variables} values={values} onValues={setValues} onVariables={(v) => update({ query: { ...(draft.query as Exclude<QuestionQuery, BuilderQuery>), variables: v } })} /> : null}
 
-          <div className="flex items-center gap-1 border-b px-4 py-1.5">
+          <TabRow className="items-center gap-1 border-b px-4 py-1.5">
             {(['viz', 'table', 'sql'] as const).map((v) => (
               <button key={v} type="button" onClick={() => setView(v)} className={cn('rounded-md px-2.5 py-1 text-sm', view === v ? 'bg-muted font-medium' : 'text-muted-foreground hover:text-foreground')}>
                 {v === 'viz' ? $t('Visualisation') : v === 'table' ? $t('Données') : $t('SQL exécuté')}
@@ -432,7 +434,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
             ))}
             <span className="flex-1" />
             {result ? <ResultFooter result={result} /> : null}
-          </div>
+          </TabRow>
 
           <div className="relative min-h-0 flex-1 p-4">
             {running ? (
@@ -486,14 +488,14 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
 
         {/* Right: settings */}
         {panel ? (
-          <aside className="w-[320px] shrink-0 overflow-y-auto border-l">
-            <div className="flex h-12 items-center gap-6 border-b px-5 text-[15px]">
+          <Pane as="aside" id="question.settings" side="right" defaultSize={320} min={260} max={600} className="overflow-y-auto border-l">
+            <TabRow className="h-12 items-center gap-6 border-b px-5 text-[15px]">
               {(['viz', 'details'] as const).map((p) => (
                 <button key={p} type="button" onClick={() => setPanel(p)} className={cn('relative py-3', panel === p ? 'font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary' : 'text-muted-foreground')}>
                   {p === 'viz' ? $t('Visualisation') : $t('Détails')}
                 </button>
               ))}
-            </div>
+            </TabRow>
             <div className="space-y-6 p-5">
               {panel === 'viz' ? (
                 <>
@@ -551,7 +553,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                 </div>
               )}
             </div>
-          </aside>
+          </Pane>
         ) : null}
       </div>
 

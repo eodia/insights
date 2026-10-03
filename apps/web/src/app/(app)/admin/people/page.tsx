@@ -36,6 +36,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Mail, MailCheck, Search, Send, Trash2, UserPlus, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { Pane } from '@/components/ui/pane'
+import { TabRow } from '@/components/ui/tab-row'
 
 interface Invitation {
   readonly id: string
@@ -455,7 +457,7 @@ function People() {
 
   return (
     <div className="flex h-full">
-      <section className="flex w-[420px] shrink-0 flex-col border-r">
+      <Pane as="section" id="admin.people.list" side="left" defaultSize={420} min={300} max={680} className="flex flex-col border-r">
         <div className="flex items-center gap-2 p-3">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -472,7 +474,7 @@ function People() {
             </Button>
           </Hint>
         </div>
-        <div className="flex gap-5 border-b px-4 text-sm">
+        <TabRow className="gap-5 border-b px-4 text-sm">
           {(['people', 'invitations'] as const).map((t) => (
             <button
               key={t}
@@ -481,12 +483,12 @@ function People() {
                 setTab(t)
                 setSelected(null)
               }}
-              className={cn('relative -mb-px py-2.5 whitespace-nowrap', tab === t ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground hover:text-foreground')}
+              className={cn('relative py-2.5 whitespace-nowrap', tab === t ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground hover:text-foreground')}
             >
               {t === 'people' ? $t('Personnes') : $t('Invitations en attente')} <span className="text-xs text-muted-foreground">{t === 'people' ? users.length : invites.length}</span>
             </button>
           ))}
-        </div>
+        </TabRow>
         <div className="flex-1 overflow-y-auto px-2 pb-4">
           {tab === 'people' ? (
             <>
@@ -551,7 +553,7 @@ function People() {
             </Notice>
           </div>
         ) : null}
-      </section>
+      </Pane>
 
       <section className="min-w-0 flex-1">
         {currentUser ? (

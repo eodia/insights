@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { Check, Copy } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
+import { TabRow } from '@/components/ui/tab-row'
 
 export async function copyText(text: string, message = $t('Copié dans le presse-papiers.')): Promise<void> {
   try {
@@ -92,7 +93,7 @@ export function CodeTabs({ samples, className }: { samples: readonly { id: strin
   if (!current) return null
   return (
     <div className={cn('overflow-hidden rounded-xl border border-code-border bg-code text-code-foreground', className)}>
-      <div className="flex h-10 items-center gap-1 border-b border-code-border px-2">
+      <TabRow className="h-10 items-center gap-1 border-b border-code-border px-2">
         {samples.map((s) => (
           <button
             key={s.id}
@@ -108,7 +109,7 @@ export function CodeTabs({ samples, className }: { samples: readonly { id: strin
         ))}
         <span className="flex-1" />
         <CopyButton text={current.code} className="text-code-foreground/70 hover:bg-white/10 hover:text-code-foreground" />
-      </div>
+      </TabRow>
       <pre className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed">
         <code>{highlight(current.code)}</code>
       </pre>

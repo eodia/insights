@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { ChevronRight, EyeOff, FolderTree, Loader2, Search, Table2, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Pane } from '@/components/ui/pane'
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
@@ -52,7 +53,7 @@ export function StructureTree({
   const match = (t: TableMeta) => !q || fold(`${t.label} ${t.name} ${t.schema} ${t.entity ?? ''}`).includes(q)
 
   return (
-    <section className="flex w-[300px] shrink-0 flex-col border-r">
+    <Pane as="section" id="structure.tree" side="left" defaultSize={300} min={220} max={560} className="flex flex-col border-r">
       <div className="p-3">
         <div className="relative">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -133,6 +134,6 @@ export function StructureTree({
           )
         })}
       </div>
-    </section>
+    </Pane>
   )
 }

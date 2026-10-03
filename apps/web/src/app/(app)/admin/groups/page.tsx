@@ -33,6 +33,8 @@ import { Database, FolderCog, Loader2, Pencil, Plus, Search, Shield, Trash2, Use
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { Pane } from '@/components/ui/pane'
+import { TabRow } from '@/components/ui/tab-row'
 
 const RIGHTS: readonly { right: AdminRight; label: string; help: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { right: 'manage_sources', label: 'Gérer les sources', help: 'Connecter des bases, modifier leurs réglages, lancer une synchronisation.', icon: Database },
@@ -213,7 +215,7 @@ function GroupDetail({ group, onRename, onDelete }: { group: Group; onRename: ()
           </>
         ) : null}
       </div>
-      <div className="flex h-11 items-center gap-6 border-b px-6 text-[15px]">
+      <TabRow className="h-11 items-center gap-6 border-b px-6 text-[15px]">
         {(['members', 'rights'] as const).map((t) => (
           <button
             key={t}
@@ -230,7 +232,7 @@ function GroupDetail({ group, onRename, onDelete }: { group: Group; onRename: ()
             )}
           </button>
         ))}
-      </div>
+      </TabRow>
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-2xl px-6 py-6">
           {tab === 'members' ? <Members group={group} /> : <Rights group={group} />}
@@ -274,7 +276,7 @@ function Groups() {
 
   return (
     <div className="flex h-full">
-      <section className="flex w-[380px] shrink-0 flex-col border-r">
+      <Pane as="section" id="admin.groups.list" side="left" defaultSize={380} min={280} max={640} className="flex flex-col border-r">
         <div className="flex items-center gap-2 border-b p-3">
           <div className="flex-1 px-1">
             <div className="font-semibold">{$t('Groupes')}</div>
@@ -300,7 +302,7 @@ function Groups() {
             {!isLoading && custom.length === 0 ? <p className="px-3 py-4 text-sm text-muted-foreground">{$t('Aucun groupe pour l’instant.')}</p> : null}
           </div>
         </div>
-      </section>
+      </Pane>
       <section className="min-w-0 flex-1">
         {current ? (
           <GroupDetail key={current.id} group={current} onRename={() => setEditing(current)} onDelete={() => setDeleting(current)} />

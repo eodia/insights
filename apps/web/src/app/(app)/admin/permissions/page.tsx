@@ -12,6 +12,8 @@ import { ChevronDown, Info, Lock, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useState } from 'react'
+import { Pane } from '@/components/ui/pane'
+import { TabRow } from '@/components/ui/tab-row'
 
 type Tab = 'data' | 'folders'
 
@@ -56,7 +58,7 @@ function Permissions({ initialGroup }: { initialGroup: string | undefined }) {
 
   return (
     <div className="flex h-full">
-      <section className="flex w-[320px] shrink-0 flex-col border-r">
+      <Pane as="section" id="admin.permissions.groups" side="left" defaultSize={320} min={240} max={560} className="flex flex-col border-r">
         <div className="border-b px-4 py-3">
           <div className="font-semibold">{$t('Permissions')}</div>
           <div className="text-xs text-muted-foreground">{$t('Choisissez un groupe pour régler ses droits.')}</div>
@@ -95,7 +97,7 @@ function Permissions({ initialGroup }: { initialGroup: string | undefined }) {
             </Link>
           </Button>
         </div>
-      </section>
+      </Pane>
 
       <section className="flex min-w-0 flex-1 flex-col">
         {current ? (
@@ -107,7 +109,7 @@ function Permissions({ initialGroup }: { initialGroup: string | undefined }) {
                 <p className="truncate text-sm text-muted-foreground">{current.description || $tp(current.members, '{count} membre', '{count} membres')}</p>
               </div>
             </div>
-            <div className="flex h-11 items-center gap-6 border-b px-8 text-[15px]">
+            <TabRow className="h-11 items-center gap-6 border-b px-8 text-[15px]">
               {(['data', 'folders'] as const).map((t) => (
                 <button
                   key={t}
@@ -118,7 +120,7 @@ function Permissions({ initialGroup }: { initialGroup: string | undefined }) {
                   {t === 'data' ? $t('Données') : $t('Dossiers')}
                 </button>
               ))}
-            </div>
+            </TabRow>
             <div className="flex-1 overflow-y-auto">
               <div className="mx-auto max-w-6xl px-8 py-6">
                 {error ? <Notice tone="warn">{(error as Error).message}</Notice> : null}

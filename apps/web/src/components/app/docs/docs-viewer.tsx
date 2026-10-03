@@ -16,6 +16,7 @@ import { DocsNav, type Selection, parseSelection, selectionKey } from './nav'
 import { type Endpoint, type OpenApiDoc, endpointsOf } from './openapi'
 import { type Sample, endpointSamples, mcpSetupSamples, mcpToolSamples, overviewSamples } from './snippets'
 import { TokenDialog } from './token-dialog'
+import { Pane } from '@/components/ui/pane'
 
 /** What the reader may call: administration endpoints are shown to those who hold the right. */
 function allowed(e: Endpoint, me: Me | undefined): boolean {
@@ -203,7 +204,7 @@ export function DocsViewer() {
           <div className="mt-10 rounded-xl bg-code p-4 text-code-foreground lg:hidden">{code}</div>
         </div>
       </main>
-      <aside className="hidden w-[460px] shrink-0 overflow-y-auto bg-code p-5 text-code-foreground lg:block">{code}</aside>
+      <Pane as="aside" id="docs.code" side="right" defaultSize={460} min={320} max={820} className="hidden overflow-y-auto bg-code p-5 text-code-foreground lg:block">{code}</Pane>
       <TokenDialog open={tokenOpen} onOpenChange={setTokenOpen} />
     </div>
   )

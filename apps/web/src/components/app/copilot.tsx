@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
+import { Pane } from '@/components/ui/pane'
 
 type Proposal =
   | { id: string; kind: 'question'; name: string; description?: string; query: unknown; visualization: unknown }
@@ -219,7 +220,7 @@ export function CopilotPanel() {
   }[context.kind]
 
   return (
-    <aside className="flex w-[420px] shrink-0 flex-col border-l bg-background">
+    <Pane as="aside" id="copilot" side="right" defaultSize={420} min={320} max={760} className="flex flex-col border-l bg-background">
       <div className="flex h-[54px] items-center gap-2 border-b px-4">
         <Sparkles className="size-4 text-violet-500" />
         <span className="font-semibold">{$t('Copilote')}</span>
@@ -335,6 +336,6 @@ export function CopilotPanel() {
           )}
         </div>
       </form>
-    </aside>
+    </Pane>
   )
 }

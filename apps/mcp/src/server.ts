@@ -7,12 +7,28 @@
  * - stdio (`--stdio`) : pour un client qui lance le serveur lui-même (Claude Desktop…), avec
  *   `EODIA_URL` et `EODIA_TOKEN` dans l'environnement.
  */
+import { existsSync, readFileSync } from 'node:fs'
 import { type IncomingMessage, type ServerResponse, createServer } from 'node:http'
+import { dirname, join } from 'node:path'
+import { parseEnv } from 'node:util'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { EodiaApi } from './api'
 import { registerTools } from './tools'
+
+/** The repository's `.env` (then `.env.local`), without overriding the real environment. */
+function loadEnvFiles(): void {
+  let dir = process.cwd()
+  for (let i = 0; i < 8 && !existsSync(join(dir, 'pnpm-workspace.yaml')); i++) dir = dirname(dir)
+  const values: Record<string, string> = {}
+  for (const name of ['.env', '.env.local']) {
+    const path = join(dir, name)
+    if (existsSync(path)) Object.assign(values, parseEnv(readFileSync(path, 'utf8')))
+  }
+  for (const [key, value] of Object.entries(values)) if (process.env[key] === undefined) process.env[key] = value
+}
+loadEnvFiles()
 
 const VERSION = '0.1.0'
 const INSTRUCTIONS =

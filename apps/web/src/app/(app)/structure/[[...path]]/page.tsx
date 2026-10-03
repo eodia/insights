@@ -19,6 +19,7 @@ import { ArrowUpRight, Database, Loader2, Lock, TableProperties } from 'lucide-r
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, use, useCallback, useEffect, useState } from 'react'
+import { TabRow } from '@/components/ui/tab-row'
 
 type Tab = 'table' | 'relations'
 
@@ -58,7 +59,7 @@ function Structure({ segments }: { segments: string[] }) {
       <StructureTree sources={sources} tables={allTables} loading={loadingSources || loadingTables} datasource={datasourceId} table={tableId} />
 
       <section className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-12 shrink-0 items-center gap-6 border-b px-6 text-[15px]">
+        <TabRow className="h-12 shrink-0 items-center gap-6 border-b px-6 text-[15px]">
           {(['table', 'relations'] as const).map((t) => (
             <button
               key={t}
@@ -82,7 +83,7 @@ function Structure({ segments }: { segments: string[] }) {
               </Link>
             </Button>
           ) : null}
-        </div>
+        </TabRow>
 
         {tab === 'relations' ? (
           <div className="min-h-0 flex-1">

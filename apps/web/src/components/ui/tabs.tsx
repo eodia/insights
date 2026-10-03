@@ -15,7 +15,11 @@ function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimi
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn('inline-flex h-10 items-center gap-6 border-b', className)}
+      className={cn(
+        // Never wider than its pane: the row scrolls sideways, without a visible scrollbar.
+        'inline-flex h-10 max-w-full items-center gap-6 overflow-x-auto overflow-y-hidden border-b [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0',
+        className,
+      )}
       {...props}
     />
   )

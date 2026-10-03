@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { type RunResult, api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
-import { keys, useDashboard, useFolderItems, useFolders, useQuestion } from '@/lib/queries'
+import { folderLabel } from '@/lib/folders'
+import { keys, useDashboard, useFolderItems, useFolders, useMe, useQuestion } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { VIZ_LABELS } from '@/lib/viz'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,8 @@ import { ArrowUpRight, FolderOpen, Loader2, Search, Share2, Star } from 'lucide-
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useMemo, useState } from 'react'
+import { Pane } from '@/components/ui/pane'
+import { TabRow } from '@/components/ui/tab-row'
 
 type Tab = 'all' | ItemKind
 
@@ -168,10 +171,11 @@ function DashboardPreview({ id }: { id: string }) {
 }
 
 function Details({ item, folder, onShare }: { item: ItemSummary; folder?: Folder; onShare: () => void }) {
+  const { data: me } = useMe()
   const qc = useQueryClient()
   const { data: q } = useQuestion(item.kind !== 'dashboard' ? item.id : null)
   return (
-    <aside className="hidden w-[340px] shrink-0 overflow-y-auto border-l xl:block">
+    <Pane as="aside" id="browse.details" side="right" defaultSize={340} min={260} max={560} className="hidden overflow-y-auto border-l xl:block">
       <div className="flex h-12 items-center gap-6 border-b px-5 text-[15px]">
         <span className="relative py-3 font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary">{$t('Détails')}</span>
       </div>
@@ -185,7 +189,7 @@ function Details({ item, folder, onShare }: { item: ItemSummary; folder?: Folder
         </div>
         <dl className="space-y-3 text-sm">
           {[
-            [$t('Dossier'), folder ? (folder.personal ? $t('Mon dossier') : folder.name) : '—'],
+            [$t('Dossier'), folder ? folderLabel(folder, me?.id) : '—'],
             [$t('Modifié'), new Date(item.updated_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })],
             [$t('Par'), item.updated_by?.name ?? '—'],
             ...(q ? [[$t('Requête'), q.query.kind === 'builder' ? $t('Éditeur visuel') : q.query.kind === 'sql' ? 'SQL Trino' : $t('SQL natif')]] : []),
@@ -213,7 +217,7 @@ function Details({ item, folder, onShare }: { item: ItemSummary; folder?: Folder
           </Button>
         </div>
       </div>
-    </aside>
+    </Pane>
   )
 }
 
@@ -222,6 +226,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   const folderId = segments?.[0] ?? 'root'
   const router = useRouter()
   const { data: folders = [] } = useFolders()
+  const { data: me } = useMe()
   const { data, isLoading } = useFolderItems(folderId)
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
@@ -231,7 +236,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   const byId = new Map(folders.map((f) => [f.id, f]))
   const path: Folder[] = []
   for (let cursor = folder; cursor; cursor = cursor.parent ? byId.get(cursor.parent) : undefined) path.unshift(cursor)
-  useCrumbs([{ label: $t('Dossiers'), href: '/browse' }, ...path.map((f) => ({ label: f.personal ? $t('Mon dossier') : f.name, href: `/browse/${f.id}` }))])
+  useCrumbs([{ label: $t('Dossiers'), href: '/browse' }, ...path.map((f) => ({ label: folderLabel(f, me?.id), href: `/browse/${f.id}` }))])
 
   const items = data?.items ?? []
   const counts = useMemo(() => {
@@ -250,31 +255,31 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
     groups.set(g, [...(groups.get(g) ?? []), i])
   }
   const current = visible.find((i) => i.id === selected) ?? visible[0]
-  const subfolders = folderId === 'root' ? folders.filter((f) => f.parent === null && (!f.personal || true)) : (data?.folders ?? [])
+  const subfolders = folderId === 'root' ? folders.filter((f) => f.parent === null && (!f.personal || f.personal === me?.id)) : (data?.folders ?? [])
 
   return (
     <div className="flex h-full">
       {/* List */}
-      <section className="flex w-[380px] shrink-0 flex-col border-r">
+      <Pane as="section" id="browse.list" side="left" defaultSize={380} min={280} max={640} className="flex flex-col border-r">
         <div className="flex items-center gap-2 p-3">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher dans le dossier…')} className="h-10 rounded-lg pl-9" />
           </div>
         </div>
-        <div className="flex gap-5 border-b px-4 text-sm">
+        <TabRow className="gap-5 border-b px-4 text-sm">
           {(['all', 'dashboard', 'question', 'model', 'metric'] as const).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className={cn('relative -mb-px py-2.5 whitespace-nowrap', tab === t ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground hover:text-foreground')}
+              className={cn('relative py-2.5 whitespace-nowrap', tab === t ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground hover:text-foreground')}
             >
               {t === 'all' ? $t('Tout') : t === 'dashboard' ? $t('Tableaux') : t === 'question' ? $t('Questions') : t === 'model' ? $t('Modèles') : $t('Métriques')}{' '}
               <span className="text-xs text-muted-foreground">{counts[t] ?? 0}</span>
             </button>
           ))}
-        </div>
+        </TabRow>
         <div className="flex-1 overflow-y-auto px-2 pb-4">
           {subfolders.length > 0 && tab === 'all' && !search ? (
             <div className="px-2 pt-4">
@@ -283,7 +288,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
                 {subfolders.map((f) => (
                   <Link key={f.id} href={`/browse/${f.id}`} className="flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm hover:bg-muted/60">
                     {f.icon ? <LookIcon name={f.icon} color={f.color} /> : <FolderOpen className="size-4 text-muted-foreground" />}
-                    <span className="truncate">{f.personal ? $t('Mon dossier') : f.name}</span>
+                    <span className="truncate">{folderLabel(f, me?.id)}</span>
                   </Link>
                 ))}
               </div>
@@ -311,7 +316,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
             </div>
           ) : null}
         </div>
-      </section>
+      </Pane>
 
       {/* Preview */}
       <section className="flex min-w-0 flex-1 flex-col">

@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { TabRow } from '@/components/ui/tab-row'
 
 type Tab = 'profile' | 'tokens'
 type Surface = 'rest' | 'mcp'
@@ -354,7 +355,7 @@ export default function AccountPage({ searchParams }: { searchParams: Promise<{ 
     <div className="mx-auto max-w-4xl px-8 py-6">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">{$t('Mon compte')}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{$t('Votre profil, votre mot de passe et vos jetons d’accès à l’API et au serveur MCP.')}</p>
-      <div className="mb-6 flex h-11 items-center gap-6 border-b text-[15px]">
+      <TabRow className="mb-6 h-11 items-center gap-6 border-b text-[15px]">
         {(['profile', 'tokens'] as const).map((t) => (
           <button
             key={t}
@@ -368,7 +369,7 @@ export default function AccountPage({ searchParams }: { searchParams: Promise<{ 
             {t === 'profile' ? $t('Profil') : $t("Jetons d'intégration")}
           </button>
         ))}
-      </div>
+      </TabRow>
       {!me ? <Spinner /> : tab === 'profile' ? <Profile me={me} /> : <Tokens />}
     </div>
   )

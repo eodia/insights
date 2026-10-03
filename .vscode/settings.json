@@ -1,0 +1,22 @@
+{
+  // Terminaux du projet en Windows PowerShell, sans profil utilisateur : démarrage plus rapide,
+  // et le débogueur Node s'attache sans passer par Git Bash. Sortie en UTF-8 : les accents
+  // des journaux s'affichent correctement (la console 5.1 est en page de code OEM par défaut).
+  "terminal.integrated.profiles.windows": {
+    "PowerShell (eodia)": {
+      "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "args": ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-Command", "[Console]::OutputEncoding = [Text.Encoding]::UTF8"],
+      "icon": "terminal-powershell"
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell (eodia)",
+  // Utilisé par les configurations de débogage (node-terminal) et les tâches.
+  "terminal.integrated.automationProfile.windows": {
+    "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "args": ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-Command", "[Console]::OutputEncoding = [Text.Encoding]::UTF8"]
+  },
+  // Pas d'attache automatique : les configurations de launch.json (node-terminal) injectent déjà
+  // le chargeur du débogueur. Les deux ensemble se cumulent dans NODE_OPTIONS, et le chemin
+  // « Microsoft VS Code » (avec espace) casse le --require : « Cannot find module …bootloader.js ».
+  "debug.javascript.autoAttachFilter": "disabled"
+}

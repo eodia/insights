@@ -41,6 +41,8 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { Pane } from '@/components/ui/pane'
+import { TabRow } from '@/components/ui/tab-row'
 
 interface Tab {
   id: string
@@ -260,8 +262,8 @@ function SqlWorkspace() {
 
   return (
     <div className="flex h-full">
-      <aside className="flex w-[280px] shrink-0 flex-col border-r">
-        <div className="flex gap-4 border-b px-3 text-sm">
+      <Pane as="aside" id="sql.side" side="left" defaultSize={280} min={200} max={600} className="flex flex-col border-r">
+        <TabRow className="gap-4 border-b px-3 text-sm">
           {(
             [
               ['schema', $t('Schéma'), Database],
@@ -269,19 +271,19 @@ function SqlWorkspace() {
               ['history', $t('Historique'), History],
             ] as const
           ).map(([k, label, Icon]) => (
-            <button key={k} type="button" onClick={() => setSide(k)} className={cn('relative -mb-px flex items-center gap-1.5 py-2.5', side === k ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground')}>
+            <button key={k} type="button" onClick={() => setSide(k)} className={cn('relative flex items-center gap-1.5 py-2.5', side === k ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary' : 'text-muted-foreground')}>
               <Icon className="size-3.5" /> {label}
             </button>
           ))}
-        </div>
+        </TabRow>
         <div className="min-h-0 flex-1">
           {side === 'schema' ? <SchemaBrowser onInsert={(t) => editorApi.current?.insert(t)} /> : side === 'snippets' ? <SnippetsPanel onInsert={(t) => editorApi.current?.insert(t)} current={tab?.sql ?? ''} /> : <HistoryPanel onOpen={(sql) => { const t = newTab(tabs.length + 1, sql); setTabs([...tabs, t]); setActive(t.id) }} />}
         </div>
-      </aside>
+      </Pane>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Tabs */}
-        <div className="flex h-10 shrink-0 items-end gap-0.5 overflow-x-auto border-b bg-surface px-2">
+        <TabRow className="h-10 shrink-0 items-end gap-0.5 border-b bg-surface px-2">
           {tabs.map((t) => (
             <div key={t.id} className={cn('group flex h-8 items-center gap-1.5 rounded-t-lg border border-b-0 px-3 text-sm', t.id === active ? 'bg-background font-medium' : 'border-transparent text-muted-foreground hover:text-foreground')}>
               <button type="button" onClick={() => setActive(t.id)} onDoubleClick={() => { const name = prompt($t('Nom de l’onglet'), t.name); if (name) setTabs((ts) => ts.map((x) => (x.id === t.id ? { ...x, name } : x))) }} className="max-w-40 truncate">
@@ -298,7 +300,7 @@ function SqlWorkspace() {
           <button type="button" onClick={() => { const t = newTab(tabs.length + 1); setTabs([...tabs, t]); setActive(t.id) }} className="mb-1 ml-1 rounded p-1 text-muted-foreground hover:bg-accent" aria-label={$t('Nouvel onglet')}>
             <Plus className="size-4" />
           </button>
-        </div>
+        </TabRow>
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 border-b px-3 py-2">
@@ -334,9 +336,9 @@ function SqlWorkspace() {
         </div>
 
         {/* Editor */}
-        <div className="flex h-[45%] min-h-[160px] flex-col border-b">
+        <Pane id="sql.editor" side="top" defaultSize={340} min={140} max={900} className="flex flex-col border-b">
           {tab ? <SqlEditor key={tab.id} value={tab.sql} tree={tree} onChange={(sql) => patchTab({ sql })} onRun={(s) => run(s)} error={sqlError} onReady={(a) => (editorApi.current = a)} /> : null}
-        </div>
+        </Pane>
         {variables.length ? (
           <div className="flex flex-wrap items-center gap-3 border-b bg-muted/30 px-3 py-2">
             {variables.map((v) => (
@@ -349,7 +351,7 @@ function SqlWorkspace() {
         ) : null}
 
         {/* Results */}
-        <div className="flex items-center gap-1 border-b px-3 py-1.5">
+        <TabRow className="items-center gap-1 border-b px-3 py-1.5">
           <button type="button" onClick={() => setView('table')} className={cn('rounded-md px-2.5 py-1 text-sm', view === 'table' ? 'bg-muted font-medium' : 'text-muted-foreground')}>
             {$t('Résultat')}
           </button>
@@ -380,7 +382,7 @@ function SqlWorkspace() {
               </Button>
             </>
           ) : null}
-        </div>
+        </TabRow>
         <div className="relative min-h-0 flex-1">
           {state.running ? (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">

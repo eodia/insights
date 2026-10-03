@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { BookOpen, Bot, Plug, Search, Wrench } from 'lucide-react'
 import type { McpTool } from './mcp-tools'
 import type { Endpoint, Method } from './openapi'
+import { Pane } from '@/components/ui/pane'
 
 export type Selection =
   | { readonly kind: 'overview' }
@@ -79,7 +80,7 @@ export function DocsNav({
   const key = selectionKey(selection)
   const empty = !groups.length && !tools.length
   return (
-    <nav className="flex w-[300px] shrink-0 flex-col border-r">
+    <Pane as="nav" id="docs.nav" side="left" defaultSize={300} min={220} max={560} className="flex flex-col border-r">
       <div className="p-3">
         <div className="relative">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -130,6 +131,6 @@ export function DocsNav({
 
         {empty ? <p className="px-4 py-10 text-center text-sm text-muted-foreground">{$t('Aucun endpoint ne correspond.')}</p> : null}
       </div>
-    </nav>
+    </Pane>
   )
 }

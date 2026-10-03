@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { $t } from '@/lib/i18n'
+import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -15,10 +16,11 @@ import { useEffect, useState } from 'react'
 /** The folders one can save into, by their path: « Ventes / Régions ». */
 export function useWritableFolders(): { value: string; label: string }[] {
   const { data: folders = [] } = useFolders()
+  const { data: me } = useMe()
   const byId = new Map(folders.map((f) => [f.id, f]))
   const path = (f: Folder): string => {
     const parent = f.parent ? byId.get(f.parent) : undefined
-    const name = f.personal ? $t('Mon dossier') : f.name
+    const name = folderLabel(f, me?.id)
     return parent ? `${path(parent)} / ${name}` : name
   }
   return folders

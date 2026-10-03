@@ -14,6 +14,7 @@ import { FormatEditor } from './format-editor'
 import { CopyConfigButton, PasteConfigButton } from './json-tools'
 import { InlineText } from './pickers'
 import { ValuesEditor } from './values-editor'
+import { Pane } from '@/components/ui/pane'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -41,7 +42,7 @@ export function ColumnPanel({
   const disabled = readOnly || column.status === 'removed'
   const saveFormat = useCallback((format: ColumnMeta['format']) => onPatch(column.id, { format }), [onPatch, column.id])
   return (
-    <aside className="flex w-[400px] shrink-0 flex-col border-l">
+    <Pane as="aside" id="structure.column" side="right" defaultSize={400} min={300} max={720} className="flex flex-col border-l">
       <Tabs defaultValue="details" className="min-h-0 flex-1" key={column.id}>
         <div className="flex h-12 items-center gap-2 border-b px-5">
           <TabsList className="h-12 border-b-0">
@@ -137,6 +138,6 @@ export function ColumnPanel({
           ) : null}
         </div>
       </Tabs>
-    </aside>
+    </Pane>
   )
 }

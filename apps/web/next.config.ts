@@ -1,4 +1,17 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parseEnv } from 'node:util'
 import type { NextConfig } from 'next'
+
+// The repository's `.env` (then `.env.local`), as the API reads it: one file to fill in.
+// Next only reads the `.env` files of apps/web itself; the real environment always wins.
+for (const name of ['.env', '.env.local']) {
+  const path = join(process.cwd(), '..', '..', name)
+  if (!existsSync(path)) continue
+  for (const [key, value] of Object.entries(parseEnv(readFileSync(path, 'utf8')))) {
+    if (process.env[key] === undefined) process.env[key] = value
+  }
+}
 
 /**
  * Le front ne parle qu'HTTP : `/api/*` est relayé vers l'API (même origine pour les cookies).

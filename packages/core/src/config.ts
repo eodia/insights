@@ -1,5 +1,6 @@
 /** Configuration de l'instance, lue une fois dans l'environnement. */
 import { createHash } from 'node:crypto'
+import { loadEnvFiles } from './env'
 
 export interface Config {
   readonly databaseUrl: string
@@ -50,6 +51,7 @@ const env = (key: string, fallback?: string) => {
 }
 
 export function loadConfig(): Config {
+  loadEnvFiles()
   const rawKey = env('EODIA_SECRET_KEY')
   const dev = env('NODE_ENV', 'development') !== 'production'
   if (!rawKey && !dev) throw new Error('EODIA_SECRET_KEY est obligatoire en production (64 caractères hexadécimaux).')

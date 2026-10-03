@@ -65,6 +65,7 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 import { ParameterBar, type Values } from './parameters'
+import { TabRow } from '@/components/ui/tab-row'
 
 export type Runner = (card: DashboardCard, values: Values, opts: { fresh: boolean; draft: boolean }) => Promise<RunResult>
 
@@ -582,9 +583,9 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
 
       {/* Tabs */}
       {tabs.length > 0 || editing ? (
-        <div className="flex items-center gap-1 border-b px-6">
+        <TabRow className="items-center gap-1 border-b px-6">
           {tabs.map((t: DashboardTab) => (
-            <div key={t.id} className={cn('relative -mb-px flex items-center', currentTab === t.id && 'after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary')}>
+            <div key={t.id} className={cn('relative flex items-center', currentTab === t.id && 'after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary')}>
               {editing ? (
                 <input
                   value={t.label}
@@ -624,7 +625,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               <Plus className="size-3.5" /> {$t('Onglet')}
             </button>
           ) : null}
-        </div>
+        </TabRow>
       ) : null}
 
       {/* Grid */}

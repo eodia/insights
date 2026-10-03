@@ -1,0 +1,61 @@
+{
+  // eodia insights — débogage local. Ports libres : web 3300, API 4300, MCP 4400.
+  // Terminal forcé en Windows PowerShell (.vscode/settings.json) ; binaires appelés par `node`
+  // directement, sans pnpm ni npx : moins de processus intermédiaires, démarrage plus rapide.
+  // Trino joint l'endpoint OPA de l'API : EODIA_OPA_URL (fichier .env à la racine) pointe sur 4300.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API (4300)",
+      "type": "node-terminal",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "command": "node node_modules/tsx/dist/cli.mjs watch --clear-screen=false src/server.ts",
+      "env": {
+        "EODIA_API_PORT": "4300",
+        "EODIA_PUBLIC_URL": "http://localhost:3300"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Web (3300)",
+      "type": "node-terminal",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/web",
+      "command": "node node_modules/next/dist/bin/next dev --port 3300",
+      "env": {
+        "EODIA_API_URL": "http://localhost:4300"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "serverReadyAction": {
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
+    {
+      "name": "MCP (4400)",
+      "type": "node-terminal",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/mcp",
+      "command": "node node_modules/tsx/dist/cli.mjs watch --clear-screen=false src/server.ts",
+      "env": {
+        "EODIA_MCP_PORT": "4400",
+        "EODIA_URL": "http://localhost:4300"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "eodia insights (API + Web)",
+      "configurations": ["API (4300)", "Web (3300)"],
+      "stopAll": true
+    },
+    {
+      "name": "eodia insights (API + Web + MCP)",
+      "configurations": ["API (4300)", "Web (3300)", "MCP (4400)"],
+      "stopAll": true
+    }
+  ]
+}

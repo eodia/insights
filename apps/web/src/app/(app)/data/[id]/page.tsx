@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useState } from 'react'
 import { toast } from 'sonner'
+import { Pane } from '@/components/ui/pane'
 
 function TablesList({ source }: { source: Datasource }) {
   const { data: tables = [], isLoading } = useTables(source.id)
@@ -223,7 +224,7 @@ export default function SourcePage({ params }: { params: Promise<{ id: string }>
         </div>
       </section>
 
-      <aside className="hidden w-[340px] shrink-0 overflow-y-auto border-l lg:block">
+      <Pane as="aside" id="data.details" side="right" defaultSize={340} min={260} max={600} className="hidden overflow-y-auto border-l lg:block">
         <div className="flex h-12 items-center gap-6 border-b px-5 text-[15px]">
           <span className="relative py-3 font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary">{$t('Détails')}</span>
         </div>
@@ -254,7 +255,7 @@ export default function SourcePage({ params }: { params: Promise<{ id: string }>
             </div>
           ) : null}
         </div>
-      </aside>
+      </Pane>
 
       <ConfirmDialog
         open={confirm}
