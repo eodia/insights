@@ -1,6 +1,6 @@
 ---
 title: Serveur MCP
-description: Brancher Claude ou tout client MCP sur eodia insights, en HTTP ou en stdio, et les neuf outils qu’il expose.
+description: Brancher Claude ou tout client MCP sur eodia insights, en HTTP ou en stdio, et les dix outils qu’il expose.
 ---
 
 eodia insights expose un **serveur MCP** (Model Context Protocol) : Claude, un assistant de code
