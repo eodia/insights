@@ -52,8 +52,9 @@ for (const file of [...walk(path.join(root, 'packages/core/src')), ...walk(path.
         if (t && french(t) && !found.has(t)) found.set(t, rel)
       }
     }
-    // `{ code: '…', message: '…' }` written by hand (apps/api/src/http.ts), the copilot's tool summaries.
-    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && (node.name.text === 'message' || (node.name.text === 'summary' && rel.endsWith('copilot.ts')))) {
+    // `{ code: '…', message: '…' }` written by hand (apps/api/src/http.ts), the copilot's tool
+    // summaries, and the summaries and descriptions of the OpenAPI document (apps/api/src).
+    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && (node.name.text === 'message' || (node.name.text === 'summary' && (rel.endsWith('copilot.ts') || rel.startsWith('apps/api'))) || (node.name.text === 'description' && rel.startsWith('apps/api')))) {
       const t = text(node.initializer)
       if (t && french(t) && !found.has(t)) found.set(t, rel)
     }

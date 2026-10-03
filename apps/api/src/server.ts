@@ -63,6 +63,24 @@ export async function createApp() {
     )
   })
 
+  // The OpenAPI document reads in the caller's language too: its summaries and descriptions.
+  app.use('/api/v1/openapi.json', async (c, next) => {
+    await next()
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
+    if (locale === 'fr' || c.res.status !== 200) return
+    const translate = (node: unknown): unknown => {
+      if (Array.isArray(node)) return node.map(translate)
+      if (node === null || typeof node !== 'object') return node
+      return Object.fromEntries(
+        Object.entries(node).map(([k, v]) => [k, (k === 'summary' || k === 'description') && typeof v === 'string' ? localizeMessage(v, locale) : translate(v)]),
+      )
+    }
+    const doc = await c.res.clone().json()
+    const headers = new Headers(c.res.headers)
+    headers.delete('content-length')
+    c.res = new Response(JSON.stringify(translate(doc)), { status: 200, headers })
+  })
+
   app.use('/api/*', identify(core))
 
   app.onError((err, c) => {
