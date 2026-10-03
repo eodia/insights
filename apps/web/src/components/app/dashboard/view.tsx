@@ -116,6 +116,8 @@ interface CardProps {
   onDuplicate: () => void
   onFullscreen: () => void
   publicMode: boolean
+  /** Filters chosen by clicks on this card: it is not narrowed by them, it shows them. */
+  selection?: { readonly params: readonly string[]; readonly values: readonly string[] }
   /** The other tabs it can go to, and where else it can go — when it can move. */
   moveTabs?: readonly DashboardTab[]
   onMoveToTab?: (tab: string) => void
@@ -198,8 +200,11 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, values, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere } = props
+  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, selection } = props
   const isQuestion = card.kind === 'question'
+  // The card a selection was clicked on keeps all its categories: one can add to it.
+  const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
+  const values = own
   const { data: question } = useQuestion(isQuestion && card.question && !publicMode ? card.question : null)
   const relevant = useMemo(() => relevantValues(card, values), [card, values])
   const run = useQuery({
@@ -351,7 +356,7 @@ function CardFrame(props: CardProps) {
             <AlertTriangle className="size-4 shrink-0" /> {(run.error as Error).message}
           </div>
         ) : run.data ? (
-          <Visualization result={run.data} viz={viz} compact onPointClick={(p) => onPoint(card, p)} />
+          <Visualization result={run.data} viz={viz} compact onPointClick={(p) => onPoint(card, p)} {...(selection?.values.length ? { selected: selection.values } : {})} />
         ) : (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="size-5 animate-spin text-muted-foreground/60" />
@@ -578,6 +583,8 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const [tick, setTick] = useState(0)
   const [fresh, setFresh] = useState(false)
   const [selectedParam, setSelectedParam] = useState<string | null>(null)
+  // Which card each click-made selection came from, by filter.
+  const [origins, setOrigins] = useState<Record<string, string>>({})
   const [picker, setPicker] = useState(false)
   const [fullscreenCard, setFullscreenCard] = useState<DashboardCard | null>(null)
   const [saving, setSaving] = useState(false)
@@ -641,14 +648,50 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       toast.message($t('Aucun filtre du tableau n’est relié à « {col} ».', { col: p.column.label }))
       return
     }
+    const current = values[param.id]
     let value: ParameterValue | null = null
-    if (param.type === 'date' && p.column.unit) value = periodExpression(String(p.value), p.column.unit)
-    else if (param.type === 'category') value = [String(p.value)]
-    else if (param.type === 'number') value = [Number(p.value), Number(p.value)]
+    if (param.type === 'date' && p.column.unit) {
+      value = periodExpression(String(p.value), p.column.unit)
+      // Shift + click on a second period: the span from the first to the last.
+      if (value !== null && p.additive && typeof current === 'string' && current.includes('~') && value.includes('~')) {
+        const [a = '', b = ''] = current.split('~')
+        const [c = '', d = ''] = value.split('~')
+        value = `${a < c ? a : c}~${b > d ? b : d}`
+      }
+    } else if (param.type === 'category') {
+      const v = String(p.value)
+      const chosen = (Array.isArray(current) ? current : current ? [current] : []).map(String)
+      // Shift (or Ctrl, ⌘) + click adds the category, or takes it away; a click alone keeps
+      // only it — or, on the one already chosen, lets the filter go.
+      if (p.additive && param.multiple !== false) value = chosen.includes(v) ? chosen.filter((x) => x !== v) : [...chosen, v]
+      else value = chosen.length === 1 && chosen[0] === v ? [] : [v]
+      if (value.length === 0) value = null
+    } else if (param.type === 'number') value = [Number(p.value), Number(p.value)]
     else value = String(p.value)
-    if (value === null) return
+    if (value === null && param.type !== 'category') return
     setValues((v) => ({ ...v, [param.id]: value }))
-    toast.success($t('Filtré : {label} = {value}', { label: param.label, value: valueLabelFor(param, value) }))
+    setOrigins((o) => {
+      const { [param.id]: _, ...rest } = o
+      return param.type === 'category' && value !== null ? { ...rest, [param.id]: card.id } : rest
+    })
+    if (value === null) toast.message($t('Filtre « {label} » retiré.', { label: param.label }))
+    else
+      toast.success($t('Filtré : {label} = {value}', { label: param.label, value: valueLabelFor(param, value) }), {
+        ...(param.type === 'category' && param.multiple !== false && !p.additive ? { description: $t('Maj + clic pour ajouter d’autres catégories.') } : {}),
+      })
+  }
+
+  // The filters a card's clicks chose, and the categories they hold.
+  const selectionOf = (cardId: string) => {
+    const params = Object.entries(origins)
+      .filter(([, c]) => c === cardId)
+      .map(([p]) => p)
+    if (!params.length) return {}
+    const chosen = params.flatMap((p) => {
+      const v = values[p]
+      return Array.isArray(v) ? v.map(String) : v ? [String(v)] : []
+    })
+    return { selection: { params, values: chosen } }
   }
 
   const save = async () => {
@@ -717,14 +760,23 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
         <ParameterBar
           parameters={draft.parameters}
           values={values}
-          onChange={(id, v) => setValues((cur) => ({ ...cur, [id]: v }))}
+          onChange={(id, v) => {
+            setValues((cur) => ({ ...cur, [id]: v }))
+            setOrigins(({ [id]: _, ...rest }) => rest)
+          }}
           columnFor={columnFor}
           editing={editing}
           selected={selectedParam}
           onSelect={(id) => setSelectedParam((s) => (s === id ? null : id))}
         />
         {!editing && activeFilters > 0 ? (
-          <button type="button" onClick={() => setValues(initialValues)} className="text-xs text-muted-foreground hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => {
+              setValues(initialValues)
+              setOrigins({})
+            }}
+            className="text-xs text-muted-foreground hover:text-foreground">
             {$t('Réinitialiser les filtres')}
           </button>
         ) : null}
@@ -949,6 +1001,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                     : {})}
                   onFullscreen={() => setFullscreenCard(card)}
                   publicMode={publicMode}
+                  {...selectionOf(card.id)}
                 />
               </div>
             ))}

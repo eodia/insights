@@ -7,7 +7,7 @@ import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
 import { $t, $tp } from '@/lib/i18n'
-import { type Result, chartOption, roles } from '@/lib/viz'
+import { type ChartModel, type Result, chartOption, roles } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -18,6 +18,33 @@ export interface PointClick {
   readonly column: ResultColumn
   readonly value: unknown
   readonly at: { x: number; y: number }
+  /** Shift, Ctrl or ⌘ held: the value adds to (or leaves) the selection rather than replace it. */
+  readonly additive: boolean
+}
+
+const FADED = 0.28
+
+/** The chart with the categories not chosen faded: bars and slices, not lines. */
+function withSelection(model: ChartModel, chosen: ReadonlySet<string>): ChartModel {
+  const on = (v: unknown) => chosen.has(v === null || v === undefined ? '∅' : String(v))
+  const series = (Array.isArray(model.option.series) ? model.option.series : model.option.series ? [model.option.series] : []) as Record<string, unknown>[]
+  const faded = series.map((s) => {
+    const data = s.data as unknown[] | undefined
+    if (!Array.isArray(data)) return s
+    if (s.type === 'pie' || s.type === 'funnel') {
+      return { ...s, data: data.map((d) => { const item = d as { raw?: unknown; itemStyle?: object }; return on(item.raw) ? item : { ...item, itemStyle: { ...item.itemStyle, opacity: FADED } } }) }
+    }
+    if (s.type !== 'bar' || !model.categories) return s
+    return {
+      ...s,
+      data: data.map((d, j) => {
+        if (on(model.categories?.[j])) return d
+        const item = d !== null && typeof d === 'object' && 'value' in (d as object) ? (d as { value: unknown; itemStyle?: object }) : { value: d }
+        return { ...item, itemStyle: { ...item.itemStyle, opacity: FADED } }
+      }),
+    }
+  })
+  return { ...model, option: { ...model.option, series: faded as never } }
 }
 
 function useDark(): boolean {
@@ -38,18 +65,22 @@ export function Visualization({
   viz,
   onPointClick,
   compact = false,
+  selected,
 }: {
   result: RunResult | Result
   viz: Viz
   onPointClick?: (p: PointClick) => void
   compact?: boolean
+  /** Categories chosen by clicks on this chart: the others fade, still there to be added. */
+  selected?: readonly string[]
 }) {
   const dark = useDark()
   const settings = (viz.settings ?? {}) as VisualizationSettings
   const model = useMemo(() => {
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
-    return chartOption(viz.type, result, settings, { dark })
-  }, [viz.type, result, settings, dark])
+    const m = chartOption(viz.type, result, settings, { dark })
+    return m && selected?.length ? withSelection(m, new Set(selected)) : m
+  }, [viz.type, result, settings, dark, selected])
 
   if (result.rows.length === 0) {
     return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{$t('Aucun résultat')}</div>
@@ -82,7 +113,12 @@ export function Visualization({
               const index = e.dataIndex
               const raw = model.categories ? model.categories[index] : (e.data as { raw?: unknown })?.raw
               const native = e.event?.event as unknown as MouseEvent | undefined
-              onPointClick({ column: col, value: raw, at: { x: native?.clientX ?? 0, y: native?.clientY ?? 0 } })
+              onPointClick({
+                column: col,
+                value: raw,
+                at: { x: native?.clientX ?? 0, y: native?.clientY ?? 0 },
+                additive: !!(native?.shiftKey || native?.ctrlKey || native?.metaKey),
+              })
             },
           }
         : {})}
