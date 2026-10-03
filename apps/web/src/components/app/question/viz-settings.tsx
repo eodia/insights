@@ -11,6 +11,7 @@ import { LOOK_HEX } from '@/lib/format'
 import { DEFAULT_SCHEME, PALETTES, checkPalette, schemeColors } from '@/lib/palettes'
 import { VIZ_LABELS, type Result, autoVisualization, chartOption, roles, vizFits } from '@/lib/viz'
 import { Hint } from '@/components/ui/tooltip'
+import { Segmented } from '@/components/ui/segmented'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -39,6 +40,22 @@ import {
   Radar,
   Sparkles,
   TrendingUpDown,
+  ArrowDownToLine,
+  ArrowDownWideNarrow,
+  ArrowRightToLine,
+  ArrowUpToLine,
+  ArrowUpWideNarrow,
+  Ban,
+  ChartColumnStacked,
+  CircleDot,
+  CircleOff,
+  ListOrdered,
+  MoveDiagonal,
+  MoveHorizontal,
+  MoveVertical,
+  Percent,
+  Wand2,
+  Waves,
 } from 'lucide-react'
 
 export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
@@ -99,6 +116,63 @@ function ColumnsPick({ columns, value, onChange, label }: { columns: readonly Re
     </Field>
   )
 }
+
+// ── Pictogrammes des choix ───────────────────────────────────────────────────
+
+function Glyph({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      {children}
+    </svg>
+  )
+}
+const IconStraight = ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    <path d="M3 18 9 11l5 4 7-9" />
+  </Glyph>
+)
+const IconSmooth = ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    <path d="M3 18c3 0 4-7 7-7s3.5 4 6 4 3.5-9 5-9" />
+  </Glyph>
+)
+const IconSteps = ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    <path d="M3 18h5v-6h5v4h4V7h4" />
+  </Glyph>
+)
+const IconLog = ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    <path d="M3 20c2-9 5-14 18-15" />
+    <path d="M3 4v16h18" strokeWidth={1.4} opacity={0.5} />
+  </Glyph>
+)
+const bars = (w: number) => ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    {[5, 12, 19].map((x, i) => (
+      <rect key={x} x={x - w / 2} y={[11, 6, 14][i]} width={w} height={[9, 14, 6][i]} rx={0.8} fill="currentColor" stroke="none" />
+    ))}
+  </Glyph>
+)
+const IconBarsThin = bars(2)
+const IconBarsNormal = bars(4)
+const IconBarsWide = bars(6)
+const IconGrouped = ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    <path d="M4 20V10M8 20V6M14 20v-8M18 20V8" strokeWidth={3} />
+  </Glyph>
+)
+const rows = (n: number) => ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    {Array.from({ length: n }, (_, i) => {
+      const y = 4 + ((i + 0.5) * 16) / n
+      return <path key={y} d={`M4 ${y}h16`} />
+    })}
+  </Glyph>
+)
+const IconRows3 = rows(5)
+const IconRows2 = rows(4)
+const IconRows1 = rows(3)
 
 /** The forms by what they are for, each family with its tint. */
 const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = [
@@ -407,17 +481,16 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
         <Section title={$t('Mise en avant')}>
           {!splitSeries ? (
             <Field label={$t('Faire ressortir')}>
-              <Choice
+              <Segmented
                 value={settings.highlight ?? 'none'}
-                onValueChange={(v) => set({ highlight: v as VisualizationSettings['highlight'] })}
+                onValueChange={(v) => set({ highlight: v })}
                 options={[
-                  { value: 'none', label: $t('Rien') },
-                  { value: 'max', label: $t('La plus haute valeur') },
-                  { value: 'min', label: $t('La plus basse valeur') },
-                  { value: 'last', label: $t('La dernière valeur') },
+                  { value: 'none', label: $t('Rien'), icon: Ban },
+                  { value: 'max', label: $t('Plus haute'), icon: ArrowUpToLine, hint: $t('La plus haute valeur ressort, les autres s’estompent') },
+                  { value: 'min', label: $t('Plus basse'), icon: ArrowDownToLine, hint: $t('La plus basse valeur ressort, les autres s’estompent') },
+                  { value: 'last', label: $t('Dernière'), icon: ArrowRightToLine, hint: $t('La dernière valeur ressort, les autres s’estompent') },
                 ]}
                 aria-label={$t('Faire ressortir')}
-                className="w-full"
               />
             </Field>
           ) : null}
@@ -453,17 +526,16 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           {settings.forecast ? (
             <>
               <Field label={$t('Méthode')}>
-                <Choice
+                <Segmented
                   value={settings.forecast_method ?? 'auto'}
-                  onValueChange={(v) => set({ forecast_method: v as VisualizationSettings['forecast_method'] })}
+                  onValueChange={(v) => set({ forecast_method: v })}
                   options={[
-                    { value: 'auto', label: $t('Automatique') },
-                    { value: 'linear', label: $t('Droite de tendance') },
-                    { value: 'smooth', label: $t('Tendance lissée (Holt)') },
-                    { value: 'seasonal', label: $t('Tendance et saison (Holt-Winters)') },
+                    { value: 'auto', label: $t('Auto'), icon: Wand2, hint: $t('Choisie selon la série : la saison si elle en couvre deux, sinon une tendance lissée') },
+                    { value: 'linear', label: $t('Droite'), icon: IconStraight, hint: $t('Droite de tendance (moindres carrés)') },
+                    { value: 'smooth', label: $t('Lissée'), icon: IconSmooth, hint: $t('Tendance lissée (Holt)') },
+                    { value: 'seasonal', label: $t('Saison'), icon: Waves, hint: $t('Tendance et saison (Holt-Winters)') },
                   ]}
                   aria-label={$t('Méthode')}
-                  className="w-full"
                 />
               </Field>
               {!splitSeries ? <Toggle label={$t('Intervalle de confiance (80 %)')} checked={settings.forecast_band !== false} onChange={(v) => set({ forecast_band: v })} /> : null}
@@ -479,16 +551,15 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
       {cartesian && categorical ? (
         <Section title={$t('Tri et regroupement')}>
           <Field label={$t('Ordre des catégories')}>
-            <Choice
+            <Segmented
               value={settings.sort_values ?? 'none'}
-              onValueChange={(v) => set({ sort_values: v as VisualizationSettings['sort_values'] })}
+              onValueChange={(v) => set({ sort_values: v })}
               options={[
-                { value: 'none', label: $t('Celui du résultat') },
-                { value: 'desc', label: $t('Valeur décroissante') },
-                { value: 'asc', label: $t('Valeur croissante') },
+                { value: 'none', label: $t('Résultat'), icon: ListOrdered, hint: $t('L’ordre du résultat') },
+                { value: 'desc', label: $t('Décroissant'), icon: ArrowDownWideNarrow, hint: $t('La plus grande valeur d’abord') },
+                { value: 'asc', label: $t('Croissant'), icon: ArrowUpWideNarrow, hint: $t('La plus petite valeur d’abord') },
               ]}
               aria-label={$t('Ordre des catégories')}
-              className="w-full"
             />
           </Field>
           <Field label={$t('Seulement les premières (le reste devient « Autres »)')}>
@@ -500,21 +571,57 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
       {cartesian ? (
         <Section title={$t('Forme')}>
           <Field label={$t('Empilement')}>
-            <Choice value={settings.stack ?? 'none'} onValueChange={(v) => set({ stack: v as VisualizationSettings['stack'] })} options={[{ value: 'none', label: $t('Aucun') }, { value: 'stacked', label: $t('Empilé') }, { value: 'percent', label: $t('Empilé à 100 %') }]} aria-label={$t('Empilement')} className="w-full" />
+            <Segmented
+              value={settings.stack ?? 'none'}
+              onValueChange={(v) => set({ stack: v })}
+              options={[
+                { value: 'none', label: $t('Côte à côte'), icon: IconGrouped },
+                { value: 'stacked', label: $t('Empilé'), icon: ChartColumnStacked },
+                { value: 'percent', label: $t('100 %'), icon: Percent, hint: $t('Empilé à 100 % : la part de chaque série') },
+              ]}
+              aria-label={$t('Empilement')}
+            />
           </Field>
           {lines ? (
             <>
               <Field label={$t('Tracé')}>
-                <Choice value={settings.line_style ?? 'straight'} onValueChange={(v) => set({ line_style: v as VisualizationSettings['line_style'] })} options={[{ value: 'straight', label: $t('Droit') }, { value: 'smooth', label: $t('Lissé') }, { value: 'step', label: $t('Marches') }]} aria-label={$t('Tracé')} className="w-full" />
+                <Segmented
+                  value={settings.line_style ?? 'straight'}
+                  onValueChange={(v) => set({ line_style: v })}
+                  options={[
+                    { value: 'straight', label: $t('Droit'), icon: IconStraight },
+                    { value: 'smooth', label: $t('Lissé'), icon: IconSmooth },
+                    { value: 'step', label: $t('Marches'), icon: IconSteps },
+                  ]}
+                  aria-label={$t('Tracé')}
+                />
               </Field>
               <Field label={$t('Points')}>
-                <Choice value={settings.markers ?? 'auto'} onValueChange={(v) => set({ markers: v as VisualizationSettings['markers'] })} options={[{ value: 'auto', label: $t('Selon le nombre') }, { value: 'always', label: $t('Toujours') }, { value: 'never', label: $t('Jamais') }]} aria-label={$t('Points')} className="w-full" />
+                <Segmented
+                  value={settings.markers ?? 'auto'}
+                  onValueChange={(v) => set({ markers: v })}
+                  options={[
+                    { value: 'auto', label: $t('Auto'), icon: Sparkles, hint: $t('Selon le nombre de points : affichés jusqu’à 24') },
+                    { value: 'always', label: $t('Toujours'), icon: CircleDot },
+                    { value: 'never', label: $t('Jamais'), icon: CircleOff },
+                  ]}
+                  aria-label={$t('Points')}
+                />
               </Field>
             </>
           ) : null}
           {type !== 'line' ? (
             <Field label={$t('Largeur des barres')}>
-              <Choice value={settings.bar_width ?? 'normal'} onValueChange={(v) => set({ bar_width: v as VisualizationSettings['bar_width'] })} options={[{ value: 'thin', label: $t('Fine') }, { value: 'normal', label: $t('Normale') }, { value: 'wide', label: $t('Large') }]} aria-label={$t('Largeur')} className="w-full" />
+              <Segmented
+                value={settings.bar_width ?? 'normal'}
+                onValueChange={(v) => set({ bar_width: v })}
+                options={[
+                  { value: 'thin', label: $t('Fine'), icon: IconBarsThin },
+                  { value: 'normal', label: $t('Normale'), icon: IconBarsNormal },
+                  { value: 'wide', label: $t('Large'), icon: IconBarsWide },
+                ]}
+                aria-label={$t('Largeur')}
+              />
             </Field>
           ) : null}
           {type === 'area' ? <Toggle label={$t('Aire en dégradé')} checked={settings.gradient !== false} onChange={(v) => set({ gradient: v })} /> : null}
@@ -533,7 +640,15 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
       {cartesian ? (
         <Section title={$t('Axes')}>
           <Field label={$t('Échelle')}>
-            <Choice value={settings.y_scale ?? 'linear'} onValueChange={(v) => set({ y_scale: v as 'linear' | 'log' })} options={[{ value: 'linear', label: $t('Linéaire') }, { value: 'log', label: $t('Logarithmique') }]} aria-label={$t('Échelle')} className="w-full" />
+            <Segmented
+              value={settings.y_scale ?? 'linear'}
+              onValueChange={(v) => set({ y_scale: v })}
+              options={[
+                { value: 'linear', label: $t('Linéaire'), icon: IconStraight },
+                { value: 'log', label: $t('Logarithmique'), icon: IconLog, hint: $t('Pour des valeurs d’ordres de grandeur très différents') },
+              ]}
+              aria-label={$t('Échelle')}
+            />
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field label={$t('Minimum')}>
@@ -544,7 +659,16 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
             </Field>
           </div>
           <Field label={$t('Libellés de l’axe horizontal')}>
-            <Choice value={String(settings.x_rotate ?? 0)} onValueChange={(v) => set({ x_rotate: Number(v) })} options={[{ value: '0', label: $t('Droits') }, { value: '30', label: $t('Inclinés') }, { value: '90', label: $t('Verticaux') }]} aria-label={$t('Libellés')} className="w-full" />
+            <Segmented
+              value={String(settings.x_rotate ?? 0) as '0' | '30' | '90'}
+              onValueChange={(v) => set({ x_rotate: Number(v) })}
+              options={[
+                { value: '0', label: $t('Droits'), icon: MoveHorizontal },
+                { value: '30', label: $t('Inclinés'), icon: MoveDiagonal },
+                { value: '90', label: $t('Verticaux'), icon: MoveVertical },
+              ]}
+              aria-label={$t('Libellés')}
+            />
           </Field>
           <Toggle label={$t('Axe horizontal')} checked={settings.x_axis !== false} onChange={(v) => set({ x_axis: v })} />
           <Toggle label={$t('Axe vertical')} checked={settings.y_axis !== false} onChange={(v) => set({ y_axis: v })} />
@@ -618,7 +742,16 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
         <>
           <Toggle label={$t('Numéros de ligne')} checked={!!settings.row_numbers} onChange={(v) => set({ row_numbers: v })} />
           <Field label={$t('Densité')}>
-            <Choice value={settings.density ?? 'normal'} onValueChange={(v) => set({ density: v as VisualizationSettings['density'] })} options={[{ value: 'compact', label: $t('Compacte') }, { value: 'normal', label: $t('Normale') }, { value: 'comfortable', label: $t('Aérée') }]} aria-label={$t('Densité')} className="w-full" />
+            <Segmented
+              value={settings.density ?? 'normal'}
+              onValueChange={(v) => set({ density: v })}
+              options={[
+                { value: 'compact', label: $t('Compacte'), icon: IconRows3 },
+                { value: 'normal', label: $t('Normale'), icon: IconRows2 },
+                { value: 'comfortable', label: $t('Aérée'), icon: IconRows1 },
+              ]}
+              aria-label={$t('Densité')}
+            />
           </Field>
           <ColumnsPick label={$t('Barres dans les cellules')} columns={numeric} value={settings.cell_bars ?? []} onChange={(v) => set({ cell_bars: v })} />
         </>

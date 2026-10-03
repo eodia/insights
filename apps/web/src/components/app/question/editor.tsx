@@ -50,7 +50,9 @@ import {
   Box,
   Sigma,
   FolderInput,
+  CircleHelp,
 } from 'lucide-react'
+import { Segmented } from '@/components/ui/segmented'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -547,16 +549,15 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">{$t('Nature')}</Label>
-                    <Choice
+                    <Segmented
                       value={draft.type}
-                      onValueChange={(t) => update({ type: t as Draft['type'] })}
+                      onValueChange={(t) => update({ type: t })}
                       options={[
-                        { value: 'question', label: $t('Question') },
-                        { value: 'model', label: $t('Modèle — table virtuelle réutilisable') },
-                        { value: 'metric', label: $t('Métrique — agrégation nommée') },
+                        { value: 'question', label: $t('Question'), icon: CircleHelp, hint: $t('Une question : un résultat à lire') },
+                        { value: 'model', label: $t('Modèle'), icon: Box, hint: $t('Une table virtuelle, réutilisable comme source') },
+                        { value: 'metric', label: $t('Métrique'), icon: Sigma, hint: $t('Une agrégation nommée, réutilisable partout') },
                       ]}
                       aria-label={$t('Nature')}
-                      className="w-full"
                     />
                   </div>
                   <dl className="space-y-2 text-sm">

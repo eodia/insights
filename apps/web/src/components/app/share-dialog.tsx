@@ -12,7 +12,8 @@ import { api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { useDirectory } from '@/lib/queries'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Copy, Globe, Link2, Trash2, Users } from 'lucide-react'
+import { Copy, Eye, Globe, Link2, Pencil, Trash2, Users } from 'lucide-react'
+import { Segmented } from '@/components/ui/segmented'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -78,7 +79,16 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
           <TabsContent value="people" className="space-y-4 pt-3">
             <div className="flex gap-2">
               <Choice value={principal} onValueChange={setPrincipal} options={options} aria-label={$t('Personne ou groupe')} placeholder={$t('Ajouter une personne ou un groupe…')} className="flex-1" size="default" searchable />
-              <Choice value={access} onValueChange={(v) => setAccess(v as 'view' | 'edit')} options={[{ value: 'view', label: $t('Lecture') }, { value: 'edit', label: $t('Modification') }]} aria-label={$t('Accès')} className="w-36" size="default" />
+              <Segmented
+                value={access}
+                onValueChange={(v) => setAccess(v)}
+                options={[
+                  { value: 'view', label: $t('Lecture'), icon: Eye },
+                  { value: 'edit', label: $t('Modification'), icon: Pencil },
+                ]}
+                aria-label={$t('Accès')}
+                className="w-48 shrink-0"
+              />
               <Button
                 disabled={!principal}
                 onClick={async () => {
@@ -128,15 +138,18 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
                     </Button>
                   </div>
                   <div className="flex flex-wrap items-center gap-4 text-sm">
-                    <Choice
+                    <Segmented
                       value={l.audience}
                       onValueChange={async (v) => {
                         await api.patch(`/v1/share-links/${l.id}`, { audience: v })
                         await refresh()
                       }}
-                      options={[{ value: 'public', label: $t('Toute personne disposant du lien') }, { value: 'members', label: $t('Membres connectés uniquement') }]}
+                      options={[
+                        { value: 'public', label: $t('Toute personne'), icon: Globe, hint: $t('Toute personne disposant du lien') },
+                        { value: 'members', label: $t('Membres'), icon: Users, hint: $t('Membres connectés uniquement') },
+                      ]}
                       aria-label={$t('Audience')}
-                      className="w-72"
+                      className="w-56"
                     />
                     <label className="flex items-center gap-2">
                       <Switch

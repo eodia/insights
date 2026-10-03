@@ -5,7 +5,6 @@ import { ConfirmDialog } from '@/components/app/dialogs'
 import { Avatar, Chip } from '@/components/app/look'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Choice } from '@/components/ui/choice'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,7 +16,8 @@ import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import type { Me } from '@eodia/contracts'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Loader2, Lock, Plus, Trash2, UserRound } from 'lucide-react'
+import { Calendar, CalendarDays, CalendarRange, Infinity as InfinityIcon, KeyRound, Loader2, Lock, Plus, Trash2, UserRound } from 'lucide-react'
+import { Segmented } from '@/components/ui/segmented'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
@@ -293,20 +293,17 @@ function Tokens() {
                 ))}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="token-exp">{$t('Expiration')}</Label>
-                <Choice
-                  id="token-exp"
-                  value={expires}
+                <Label>{$t('Expiration')}</Label>
+                <Segmented
+                  value={expires as '30' | '90' | '365' | 'never'}
                   onValueChange={setExpires}
                   options={[
-                    { value: '30', label: $t('30 jours') },
-                    { value: '90', label: $t('90 jours') },
-                    { value: '365', label: $t('1 an') },
-                    { value: 'never', label: $t('Jamais') },
+                    { value: '30', label: $t('30 jours'), icon: CalendarDays },
+                    { value: '90', label: $t('90 jours'), icon: CalendarRange },
+                    { value: '365', label: $t('1 an'), icon: Calendar },
+                    { value: 'never', label: $t('Jamais'), icon: InfinityIcon, hint: $t('Un jeton sans expiration : à révoquer s’il n’est plus utile') },
                   ]}
                   aria-label={$t('Expiration')}
-                  size="default"
-                  className="w-48"
                 />
               </div>
               <DialogFooter>

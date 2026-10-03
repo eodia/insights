@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { formatValue } from '@/lib/format'
 import { $t } from '@/lib/i18n'
-import { Eye } from 'lucide-react'
+import { Clock, Eye, EyeOff, Timer } from 'lucide-react'
+import { Segmented } from '@/components/ui/segmented'
 import { useEffect, useId, useRef, useState } from 'react'
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] }
@@ -232,18 +233,16 @@ export function FormatEditor({ column, disabled, onSave }: { column: ColumnMeta;
           ) : null}
           {kind === 'datetime' ? (
             <Row label={$t('Heure')}>
-              <Choice
+              <Segmented
                 value={draft.time ?? 'minutes'}
                 onValueChange={(v) => set('time', v === 'minutes' ? undefined : (v as ColumnFormat['time']))}
                 options={[
-                  { value: 'none', label: $t('Masquée') },
-                  { value: 'minutes', label: $t('Heures et minutes') },
-                  { value: 'seconds', label: $t('Avec les secondes') },
+                  { value: 'none', label: $t('Masquée'), icon: EyeOff },
+                  { value: 'minutes', label: $t('hh:mm'), icon: Clock, hint: $t('Heures et minutes') },
+                  { value: 'seconds', label: $t('hh:mm:ss'), icon: Timer, hint: $t('Avec les secondes') },
                 ]}
                 aria-label={$t('Heure')}
-                size="default"
                 className="w-full"
-                disabled={disabled}
               />
             </Row>
           ) : null}

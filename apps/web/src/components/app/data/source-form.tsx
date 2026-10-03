@@ -2,7 +2,6 @@
 
 import type { Datasource, DatasourceInput, EngineField, EngineSpec } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
-import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -10,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { CheckCircle2, ChevronRight, Info, Loader2, Plug, Plus, Trash2, XCircle } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ChevronRight, Hand, Info, Loader2, Plug, Plus, Timer, Trash2, XCircle } from 'lucide-react'
+import { Segmented } from '@/components/ui/segmented'
 import { useId, useState } from 'react'
 
 type ConfigValue = string | number | boolean
@@ -258,16 +258,14 @@ export function SourceForm({
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>{$t('Synchronisation du schéma')}</Label>
-            <Choice
+            <Segmented
               value={schedule}
               onValueChange={(v) => setSchedule(v as Schedule)}
               aria-label={$t('Synchronisation du schéma')}
-              size="default"
-              className="w-full"
               options={[
-                { value: 'hourly', label: $t('Toutes les heures') },
-                { value: 'daily', label: $t('Tous les jours') },
-                { value: 'manual', label: $t('Manuelle uniquement') },
+                { value: 'hourly', label: $t('Chaque heure'), icon: Timer, hint: $t('Toutes les heures') },
+                { value: 'daily', label: $t('Chaque jour'), icon: CalendarDays, hint: $t('Tous les jours') },
+                { value: 'manual', label: $t('Manuelle'), icon: Hand, hint: $t('Manuelle uniquement') },
               ]}
             />
           </div>
