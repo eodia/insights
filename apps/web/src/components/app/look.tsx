@@ -17,9 +17,24 @@ import {
 } from 'lucide-react'
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic'
 
-/** A pictogram by its lucide name (kebab-case), as stored on a table, a folder, a value. */
+/**
+ * A pictogram as stored on a table, a folder, a value: a lucide name (kebab-case), an emoji
+ * (`emoji:🚚`) or an image (`img:https://…`).
+ */
 export function LookIcon({ name, className, color }: { name: string | null | undefined; className?: string; color?: LookColor | null }) {
   if (!name) return null
+  if (name.startsWith('emoji:')) {
+    return (
+      <span className={cn('inline-flex size-4 shrink-0 items-center justify-center leading-none', className)} style={{ fontSize: '0.95em' }} aria-hidden="true">
+        {name.slice(6)}
+      </span>
+    )
+  }
+  if (name.startsWith('img:')) {
+    const src = name.slice(4)
+    if (!/^https?:\/\//i.test(src)) return null
+    return <img src={src} alt="" className={cn('size-4 shrink-0 rounded-[3px] object-cover', className)} loading="lazy" />
+  }
   return <DynamicIcon name={name as IconName} className={cn('size-4', className)} style={color ? { color: LOOK_HEX[color] } : undefined} />
 }
 

@@ -8,9 +8,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { LOOK_HEX } from '@/lib/format'
-import { $t } from '@/lib/i18n'
+import { $t, intlLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { Ban, ImagePlus, Palette, Smile } from 'lucide-react'
+import { Ban, ImagePlus, Palette, Shapes, Smile } from 'lucide-react'
+import { iconNames } from 'lucide-react/dynamic'
+import { Segmented } from '@/components/ui/segmented'
+import { EMOJI_GROUPS, ICON_GROUPS } from '@/lib/icon-library'
 import { useEffect, useRef, useState } from 'react'
 
 export const COLOR_NAMES: Record<LookColor, string> = {
@@ -86,76 +89,150 @@ export function ColorPicker({ value, onChange, disabled, size = 'sm' }: { value:
   )
 }
 
-/** Common pictograms, by their lucide name; any other name can be typed. */
-export const COMMON_ICONS = [
-  'circle', 'circle-check', 'circle-x', 'circle-alert', 'circle-pause', 'circle-dot', 'clock', 'hourglass',
-  'check', 'x', 'ban', 'flag', 'star', 'heart', 'thumbs-up', 'thumbs-down',
-  'shopping-cart', 'shopping-bag', 'package', 'package-check', 'truck', 'store', 'credit-card', 'wallet',
-  'banknote', 'receipt', 'tag', 'percent', 'gift', 'undo-2', 'refresh-cw', 'archive',
-  'user', 'users', 'user-check', 'building-2', 'briefcase', 'mail', 'phone', 'message-square',
-  'globe', 'map-pin', 'home', 'calendar', 'bell', 'lock', 'shield', 'key',
-  'smartphone', 'monitor', 'laptop', 'tablet', 'zap', 'flame', 'leaf', 'sun',
-  'moon', 'cloud', 'bug', 'wrench', 'settings', 'chart-bar', 'trending-up', 'trending-down',
-  'arrow-up', 'arrow-down', 'sparkles', 'trophy', 'book-open', 'file-text', 'image', 'ticket',
-] as const
+/** Common pictograms, by their lucide name — the first of the library's themes. */
+export const COMMON_ICONS = ICON_GROUPS.flatMap((g) => g.icons)
 
+const KNOWN = new Set<string>(iconNames)
+const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
+/**
+ * A pictogram to choose: one of lucide's (by theme, or searched among all of them), an emoji,
+ * or an image by its address. Stored as the lucide name, `emoji:…` or `img:…`.
+ */
 export function IconPicker({ value, onChange, disabled, color, size = 'sm' }: { value: string | null | undefined; onChange: (icon: string | null) => void; disabled?: boolean; color?: LookColor | null; size?: 'sm' | 'xs' }) {
   const [open, setOpen] = useState(false)
-  const [text, setText] = useState(value ?? '')
+  const kindOf = (v: string | null | undefined) => (v?.startsWith('emoji:') ? 'emoji' : v?.startsWith('img:') ? 'image' : 'icon')
+  const [tab, setTab] = useState<'icon' | 'emoji' | 'image'>(kindOf(value))
   const [search, setSearch] = useState('')
+  const [url, setUrl] = useState('')
   useEffect(() => {
     if (open) {
-      setText(value ?? '')
       setSearch('')
+      setTab(kindOf(value))
+      setUrl(value?.startsWith('img:') ? value.slice(4) : '')
     }
   }, [open, value])
   const choose = (icon: string | null) => {
     onChange(icon)
     setOpen(false)
   }
-  const shown = COMMON_ICONS.filter((i) => !search || i.includes(search.toLowerCase()))
+  const q = fold(search.trim())
+  // Searched: every lucide name that contains the words, themed ones first.
+  const found = q ? [...new Set([...COMMON_ICONS.filter((i) => i.includes(q)), ...iconNames.filter((i) => i.includes(q.replace(/\s+/g, '-')))])].slice(0, 160) : []
+  const label = value?.startsWith('emoji:') ? value.slice(6) : value?.startsWith('img:') ? $t('Image') : value
+  const iconButton = (icon: string) => (
+    <Hint key={icon} label={icon}>
+      <button
+        type="button"
+        onClick={() => choose(icon)}
+        className={cn('inline-flex size-8 items-center justify-center rounded-md hover:bg-muted', value === icon && 'bg-primary/10 text-primary ring-1 ring-primary')}
+        aria-label={icon}
+      >
+        <LookIcon name={icon} color={color ?? null} />
+      </button>
+    </Hint>
+  )
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild disabled={disabled}>
         <Button type="button" variant="outline" size={size === 'xs' ? 'icon-sm' : 'sm'} className={cn(size === 'xs' && 'size-7')} aria-label={$t('Picto')}>
           {value ? <LookIcon name={value} color={color ?? null} /> : <Smile className="text-muted-foreground" />}
-          {size === 'sm' ? <span className="max-w-28 truncate">{value || $t('Picto')}</span> : null}
+          {size === 'sm' ? <span className="max-w-28 truncate">{label || $t('Picto')}</span> : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Filtrer les pictos…')} className="mb-2 h-8" autoFocus />
-        <div className="grid max-h-56 grid-cols-8 gap-1 overflow-y-auto">
-          {shown.map((icon) => (
-            <Hint key={icon} label={icon}>
-              <button
-                type="button"
-                onClick={() => choose(icon)}
-                className={cn('inline-flex size-8 items-center justify-center rounded-md hover:bg-muted', value === icon && 'bg-primary/10 text-primary ring-1 ring-primary')}
-                aria-label={icon}
-              >
-                <LookIcon name={icon} color={color ?? null} />
-              </button>
-            </Hint>
-          ))}
-        </div>
-        <form
-          className="mt-3 flex items-center gap-2 border-t pt-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            choose(text.trim() || null)
-          }}
-        >
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={$t('Autre nom lucide : rocket')} className="h-8 flex-1 font-mono text-xs" />
-          <Button type="submit" size="sm">
-            {$t('OK')}
-          </Button>
-        </form>
-        <div className="mt-2 flex items-center justify-between">
-          <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-xs text-muted-foreground underline-offset-2 hover:underline">
-            lucide.dev/icons
-          </a>
-          <Button type="button" variant="ghost" size="sm" onClick={() => choose(null)}>
-            {$t('Aucun picto')}
+      <PopoverContent className="w-[22rem] p-3">
+        <Segmented
+          value={tab}
+          onValueChange={setTab}
+          options={[
+            { value: 'icon', label: $t('Pictos'), icon: Shapes },
+            { value: 'emoji', label: $t('Emoji'), icon: Smile },
+            { value: 'image', label: $t('Image'), icon: ImagePlus },
+          ]}
+          aria-label={$t('Genre de picto')}
+          className="mb-3"
+        />
+        {tab === 'icon' ? (
+          <>
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Chercher parmi {n} pictos…', { n: new Intl.NumberFormat(intlLocale()).format(iconNames.length) })} className="mb-2 h-8" autoFocus />
+            <p className="-mt-1 mb-2 text-[11px] text-muted-foreground">{$t('Les noms sont en anglais : truck, star, euro, user…')}</p>
+            <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+              {q ? (
+                found.length ? (
+                  <div className="grid grid-cols-9 gap-0.5">{found.map(iconButton)}</div>
+                ) : (
+                  <p className="py-6 text-center text-xs text-muted-foreground">{$t('Aucun picto pour « {q} ».', { q: search })}</p>
+                )
+              ) : (
+                ICON_GROUPS.map((g) => (
+                  <div key={g.label}>
+                    <div className="sticky top-0 z-10 bg-popover py-1 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{$t(g.label)}</div>
+                    <div className="grid grid-cols-9 gap-0.5">{g.icons.filter((i) => KNOWN.has(i)).map(iconButton)}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        ) : tab === 'emoji' ? (
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+            {EMOJI_GROUPS.map((g) => (
+              <div key={g.label}>
+                <div className="sticky top-0 z-10 bg-popover py-1 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{$t(g.label)}</div>
+                <div className="grid grid-cols-9 gap-0.5">
+                  {g.emojis.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => choose(`emoji:${e}`)}
+                      className={cn('inline-flex size-8 items-center justify-center rounded-md text-lg hover:bg-muted', value === `emoji:${e}` && 'bg-primary/10 ring-1 ring-primary')}
+                      aria-label={e}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <form
+              className="flex items-center gap-2 border-t pt-2"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const v = new FormData(e.currentTarget).get('emoji')?.toString().trim()
+                if (v) choose(`emoji:${[...v].slice(0, 8).join('')}`)
+              }}
+            >
+              <Input name="emoji" placeholder={$t('Ou collez un emoji')} className="h-8 flex-1" />
+              <Button type="submit" size="sm">
+                {$t('OK')}
+              </Button>
+            </form>
+          </div>
+        ) : (
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (/^https?:\/\//i.test(url.trim())) choose(`img:${url.trim()}`)
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/40">
+                {/^https?:\/\//i.test(url.trim()) ? <img src={url.trim()} alt="" className="size-full object-contain" /> : <ImagePlus className="size-5 text-muted-foreground" />}
+              </span>
+              <p className="text-xs text-muted-foreground">{$t('Un logo, une photo, un drapeau… par son adresse (https). Il s’affiche petit et carré, partout où le picto apparaît.')}</p>
+            </div>
+            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…/logo.png" className="h-8 font-mono text-xs" autoFocus />
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={!/^https?:\/\//i.test(url.trim())}>
+                {$t('Utiliser cette image')}
+              </Button>
+            </div>
+          </form>
+        )}
+        <div className="mt-3 flex items-center justify-between border-t pt-2">
+          <span className="text-[11px] text-muted-foreground">{value ? $t('Actuel : {v}', { v: label ?? '' }) : $t('Aucun picto')}</span>
+          <Button type="button" variant="ghost" size="sm" onClick={() => choose(null)} disabled={!value}>
+            {$t('Retirer')}
           </Button>
         </div>
       </PopoverContent>

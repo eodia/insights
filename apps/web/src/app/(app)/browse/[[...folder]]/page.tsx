@@ -1,6 +1,7 @@
 'use client'
 
-import type { Folder, ItemKind, ItemSummary } from '@eodia/contracts'
+import type { Folder, ItemKind, ItemSummary, LookColor } from '@eodia/contracts'
+import { ColorPicker, IconPicker } from '@/components/app/structure/pickers'
 import { Avatar, Chip, ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
@@ -169,6 +170,34 @@ function FolderTile({
       {icon}
       <span className="truncate">{label}</span>
     </Link>
+  )
+}
+
+/** The folder's name with its pictogram and colour — to change them for those who may. */
+function FolderLook({ folder, label }: { folder: Folder; label: string }) {
+  const qc = useQueryClient()
+  const editable = folder.access === 'edit' || folder.access === 'manage'
+  const patch = async (p: { icon?: string | null; color?: LookColor | null }) => {
+    try {
+      await api.patch(`/v1/folders/${folder.id}`, p)
+      await Promise.all([qc.invalidateQueries({ queryKey: keys.folders }), qc.invalidateQueries({ queryKey: ['folder-items'] })])
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+  return (
+    <div className="flex items-center gap-2 border-b px-3 py-2.5">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+        {folder.icon ? <LookIcon name={folder.icon} color={folder.color} className="size-5" /> : <FolderOpen className="size-4 text-muted-foreground" />}
+      </span>
+      <span className="min-w-0 flex-1 truncate font-semibold">{label}</span>
+      {editable ? (
+        <>
+          <IconPicker value={folder.icon} color={folder.color} onChange={(icon) => void patch({ icon })} size="xs" />
+          <ColorPicker value={folder.color} onChange={(color) => void patch({ color })} size="xs" />
+        </>
+      ) : null}
+    </div>
   )
 }
 
@@ -485,6 +514,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
         max={640}
         className="flex flex-col border-r"
       >
+        {folder && !folder.personal ? <FolderLook folder={folder} label={folderLabel(folder, me?.id)} /> : null}
         <div className="flex items-center gap-2 p-3">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />

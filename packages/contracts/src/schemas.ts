@@ -183,7 +183,7 @@ export const TablePatchSchema = z
     visibility: z.enum(VISIBILITIES),
     entity: z.string().max(120).nullable(),
     color,
-    icon: z.string().max(60).nullable(),
+    icon: z.string().max(500).nullable(),
     display_column: z.string().max(256).nullable(),
   })
   .partial()
@@ -204,7 +204,7 @@ export const ColumnValueSchema = z.object({
   value: z.string().max(2000),
   label: z.string().max(200).nullable().optional(),
   color: color.optional(),
-  icon: z.string().max(60).nullable().optional(),
+  icon: z.string().max(500).nullable().optional(),
   image_url: z.string().max(2000).nullable().optional(),
 })
 
@@ -234,7 +234,7 @@ export const FolderInputSchema = z.object({
   parent: id.nullable().optional(),
   description: z.string().max(2000).nullable().optional(),
   color: color.optional(),
-  icon: z.string().max(60).nullable().optional(),
+  icon: z.string().max(500).nullable().optional(),
 })
 
 export const QuestionInputSchema = z.object({
