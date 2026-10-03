@@ -7,8 +7,21 @@ const sans = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.EODIA_PUBLIC_URL ||
+      (process.env.EODIA_DOMAIN ? `https://${process.env.EODIA_DOMAIN}` : 'http://localhost:3100'),
+  ),
   title: { default: 'eodia insights', template: '%s · eodia insights' },
   description: 'Tableaux de bord, questions et exploration de données, open source.',
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    siteName: 'eodia insights',
+    title: 'eodia insights — Vos données prennent du sens.',
+    description:
+      'Explorez vos données, posez vos questions et partagez vos tableaux de bord. Open source, avec un copilot IA.',
+  },
+  twitter: { card: 'summary_large_image' },
   icons: { icon: '/favicon.svg' },
 }
 

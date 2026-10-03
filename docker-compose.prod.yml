@@ -44,6 +44,8 @@ x-app: &app
     args:
       # Next fige ses rewrites au build ; derrière Caddy, /api/* ne passe de toute façon pas par lui.
       EODIA_API_URL: http://api:4100
+      # Les pages pré-rendues doivent annoncer l'adresse publique de leur image de partage.
+      EODIA_PUBLIC_URL: ${EODIA_PUBLIC_URL:-https://${EODIA_DOMAIN:?EODIA_DOMAIN manquant}}
   restart: unless-stopped
   environment: &app-env
     NODE_ENV: production

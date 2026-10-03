@@ -43,7 +43,9 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM deps AS build
 COPY . .
 ARG EODIA_API_URL=http://127.0.0.1:4100
+ARG EODIA_PUBLIC_URL=http://localhost:3100
 ENV EODIA_API_URL=${EODIA_API_URL}
+ENV EODIA_PUBLIC_URL=${EODIA_PUBLIC_URL}
 RUN pnpm --filter @eodia/web build \
  && rm -rf apps/web/.next/cache \
  && sed -i 's/\r$//' docker/entrypoint.sh \
