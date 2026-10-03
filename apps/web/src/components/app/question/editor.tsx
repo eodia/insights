@@ -48,6 +48,7 @@ import {
   Workflow,
   Box,
   Sigma,
+  FolderInput,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -61,6 +62,9 @@ export interface Draft {
   readonly description: string | null
   readonly type: Question['type']
   readonly folder: string | null
+  /** The dashboard it belongs to — and, for a new one, the tab its card goes to. */
+  readonly dashboard: Question['dashboard']
+  readonly tab?: string | null
   readonly query: QuestionQuery
   readonly visualization: Viz
   readonly access: Question['access']
@@ -122,6 +126,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const [saveOpen, setSaveOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [moveOpen, setMoveOpen] = useState(false)
   const [drill, setDrill] = useState<PointClick | null>(null)
   const execution = useRef<string | null>(null)
 
@@ -131,7 +136,9 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   }
 
   useCrumbs([
-    { label: draft.type === 'model' ? $t('Modèles') : draft.type === 'metric' ? $t('Métriques') : $t('Questions'), href: draft.folder ? `/browse/${draft.folder}` : '/browse' },
+    draft.dashboard
+      ? { label: draft.dashboard.name, href: `/dashboard/${draft.dashboard.id}` }
+      : { label: draft.type === 'model' ? $t('Modèles') : draft.type === 'metric' ? $t('Métriques') : $t('Questions'), href: draft.folder ? `/browse/${draft.folder}` : '/browse' },
     { label: draft.name || $t('Nouvelle question') },
   ])
   useEffect(() => setCopilotContext(draft.query.kind === 'builder' ? { kind: 'question', ...(draft.id ? { id: draft.id } : {}), query: draft.query } : { kind: 'sql', sql: draft.query.sql, ...(error ? { error: error.message } : {}) }), [draft.query, draft.id, error, setCopilotContext])
@@ -224,6 +231,12 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
       const q = await api.patch<Question>(`/v1/questions/${draft.id}`, body)
       await qc.invalidateQueries({ queryKey: keys.question(q.id) })
       toast.success($t('Enregistré.'))
+    } else if (!draft.id && draft.dashboard) {
+      // Created in a dashboard: it belongs to it, and comes back to it with its card.
+      await api.post<Question>('/v1/questions', { ...body, folder: null, dashboard: draft.dashboard.id, tab: draft.tab ?? null })
+      await qc.invalidateQueries({ queryKey: keys.dashboard(draft.dashboard.id) })
+      toast.success($t('Question ajoutée à « {name} ».', { name: draft.dashboard.name }))
+      router.push(`/dashboard/${draft.dashboard.id}`)
     } else {
       const q = await api.post<Question>('/v1/questions', body)
       toast.success($t('Question enregistrée.'))
@@ -333,18 +346,26 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                 <Share2 /> {$t('Partager')}
               </DropdownMenuItem>
             ) : null}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <LayoutDashboard className="size-4" /> {$t('Ajouter à un tableau de bord')}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
-                {(dashboards.data ?? []).map((d) => (
-                  <DropdownMenuItem key={d.id} onSelect={() => addToDashboard(d)}>
-                    {d.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+            {draft.dashboard ? (
+              draft.id && canEdit ? (
+                <DropdownMenuItem onSelect={() => setMoveOpen(true)}>
+                  <FolderInput /> {$t('Déplacer dans un dossier')}
+                </DropdownMenuItem>
+              ) : null
+            ) : (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <LayoutDashboard className="size-4" /> {$t('Ajouter à un tableau de bord')}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
+                  {(dashboards.data ?? []).map((d) => (
+                    <DropdownMenuItem key={d.id} onSelect={() => addToDashboard(d)}>
+                      {d.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Download className="size-4" /> {$t('Exporter')}
@@ -364,10 +385,10 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
             <DropdownMenuItem onSelect={() => update({ type: 'question' })} disabled={draft.type === 'question'}>
               {$t('Question')}
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => update({ type: 'model' })} disabled={draft.type === 'model'}>
+            <DropdownMenuItem onSelect={() => update({ type: 'model' })} disabled={draft.type === 'model' || !!draft.dashboard}>
               <Box /> {$t('Transformer en modèle')}
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => update({ type: 'metric' })} disabled={draft.type === 'metric' || !builder || (builder.aggregations ?? []).length !== 1}>
+            <DropdownMenuItem onSelect={() => update({ type: 'metric' })} disabled={draft.type === 'metric' || !!draft.dashboard || !builder || (builder.aggregations ?? []).length !== 1}>
               <Sigma /> {$t('Transformer en métrique')}
             </DropdownMenuItem>
             {draft.id ? (
@@ -555,7 +576,33 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         ) : null}
       </div>
 
-      <SaveDialog open={saveOpen} onOpenChange={setSaveOpen} title={draft.id ? $t('Enregistrer une copie') : $t('Enregistrer la question')} initial={{ name: draft.name, description: draft.description, folder: draft.folder }} onSubmit={(v) => save(v)} />
+      <SaveDialog
+        open={saveOpen}
+        onOpenChange={setSaveOpen}
+        title={draft.id ? $t('Enregistrer une copie') : $t('Enregistrer la question')}
+        description={!draft.id && draft.dashboard ? $t('Elle appartient au tableau de bord « {name} » et n’apparaît dans aucun dossier.', { name: draft.dashboard.name }) : undefined}
+        withFolder={!!draft.id || !draft.dashboard}
+        initial={{ name: draft.name, description: draft.description, folder: draft.folder }}
+        onSubmit={(v) => save(v)}
+      />
+      {draft.id && draft.dashboard ? (
+        <SaveDialog
+          open={moveOpen}
+          onOpenChange={setMoveOpen}
+          title={$t('Déplacer dans un dossier')}
+          description={$t('Elle reste sur « {name} » et se range dans le dossier choisi, avec ses droits.', { name: draft.dashboard.name })}
+          withDescription={false}
+          submitLabel={$t('Déplacer')}
+          initial={{ name: draft.name, folder: null }}
+          onSubmit={async (v) => {
+            const q = await api.patch<Question>(`/v1/questions/${draft.id}`, { name: v.name, dashboard: null, folder: v.folder })
+            setDraft((d) => ({ ...d, name: q.name, folder: q.folder, dashboard: q.dashboard }))
+            await qc.invalidateQueries({ queryKey: keys.question(q.id) })
+            await qc.invalidateQueries({ queryKey: ['folder-items'] })
+            toast.success($t('Question déplacée.'))
+          }}
+        />
+      ) : null}
       {draft.id ? <ShareDialog open={shareOpen} onOpenChange={setShareOpen} kind={draft.type === 'question' ? 'question' : draft.type} id={draft.id} name={draft.name} /> : null}
       <ConfirmDialog
         open={deleteOpen}
@@ -565,7 +612,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         onConfirm={async () => {
           await api.delete(`/v1/questions/${draft.id}`)
           await qc.invalidateQueries({ queryKey: ['folder-items'] })
-          router.push(draft.folder ? `/browse/${draft.folder}` : '/browse')
+          router.push(draft.dashboard ? `/dashboard/${draft.dashboard.id}` : draft.folder ? `/browse/${draft.folder}` : '/browse')
         }}
       />
     </div>

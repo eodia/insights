@@ -4,7 +4,7 @@ import { audit } from '../audit'
 import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { AppError, forbidden, invalid, notFound } from '../errors'
-import { type ContentIndex, atLeastAccess, contentIndex } from './access'
+import { type ContentIndex, QUESTION_ROWS, type QuestionAccessRow, atLeastAccess, contentIndex, questionAccess } from './access'
 
 interface FolderRow {
   id: string
@@ -133,7 +133,7 @@ export async function itemsWhere(core: Core, actor: Actor, idx: ContentIndex, wh
     `SELECT * FROM (
        SELECT CASE type WHEN 'question' THEN 'question' ELSE type END AS kind, id, name, description, folder_id,
               visualization->>'type' AS viz, updated_at, updated_by, created_by, archived
-       FROM question
+       FROM question WHERE dashboard_id IS NULL -- a dashboard's own questions live in it, not in a folder
        UNION ALL
        SELECT 'dashboard', id, name, description, folder_id, NULL, updated_at, updated_by, created_by, archived FROM dashboard
      ) i
@@ -214,11 +214,14 @@ export async function assertItemAccess(core: Core, actor: Actor, kind: ItemKind,
   const idx = await contentIndex(core, actor.userId)
   let access: ContentAccess | 'none'
   if (kind === 'folder') access = idx.folder(id)
-  else {
-    const table = kind === 'dashboard' ? 'dashboard' : 'question'
-    const row = await core.db.one<{ folder_id: string | null; created_by: string | null }>(`SELECT folder_id, created_by FROM ${table} WHERE id = $1`, [id])
+  else if (kind === 'dashboard') {
+    const row = await core.db.one<{ folder_id: string | null; created_by: string | null }>('SELECT folder_id, created_by FROM dashboard WHERE id = $1', [id])
     if (!row) throw notFound()
     access = idx.item(kind, id, row.folder_id, row.created_by)
+  } else {
+    const row = await core.db.one<QuestionAccessRow>(`${QUESTION_ROWS} WHERE q.id = $1`, [id])
+    if (!row) throw notFound()
+    access = questionAccess(idx, row)
   }
   if (access === 'none') throw notFound()
   if (!atLeastAccess(access, min)) throw new AppError('FORBIDDEN', min === 'view' ? "Vous n'avez pas accès à cet élément." : 'Vous ne pouvez pas modifier cet élément.')

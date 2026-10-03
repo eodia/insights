@@ -367,6 +367,8 @@ export interface Question {
   readonly name: string
   readonly description: string | null
   readonly folder: string | null
+  /** The dashboard it was created in, and belongs to: such a question sits in no folder. */
+  readonly dashboard: { readonly id: string; readonly name: string } | null
   readonly query: QuestionQuery
   readonly visualization: Visualization
   /** A model's column metadata (labels, semantic types, formats), by result name. */

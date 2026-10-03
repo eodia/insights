@@ -163,3 +163,26 @@ export async function contentIndex(core: Core, userId: string): Promise<ContentI
 }
 
 export const atLeastAccess = (a: ContentAccess | 'none', min: ContentAccess) => ORDER.indexOf(a) >= ORDER.indexOf(min)
+
+export const maxAccess = max
+
+/** A question with what its access depends on: its folder, or the dashboard it belongs to. */
+export const QUESTION_ROWS = `SELECT q.*, d.name AS dashboard_name, d.folder_id AS dashboard_folder, d.created_by AS dashboard_owner
+  FROM question q LEFT JOIN dashboard d ON d.id = q.dashboard_id`
+
+export interface QuestionAccessRow {
+  readonly id: string
+  readonly type: 'question' | 'model' | 'metric'
+  readonly folder_id: string | null
+  readonly created_by: string | null
+  readonly dashboard_id: string | null
+  readonly dashboard_folder: string | null
+  readonly dashboard_owner: string | null
+}
+
+/** A question's access; a dashboard's own question takes its dashboard's, plus its own shares. */
+export function questionAccess(idx: ContentIndex, r: QuestionAccessRow): ContentAccess | 'none' {
+  const kind: ItemKind = r.type === 'question' ? 'question' : r.type
+  if (r.dashboard_id === null) return idx.item(kind, r.id, r.folder_id, r.created_by)
+  return max(idx.item('dashboard', r.dashboard_id, r.dashboard_folder, r.dashboard_owner), idx.item(kind, r.id, null, null))
+}

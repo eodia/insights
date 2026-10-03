@@ -241,6 +241,9 @@ export const QuestionInputSchema = z.object({
   type: z.enum(['question', 'model', 'metric']).optional(),
   description: z.string().max(5000).nullable().optional(),
   folder: id.nullable().optional(),
+  /** Created in a dashboard: it belongs to it, and a card showing it is added (to `tab`, or the first). `null` moves it to `folder`. */
+  dashboard: id.nullable().optional(),
+  tab: z.string().max(60).nullable().optional(),
   query: QuestionQuerySchema,
   visualization: VisualizationSchema,
   columns_meta: z.record(z.string(), z.record(z.string(), z.unknown())).nullable().optional(),

@@ -24,7 +24,7 @@ import { $t } from '@/lib/i18n'
 import { keys, useDashboard, useMe } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { Copy, Ellipsis, Loader2, Maximize, Settings2, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
+import { Copy, Ellipsis, Loader2, Maximize, Plus, Settings2, Share2, Sparkles, Star, Trash2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, use, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -144,6 +144,7 @@ function DashboardScreen({ id }: { id: string }) {
           editable={editable}
           startEditing={params.get('edit') === '1'}
           autoRefresh={refresh}
+          onNewQuestion={(tab) => router.push(`/question/new?dashboard=${dashboard.id}${tab ? `&tab=${encodeURIComponent(tab)}` : ''}`)}
           onSave={async (d) => {
             await api.patch(`/v1/dashboards/${dashboard.id}`, d)
             await qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) })
@@ -205,6 +206,9 @@ function DashboardScreen({ id }: { id: string }) {
                   </DropdownMenuItem>
                   {editable ? (
                     <>
+                      <DropdownMenuItem onSelect={() => router.push(`/question/new?dashboard=${dashboard.id}`)}>
+                        <Plus /> {$t('Nouvelle question')}
+                      </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setSettings(true)}>
                         <Settings2 /> {$t('Réglages')}
                       </DropdownMenuItem>
@@ -226,7 +230,7 @@ function DashboardScreen({ id }: { id: string }) {
         open={remove}
         onOpenChange={setRemove}
         title={$t('Supprimer « {name} » ?', { name: dashboard.name })}
-        description={$t('Les questions qu’il affiche ne sont pas supprimées.')}
+        description={$t('Les questions créées dans ce tableau de bord sont supprimées avec lui ; celles rangées dans un dossier restent.')}
         onConfirm={async () => {
           await api.delete(`/v1/dashboards/${id}`)
           router.push(dashboard.folder ? `/browse/${dashboard.folder}` : '/browse')
