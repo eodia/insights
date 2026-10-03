@@ -22,12 +22,16 @@ import {
   type Theme,
   type ThemeFont,
   type ThemeSettings,
+  type VisualizationSettings,
   type VisualizationType,
 } from '@eodia/contracts'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlignLeft,
   AlignRight,
+  Blend,
+  PaintBucket,
+  Slash,
   CaseSensitive,
   CaseUpper,
   Check,
@@ -178,56 +182,90 @@ const SAMPLE_LINES: Result = {
   ).flat(),
 }
 
+const SAMPLE_TREND = (base: number, slope: number, wobble: number): Result => ({
+  columns: [
+    { name: 'mois', label: 'Mois', type: 'date', unit: 'month', role: 'dimension' },
+    { name: 'v', label: 'Valeur', type: 'number', role: 'metric' },
+  ] as never,
+  rows: Array.from({ length: 12 }, (_, m) => [`2026-${String(m + 1).padStart(2, '0')}-01`, Math.round(base + slope * m + wobble * Math.sin(m * 1.7))]),
+})
+const SAMPLE_FUNNEL: Result = {
+  columns: [
+    { name: 'etape', label: 'Étape', type: 'string', role: 'dimension' },
+    { name: 'n', label: 'Affaires', type: 'number', role: 'metric' },
+  ] as never,
+  rows: [
+    ['Qualifiées', 4400],
+    ['Proposition', 3700],
+    ['Négociation', 3000],
+    ['Contrat', 2300],
+    ['Gagnées', 1500],
+  ],
+}
+const SAMPLE_SHARES: Result = {
+  columns: [
+    { name: 'etat', label: 'État', type: 'string', role: 'dimension' },
+    { name: 'n', label: 'E-mails', type: 'number', role: 'metric' },
+  ] as never,
+  rows: [
+    ['Délivrés', 4800],
+    ['Ouverts', 3200],
+    ['Rejetés', 2000],
+  ],
+}
+
 function Preview({ name, settings }: { name: string; settings: ThemeSettings }) {
   const card = 'theme-card flex flex-col rounded-xl border bg-card p-3 shadow-xs'
+  const kpis: [string, Result, VisualizationSettings][] = [
+    [$t('Ventes actives'), SAMPLE_TREND(18000, 600, 900), { spark: 'line' }],
+    [$t('Chiffre d’affaires'), SAMPLE_TREND(12000, 300, 700), { spark: 'area' }],
+    [$t('Taux de conversion'), SAMPLE_TREND(16, -0.4, 0.8), { spark: 'line' }],
+  ]
   return (
     <ThemeScope theme={settings} className="space-y-3 rounded-xl border p-4">
       <div className="flex items-center gap-3">
-        {settings.logo_position !== 'right' ? (
-          <ThemeLogo theme={settings} className="object-contain" />
-        ) : null}
+        {settings.logo_position !== 'right' ? <ThemeLogo theme={settings} className="object-contain" /> : null}
         <div className="min-w-0 flex-1">
-          <h2 className="theme-title truncate text-xl font-semibold tracking-tight">
-            {name || $t('Ventes du trimestre')}
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {$t('Aperçu : un tableau de bord dans ce thème')}
-          </p>
+          <h2 className="theme-title truncate text-xl font-semibold tracking-tight">{name || $t('Ventes du trimestre')}</h2>
+          <p className="text-xs text-muted-foreground">{$t('Aperçu : un tableau de bord dans ce thème')}</p>
         </div>
-        {settings.logo_position === 'right' ? (
-          <ThemeLogo theme={settings} className="object-contain" />
-        ) : null}
+        {settings.logo_position === 'right' ? <ThemeLogo theme={settings} className="object-contain" /> : null}
       </div>
       <div className="flex gap-1.5 text-xs">
-        <span className="rounded-md bg-primary px-2 py-1 font-medium text-primary-foreground">
-          {$t('Vue d’ensemble')}
-        </span>
+        <span className="rounded-md bg-primary px-2 py-1 font-medium text-primary-foreground">{$t('Vue d’ensemble')}</span>
         <span className="rounded-md px-2 py-1 text-muted-foreground">{$t('Détail')}</span>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <div className={cn(card, 'justify-center')}>
-          <span className="theme-title text-xs font-semibold">{$t('Chiffre d’affaires')}</span>
-          <span className="mt-1 text-2xl font-semibold tabular-nums">10,7 k€</span>
-          <span className="text-xs text-primary">+12,4 %</span>
-        </div>
-        <div className={cn(card, 'col-span-2 h-44')}>
-          <span className="theme-title text-xs font-semibold">{$t('Par canal')}</span>
+        {kpis.map(([title, result, viz]) => (
+          <div key={title} className={cn(card, 'h-32')}>
+            <span className="theme-title text-xs font-semibold">{title}</span>
+            <div className="min-h-0 flex-1">
+              <Visualization result={result} viz={{ type: 'trend' as VisualizationType, settings: viz }} compact />
+            </div>
+          </div>
+        ))}
+        <div className={cn(card, 'col-span-2 h-60')}>
+          <span className="theme-title text-xs font-semibold">{$t('Entonnoir des ventes')}</span>
           <div className="min-h-0 flex-1">
-            <Visualization
-              result={SAMPLE_BARS}
-              viz={{ type: 'bar' as VisualizationType }}
-              compact
-            />
+            <Visualization result={SAMPLE_FUNNEL} viz={{ type: 'funnel' as VisualizationType, settings: { funnel_style: 'bars' } }} compact />
           </div>
         </div>
-        <div className={cn(card, 'col-span-3 h-48')}>
+        <div className={cn(card, 'h-60')}>
+          <span className="theme-title text-xs font-semibold">{$t('E-mails')}</span>
+          <div className="min-h-0 flex-1">
+            <Visualization result={SAMPLE_SHARES} viz={{ type: 'bubble' as VisualizationType }} compact />
+          </div>
+        </div>
+        <div className={cn(card, 'col-span-2 h-48')}>
           <span className="theme-title text-xs font-semibold">{$t('Évolution par région')}</span>
           <div className="min-h-0 flex-1">
-            <Visualization
-              result={SAMPLE_LINES}
-              viz={{ type: 'line' as VisualizationType }}
-              compact
-            />
+            <Visualization result={SAMPLE_LINES} viz={{ type: 'line' as VisualizationType }} compact />
+          </div>
+        </div>
+        <div className={cn(card, 'h-48')}>
+          <span className="theme-title text-xs font-semibold">{$t('Par canal')}</span>
+          <div className="min-h-0 flex-1">
+            <Visualization result={SAMPLE_BARS} viz={{ type: 'bar' as VisualizationType }} compact />
           </div>
         </div>
       </div>
@@ -454,6 +492,21 @@ function Editor({ theme, onDone }: { theme: Theme | null; onDone: (t: Theme | nu
                 <Plus className="size-3.5 text-muted-foreground" /> {$t('Personnalisée')}
               </button>
             </div>
+          </Field>
+          <Field label={$t('Remplissage des barres')}>
+            <Segmented
+              value={s.bar_fill ?? 'solid'}
+              onValueChange={(v) => set('bar_fill', v === 'solid' ? undefined : v)}
+              options={[
+                { value: 'solid', label: $t('Plein'), icon: PaintBucket },
+                { value: 'hatched', label: $t('Hachuré'), icon: Slash },
+                { value: 'gradient', label: $t('Dégradé'), icon: Blend },
+              ]}
+              aria-label={$t('Remplissage des barres')}
+            />
+          </Field>
+          <Field label={$t('Arrondi des barres : {radius} px', { radius: s.bar_radius ?? 4 })}>
+            <input type="range" min={0} max={12} value={s.bar_radius ?? 4} onChange={(e) => set('bar_radius', Number(e.target.value))} className="w-full accent-primary" />
           </Field>
           {s.scheme === 'custom' ? (
             <div className="flex flex-wrap items-center gap-1.5">

@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils'
 import type { ECElementEvent, EChartsOption } from 'echarts'
 import {
   BarChart,
+  CustomChart,
   FunnelChart,
+  GraphChart,
   GaugeChart,
   HeatmapChart,
   SunburstChart,
@@ -44,6 +46,8 @@ import { useEffect, useRef } from 'react'
  */
 
 echarts.use([
+  CustomChart,
+  GraphChart,
   PolarComponent,
   HeatmapChart,
   SunburstChart,

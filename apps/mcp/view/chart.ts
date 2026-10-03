@@ -16,7 +16,9 @@ import {
 } from '@modelcontextprotocol/ext-apps/app-with-deps'
 import {
   BarChart,
+  CustomChart,
   FunnelChart,
+  GraphChart,
   GaugeChart,
   HeatmapChart,
   SunburstChart,
@@ -49,6 +51,8 @@ import { autoVisualization, chartOption } from '../../web/src/lib/viz'
 import { $t } from '../../web/src/lib/i18n'
 
 echarts.use([
+  CustomChart,
+  GraphChart,
   PolarComponent,
   HeatmapChart,
   SunburstChart,

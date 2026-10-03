@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown, ArrowUp, ArrowUpDown, Minus, RotateCcw } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
 export interface PointClick {
   readonly column: ResultColumn
@@ -85,9 +85,9 @@ export function Visualization({
   )
   const model = useMemo(() => {
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
-    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}) })
+    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
     return m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
-  }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still])
+  }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius])
 
   if (result.rows.length === 0) {
     return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{$t('Aucun résultat')}</div>
@@ -181,6 +181,61 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
   )
 }
 
+/** A small curve of the whole series, its last point marked: where the number comes from. */
+function Spark({ values, kind, className }: { values: readonly number[]; kind: 'area' | 'line' | 'bars'; className?: string }) {
+  const id = useId()
+  const w = 120
+  const h = 40
+  const pad = 3
+  const finite = values.filter(Number.isFinite)
+  if (finite.length < 2) return null
+  const lo = Math.min(...finite)
+  const hi = Math.max(...finite)
+  const span = hi - lo || 1
+  const x = (i: number) => pad + (i * (w - 2 * pad)) / Math.max(values.length - 1, 1)
+  const y = (v: number) => h - pad - ((v - lo) / span) * (h - 2 * pad)
+  if (kind === 'bars') {
+    const bw = Math.max(1.5, ((w - 2 * pad) / values.length) * 0.6)
+    return (
+      <svg viewBox={`0 0 ${w} ${h}`} className={className} preserveAspectRatio="none" aria-hidden="true">
+        {values.map((v, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: one bar per period, in order
+          <rect key={i} x={x(i) - bw / 2} y={y(v)} width={bw} height={Math.max(1, h - pad - y(v))} rx={1} fill="currentColor" opacity={i === values.length - 1 ? 1 : 0.45} />
+        ))}
+      </svg>
+    )
+  }
+  // A smooth path through the points (Catmull-Rom as Bézier curves).
+  const pts = values.map((v, i) => [x(i), y(v)] as const)
+  let d = `M${pts[0]?.[0]},${pts[0]?.[1]}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? p2
+    if (!p0 || !p1 || !p2 || !p3) continue
+    d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`
+  }
+  const last = pts[pts.length - 1] as readonly [number, number]
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className={className} aria-hidden="true">
+      {kind === 'area' ? (
+        <>
+          <defs>
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="currentColor" stopOpacity="0.28" />
+              <stop offset="1" stopColor="currentColor" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={`${d} L${last[0]},${h} L${pts[0]?.[0]},${h} Z`} fill={`url(#${id})`} />
+        </>
+      ) : null}
+      <path d={d} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={last[0]} cy={last[1]} r={2.5} fill="currentColor" />
+    </svg>
+  )
+}
+
 function Trend({ result, settings }: { result: Result; settings: VisualizationSettings }) {
   const { dims } = roles(result, settings)
   const m = firstMetric(result, settings)
@@ -193,19 +248,47 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
   const d = dims[0]
   const period = d ? formatValue(rows[rows.length - 1]?.[result.columns.indexOf(d)], d) : ''
   const prevPeriod = d && rows.length > 1 ? formatValue(rows[rows.length - 2]?.[result.columns.indexOf(d)], d) : ''
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-1.5 px-3 text-center">
-      <div className="text-4xl font-semibold tracking-tight tabular-nums">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
-      {change !== null ? (
-        <div className={cn('flex items-center gap-1 text-sm font-medium', change === 0 ? 'text-muted-foreground' : good ? 'text-green-600' : 'text-red-600')}>
+  const kind = settings.spark ?? 'area'
+  const series = rows.slice(-36).map((r) => Number(r[m.index]))
+  const tone = change === null || change === 0 ? 'text-primary' : good ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
+  const spark = kind !== 'none' && series.length >= 2
+  const delta =
+    change !== null ? (
+      <div className="flex flex-wrap items-center gap-x-1 text-sm">
+        <span className={cn('flex items-center gap-0.5 font-medium', change === 0 ? 'text-muted-foreground' : tone)}>
           {change > 0 ? <ArrowUp className="size-3.5" /> : change < 0 ? <ArrowDown className="size-3.5" /> : <Minus className="size-3.5" />}
           {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 1 }).format(Math.abs(change))}
-          <span className="font-normal text-muted-foreground">
-            {$t('vs {period} · {value}', { period: prevPeriod, value: formatValue(prev, m.col, { compact: true }) })}
+        </span>
+        <span className="text-muted-foreground">{$t('vs {period} · {value}', { period: prevPeriod, value: formatValue(prev, m.col, { compact: true }) })}</span>
+      </div>
+    ) : null
+  if (!spark) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-1.5 px-3 text-center">
+        <div className="text-4xl font-semibold tracking-tight tabular-nums">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
+        {delta}
+        {period ? <div className="text-xs text-muted-foreground">{period}</div> : null}
+      </div>
+    )
+  }
+  // The number on the left, its curve on the right, the change beneath — a key-figure card.
+  return (
+    <div className="@container flex h-full flex-col justify-center gap-1 px-1">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 truncate text-2xl font-semibold tracking-tight tabular-nums @[16rem]:text-3xl">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e4 })}</div>
+        <Spark values={series} kind={kind} className={cn('h-10 w-2/5 max-w-40 shrink-0', tone)} />
+      </div>
+      {change !== null ? (
+        <div className="flex min-w-0 items-center gap-1 text-xs">
+          <span className={cn('flex shrink-0 items-center gap-0.5 font-medium', change === 0 ? 'text-muted-foreground' : tone)}>
+            {change > 0 ? '+' : change < 0 ? '−' : ''}
+            {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 1 }).format(Math.abs(change))}
           </span>
+          <span className="truncate text-muted-foreground">{$t('vs {period}', { period: prevPeriod })}</span>
         </div>
+      ) : period ? (
+        <div className="text-xs text-muted-foreground">{period}</div>
       ) : null}
-      {period ? <div className="text-xs text-muted-foreground">{period}</div> : null}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { COLOR_SCHEMES, type ColorScheme } from './analytics'
+import { BAR_FILLS, type BarFill, COLOR_SCHEMES, type ColorScheme } from './analytics'
 
 /**
  * Un thème : l'habillage d'un tableau de bord, d'une question et de leur impression en PDF —
@@ -55,6 +55,10 @@ export interface ThemeSettings {
   /** The palette the charts take when they choose none. */
   readonly scheme?: ColorScheme
   readonly colors?: readonly string[]
+  /** How the bars of every chart are filled, unless a chart says otherwise. */
+  readonly bar_fill?: BarFill
+  /** Corner radius of bars, in pixels (0 to 12). */
+  readonly bar_radius?: number
   /** An image: an `https://` address or a `data:image/…` one (300 kB at most). */
   readonly logo?: string
   readonly logo_height?: number
@@ -102,6 +106,8 @@ export const ThemeSettingsSchema = z
     card_shadow: z.enum(['none', 'soft', 'strong']).optional(),
     scheme: z.enum(COLOR_SCHEMES).optional(),
     colors: z.array(hex).max(12).optional(),
+    bar_fill: z.enum(BAR_FILLS).optional(),
+    bar_radius: z.number().int().min(0).max(12).optional(),
     logo: z
       .string()
       .max(400_000)

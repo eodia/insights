@@ -23,6 +23,13 @@ import {
   ChartBarDecreasing,
   ChartSpline,
   CalendarDays,
+  CaseSensitive,
+  Bubbles,
+  ChartColumnDecreasing,
+  ChartNoAxesColumn,
+  PaintBucket,
+  Slash,
+  Blend,
   Disc3,
   Orbit,
   Flower2,
@@ -87,6 +94,7 @@ export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
   combo: ChartColumnBig,
   pie: PieChart,
   scatter: ChartScatter,
+  bubble: Bubbles,
   funnel: Filter,
   radar: Radar,
   polar: Disc3,
@@ -201,7 +209,7 @@ const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = 
   { label: msg('Comparer'), tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar', 'polar'] },
   { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'bar_race', 'line_race', 'calendar'] },
   { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'treemap', 'funnel'] },
-  { label: msg('Relation'), tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter'] },
+  { label: msg('Relation'), tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter', 'bubble'] },
   { label: msg('Détail'), tone: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300', types: ['table', 'pivot', 'map'] },
 ]
 
@@ -212,6 +220,7 @@ const UNFIT: Partial<Record<VisualizationType, string>> = {
   map: msg('Il faut une latitude et une longitude.'),
   radar: msg('Il faut de 3 à 30 catégories et une mesure.'),
   scatter: msg('Il faut deux mesures, ou une dimension et une mesure.'),
+  bubble: msg('Il faut deux mesures, ou une dimension et une mesure.'),
   bar_race: msg('Il faut une date, une mesure, et une seconde dimension ou plusieurs mesures.'),
   line_race: msg('Il faut une date et une mesure.'),
   calendar: msg('Il faut une date et une mesure.'),
@@ -528,11 +537,11 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
     set({ ref_lines: [...next] })
   }
   const race = type === 'bar_race' || type === 'line_race'
-  const colored = cartesian || race || type === 'polar' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
+  const colored = cartesian || race || type === 'polar' || type === 'bubble' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
 
   return (
     <div className="space-y-4">
-      {cartesian || race || type === 'polar' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
+      {cartesian || race || type === 'polar' || type === 'bubble' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
         <Section title={$t('Données')}>
           <ColumnsPick label={$t('Dimensions (axe, puis séries)')} columns={columns} value={settings.dimensions ?? detected.dims.map((d) => d.name)} onChange={(v) => set({ dimensions: v })} />
           <ColumnsPick label={$t('Mesures')} columns={numeric} value={settings.metrics ?? detected.metrics.map((d) => d.name)} onChange={(v) => set({ metrics: v })} />
@@ -917,7 +926,88 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
         </>
       ) : null}
 
-      {type === 'trend' ? <Toggle label={$t('Une baisse est une bonne nouvelle')} checked={!!settings.invert} onChange={(v) => set({ invert: v })} /> : null}
+      {type === 'trend' ? (
+        <Section title={$t('Tendance')}>
+          <Field label={$t('Courbe miniature')}>
+            <Segmented
+              value={settings.spark ?? 'area'}
+              onValueChange={(v) => set({ spark: v })}
+              options={[
+                { value: 'area', label: $t('Aire'), icon: AreaChart },
+                { value: 'line', label: $t('Ligne'), icon: LineChart },
+                { value: 'bars', label: $t('Barres'), icon: ChartNoAxesColumn },
+                { value: 'none', label: $t('Aucune'), icon: Ban },
+              ]}
+              aria-label={$t('Courbe miniature')}
+            />
+          </Field>
+          <Toggle label={$t('Une baisse est une bonne nouvelle')} checked={!!settings.invert} onChange={(v) => set({ invert: v })} />
+        </Section>
+      ) : null}
+
+      {type === 'funnel' ? (
+        <Section title={$t('Entonnoir')}>
+          <Field label={$t('Forme')}>
+            <Segmented
+              value={settings.funnel_style ?? 'funnel'}
+              onValueChange={(v) => set({ funnel_style: v })}
+              options={[
+                { value: 'funnel', label: $t('Entonnoir'), icon: Filter },
+                { value: 'bars', label: $t('Colonnes'), icon: ChartColumnDecreasing, hint: $t('Des colonnes reliées par des bandes qui disent la conversion de chaque étape') },
+              ]}
+              aria-label={$t('Forme')}
+            />
+          </Field>
+        </Section>
+      ) : null}
+
+      {type === 'bar' || type === 'row' || type === 'combo' || (type === 'funnel' && settings.funnel_style === 'bars') ? (
+        <Section title={$t('Remplissage des barres')}>
+          <Segmented
+            value={settings.bar_fill ?? 'auto'}
+            onValueChange={(v) => set({ bar_fill: v === 'auto' ? undefined : v })}
+            options={[
+              { value: 'auto', label: $t('Du thème'), icon: Palette },
+              { value: 'solid', label: $t('Plein'), icon: PaintBucket },
+              { value: 'hatched', label: $t('Hachuré'), icon: Slash },
+              { value: 'gradient', label: $t('Dégradé'), icon: Blend },
+            ]}
+            aria-label={$t('Remplissage des barres')}
+          />
+        </Section>
+      ) : null}
+
+      {type === 'bubble' ? (
+        <Section title={$t('Bulles')}>
+          <Field label={$t('Disposition')}>
+            <Segmented
+              value={settings.bubble_style ?? 'auto'}
+              onValueChange={(v) => set({ bubble_style: v })}
+              options={[
+                { value: 'auto', label: $t('Auto'), icon: Wand2, hint: $t('Sur deux axes s’il y a deux mesures, en grappe sinon') },
+                { value: 'axes', label: $t('Sur deux axes'), icon: ChartScatter, hint: $t('x et y les deux premières mesures, la taille la troisième') },
+                { value: 'packed', label: $t('En grappe'), icon: Bubbles, hint: $t('Une bulle par catégorie, aussi grosse que sa valeur') },
+              ]}
+              aria-label={$t('Disposition')}
+            />
+          </Field>
+          {settings.bubble_style !== 'axes' ? (
+            <Field label={$t('Dans chaque bulle')}>
+              <Segmented
+                value={settings.bubble_labels ?? 'percent'}
+                onValueChange={(v) => set({ bubble_labels: v })}
+                options={[
+                  { value: 'percent', label: $t('Part'), icon: Percent },
+                  { value: 'value', label: $t('Valeur'), icon: Hash },
+                  { value: 'name', label: $t('Nom'), icon: CaseSensitive },
+                ]}
+                aria-label={$t('Dans chaque bulle')}
+              />
+            </Field>
+          ) : null}
+          <Toggle label={$t('Légende')} checked={settings.legend !== false} onChange={(v) => set({ legend: v })} />
+        </Section>
+      ) : null}
 
       {type === 'progress' || type === 'gauge' ? (
         <Field label={type === 'progress' ? $t('Objectif') : $t('Maximum')}>

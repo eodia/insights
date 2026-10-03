@@ -4,7 +4,7 @@
  * jamais recyclées ; un seul axe des ordonnées ; marques fines ; légende dès deux séries ;
  * grille discrète ; info-bulle partout.
  */
-import type { ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
+import type { BarFill, ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { LOOK_HEX, formatValue } from './format'
 import { $t, intlLocale, msg } from './i18n'
@@ -24,6 +24,31 @@ export interface Theme {
   readonly font?: string
   /** False for a printed page: the charts are drawn at once, in their final state. */
   readonly animation?: boolean
+  /** A theme's bars: their fill and their corner radius. */
+  readonly barFill?: BarFill
+  readonly barRadius?: number
+}
+
+/** The fill of bars: hatched (a pattern of light stripes over the colour), or fading to their base. */
+function barFill(fill: BarFill | undefined, color: string, horizontal = false): { color?: unknown; decal?: unknown } {
+  if (fill === 'hatched') {
+    return { decal: { symbol: 'rect', symbolSize: 1, dashArrayX: [1, 0], dashArrayY: [2, 5], rotation: -Math.PI / 4, color: 'rgba(255,255,255,0.38)' } }
+  }
+  if (fill === 'gradient' && /^#[0-9a-f]{6}$/i.test(color)) {
+    return {
+      color: {
+        type: 'linear',
+        x: 0,
+        y: 0,
+        x2: horizontal ? 1 : 0,
+        y2: horizontal ? 0 : 1,
+        colorStops: horizontal
+          ? [{ offset: 0, color: alpha(color, 0.45) }, { offset: 1, color }]
+          : [{ offset: 0, color }, { offset: 1, color: alpha(color, 0.45) }],
+      },
+    }
+  }
+  return {}
 }
 
 const ink = (t: Theme) => ({
@@ -112,6 +137,7 @@ export function vizFits(type: VisualizationType, result: Result): boolean {
     case 'funnel':
       return metrics.length >= 1 && dims.length >= 1
     case 'scatter':
+    case 'bubble':
       return metrics.length >= 2 || (metrics.length >= 1 && dims.length >= 1)
     case 'radar': {
       // Three to thirty spokes: fewer is not a shape, more is not readable.
@@ -155,6 +181,7 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   combo: msg('Combiné'),
   pie: msg('Camembert'),
   scatter: msg('Nuage de points'),
+  bubble: msg('Bulles'),
   funnel: msg('Entonnoir'),
   radar: msg('Radar'),
   polar: msg('Barres polaires'),
@@ -418,6 +445,58 @@ function treeTooltip(metric: ResultColumn, total: number) {
   }
 }
 
+/**
+ * Circles packed together: each, the largest first, set against those already placed, where
+ * it touches one of them and lies closest to the middle. Returns them with their bounds.
+ */
+function pack(radii: readonly number[], gap = 3) {
+  const items: { x: number; y: number; r: number }[] = []
+  for (const r of radii) {
+    if (items.length === 0) {
+      items.push({ x: 0, y: 0, r })
+      continue
+    }
+    // Where it can touch two of them (or one, while there is a single one), closest to the middle.
+    const candidates: { x: number; y: number }[] = []
+    if (items.length === 1) {
+      const p = items[0] as { x: number; y: number; r: number }
+      candidates.push({ x: p.x + p.r + r + gap, y: p.y })
+    }
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const a = items[i] as { x: number; y: number; r: number }
+        const b = items[j] as { x: number; y: number; r: number }
+        const ra = a.r + r + gap
+        const rb = b.r + r + gap
+        const dx = b.x - a.x
+        const dy = b.y - a.y
+        const dist = Math.hypot(dx, dy)
+        if (dist > ra + rb || dist < Math.abs(ra - rb) || dist === 0) continue
+        const along = (ra * ra - rb * rb + dist * dist) / (2 * dist)
+        const across = Math.sqrt(Math.max(ra * ra - along * along, 0))
+        const mx = a.x + (along * dx) / dist
+        const my = a.y + (along * dy) / dist
+        candidates.push({ x: mx + (across * dy) / dist, y: my - (across * dx) / dist }, { x: mx - (across * dy) / dist, y: my + (across * dx) / dist })
+      }
+    }
+    const weight = items.reduce((t, c) => t + c.r * c.r, 0)
+    const gx = items.reduce((t, c) => t + c.x * c.r * c.r, 0) / weight
+    const gy = items.reduce((t, c) => t + c.y * c.r * c.r, 0) / weight
+    let best: { x: number; y: number; d: number } | null = null
+    for (const { x, y } of candidates) {
+      if (items.some((q) => Math.hypot(q.x - x, q.y - y) < q.r + r + gap - 1e-6)) continue
+      const d = Math.hypot(x - gx, y - gy)
+      if (!best || d < best.d) best = { x, y, d }
+    }
+    items.push({ x: best?.x ?? 0, y: best?.y ?? 0, r })
+  }
+  const minX = Math.min(...items.map((c) => c.x - c.r))
+  const maxX = Math.max(...items.map((c) => c.x + c.r))
+  const minY = Math.min(...items.map((c) => c.y - c.r))
+  const maxY = Math.max(...items.map((c) => c.y + c.r))
+  return { items, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, width: Math.max(maxX - minX, 1), height: Math.max(maxY - minY, 1) }
+}
+
 function axisLabel(col: ResultColumn | undefined, compact = true) {
   return (v: unknown) => (col ? formatValue(v, col, { compact }) : String(v))
 }
@@ -678,6 +757,66 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       ...x,
       itemStyle: { color: x.key === '__other__' ? (theme.dark ? OTHER.dark : OTHER.light) : (settings.series?.[x.key]?.color ?? valueColor(result, d, x.raw) ?? pal(next++)) },
     }))
+    if (type === 'funnel' && settings.funnel_style === 'bars') {
+      // Columns, each step joined to the next by a band that says how many went through.
+      const color = settings.color ?? paletteOf(settings, theme, 1)(0)
+      const fill = settings.bar_fill ?? theme.barFill
+      const r = theme.barRadius ?? 6
+      const ratio = 0.62
+      const steps = data
+      return {
+        clickColumn: d,
+        option: {
+          ...base,
+          grid: { left: 8, right: 8, top: 28, bottom: 6, containLabel: true },
+          tooltip: { ...base.tooltip, trigger: 'item', valueFormatter: (v) => formatValue(v, m) },
+          xAxis: { type: 'category', data: steps.map((x) => x.name), axisTick: { show: false }, axisLine: { lineStyle: { color: c.grid } }, axisLabel: { color: c.secondary, interval: 0 } },
+          yAxis: { type: 'value', axisLabel: { color: c.muted, formatter: axisLabel(m) }, splitLine: { lineStyle: { color: c.grid, type: 'dashed' } } },
+          series: [
+            {
+              type: 'custom',
+              silent: true,
+              z: 1,
+              data: steps.slice(0, -1).map((x, i) => [i, x.value, steps[i + 1]?.value ?? 0]),
+              renderItem: (_params: unknown, api: { value: (i: number) => number; coord: (p: number[]) => number[]; size: (p: number[]) => number[] }) => {
+                const i = api.value(0)
+                const from = api.coord([i, api.value(1)]) as [number, number]
+                const to = api.coord([i + 1, api.value(2)]) as [number, number]
+                const floor = (api.coord([i, 0]) as [number, number])[1]
+                const half = ((api.size([1, 0]) as [number, number])[0] * ratio) / 2
+                const share = api.value(1) ? api.value(2) / api.value(1) : 0
+                const midX = (from[0] + to[0]) / 2
+                return {
+                  type: 'group',
+                  children: [
+                    {
+                      type: 'polygon',
+                      shape: { points: [[from[0] + half, from[1]], [to[0] - half, to[1]], [to[0] - half, floor], [from[0] + half, floor]] },
+                      style: { fill: alpha(color, theme.dark ? 0.22 : 0.16) },
+                    },
+                    {
+                      type: 'text',
+                      x: midX,
+                      y: Math.max(to[1], from[1]) + 14,
+                      style: { text: percentText(share * 100, 0), fill: c.secondary, font: `600 10px ${base.textStyle && 'fontFamily' in base.textStyle ? base.textStyle.fontFamily : 'sans-serif'}`, align: 'center' },
+                    },
+                  ],
+                }
+              },
+            },
+            {
+              type: 'bar',
+              z: 2,
+              barWidth: `${ratio * 100}%`,
+              data: steps.map((x) => ({ value: x.value, raw: x.raw, key: x.key })),
+              itemStyle: { color, ...barFill(fill, color), borderRadius: [r, r, 0, 0] },
+              label: { show: true, position: 'top', color: c.primary, fontSize: 11, fontWeight: 600, formatter: (p: { value: unknown }) => formatValue(p.value, m, { compact: true }) },
+              emphasis: { itemStyle: { color: alpha(color, 0.85) } },
+            },
+          ] as SeriesOption[],
+        },
+      }
+    }
     if (type === 'funnel') {
       return {
         clickColumn: d,
@@ -965,6 +1104,141 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     }
   }
 
+  if (type === 'bubble') {
+    const { dims, metrics } = roles(result, settings)
+    const d = dims[0]
+    const packed = settings.bubble_style === 'packed' || (settings.bubble_style !== 'axes' && metrics.length < 2)
+    if (packed) {
+      // One bubble per category, as large as its value, packed together without axes.
+      const m = metrics[0]
+      if (!d || !m) return null
+      const di = result.columns.indexOf(d)
+      const mi = result.columns.indexOf(m)
+      const sums = new Map<string, { raw: unknown; value: number }>()
+      for (const row of result.rows) {
+        const k = keyOf(row[di])
+        const e = sums.get(k) ?? { raw: row[di], value: 0 }
+        e.value += Number(row[mi]) || 0
+        sums.set(k, e)
+      }
+      const items = [...sums.entries()].sort((a, b) => b[1].value - a[1].value).slice(0, 30)
+      const total = items.reduce((t, [, e]) => t + Math.abs(e.value), 0)
+      const top = Math.max(1e-9, ...items.map(([, e]) => Math.abs(e.value)))
+      const pal = paletteOf(settings, theme, items.length)
+      let next = 0
+      const nodes = items.map(([key, e]) => {
+        const color = settings.series?.[key]?.color ?? valueColor(result, d, e.raw) ?? pal(next++)
+        const size = 28 + 92 * Math.sqrt(Math.abs(e.value) / top)
+        const name = formatValue(e.raw, d) || '∅'
+        const text =
+          settings.bubble_labels === 'value' ? formatValue(e.value, m, { compact: true }) : settings.bubble_labels === 'name' ? name : percentText(total ? (Math.abs(e.value) / total) * 100 : 0, 0)
+        return {
+          key,
+          raw: e.raw,
+          name,
+          value: e.value,
+          symbolSize: size,
+          itemStyle: { color: alpha(color, theme.dark ? 0.3 : 0.2), borderColor: alpha(color, 0.5), borderWidth: 1 },
+          label: { show: size > 34, formatter: text, color, fontSize: Math.round(10 + size / 12), fontWeight: 600 },
+          emphasis: { itemStyle: { color: alpha(color, theme.dark ? 0.45 : 0.32) } },
+          colorOf: color,
+        }
+      })
+      // Packed once, in abstract units; drawn fitted to whatever room the chart has.
+      const circles = pack(nodes.map((n) => n.symbolSize / 2))
+      const legendRoom = settings.legend === false ? 0 : 28
+      const font = base.textStyle && 'fontFamily' in base.textStyle ? base.textStyle.fontFamily : 'sans-serif'
+      return {
+        clickColumn: d,
+        targets: nodes.map((n) => ({ key: n.key, name: n.name, color: n.colorOf })),
+        option: {
+          ...base,
+          tooltip: { ...base.tooltip, trigger: 'item', formatter: (p: unknown) => {
+            const n = nodes[(p as { dataIndex: number }).dataIndex]
+            if (!n) return ''
+            return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${n.colorOf};margin-right:6px"></span>${n.name}<br/><b>${formatValue(n.value, m)}</b> · ${percentText(total ? (Math.abs(n.value) / total) * 100 : 0)}`
+          } },
+          legend: settings.legend === false ? undefined : { bottom: 0, left: 'center', type: 'scroll', icon: 'circle', itemWidth: 8, itemHeight: 8, selectedMode: false, textStyle: { color: c.secondary }, data: nodes.map((n) => n.name) },
+          series: [
+            // Only for the legend, which reads its names and colours from a pie's slices.
+            { type: 'pie', radius: 0, silent: true, label: { show: false }, tooltip: { show: false }, data: nodes.map((n) => ({ name: n.name, value: 0, itemStyle: { color: n.colorOf } })) },
+            {
+              type: 'custom',
+              coordinateSystem: 'none',
+              data: nodes.map((n, i) => ({ value: [i], name: n.name, raw: n.raw, key: n.key })),
+              renderItem: (params: { dataIndex: number }, api: { getWidth: () => number; getHeight: () => number }) => {
+                const n = nodes[params.dataIndex]
+                const at = circles.items[params.dataIndex]
+                if (!n || !at) return null
+                const w = api.getWidth()
+                const h = api.getHeight() - legendRoom
+                const scale = Math.min((w - 8) / circles.width, (h - 8) / circles.height)
+                const cx = w / 2 + (at.x - circles.cx) * scale
+                const cy = h / 2 + (at.y - circles.cy) * scale
+                const r = at.r * scale
+                return {
+                  type: 'group',
+                  children: [
+                    { type: 'circle', shape: { cx, cy, r }, style: { fill: n.itemStyle.color, stroke: n.itemStyle.borderColor, lineWidth: 1 }, emphasis: { style: { fill: n.emphasis.itemStyle.color } } },
+                    ...(r >= 16
+                      ? [{ type: 'text', x: cx, y: cy, silent: true, style: { text: n.label.formatter, fill: n.colorOf, font: `600 ${Math.max(10, Math.min(26, Math.round(r / 2.6)))}px ${font}`, align: 'center', verticalAlign: 'middle' } }]
+                      : []),
+                  ],
+                }
+              },
+            },
+          ] as SeriesOption[],
+        },
+      }
+    }
+    // On two axes: x and y the first two measures, the size the third (or the second), a colour per category.
+    const [mx, my, ms] = metrics
+    if (!mx || !my) return null
+    const sizeCol = ms ?? my
+    const xi = result.columns.indexOf(mx)
+    const yi = result.columns.indexOf(my)
+    const si = result.columns.indexOf(sizeCol)
+    const di = d ? result.columns.indexOf(d) : -1
+    const top = Math.max(1e-9, ...result.rows.map((r) => Math.abs(Number(r[si]) || 0)))
+    const groups = new Map<string, { raw: unknown; rows: (readonly unknown[])[] }>()
+    for (const row of result.rows) {
+      const k = di >= 0 ? keyOf(row[di]) : '__all__'
+      const g = groups.get(k) ?? { raw: di >= 0 ? row[di] : null, rows: [] }
+      g.rows.push(row)
+      groups.set(k, g)
+    }
+    const list = [...groups.entries()].slice(0, 8)
+    const pal = paletteOf(settings, theme, list.length)
+    let next = 0
+    const colors = list.map(([k, g]) => settings.series?.[k]?.color ?? (d ? valueColor(result, d, g.raw) : undefined) ?? pal(next++))
+    const show = (col: ResultColumn, v: unknown) => formatValue(v, col)
+    return {
+      ...(d ? { clickColumn: d } : {}),
+      targets: d ? list.map(([k, g], i) => ({ key: k, name: formatValue(g.raw, d) || '∅', color: colors[i] as string })) : [],
+      option: {
+        ...base,
+        color: colors,
+        grid: { left: 8, right: 24, top: list.length > 1 ? 36 : 16, bottom: 26, containLabel: true },
+        legend: list.length > 1 && settings.legend !== false ? { top: 0, left: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { color: c.secondary } } : undefined,
+        tooltip: { ...base.tooltip, trigger: 'item', formatter: (p: unknown) => {
+          const q = p as { seriesName: string; value: unknown[]; marker: string }
+          const head = d ? `${q.marker} ${q.seriesName}<br/>` : ''
+          return `${head}${$t('{column} : {value}', { column: mx.label, value: `<b>${show(mx, q.value[0])}</b>` })}<br/>${$t('{column} : {value}', { column: my.label, value: `<b>${show(my, q.value[1])}</b>` })}${ms ? `<br/>${$t('{column} : {value}', { column: ms.label, value: `<b>${show(ms, q.value[2])}</b>` })}` : ''}`
+        } },
+        xAxis: { type: 'value', scale: true, axisLabel: { formatter: axisLabel(mx), color: c.muted }, splitLine: { lineStyle: { color: c.grid, type: 'dashed' } }, axisLine: { lineStyle: { color: c.grid } }, name: settings.x_label ?? mx.label, nameLocation: 'middle', nameGap: 26, nameTextStyle: { color: c.muted } },
+        yAxis: { type: 'value', scale: true, axisLabel: { formatter: axisLabel(my), color: c.muted }, splitLine: { lineStyle: { color: c.grid, type: 'dashed' } } },
+        series: list.map(([, g], i) => ({
+          type: 'scatter',
+          name: d ? formatValue(g.raw, d) || '∅' : my.label,
+          data: g.rows.map((r) => [r[xi], r[yi], r[si]]),
+          symbolSize: (v: unknown[]) => 8 + 44 * Math.sqrt(Math.abs(Number(v[2]) || 0) / top),
+          itemStyle: { color: alpha(colors[i] as string, 0.55), borderColor: colors[i], borderWidth: 1 },
+          emphasis: { focus: 'series', itemStyle: { color: alpha(colors[i] as string, 0.8) } },
+        })) as SeriesOption[],
+      },
+    }
+  }
+
   if (type === 'scatter') {
     const { dims, metrics } = roles(result, settings)
     const [mx, my] = metrics.length >= 2 ? metrics : [dims[0], metrics[0]]
@@ -1186,7 +1460,8 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
         : undefined
     // In a stack, only the outer end is rounded; a hairline of the surface parts the segments.
     const lastBar = stack ? i === series.length - 1 : true
-    const radius = lastBar ? (horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]) : 0
+    const r = theme.barRadius ?? 4
+    const radius = lastBar ? (horizontal ? [0, r, r, 0] : [r, r, 0, 0]) : 0
     const fc = forecasts[i]
     const fcColor = series.length === 1 ? brand : color
     if (display === 'bar' && fc) {
@@ -1208,7 +1483,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
         stack,
         barMaxWidth: 48,
         barWidth: series.length > 1 && !stack ? undefined : width,
-        itemStyle: { color, borderRadius: radius, ...(stack ? { borderColor: c.surface, borderWidth: 1 } : {}) },
+        itemStyle: { color, ...barFill(settings.bar_fill ?? theme.barFill, color, horizontal), borderRadius: radius, ...(stack ? { borderColor: c.surface, borderWidth: 1 } : {}) },
         emphasis: { focus: 'series' },
         label: totalsLabel ?? (stack ? (settings.values ? { ...label('inside'), color: '#ffffff' } : undefined) : label(horizontal ? 'right' : 'top')),
       } as SeriesOption

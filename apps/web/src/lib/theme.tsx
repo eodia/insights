@@ -1,6 +1,6 @@
 'use client'
 
-import type { ColorScheme, ResolvedTheme, ThemeSettings } from '@eodia/contracts'
+import type { BarFill, ColorScheme, ResolvedTheme, ThemeSettings } from '@eodia/contracts'
 import {
   type CSSProperties,
   type ReactNode,
@@ -25,6 +25,8 @@ export interface ChartTheme {
   readonly font?: string
   readonly scheme?: ColorScheme
   readonly colors?: readonly string[]
+  readonly barFill?: BarFill
+  readonly barRadius?: number
 }
 
 const ChartThemeContext = createContext<ChartTheme>({})
@@ -119,6 +121,8 @@ export function ThemeScope({
         ...(settings.font_body ? { font: settings.font_body } : {}),
         ...(settings.scheme ? { scheme: settings.scheme } : {}),
         ...(settings.colors?.length ? { colors: settings.colors } : {}),
+        ...(settings.bar_fill ? { barFill: settings.bar_fill } : {}),
+        ...(settings.bar_radius !== undefined ? { barRadius: settings.bar_radius } : {}),
       }
     : still
       ? { still }

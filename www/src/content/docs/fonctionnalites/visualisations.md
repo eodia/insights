@@ -18,7 +18,7 @@ résultat ; une forme qui ne lui convient pas est atténuée, et son info-bulle 
 | **Comparer** | Barres, Barres horizontales, **Radar**, **Barres polaires** | des catégories entre elles ; le radar compare des profils sur 3 à 30 critères, sur une échelle commune |
 | **Évolution** | Lignes, Aires, Combiné, **Course de barres**, **Course de courbes**, **Calendrier** | suivre dans le temps — et [prévoir](/insights/fonctionnalites/previsions/) ; les courses rejouent l’histoire période après période |
 | **Répartition** | Camembert (sur plusieurs anneaux), **Carte proportionnelle**, Entonnoir | des parts, des parts de parts, des étapes |
-| **Relation** | Nuage de points | deux mesures l’une contre l’autre |
+| **Relation** | Nuage de points, **Bulles** | deux mesures l’une contre l’autre |
 | **Détail** | Tableau, Tableau croisé, Carte | des lignes, une mesure croisée, des valeurs par région |
 
 ### Des parts sur plusieurs niveaux
@@ -55,6 +55,18 @@ Il leur faut une date (la course avance avec elle), une mesure, et des concurren
 d’une seconde dimension (des pays, des produits) ou plusieurs mesures. Réglages : la vitesse
 (lente, normale, rapide), le nombre de barres affichées (5 à 20), **Cumuler les périodes** pour
 une course au total plutôt qu’à la valeur du mois, et le départ à l’ouverture.
+
+### Bulles, tendances, entonnoir en colonnes
+
+- **Bulles** : sur deux axes — x et y deux mesures, la taille une troisième, une couleur par
+  catégorie —, ou **en grappe** : une bulle par catégorie, aussi grosse que sa valeur, avec sa
+  part, sa valeur ou son nom.
+- **Tendance** : le chiffre, sa **courbe miniature** (aire, ligne ou barres, verte quand ça monte
+  bien, rouge sinon) et sa variation par rapport à la période précédente.
+- **Entonnoir en colonnes** : des colonnes reliées par des bandes qui disent la conversion de
+  chaque étape.
+- **Remplissage des barres** : plein, hachuré ou en dégradé — pour un graphique, ou pour tous
+  par le [thème](/insights/fonctionnalites/themes/), avec l’arrondi des barres.
 
 ## Les couleurs
 

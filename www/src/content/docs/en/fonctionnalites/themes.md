@@ -17,7 +17,7 @@ preview beside it — a small dashboard and its charts in the theme.
 | **Fonts** | Titles, and text and charts: about twenty Google Fonts, serif or sans-serif; title weight and case |
 | **Colors** | Accent (active tab, filters, links), titles, text, page background, card background and border |
 | **Cards** | Corner radius, shadow |
-| **Charts** | The palette every chart uses unless it chose its own — one of the checked palettes, or yours |
+| **Charts** | The palette every chart uses unless it chose its own — one of the checked palettes, or yours; bar fill (solid, hatched, gradient) and bar radius |
 | **Logo** | An image (PNG, SVG, JPEG, WebP; 220 KB at most) or its address; height, left or right of the title |
 | **PDF printing** | Landscape or portrait, cover page, footer |
 

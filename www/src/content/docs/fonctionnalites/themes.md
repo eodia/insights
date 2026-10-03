@@ -17,7 +17,7 @@ avec, à côté, un aperçu en direct — un petit tableau de bord avec ses grap
 | **Polices** | Titres, et texte et graphiques : une vingtaine de polices Google Fonts, à empattements ou non ; graisse et casse des titres |
 | **Couleurs** | Accent (onglet actif, filtres, liens), titres, texte, fond de la page, fond et bordure des cartes |
 | **Cartes** | Arrondi des coins, ombre |
-| **Graphiques** | La palette que prend tout graphique qui n’a pas choisi la sienne — l’une des palettes vérifiées, ou la vôtre |
+| **Graphiques** | La palette que prend tout graphique qui n’a pas choisi la sienne — l’une des palettes vérifiées, ou la vôtre ; remplissage des barres (plein, hachuré, dégradé) et leur arrondi |
 | **Logo** | Une image (PNG, SVG, JPEG, WebP ; 220 Ko au plus) ou son adresse ; hauteur, à gauche ou à droite du titre |
 | **Impression en PDF** | Paysage ou portrait, page de garde, pied de page |
 

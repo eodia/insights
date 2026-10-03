@@ -18,7 +18,7 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 | **Compare** | Bar, Row, **Radar**, **Polar bar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
 | **Trend** | Line, Area, Combo, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
 | **Distribution** | Pie (on several rings), **Treemap**, Funnel | shares, shares of shares, stages |
-| **Relationship** | Scatter | two measures against each other |
+| **Relationship** | Scatter, **Bubble** | two measures against each other |
 | **Detail** | Table, Pivot table, Map | rows, a cross-tabulated measure, values by region |
 
 ### Shares on several levels
@@ -53,6 +53,16 @@ They need a date (the race moves forward with it), a measure, and competitors: t
 second dimension (countries, products) or several measures. Settings: the **Speed** (slow, normal,
 fast), how many **Bars shown** (5 to 20), **Accumulate periods** for a race on the running total
 rather than each month's value, and **Start the race on open**.
+
+### Bubbles, trends, funnel as columns
+
+- **Bubble**: on two axes — x and y two measures, the size a third, one color per category — or
+  **packed**: one bubble per category, as large as its value, showing its share, value or name.
+- **Trend**: the figure, its **sparkline** (area, line or bars, green when it goes the right way,
+  red otherwise) and its change from the previous period.
+- **Funnel as columns**: columns joined by bands showing each step's conversion.
+- **Bar fill**: solid, hatched or gradient — for one chart, or for all of them through the
+  [theme](/insights/en/fonctionnalites/themes/), along with the bar radius.
 
 ## Colors
 

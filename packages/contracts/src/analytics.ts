@@ -278,6 +278,7 @@ export const VISUALIZATIONS = [
   'combo',
   'pie',
   'scatter',
+  'bubble',
   'funnel',
   'radar',
   'polar',
@@ -289,6 +290,9 @@ export const VISUALIZATIONS = [
   'map',
 ] as const
 export type VisualizationType = (typeof VISUALIZATIONS)[number]
+
+export const BAR_FILLS = ['solid', 'hatched', 'gradient'] as const
+export type BarFill = (typeof BAR_FILLS)[number]
 
 /** A period of a line or an area set apart: from one value of the axis to another (keys of the result). */
 export interface AreaPiece {
@@ -429,6 +433,22 @@ export interface VisualizationSettings {
   readonly pieces?: readonly AreaPiece[]
   /** A calendar: a dot sized by the value, or each day's square coloured by it. */
   readonly calendar_style?: 'scatter' | 'heatmap'
+
+  // ── Bars ──
+  /** How bars are filled: plain, hatched, or fading towards their base. A theme sets it for all. */
+  readonly bar_fill?: BarFill
+  /** A funnel drawn as columns joined by bands (each band says the step's conversion), or as a funnel. */
+  readonly funnel_style?: 'funnel' | 'bars'
+
+  // ── Bubbles ──
+  /** On two axes (x, y, size), or packed together without axes (one bubble per category). */
+  readonly bubble_style?: 'auto' | 'axes' | 'packed'
+  /** What a packed bubble says: its share, its value, its name. */
+  readonly bubble_labels?: 'percent' | 'value' | 'name'
+
+  // ── Trend ──
+  /** The small curve beside the number: a line, an area, bars, or none. */
+  readonly spark?: 'area' | 'line' | 'bars' | 'none'
 
   // ── Polar bars ──
   /** Bars that wind around the centre (radial), or that rise from it like petals (column). */
