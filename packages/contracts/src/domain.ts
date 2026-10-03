@@ -1,3 +1,4 @@
+import type { ResolvedTheme } from './themes'
 /**
  * Le domaine tel que l'API le sert : sources, structure, contenu, utilisateurs.
  * Une seule organisation par instance : aucune notion de tenant.
@@ -357,6 +358,10 @@ export interface Folder {
   readonly personal: string | null
   readonly access: ContentAccess
   readonly path: readonly { readonly id: string; readonly name: string }[]
+  /** The theme set on this folder itself (null: it inherits). */
+  readonly theme: string | null
+  /** The theme it wears: its own, or the nearest parent's. */
+  readonly resolved_theme?: ResolvedTheme | null
 }
 
 export type QuestionType = 'question' | 'model' | 'metric'
@@ -380,6 +385,8 @@ export interface Question {
   readonly updated_at: string
   readonly access: ContentAccess
   readonly archived: boolean
+  /** The theme it wears: its dashboard's, or its folder's. */
+  readonly resolved_theme?: ResolvedTheme | null
 }
 
 export interface ResultColumnMeta {
@@ -406,6 +413,10 @@ export interface Dashboard {
   readonly updated_at: string
   readonly access: ContentAccess
   readonly archived: boolean
+  /** The theme set on the dashboard itself (null: its folder's). */
+  readonly theme: string | null
+  /** The theme it wears: its own, or its folder's (or a parent's). */
+  readonly resolved_theme: ResolvedTheme | null
 }
 
 export interface ItemSummary {

@@ -61,6 +61,7 @@ export default defineConfig({
 						{ slug: 'fonctionnalites/visualisations' },
 						{ slug: 'fonctionnalites/previsions', badge: { text: { fr: 'Nouveau', en: 'New' }, variant: 'success' } },
 						{ slug: 'fonctionnalites/tableaux-de-bord' },
+						{ slug: 'fonctionnalites/themes', badge: { text: { fr: 'Nouveau', en: 'New' }, variant: 'success' } },
 						{ slug: 'fonctionnalites/copilot' },
 						{ slug: 'fonctionnalites/partage' },
 						{ slug: 'fonctionnalites/droits' },

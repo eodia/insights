@@ -324,3 +324,26 @@
   background: var(--accent) !important;
   color: var(--accent-foreground) !important;
 }
+
+/* ── Thèmes (lib/theme.tsx) : chaque variable absente laisse le style de l'application. ── */
+[data-themed] {
+  font-family: var(--theme-font-body, inherit);
+  color: var(--theme-text, inherit);
+  background: var(--theme-bg, var(--background));
+}
+[data-themed] .theme-title {
+  font-family: var(--theme-font-heading, inherit);
+  color: var(--theme-title, inherit);
+  font-weight: var(--theme-title-weight, 600);
+  text-transform: var(--theme-title-case, none);
+  letter-spacing: var(--theme-title-tracking, normal);
+}
+[data-themed] .theme-card {
+  background: var(--theme-card, var(--card));
+  border-color: var(--theme-card-border, var(--border));
+  border-radius: var(--theme-radius, 0.75rem);
+  box-shadow: var(--theme-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+[data-themed] .theme-surface {
+  background: var(--theme-bg, var(--surface));
+}

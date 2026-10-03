@@ -1,6 +1,7 @@
 /** Dossiers (collections à la Metabase) : arborescence, dossier personnel, droits, partages. */
 import type { ContentAccess, Folder, ItemKind, ItemSummary, LookColor } from '@eodia/contracts'
 import { audit } from '../audit'
+import { checkTheme, resolveTheme } from './themes'
 import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { AppError, forbidden, invalid, notFound } from '../errors'
@@ -15,6 +16,7 @@ interface FolderRow {
   icon: string | null
   personal_owner_id: string | null
   archived: boolean
+  theme_id: string | null
 }
 
 function dto(r: FolderRow, idx: ContentIndex): Folder {
@@ -28,6 +30,7 @@ function dto(r: FolderRow, idx: ContentIndex): Folder {
     personal: r.personal_owner_id,
     access: idx.folder(r.id) as ContentAccess,
     path: idx.path(r.parent_id),
+    theme: r.theme_id,
   }
 }
 
@@ -46,7 +49,7 @@ export async function getFolder(core: Core, actor: Actor, id: string): Promise<F
   const idx = await contentIndex(core, actor.userId)
   const row = await core.db.one<FolderRow>('SELECT * FROM folder WHERE id = $1', [id])
   if (!row || idx.folder(id) === 'none') throw notFound('Dossier introuvable.')
-  return dto(row, idx)
+  return { ...dto(row, idx), resolved_theme: await resolveTheme(core, { folder: row.id }) }
 }
 
 export async function createFolder(
@@ -79,7 +82,7 @@ export async function updateFolder(
   core: Core,
   actor: Actor,
   id: string,
-  patch: { name?: string; parent?: string | null; description?: string | null; color?: LookColor | null; icon?: string | null; archived?: boolean },
+  patch: { name?: string; parent?: string | null; description?: string | null; color?: LookColor | null; icon?: string | null; archived?: boolean; theme?: string | null },
 ): Promise<Folder> {
   const idx = await contentIndex(core, actor.userId)
   const row = await core.db.one<FolderRow>('SELECT * FROM folder WHERE id = $1', [id])
@@ -91,7 +94,8 @@ export async function updateFolder(
     if (!atLeastAccess(idx.folder(patch.parent), 'edit')) throw forbidden('Vous ne pouvez pas déplacer le dossier ici.')
     if (idx.path(patch.parent).some((p) => p.id === id) || patch.parent === id) throw invalid('Un dossier ne peut pas se ranger dans lui-même.')
   }
-  const fields = Object.entries({ ...patch, parent_id: patch.parent }).filter(([k, v]) => v !== undefined && k !== 'parent')
+  if (patch.theme !== undefined) await checkTheme(core, patch.theme)
+  const fields = Object.entries({ ...patch, parent_id: patch.parent, theme_id: patch.theme }).filter(([k, v]) => v !== undefined && k !== 'parent' && k !== 'theme')
   if (fields.length) {
     await core.db.exec(
       `UPDATE folder SET ${fields.map(([k], i) => `${k} = $${i + 2}`).join(', ')} WHERE id = $1`,

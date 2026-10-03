@@ -17,6 +17,7 @@ import { draggable, useDropFolder } from '@/lib/dnd'
 import { keys, useDashboard, useFolderItems, useFolders, useMe, useQuestion } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { VIZ_LABELS } from '@/lib/viz'
+import { ThemePicker } from '@/components/app/theme-picker'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -193,11 +194,36 @@ function FolderLook({ folder, label }: { folder: Folder; label: string }) {
       <span className="min-w-0 flex-1 truncate font-semibold">{label}</span>
       {editable ? (
         <>
+          <FolderTheme folder={folder} />
           <IconPicker value={folder.icon} color={folder.color} onChange={(icon) => void patch({ icon })} size="xs" />
           <ColorPicker value={folder.color} onChange={(color) => void patch({ color })} size="xs" />
         </>
       ) : null}
     </div>
+  )
+}
+
+/** The folder's theme: what it and all it holds wear. */
+function FolderTheme({ folder }: { folder: Folder }) {
+  const qc = useQueryClient()
+  const { data: full } = useQuery({ queryKey: ['folder', folder.id], queryFn: () => api.get<Folder>(`/v1/folders/${folder.id}`) })
+  return (
+    <ThemePicker
+      value={full?.theme ?? folder.theme ?? null}
+      resolved={full?.resolved_theme}
+      self={folder.id}
+      size="xs"
+      className="w-48"
+      onChange={async (theme) => {
+        try {
+          await api.patch(`/v1/folders/${folder.id}`, { theme })
+          await Promise.all([qc.invalidateQueries({ queryKey: ['folder', folder.id] }), qc.invalidateQueries({ queryKey: keys.folders }), qc.invalidateQueries({ queryKey: ['dashboard'] })])
+          toast.success(theme ? $t('Thème posé : tout le dossier le porte.') : $t('Le dossier reprend le thème dont il hérite.'))
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : String(err))
+        }
+      }}
+    />
   )
 }
 

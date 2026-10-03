@@ -224,4 +224,12 @@ export default {
   "Vous ne pouvez pas modifier le tableau de bord visé.": "No puedes modificar el panel de destino.",
   "Vous ne pouvez pas vous désactiver vous-même.": "No puedes desactivarte a ti mismo.",
   "Vous ne pouvez pas vous retirer vous-même des administrateurs.": "No puedes quitarte a ti mismo de los administradores.",
+  "Créer un thème (administrateurs)": "Crear un tema (administradores)",
+  "Lire un thème": "Leer un tema",
+  "Lister les thèmes": "Listar temas",
+  "Modifier un thème (administrateurs)": "Modificar un tema (administradores)",
+  "Seul un administrateur crée ou modifie un thème.": "Solo un administrador puede crear o modificar un tema.",
+  "Supprimer un thème (administrateurs)": "Eliminar un tema (administradores)",
+  "Thème introuvable.": "Tema no encontrado.",
+  "Thème non créé.": "Tema no creado.",
 } as Readonly<Record<string, string>>

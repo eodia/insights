@@ -1,13 +1,18 @@
 'use client'
 
-import type { Dashboard } from '@eodia/contracts'
-import { cardConstraints } from '@eodia/contracts'
-import { ConfirmDialog, FolderPicker } from '@/components/app/dialogs'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
+import { ConfirmDialog, FolderPicker } from '@/components/app/dialogs'
 import { ShareDialog } from '@/components/app/share-dialog'
+import { ThemePicker } from '@/components/app/theme-picker'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,17 +28,50 @@ import { type RunResult, api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { keys, useDashboard } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
+import { ThemeLogo, ThemeScope } from '@/lib/theme'
+import type { Dashboard } from '@eodia/contracts'
+import { cardConstraints } from '@eodia/contracts'
 import { useQueryClient } from '@tanstack/react-query'
-import { Copy, Ellipsis, Loader2, Maximize, Plus, Settings2, Share2, Star, Trash2 } from 'lucide-react'
+import {
+  Copy,
+  Ellipsis,
+  FileDown,
+  Loader2,
+  Maximize,
+  Plus,
+  Settings2,
+  Share2,
+  Star,
+  Trash2,
+} from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, use, useEffect, useRef, useState } from 'react'
+import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-function SettingsDialog({ open, onOpenChange, dashboard }: { open: boolean; onOpenChange: (o: boolean) => void; dashboard: Dashboard }) {
+function SettingsDialog({
+  open,
+  onOpenChange,
+  dashboard,
+}: { open: boolean; onOpenChange: (o: boolean) => void; dashboard: Dashboard }) {
   const qc = useQueryClient()
-  const [form, setForm] = useState({ name: dashboard.name, description: dashboard.description ?? '', folder: dashboard.folder, cache_ttl: dashboard.cache_ttl, preload: dashboard.preload })
+  const [form, setForm] = useState({
+    name: dashboard.name,
+    description: dashboard.description ?? '',
+    folder: dashboard.folder,
+    cache_ttl: dashboard.cache_ttl,
+    preload: dashboard.preload,
+    theme: dashboard.theme,
+  })
   useEffect(() => {
-    if (open) setForm({ name: dashboard.name, description: dashboard.description ?? '', folder: dashboard.folder, cache_ttl: dashboard.cache_ttl, preload: dashboard.preload })
+    if (open)
+      setForm({
+        name: dashboard.name,
+        description: dashboard.description ?? '',
+        folder: dashboard.folder,
+        cache_ttl: dashboard.cache_ttl,
+        preload: dashboard.preload,
+        theme: dashboard.theme,
+      })
   }, [open, dashboard])
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,17 +86,38 @@ function SettingsDialog({ open, onOpenChange, dashboard }: { open: boolean; onOp
           </div>
           <div className="space-y-1.5">
             <Label>{$t('Description')}</Label>
-            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
+            <Textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={2}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{$t('Dossier')}</Label>
             <FolderPicker value={form.folder} onChange={(folder) => setForm({ ...form, folder })} />
           </div>
           <div className="space-y-1.5">
+            <Label>{$t('Thème')}</Label>
+            <ThemePicker
+              value={form.theme}
+              resolved={form.theme === dashboard.theme ? dashboard.resolved_theme : null}
+              self={dashboard.id}
+              onChange={(theme) => setForm({ ...form, theme })}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              {$t(
+                'Polices, couleurs, palette et logo du tableau de bord et de son PDF. Par défaut, celui de son dossier.',
+              )}
+            </p>
+          </div>
+          <div className="space-y-1.5">
             <Label>{$t('Durée de cache des résultats')}</Label>
             <Choice
               value={form.cache_ttl === null ? 'default' : String(form.cache_ttl)}
-              onValueChange={(v) => setForm({ ...form, cache_ttl: v === 'default' ? null : Number(v) })}
+              onValueChange={(v) =>
+                setForm({ ...form, cache_ttl: v === 'default' ? null : Number(v) })
+              }
               options={[
                 { value: 'default', label: $t("Celle de l'instance") },
                 { value: '0', label: $t('Pas de cache') },
@@ -74,15 +133,23 @@ function SettingsDialog({ open, onOpenChange, dashboard }: { open: boolean; onOp
           <label className="flex items-center justify-between gap-3 text-sm">
             <span>
               {$t('Préchargé')}
-              <span className="block text-xs text-muted-foreground">{$t('Le worker garde ses résultats au chaud, sous les droits de son auteur.')}</span>
+              <span className="block text-xs text-muted-foreground">
+                {$t('Le worker garde ses résultats au chaud, sous les droits de son auteur.')}
+              </span>
             </span>
-            <Switch checked={form.preload} onCheckedChange={(preload) => setForm({ ...form, preload })} />
+            <Switch
+              checked={form.preload}
+              onCheckedChange={(preload) => setForm({ ...form, preload })}
+            />
           </label>
         </div>
         <DialogFooter>
           <Button
             onClick={async () => {
-              await api.patch(`/v1/dashboards/${dashboard.id}`, { ...form, description: form.description || null })
+              await api.patch(`/v1/dashboards/${dashboard.id}`, {
+                ...form,
+                description: form.description || null,
+              })
               await qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) })
               onOpenChange(false)
             }}
@@ -106,126 +173,205 @@ function DashboardScreen({ id }: { id: string }) {
   const [remove, setRemove] = useState(false)
   const [refresh, setRefresh] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
-  useCrumbs([{ label: $t('Tableaux de bord'), href: dashboard?.folder ? `/browse/${dashboard.folder}` : '/browse' }, { label: dashboard?.name ?? '…' }])
+  // The filters as they stand: a print shows the dashboard as one sees it.
+  const filterValues = useRef<Record<string, unknown>>({})
+  const onValuesChange = useCallback((v: Record<string, unknown>) => {
+    filterValues.current = v
+  }, [])
+  useCrumbs([
+    {
+      label: $t('Tableaux de bord'),
+      href: dashboard?.folder ? `/browse/${dashboard.folder}` : '/browse',
+    },
+    { label: dashboard?.name ?? '…' },
+  ])
   useEffect(() => setCopilotContext({ kind: 'dashboard', id }), [id, setCopilotContext])
   useEffect(() => {
     if (dashboard) setRefresh(dashboard.auto_refresh)
   }, [dashboard])
 
   if (error) return <p className="p-8 text-sm text-destructive">{(error as Error).message}</p>
-  if (!dashboard) return <Loader2 className="m-auto mt-20 size-5 animate-spin text-muted-foreground" />
+  if (!dashboard)
+    return <Loader2 className="m-auto mt-20 size-5 animate-spin text-muted-foreground" />
 
   const runner: Runner = async (card, values, { fresh, draft }) => {
-    if (draft || !dashboard.cards.some((c) => c.id === card.id && JSON.stringify(c) === JSON.stringify(card))) {
+    if (
+      draft ||
+      !dashboard.cards.some((c) => c.id === card.id && JSON.stringify(c) === JSON.stringify(card))
+    ) {
       // A card not saved yet runs as its own question, under the same filters.
-      const constraints = cardConstraints(card.mappings, dashboard.parameters.length ? dashboard.parameters : [], values)
-      if (card.question) return api.post<RunResult>(`/v1/questions/${card.question}/run`, { constraints, fresh })
+      const constraints = cardConstraints(
+        card.mappings,
+        dashboard.parameters.length ? dashboard.parameters : [],
+        values,
+      )
+      if (card.question)
+        return api.post<RunResult>(`/v1/questions/${card.question}/run`, { constraints, fresh })
       return api.post<RunResult>('/v1/query', { query: card.query, constraints, fresh })
     }
-    return api.post<RunResult>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/run`, { values, fresh })
+    return api.post<RunResult>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/run`, {
+      values,
+      fresh,
+    })
   }
   const editable = dashboard.access !== 'view'
   // The open tab lives in the address: a link opens it, and Back and Forward go from tab to tab.
   const tab = params.get('tab')
-  const dashboardHref = (t: string | null) => `/dashboard/${dashboard.id}${t ? `?tab=${encodeURIComponent(t)}` : ''}`
-  const newQuestionHref = (t: string | null) => `/question/new?dashboard=${dashboard.id}${t ? `&tab=${encodeURIComponent(t)}` : ''}`
+  const dashboardHref = (t: string | null) =>
+    `/dashboard/${dashboard.id}${t ? `?tab=${encodeURIComponent(t)}` : ''}`
+  const newQuestionHref = (t: string | null) =>
+    `/question/new?dashboard=${dashboard.id}${t ? `&tab=${encodeURIComponent(t)}` : ''}`
 
   return (
-    <div ref={root} className="flex h-full flex-col bg-background">
-      <div className="flex items-start gap-3 px-6 pt-5 pb-1">
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-semibold tracking-tight">{dashboard.name}</h1>
-          {dashboard.description ? <p className="mt-0.5 text-sm text-muted-foreground">{dashboard.description}</p> : null}
+    <div ref={root} className="h-full">
+      <ThemeScope theme={dashboard.resolved_theme} className="flex h-full flex-col bg-background">
+        <div className="flex items-start gap-3 px-6 pt-5 pb-1">
+          {dashboard.resolved_theme?.settings.logo_position !== 'right' ? (
+            <ThemeLogo
+              theme={dashboard.resolved_theme}
+              className="mt-0.5 shrink-0 object-contain"
+            />
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <h1 className="theme-title truncate text-2xl font-semibold tracking-tight">
+              {dashboard.name}
+            </h1>
+            {dashboard.description ? (
+              <p className="mt-0.5 text-sm text-muted-foreground">{dashboard.description}</p>
+            ) : null}
+          </div>
+          {dashboard.resolved_theme?.settings.logo_position === 'right' ? (
+            <ThemeLogo
+              theme={dashboard.resolved_theme}
+              className="mt-0.5 shrink-0 object-contain"
+            />
+          ) : null}
         </div>
-      </div>
-      <div className="min-h-0 flex-1">
-        <DashboardView
-          key={dashboard.updated_at}
-          dashboard={dashboard}
-          runner={runner}
-          editable={editable}
-          startEditing={params.get('edit') === '1'}
-          autoRefresh={refresh}
-          onAutoRefreshChange={async (next) => {
-            setRefresh(next)
-            if (editable) await api.patch(`/v1/dashboards/${dashboard.id}`, { auto_refresh: next })
-          }}
-          onNewQuestion={(tab) => router.push(newQuestionHref(tab))}
-          tab={tab}
-          onTabChange={(next) => router.push(dashboardHref(next), { scroll: false })}
-          onMoveCard={async (cardId, to, toTab) => {
-            await api.post(`/v1/dashboards/${dashboard.id}/cards/${cardId}/move`, { dashboard: to, tab: toTab })
-            await Promise.all([qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) }), qc.invalidateQueries({ queryKey: keys.dashboard(to) })])
-            if (to === dashboard.id) return
-            const target = await qc.fetchQuery({ queryKey: keys.dashboard(to), queryFn: () => api.get<Dashboard>(`/v1/dashboards/${to}`) })
-            toast.success($t('Carte déplacée dans « {name} ».', { name: target.name }), {
-              action: { label: $t('Ouvrir'), onClick: () => router.push(`/dashboard/${to}${toTab ? `?tab=${encodeURIComponent(toTab)}` : ''}`) },
-            })
-          }}
-          onSave={async (d) => {
-            await api.patch(`/v1/dashboards/${dashboard.id}`, d)
-            await qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) })
-            toast.success($t('Tableau de bord enregistré.'))
-            if (params.get('edit')) router.replace(dashboardHref(tab))
-          }}
-          toolbar={
-            <>
-              <Button size="sm" variant="outline" onClick={() => setShare(true)}>
-                <Share2 /> {$t('Partager')}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon-sm" variant="ghost" aria-label={$t('Plus')}>
-                    <Ellipsis />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
-                    <Maximize /> {$t('Plein écran')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={async () => {
-                      await api.post('/v1/bookmarks', { kind: 'dashboard', id, on: true })
-                      toast.success($t('Ajouté aux favoris.'))
-                    }}
-                  >
-                    <Star /> {$t('Ajouter aux favoris')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={async () => {
-                      const d = await api.post<Dashboard>(`/v1/dashboards/${id}/duplicate`, {})
-                      router.push(`/dashboard/${d.id}`)
-                    }}
-                  >
-                    <Copy /> {$t('Dupliquer')}
-                  </DropdownMenuItem>
-                  {editable ? (
-                    <>
-                      <DropdownMenuItem onSelect={() => router.push(newQuestionHref(tab))}>
-                        <Plus /> {$t('Nouvelle question')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => setSettings(true)}>
-                        <Settings2 /> {$t('Réglages')}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive" onSelect={() => setRemove(true)}>
-                        <Trash2 /> {$t('Supprimer')}
-                      </DropdownMenuItem>
-                    </>
-                  ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          }
-        />
-      </div>
-      <ShareDialog open={share} onOpenChange={setShare} kind="dashboard" id={dashboard.id} name={dashboard.name} />
+        <div className="min-h-0 flex-1">
+          <DashboardView
+            key={dashboard.updated_at}
+            dashboard={dashboard}
+            runner={runner}
+            editable={editable}
+            startEditing={params.get('edit') === '1'}
+            autoRefresh={refresh}
+            onAutoRefreshChange={async (next) => {
+              setRefresh(next)
+              if (editable)
+                await api.patch(`/v1/dashboards/${dashboard.id}`, { auto_refresh: next })
+            }}
+            onNewQuestion={(tab) => router.push(newQuestionHref(tab))}
+            tab={tab}
+            onValuesChange={onValuesChange}
+            onTabChange={(next) => router.push(dashboardHref(next), { scroll: false })}
+            onMoveCard={async (cardId, to, toTab) => {
+              await api.post(`/v1/dashboards/${dashboard.id}/cards/${cardId}/move`, {
+                dashboard: to,
+                tab: toTab,
+              })
+              await Promise.all([
+                qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) }),
+                qc.invalidateQueries({ queryKey: keys.dashboard(to) }),
+              ])
+              if (to === dashboard.id) return
+              const target = await qc.fetchQuery({
+                queryKey: keys.dashboard(to),
+                queryFn: () => api.get<Dashboard>(`/v1/dashboards/${to}`),
+              })
+              toast.success($t('Carte déplacée dans « {name} ».', { name: target.name }), {
+                action: {
+                  label: $t('Ouvrir'),
+                  onClick: () =>
+                    router.push(
+                      `/dashboard/${to}${toTab ? `?tab=${encodeURIComponent(toTab)}` : ''}`,
+                    ),
+                },
+              })
+            }}
+            onSave={async (d) => {
+              await api.patch(`/v1/dashboards/${dashboard.id}`, d)
+              await qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) })
+              toast.success($t('Tableau de bord enregistré.'))
+              if (params.get('edit')) router.replace(dashboardHref(tab))
+            }}
+            toolbar={
+              <>
+                <Button size="sm" variant="outline" onClick={() => setShare(true)}>
+                  <Share2 /> {$t('Partager')}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon-sm" variant="ghost" aria-label={$t('Plus')}>
+                      <Ellipsis />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
+                      <Maximize /> {$t('Plein écran')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        const values = encodeURIComponent(JSON.stringify(filterValues.current))
+                        window.open(`/print/dashboard/${dashboard.id}?values=${values}`, '_blank')
+                      }}
+                    >
+                      <FileDown /> {$t('Exporter en PDF')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        await api.post('/v1/bookmarks', { kind: 'dashboard', id, on: true })
+                        toast.success($t('Ajouté aux favoris.'))
+                      }}
+                    >
+                      <Star /> {$t('Ajouter aux favoris')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        const d = await api.post<Dashboard>(`/v1/dashboards/${id}/duplicate`, {})
+                        router.push(`/dashboard/${d.id}`)
+                      }}
+                    >
+                      <Copy /> {$t('Dupliquer')}
+                    </DropdownMenuItem>
+                    {editable ? (
+                      <>
+                        <DropdownMenuItem onSelect={() => router.push(newQuestionHref(tab))}>
+                          <Plus /> {$t('Nouvelle question')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setSettings(true)}>
+                          <Settings2 /> {$t('Réglages')}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onSelect={() => setRemove(true)}
+                        >
+                          <Trash2 /> {$t('Supprimer')}
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            }
+          />
+        </div>
+      </ThemeScope>
+      <ShareDialog
+        open={share}
+        onOpenChange={setShare}
+        kind="dashboard"
+        id={dashboard.id}
+        name={dashboard.name}
+      />
       <SettingsDialog open={settings} onOpenChange={setSettings} dashboard={dashboard} />
       <ConfirmDialog
         open={remove}
         onOpenChange={setRemove}
         title={$t('Supprimer « {name} » ?', { name: dashboard.name })}
-        description={$t('Les questions créées dans ce tableau de bord sont supprimées avec lui ; celles rangées dans un dossier restent.')}
+        description={$t(
+          'Les questions créées dans ce tableau de bord sont supprimées avec lui ; celles rangées dans un dossier restent.',
+        )}
         onConfirm={async () => {
           await api.delete(`/v1/dashboards/${id}`)
           router.push(dashboard.folder ? `/browse/${dashboard.folder}` : '/browse')

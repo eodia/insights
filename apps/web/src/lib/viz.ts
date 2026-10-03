@@ -20,6 +20,10 @@ export const SEQUENTIAL = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf'
 
 export interface Theme {
   readonly dark: boolean
+  /** The font of the charts — a theme's; by default, the page's. */
+  readonly font?: string
+  /** False for a printed page: the charts are drawn at once, in their final state. */
+  readonly animation?: boolean
 }
 
 const ink = (t: Theme) => ({
@@ -449,9 +453,10 @@ export interface ColorTarget {
 export function chartOption(type: VisualizationType, result: Result, settings: VisualizationSettings, theme: Theme): ChartModel | null {
   const c = ink(theme)
   const base: EChartsOption = {
+    animation: theme.animation !== false,
     animationDuration: 300,
     // The family the page really uses: ECharts measures labels on a canvas, which reads no CSS variable.
-    textStyle: { fontFamily: typeof document === 'undefined' ? 'sans-serif' : getComputedStyle(document.body).fontFamily, color: c.secondary, fontSize: 12 },
+    textStyle: { fontFamily: theme.font ? `'${theme.font}', sans-serif` : typeof document === 'undefined' ? 'sans-serif' : getComputedStyle(document.body).fontFamily, color: c.secondary, fontSize: 12 },
     tooltip: {
       backgroundColor: theme.dark ? '#27272a' : '#ffffff',
       borderColor: theme.dark ? '#3f3f46' : '#e4e4e7',

@@ -157,7 +157,7 @@ export function EChart({
     const instance = chart.current
     if (instance === null) return
     const next = shapeOf(option)
-    instance.setOption(option, next === shape.current ? { notMerge: false, replaceMerge: ['series', 'dataset'] } : { notMerge: true })
+    instance.setOption(option, next === shape.current ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: true })
     shape.current = next
   }, [option])
 

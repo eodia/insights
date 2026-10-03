@@ -224,4 +224,12 @@ export default {
   "Vous ne pouvez pas modifier le tableau de bord visé.": "You cannot edit the target dashboard.",
   "Vous ne pouvez pas vous désactiver vous-même.": "You cannot deactivate yourself.",
   "Vous ne pouvez pas vous retirer vous-même des administrateurs.": "You cannot remove yourself from the administrators.",
+  "Créer un thème (administrateurs)": "Create a theme (administrators)",
+  "Lire un thème": "Get a theme",
+  "Lister les thèmes": "List themes",
+  "Modifier un thème (administrateurs)": "Update a theme (administrators)",
+  "Seul un administrateur crée ou modifie un thème.": "Only an administrator can create or edit a theme.",
+  "Supprimer un thème (administrateurs)": "Delete a theme (administrators)",
+  "Thème introuvable.": "Theme not found.",
+  "Thème non créé.": "Theme not created.",
 } as Readonly<Record<string, string>>

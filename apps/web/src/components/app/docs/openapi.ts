@@ -97,6 +97,7 @@ export const API_TAGS = [
   msg('Sources'),
   msg('Structure'),
   msg('Tableaux de bord'),
+  msg('Thèmes'),
 ] as const
 
 /** Every operation, grouped by tag in the order the API declares them. */

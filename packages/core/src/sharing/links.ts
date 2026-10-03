@@ -132,7 +132,7 @@ export async function sharedContent(core: Core, token: string, viewer: Actor | n
   const q = await getQuestion(core, actor, link.item_id)
   return {
     link: { can_embed: link.can_embed, kind: link.item_kind },
-    question: { id: q.id, name: q.name, description: q.description, visualization: q.visualization, type: q.type, variables: q.query.kind === 'builder' ? [] : (q.query.variables ?? []) },
+    question: { id: q.id, name: q.name, description: q.description, visualization: q.visualization, type: q.type, variables: q.query.kind === 'builder' ? [] : (q.query.variables ?? []), resolved_theme: q.resolved_theme ?? null },
   }
 }
 

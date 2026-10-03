@@ -5,6 +5,7 @@ import {
   QuestionInputSchema,
   RunQuerySchema,
   ShareInputSchema,
+  ThemeInputSchema,
 } from '@eodia/contracts'
 import {
   AppError,
@@ -12,6 +13,11 @@ import {
   createDashboard,
   createFolder,
   createQuestion,
+  createTheme,
+  deleteTheme,
+  getTheme,
+  listThemes,
+  updateTheme,
   deleteDashboard,
   deleteQuestion,
   deleteSnippet,
@@ -158,6 +164,21 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'patch', path: '/api/v1/folders/:id', tags: ftags, summary: 'Modifier, déplacer ou archiver un dossier', body: FolderPatch }, async (c) =>
     ok(c, await updateFolder(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, FolderPatch) as never)),
   )
+  // ── Thèmes ──
+  const ttags = ['Thèmes']
+  const ThemePatch = ThemeInputSchema.partial()
+  route(app, { method: 'get', path: '/api/v1/themes', tags: ttags, summary: 'Lister les thèmes' }, async (c) => ok(c, await listThemes(c.get('core'))))
+  route(app, { method: 'get', path: '/api/v1/themes/:id', tags: ttags, summary: 'Lire un thème' }, async (c) => ok(c, await getTheme(c.get('core'), param(c, 'id'))))
+  route(app, { method: 'post', path: '/api/v1/themes', tags: ttags, summary: 'Créer un thème (administrateurs)', body: ThemeInputSchema }, async (c) =>
+    ok(c, await createTheme(c.get('core'), actorOf(c), bodyOf(c, ThemeInputSchema) as never)),
+  )
+  route(app, { method: 'patch', path: '/api/v1/themes/:id', tags: ttags, summary: 'Modifier un thème (administrateurs)', body: ThemePatch }, async (c) =>
+    ok(c, await updateTheme(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, ThemePatch) as never)),
+  )
+  route(app, { method: 'delete', path: '/api/v1/themes/:id', tags: ttags, summary: 'Supprimer un thème (administrateurs)' }, async (c) => {
+    await deleteTheme(c.get('core'), actorOf(c), param(c, 'id'))
+    return ok(c)
+  })
   route(app, { method: 'get', path: '/api/v1/folders/:id/items', tags: ftags, summary: "Contenu d'un dossier (« root » pour la racine)" }, async (c) => {
     const id = param(c, 'id')
     return ok(c, await folderItems(c.get('core'), actorOf(c), id === 'root' ? null : id))

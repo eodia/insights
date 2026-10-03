@@ -167,7 +167,7 @@ export const atLeastAccess = (a: ContentAccess | 'none', min: ContentAccess) => 
 export const maxAccess = max
 
 /** A question with what its access depends on: its folder, or the dashboard it belongs to. */
-export const QUESTION_ROWS = `SELECT q.*, d.name AS dashboard_name, d.folder_id AS dashboard_folder, d.created_by AS dashboard_owner
+export const QUESTION_ROWS = `SELECT q.*, d.name AS dashboard_name, d.folder_id AS dashboard_folder, d.created_by AS dashboard_owner, d.theme_id AS dashboard_theme
   FROM question q LEFT JOIN dashboard d ON d.id = q.dashboard_id`
 
 export interface QuestionAccessRow {

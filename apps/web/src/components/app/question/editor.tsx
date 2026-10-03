@@ -26,7 +26,8 @@ import { Hint } from '@/components/ui/tooltip'
 import { ApiError, type RunResult, api, download } from '@/lib/api'
 import { columnOptions } from '@/lib/builder'
 import { $t } from '@/lib/i18n'
-import { keys, useMe, useMetrics, useModels, useSchemaTree, useTables } from '@/lib/queries'
+import { keys, useMe, useMetrics, useModels, useQuestion, useSchemaTree, useTables } from '@/lib/queries'
+import { ThemeScope } from '@/lib/theme'
 import { useCrumbs, useUi } from '@/lib/store'
 import { autoVisualization } from '@/lib/viz'
 import { cn } from '@/lib/utils'
@@ -121,6 +122,8 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const openCopilot = useUi((s) => s.openCopilot)
 
   const [draft, setDraft] = useState<Draft>(initial)
+  // The chart wears the theme of the question's folder or dashboard.
+  const { data: saved } = useQuestion(draft.id ?? null)
   const [dirty, setDirty] = useState(false)
   const [result, setResult] = useState<RunResult | null>(null)
   const [error, setError] = useState<ApiError | null>(null)
@@ -479,9 +482,9 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
               </div>
             ) : result ? (
               view === 'viz' ? (
-                <div className="h-full">
+                <ThemeScope theme={saved?.resolved_theme} className="h-full">
                   <Visualization result={result} viz={draft.visualization} onPointClick={builder ? onPoint : undefined} />
-                </div>
+                </ThemeScope>
               ) : view === 'table' ? (
                 <DataTable result={result} looks={result.looks} />
               ) : (

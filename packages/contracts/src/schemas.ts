@@ -235,6 +235,8 @@ export const FolderInputSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
   color: color.optional(),
   icon: z.string().max(500).nullable().optional(),
+  /** The theme of the folder and all it holds; null: the parent's. */
+  theme: id.nullable().optional(),
 })
 
 export const QuestionInputSchema = z.object({
@@ -261,6 +263,8 @@ export const DashboardInputSchema = z.object({
   auto_refresh: z.number().int().min(10).max(86_400).nullable().optional(),
   cache_ttl: z.number().int().min(0).nullable().optional(),
   preload: z.boolean().optional(),
+  /** The dashboard's own theme; null: its folder's. */
+  theme: id.nullable().optional(),
 })
 
 export const DataPermissionSchema = z.object({

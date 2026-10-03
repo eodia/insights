@@ -17,6 +17,7 @@ import type {
 } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, DASHBOARD_LIMITS, cardSize, placedAfter } from '@eodia/contracts'
 import { audit } from '../audit'
+import { checkTheme, resolveTheme } from './themes'
 import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { AppError, forbidden, invalid, notFound } from '../errors'
@@ -64,6 +65,13 @@ async function questionDto(core: Core, r: QuestionRow, access: Question['access'
     updated_at: r.updated_at.toISOString(),
     access,
     archived: r.archived,
+    // A dashboard's question wears its dashboard's theme; another, its folder's.
+    resolved_theme: await resolveTheme(
+      core,
+      r.dashboard_id
+        ? { folder: (r as { dashboard_folder?: string | null }).dashboard_folder ?? null, dashboard: { id: r.dashboard_id, name: r.dashboard_name ?? '', theme: (r as { dashboard_theme?: string | null }).dashboard_theme ?? null } }
+        : { folder: r.folder_id },
+    ),
   }
 }
 
@@ -315,6 +323,7 @@ interface DashboardRow {
   cache_ttl: number | null
   preload: boolean
   archived: boolean
+  theme_id: string | null
   created_by: string | null
   created_at: Date
   updated_at: Date
@@ -343,6 +352,8 @@ export async function getDashboard(core: Core, actor: Actor, id: string): Promis
     updated_at: r.updated_at.toISOString(),
     access,
     archived: r.archived,
+    theme: r.theme_id,
+    resolved_theme: await resolveTheme(core, { folder: r.folder_id, dashboard: { id: r.id, name: r.name, theme: r.theme_id } }),
   }
 }
 
@@ -382,9 +393,10 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
   if (!atLeastAccess(current.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier ce tableau de bord.')
   checkCards(input)
   const folder = input.folder !== undefined && input.folder !== current.folder ? await checkFolder(core, actor, input.folder) : current.folder
+  if (input.theme !== undefined) await checkTheme(core, input.theme)
   await core.db.exec(
     `UPDATE dashboard SET folder_id = $2, name = $3, description = $4, tabs = $5, cards = $6, parameters = $7, auto_refresh = $8,
-       cache_ttl = $9, preload = $10, archived = $11, updated_by = $12, updated_at = now() WHERE id = $1`,
+       cache_ttl = $9, preload = $10, archived = $11, updated_by = $12, theme_id = $13, updated_at = now() WHERE id = $1`,
     [
       id,
       folder,
@@ -398,6 +410,7 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
       input.preload ?? current.preload,
       input.archived ?? current.archived,
       actor.userId,
+      input.theme !== undefined ? input.theme : current.theme,
     ],
   )
   // Its own questions follow its cards: one no card cites any more is archived, and comes back with it.

@@ -90,7 +90,7 @@ function relevantValues(card: DashboardCard, values: Values): Values {
   return Object.fromEntries(Object.entries(values).filter(([k]) => ids.has(k)))
 }
 
-function substitute(text: string, parameters: readonly DashboardParameter[], values: Values): string {
+export function substitute(text: string, parameters: readonly DashboardParameter[], values: Values): string {
   return text.replace(/\{\{\s*([a-z0-9_-]+)\s*\}\}/gi, (whole, name: string) => {
     const p = parameters.find((x) => x.id === name || x.label.toLowerCase() === name.toLowerCase())
     if (!p) return whole
@@ -239,7 +239,7 @@ function CardFrame(props: CardProps) {
         {editing ? (
           <input value={card.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} className="card-still w-full bg-transparent text-xl font-semibold outline-none" placeholder={$t('Titre de section')} />
         ) : (
-          <h2 className="text-xl font-semibold tracking-tight">{substitute(card.text ?? '', parameters, values)}</h2>
+          <h2 className="theme-title text-xl font-semibold tracking-tight">{substitute(card.text ?? '', parameters, values)}</h2>
         )}
         {editing ? (
           <button type="button" onClick={onRemove} className="card-still mb-2 ml-2 opacity-0 group-hover:opacity-100">
@@ -251,14 +251,14 @@ function CardFrame(props: CardProps) {
   }
 
   return (
-    <div className={cn('group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-xs', editing && 'ring-primary/30 hover:ring-2')}>
+    <div className={cn('theme-card group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-xs', editing && 'ring-primary/30 hover:ring-2')}>
       {(isQuestion || title || editing) && card.kind !== 'text' ? (
         <div className="flex h-11 shrink-0 items-center gap-2 px-4">
           {editing ? <GripVertical className="card-handle size-4 shrink-0 cursor-move text-muted-foreground" /> : null}
           {editing && editingTitle ? (
             <input autoFocus value={card.title ?? title} onChange={(e) => onChange({ title: e.target.value })} onBlur={() => setEditingTitle(false)} className="card-still flex-1 bg-transparent text-[15px] font-semibold outline-none" />
           ) : (
-            <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold" onDoubleClick={() => editing && setEditingTitle(true)}>
+            <h3 className="theme-title min-w-0 flex-1 truncate text-[15px] font-semibold" onDoubleClick={() => editing && setEditingTitle(true)}>
               {card.question && !publicMode && !editing ? (
                 <Link href={`/question/${card.question}`} className="hover:text-primary hover:underline">
                   {title}
@@ -567,13 +567,16 @@ export interface DashboardViewProps {
   onTabChange?: (tab: string) => void
   /** Moves a card to a tab or another dashboard, on the server. */
   onMoveCard?: (cardId: string, dashboard: string, tab: string | null) => Promise<void>
+  /** Told the filters' values as they change — what a print of the dashboard shows. */
+  onValuesChange?: (values: Readonly<Record<string, ParameterValue | null>>) => void
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   const [draft, setDraft] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
   const initialValues = useMemo(() => Object.fromEntries(dashboard.parameters.map((p) => [p.id, p.default ?? null])) as Values, [dashboard.parameters])
   const [values, setValues] = useState<Values>(initialValues)
+  useEffect(() => onValuesChange?.(values), [values, onValuesChange])
   const [tabState, setTabState] = useState<string | null>(dashboard.tabs[0]?.id ?? null)
   const tab = tabProp !== undefined ? tabProp : tabState
   const setTab = (id: string) => {
@@ -941,7 +944,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       ) : null}
 
       {/* Grid */}
-      <div ref={containerRef} className="min-h-0 flex-1 overflow-y-auto bg-surface px-6 py-5">
+      <div ref={containerRef} className="theme-surface min-h-0 flex-1 overflow-y-auto bg-surface px-6 py-5">
         {cards.length === 0 ? (
           <div className="flex h-60 flex-col items-center justify-center gap-3 rounded-xl border border-dashed text-sm text-muted-foreground">
             {$t('Ce tableau de bord est vide.')}

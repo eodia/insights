@@ -8,6 +8,7 @@ import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
 import { $t, $tp, intlLocale } from '@/lib/i18n'
 import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles } from '@/lib/viz'
+import { useChartTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -75,12 +76,18 @@ export function Visualization({
   selected?: readonly string[]
 }) {
   const dark = useDark()
-  const settings = (viz.settings ?? {}) as VisualizationSettings
+  const chartTheme = useChartTheme()
+  // A card that chose no palette takes its theme's.
+  const own = (viz.settings ?? {}) as VisualizationSettings
+  const settings = useMemo(
+    () => (!own.scheme && chartTheme.scheme ? { ...own, scheme: chartTheme.scheme, ...(chartTheme.colors ? { colors: chartTheme.colors } : {}) } : own),
+    [own, chartTheme.scheme, chartTheme.colors],
+  )
   const model = useMemo(() => {
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
-    const m = chartOption(viz.type, result, settings, { dark })
+    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}) })
     return m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
-  }, [viz.type, result, settings, dark, selected])
+  }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still])
 
   if (result.rows.length === 0) {
     return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{$t('Aucun résultat')}</div>

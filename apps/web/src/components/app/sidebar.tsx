@@ -37,6 +37,7 @@ import {
   LogOut,
   Moon,
   Network,
+  Palette,
   ScrollText,
   Settings,
   Shield,
@@ -205,6 +206,7 @@ export function Sidebar() {
                 <NavItem href="/admin/groups" icon={UsersRound} label={$t('Groupes')} active={is('/admin/groups')} sub />
                 <NavItem href="/admin/permissions" icon={Shield} label={$t('Permissions')} active={is('/admin/permissions')} sub />
                 <NavItem href="/admin/audit" icon={ScrollText} label={$t("Journal d'audit")} active={is('/admin/audit')} sub />
+                <NavItem href="/admin/themes" icon={Palette} label={$t('Thèmes')} active={is('/admin/themes')} sub />
                 <NavItem href="/admin/settings" icon={SlidersHorizontal} label={$t('Réglages')} active={is('/admin/settings')} sub />
               </div>
             ) : null}
