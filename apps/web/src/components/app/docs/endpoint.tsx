@@ -137,7 +137,7 @@ export function EndpointDetail({ endpoint: e, doc }: { endpoint: Endpoint; doc: 
           ))}
         </ul>
         <p className="text-xs text-muted-foreground">
-          {around($t('Une erreur renvoie {body} avec un message en français, prêt à afficher.'), 'body', <code className="font-mono">{'{ "error": { "code": "…", "message": "…" } }'}</code>)}
+          {around($t('Une erreur renvoie {body} avec un message dans la langue de l’appelant (Accept-Language), prêt à afficher.'), 'body', <code className="font-mono">{'{ "error": { "code": "…", "message": "…" } }'}</code>)}
         </p>
       </Section>
     </article>

@@ -84,7 +84,7 @@ function Overview({ doc, endpoints, onSelect, onToken }: { doc: OpenApiDoc; endp
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
           <li>{$t('Toute lecture de données passe par Trino sous votre identité : vos règles de ligne et vos colonnes masquées s’appliquent aussi par l’API.')}</li>
           <li>{$t('Un jeton ne vaut que pour les surfaces qu’il déclare : un jeton MCP seul est refusé sur l’API REST.')}</li>
-          <li>{$t('Les erreurs portent un code stable et un message en français, prêt à afficher.')}</li>
+          <li>{$t('Les erreurs portent un code stable et un message dans la langue de l’appelant, prêt à afficher.')}</li>
           <li>
             {$tp(
               endpoints,

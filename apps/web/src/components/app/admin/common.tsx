@@ -58,7 +58,7 @@ export const QUERY_LEVEL_TEXT: Record<QueryLevel, string> = {
 
 export const COLUMN_ACCESS_TEXT: Record<ColumnAccess, string> = {
   hidden: msg('Cachée'),
-  masked: msg('Masquée'),
+  masked: msg('Masquée||accès à une colonne : ses valeurs sont masquées'),
   read: msg('Lisible'),
 }
 

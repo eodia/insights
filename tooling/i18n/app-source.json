@@ -4254,7 +4254,7 @@
       "app/(app)/admin/groups/page.tsx:283"
     ]
   },
-  "Les erreurs portent un code stable et un message en français, prêt à afficher.": {
+  "Les erreurs portent un code stable et un message dans la langue de l’appelant, prêt à afficher.": {
     "where": [
       "components/app/docs/docs-viewer.tsx:87"
     ]
@@ -4538,14 +4538,19 @@
   },
   "Masquée": {
     "where": [
-      "components/app/admin/common.tsx:61",
       "components/app/structure/column-bits.tsx:71",
-      "components/app/structure/format-editor.tsx:247"
+      "components/app/structure/format-editor.tsx:247",
+      "packages/contracts/src/metadata.ts:194"
     ]
   },
   "Masquée : la valeur est remplacée (NULL par défaut). Cachée : la colonne n’existe plus pour le groupe.": {
     "where": [
       "components/app/admin/permission-matrix.tsx:197"
+    ]
+  },
+  "Masquée||accès à une colonne : ses valeurs sont masquées": {
+    "where": [
+      "components/app/admin/common.tsx:61"
     ]
   },
   "Masquer les règles": {
@@ -7302,7 +7307,7 @@
       "components/app/admin/common.tsx:86"
     ]
   },
-  "Une erreur renvoie {body} avec un message en français, prêt à afficher.": {
+  "Une erreur renvoie {body} avec un message dans la langue de l’appelant (Accept-Language), prêt à afficher.": {
     "where": [
       "components/app/docs/endpoint.tsx:140"
     ]
