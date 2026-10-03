@@ -6,7 +6,7 @@
  */
 import type { ResultColumn, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
-import { formatValue } from './format'
+import { LOOK_HEX, formatValue } from './format'
 import { $t } from './i18n'
 
 /** Validated categorical order (light / dark), never cycled past eight. */
@@ -32,6 +32,16 @@ export const seriesColor = (i: number, t: Theme) => (t.dark ? SERIES_DARK : SERI
 export interface Result {
   readonly columns: readonly ResultColumn[]
   readonly rows: ReadonlyArray<readonly unknown[]>
+  /** Values' looks by column id: a value with a colour of its own keeps it in every chart. */
+  readonly looks?: Readonly<Record<string, readonly { readonly value: string; readonly color?: string | null }[]>>
+}
+
+/** The colour a value was given in « Structure », if any. */
+function valueColor(result: Result, col: ResultColumn | undefined, raw: unknown): string | undefined {
+  const id = col?.source?.column
+  if (!id || raw === null || raw === undefined) return undefined
+  const name = result.looks?.[id]?.find((l) => l.value === String(raw))?.color
+  return name ? LOOK_HEX[name as keyof typeof LOOK_HEX] : undefined
 }
 
 const isNumeric = (c: ResultColumn) => c.type === 'number' && !c.unit
@@ -128,7 +138,7 @@ function cartesian(result: Result, settings: VisualizationSettings) {
     }
   }
   const index = new Map(categories.map((c, i) => [keyOf(c), i]))
-  type S = { name: string; key: string; metric: ResultColumn; values: (number | null)[] }
+  type S = { name: string; key: string; metric: ResultColumn; values: (number | null)[]; look?: string }
   const series: S[] = []
   if (split && metrics[0]) {
     const si = result.columns.indexOf(split)
@@ -144,7 +154,8 @@ function cartesian(result: Result, settings: VisualizationSettings) {
       const k = fold && !kept.has(raw) ? '__other__' : raw
       let s = bySplit.get(k)
       if (!s) {
-        s = { name: k === '__other__' ? $t('Autres') : formatValue(row[si], split) || '∅', key: k, metric: metrics[0], values: categories.map(() => null) }
+        const look = k === '__other__' ? undefined : valueColor(result, split, row[si])
+        s = { name: k === '__other__' ? $t('Autres') : formatValue(row[si], split) || '∅', key: k, metric: metrics[0], values: categories.map(() => null), ...(look ? { look } : {}) }
         bySplit.set(k, s)
       }
       const at = index.get(keyOf(row[xi])) as number
@@ -197,7 +208,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     if (!d || !m) return null
     const di = result.columns.indexOf(d)
     const mi = result.columns.indexOf(m)
-    let data = result.rows.map((r) => ({ key: keyOf(r[di]), name: formatValue(r[di], d) || '∅', value: Number(r[mi]) || 0, raw: r[di] }))
+    let data: { key: string; name: string; value: number; raw: unknown }[] = result.rows.map((r) => ({ key: keyOf(r[di]), name: formatValue(r[di], d) || '∅', value: Number(r[mi]) || 0, raw: r[di] }))
     if (settings.sort_slices !== false) data.sort((a, b) => b.value - a.value)
     const max = Math.min(Math.max(settings.slices_max ?? 7, 2), 8)
     if (type === 'pie' && data.length > max) {
@@ -205,7 +216,9 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       data = [...data.slice(0, max - 1), { key: '__other__', name: $t('Autres'), value: rest.reduce((s, x) => s + x.value, 0), raw: null }]
     }
     const total = data.reduce((s, x) => s + x.value, 0)
-    const colored = data.map((x, i) => ({ ...x, itemStyle: { color: x.key === '__other__' ? (theme.dark ? OTHER.dark : OTHER.light) : seriesColor(i, theme) } }))
+    // A value's own colour first; the palette fills in for the others, in its order.
+    let next = 0
+    const colored = data.map((x) => ({ ...x, itemStyle: { color: x.key === '__other__' ? (theme.dark ? OTHER.dark : OTHER.light) : (valueColor(result, d, x.raw) ?? seriesColor(next++, theme)) } }))
     if (type === 'funnel') {
       return {
         clickColumn: d,
@@ -329,10 +342,19 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     ...(settings.y_label ? { name: settings.y_label, nameTextStyle: { color: c.muted } } : {}),
   }
   const width = settings.bar_width === 'thin' ? '35%' : settings.bar_width === 'wide' ? '80%' : '58%'
+  // A series per value: the value's own colour, else the palette's next — the chosen colour above all.
+  let next = 0
+  const colors = series.map((s) =>
+    settings.series?.[s.key]?.color ??
+    (series.length === 1 && settings.color ? settings.color : s.key === '__other__' ? (theme.dark ? OTHER.dark : OTHER.light) : (s.look ?? seriesColor(next++, theme))),
+  )
+  // One series over categories that have colours of their own: each bar takes its category's.
+  const barLooks = series.length === 1 && !settings.color && !settings.series?.[series[0]?.key ?? '']?.color && !isTemporal(x) ? categories.map((v) => valueColor(result, x, v)) : []
   const out: SeriesOption[] = series.map((s, i) => {
     const display = type === 'combo' ? (settings.series?.[s.key]?.display ?? (i === 0 ? 'bar' : 'line')) : type === 'row' ? 'bar' : type === 'area' ? 'area' : type === 'line' ? 'line' : 'bar'
-    const color = settings.series?.[s.key]?.color ?? (series.length === 1 && settings.color ? settings.color : s.key === '__other__' ? (theme.dark ? OTHER.dark : OTHER.light) : seriesColor(i, theme))
-    const data = percent ? s.values.map((v, j) => (v === null ? null : (Math.abs(v) / (totals[j] || 1)) * 100)) : s.values
+    const color = colors[i] as string
+    const values = percent ? s.values.map((v, j) => (v === null ? null : (Math.abs(v) / (totals[j] || 1)) * 100)) : s.values
+    const data = display === 'bar' && barLooks.some(Boolean) ? values.map((v, j) => (barLooks[j] ? { value: v, itemStyle: { color: barLooks[j] } } : v)) : values
     if (display === 'bar') {
       return {
         type: 'bar',
@@ -379,7 +401,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     categories,
     option: {
       ...base,
-      color: series.map((_, i) => seriesColor(i, theme)),
+      color: colors,
       grid: { left: 8, right: 16, top: legend ? 36 : 14, bottom: many ? 34 : 6, containLabel: true },
       legend: legend ? { top: 0, left: 0, type: 'scroll', icon: 'roundRect', itemWidth: 10, itemHeight: 10, itemGap: 18, textStyle: { color: c.secondary } } : undefined,
       tooltip: {

@@ -56,7 +56,7 @@ export function Visualization({
   }
   switch (viz.type) {
     case 'table':
-      return <DataTable result={result} settings={settings} looks={'looks' in result ? result.looks : undefined} />
+      return <DataTable result={result} settings={settings} looks={'looks' in result ? (result as RunResult).looks : undefined} />
     case 'scalar':
       return <Scalar result={result} settings={settings} compact={compact} />
     case 'trend':
