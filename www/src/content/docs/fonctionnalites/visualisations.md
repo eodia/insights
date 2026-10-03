@@ -16,10 +16,33 @@ résultat ; une forme qui ne lui convient pas est atténuée, et son info-bulle 
 |---|---|---|
 | **Chiffres clés** | Nombre, Tendance, Progression, Jauge | un chiffre, son évolution, sa part d’un objectif |
 | **Comparer** | Barres, Barres horizontales, **Radar** | des catégories entre elles ; le radar compare des profils sur 3 à 30 critères, sur une échelle commune |
-| **Évolution** | Lignes, Aires, Combiné, **Course de barres**, **Course de courbes** | suivre dans le temps — et [prévoir](/insights/fonctionnalites/previsions/) ; les courses rejouent l’histoire période après période |
-| **Répartition** | Camembert, Entonnoir | des parts, des étapes |
+| **Évolution** | Lignes, Aires, Combiné, **Course de barres**, **Course de courbes**, **Calendrier** | suivre dans le temps — et [prévoir](/insights/fonctionnalites/previsions/) ; les courses rejouent l’histoire période après période |
+| **Répartition** | Camembert (sur plusieurs anneaux), **Carte proportionnelle**, Entonnoir | des parts, des parts de parts, des étapes |
 | **Relation** | Nuage de points | deux mesures l’une contre l’autre |
 | **Détail** | Tableau, Tableau croisé, Carte | des lignes, une mesure croisée, des valeurs par région |
+
+### Des parts sur plusieurs niveaux
+
+Un **camembert à plusieurs dimensions** — par exemple type, motif, sous-motif — devient des
+anneaux : le premier niveau au centre, chaque niveau suivant autour, dans les teintes de sa
+part parente. Un clic sur une part zoome dessus ; un clic au centre revient. La **carte
+proportionnelle** (*treemap*) range les mêmes niveaux en rectangles imbriqués, chacun aussi
+grand que sa valeur, avec le nom de chaque groupe dans son bandeau ; un clic zoome, le fil
+d’Ariane en haut revient en arrière. Trois niveaux au plus.
+
+### Le calendrier
+
+Une valeur par jour, posée sur le calendrier des trois années les plus récentes : un **point**
+d’autant plus grand que la valeur, ou des **cases colorées** avec leur légende. On y voit d’un
+coup les jours de la semaine, les saisons et les trous. Un clic sur un jour filtre le tableau de
+bord.
+
+### Le temps, les périodes
+
+Sur une courbe ou une aire datée, **Axe du temps continu** espace les dates selon le temps qui
+les sépare : un mois manquant laisse un vide au lieu d’être escamoté. **Périodes mises en
+avant** colore une ou plusieurs périodes — une promotion, des soldes, une grève — d’une bande
+nommée, et, sur une courbe seule, la courbe elle-même prend la couleur de la période.
 
 ### Les courses
 

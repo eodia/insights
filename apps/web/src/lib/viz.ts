@@ -10,6 +10,7 @@ import { LOOK_HEX, formatValue } from './format'
 import { $t, intlLocale, msg } from './i18n'
 import { FORECAST_UNITS, type Forecast, forecast, nextPeriods } from './forecast'
 import { PALETTES, schemeColors } from './palettes'
+import { weekStart } from './preferences'
 
 /** Validated categorical order (light / dark), never cycled past eight — see `palettes.ts`. */
 export const SERIES_LIGHT = PALETTES.eodia.light
@@ -124,6 +125,10 @@ export function vizFits(type: VisualizationType, result: Result): boolean {
       const i = result.columns.indexOf(time)
       return new Set(result.rows.map((r) => keyOf(r[i]))).size >= 2 && (dims.length >= 2 || metrics.length >= 2 || type === 'line_race')
     }
+    case 'treemap':
+      return metrics.length >= 1 && dims.length >= 1
+    case 'calendar':
+      return metrics.length >= 1 && result.columns.some(isTemporal)
     case 'pivot':
       return dims.length >= 2 && metrics.length >= 1
     case 'map':
@@ -150,6 +155,8 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   radar: msg('Radar'),
   bar_race: msg('Course de barres'),
   line_race: msg('Course de courbes'),
+  treemap: msg('Carte proportionnelle'),
+  calendar: msg('Calendrier'),
   pivot: msg('Tableau croisé'),
   map: msg('Carte'),
 }
@@ -292,6 +299,120 @@ function raceData(result: Result, settings: VisualizationSettings) {
   return { time, metric, periods, entries }
 }
 
+/** A colour mixed with another: `t` 0 keeps `a`, 1 gives `b`. */
+function mix(a: string, b: string, t: number): string {
+  if (!/^#[0-9a-f]{6}$/i.test(a) || !/^#[0-9a-f]{6}$/i.test(b)) return a
+  const ch = (hex: string, i: number) => Number.parseInt(hex.slice(1 + 2 * i, 3 + 2 * i), 16)
+  return `#${[0, 1, 2].map((i) => Math.round(ch(a, i) + (ch(b, i) - ch(a, i)) * t).toString(16).padStart(2, '0')).join('')}`
+}
+
+/** A date as a time axis reads it: milliseconds, or null. */
+function timeOf(v: unknown): number | null {
+  if (v instanceof Date) return v.getTime()
+  if (typeof v === 'number') return v
+  if (typeof v !== 'string') return null
+  const t = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00:00Z` : v)
+  return Number.isFinite(t) ? t : null
+}
+
+interface TreeNode {
+  key: string
+  name: string
+  value: number
+  raw: unknown
+  depth: number
+  itemStyle?: { color: string }
+  label?: { color: string }
+  children?: TreeNode[]
+}
+
+/**
+ * Rows as a tree: one level per dimension (three at most), each node the sum of its rows,
+ * the largest first. Built for nested rings and treemaps.
+ */
+function hierarchy(result: Result, levels: readonly ResultColumn[], metric: ResultColumn): TreeNode[] {
+  const at = levels.map((l) => result.columns.indexOf(l))
+  const mi = result.columns.indexOf(metric)
+  const root: TreeNode[] = []
+  const index = new Map<TreeNode[], Map<string, TreeNode>>()
+  for (const row of result.rows) {
+    const value = Number(row[mi]) || 0
+    let list = root
+    levels.forEach((col, d) => {
+      const raw = row[at[d] as number]
+      const key = keyOf(raw)
+      let map = index.get(list)
+      if (!map) {
+        map = new Map()
+        index.set(list, map)
+      }
+      let node = map.get(key)
+      if (!node) {
+        node = { key, name: formatValue(raw, col) || '∅', value: 0, raw, depth: d }
+        map.set(key, node)
+        list.push(node)
+      }
+      node.value += value
+      if (d < levels.length - 1) {
+        node.children ??= []
+        list = node.children
+      }
+    })
+  }
+  const sort = (list: TreeNode[]) => {
+    list.sort((a, b) => b.value - a.value)
+    for (const n of list) if (n.children) sort(n.children)
+  }
+  sort(root)
+  return root
+}
+
+/**
+ * The colours of a tree: each first-level node its own — chosen, its value's, or the
+ * palette's next —, its descendants lighter shades of it, the largest closest to it.
+ */
+function paintTree(tree: TreeNode[], result: Result, first: ResultColumn, settings: VisualizationSettings, theme: Theme): ColorTarget[] {
+  const c = ink(theme)
+  const pal = paletteOf(settings, theme, tree.length)
+  let next = 0
+  const shade = (nodes: TreeNode[], base: string) => {
+    nodes.forEach((n, k) => {
+      const color = mix(base, c.surface, 0.18 + (0.42 * k) / Math.max(nodes.length, 2))
+      n.itemStyle = { color }
+      n.label = { color: c.primary }
+      if (n.children) shade(n.children, color)
+    })
+  }
+  const targets = tree.map((n) => {
+    const color = settings.series?.[n.key]?.color ?? valueColor(result, first, n.raw) ?? pal(next++)
+    n.itemStyle = { color }
+    n.label = { color: '#ffffff' }
+    if (n.children) shade(n.children, color)
+    return { key: n.key, name: n.name, color }
+  })
+  // A parent's border is its header in a treemap: painted in its colour, named in its ink.
+  const frame = (nodes: TreeNode[]) => {
+    for (const n of nodes) {
+      if (!n.children) continue
+      n.itemStyle = { ...(n.itemStyle as { color: string }), borderColor: n.itemStyle?.color } as TreeNode['itemStyle']
+      ;(n as TreeNode & { upperLabel?: object }).upperLabel = { color: n.depth === 0 ? '#ffffff' : c.primary }
+      frame(n.children)
+    }
+  }
+  frame(tree)
+  return targets
+}
+
+/** The way a tree node is named in a tooltip: its path, its value, its share of the whole. */
+function treeTooltip(metric: ResultColumn, total: number) {
+  return (params: unknown) => {
+    const p = params as { treePathInfo?: { name: string }[]; name: string; value: number; marker?: string }
+    const path = (p.treePathInfo ?? []).map((x) => x.name).filter(Boolean).join(' › ') || p.name
+    const share = total ? percentText((Math.abs(p.value) / total) * 100) : ''
+    return `${p.marker ?? ''} ${path}<br/><b>${formatValue(p.value, metric)}</b>${share ? ` · ${share}` : ''}`
+  }
+}
+
 function axisLabel(col: ResultColumn | undefined, compact = true) {
   return (v: unknown) => (col ? formatValue(v, col, { compact }) : String(v))
 }
@@ -336,6 +457,197 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       textStyle: { color: c.primary, fontSize: 12 },
       extraCssText: 'box-shadow: 0 8px 24px rgba(0,0,0,.12); border-radius: 8px;',
     },
+  }
+
+  if (type === 'pie' || type === 'treemap') {
+    const { dims, metrics } = roles(result, settings)
+    const m = metrics[0]
+    const levels = dims.slice(0, 3)
+    const first = levels[0]
+    if (first && m && (type === 'treemap' || levels.length >= 2)) {
+      const tree = hierarchy(result, levels, m)
+      const targets = paintTree(tree, result, first, settings, theme)
+      const total = tree.reduce((sum, n) => sum + Math.abs(n.value), 0)
+      if (type === 'pie') {
+        // Several dimensions: one ring per level, from the centre out — type, then motive…
+        const donut = settings.donut !== false
+        const inner = donut ? 20 : 0
+        const ring = (90 - inner) / levels.length
+        return {
+          targets,
+          option: {
+            ...base,
+            tooltip: { ...base.tooltip, trigger: 'item', formatter: treeTooltip(m, total) },
+            title:
+              donut && settings.total !== false
+                ? { text: formatValue(total, m, { compact: true }), subtext: $t('Total'), left: 'center', top: 'center', textAlign: 'center', textStyle: { fontSize: 16, fontWeight: 600, color: c.primary }, subtextStyle: { color: c.muted, fontSize: 11 } }
+                : undefined,
+            series: [
+              {
+                type: 'sunburst',
+                center: ['50%', '50%'],
+                radius: [`${inner}%`, '90%'],
+                sort: undefined,
+                nodeClick: 'rootToNode',
+                emphasis: { focus: 'ancestor' },
+                itemStyle: { borderColor: c.surface, borderWidth: 2, borderRadius: 3 },
+                label: { fontSize: 11, minAngle: 14, overflow: 'truncate' },
+                levels: [
+                  {},
+                  ...levels.map((_, d) => ({
+                    r0: `${inner + d * ring}%`,
+                    r: `${inner + (d + 1) * ring}%`,
+                    label: { rotate: d === 0 ? ('tangential' as const) : ('radial' as const), ...(d === levels.length - 1 && levels.length > 1 ? { align: 'right' as const, padding: 3 } : {}) },
+                  })),
+                ],
+                data: tree as never,
+              },
+            ] as SeriesOption[],
+          },
+        }
+      }
+      // A treemap: rectangles as large as their value, nested by dimension.
+      const single = levels.length === 1
+      return {
+        targets,
+        ...(single ? { clickColumn: first } : {}),
+        option: {
+          ...base,
+          tooltip: { ...base.tooltip, trigger: 'item', formatter: treeTooltip(m, total) },
+          series: [
+            {
+              type: 'treemap',
+              name: m.label,
+              top: single ? 2 : 28,
+              left: 2,
+              right: 2,
+              bottom: 2,
+              roam: false,
+              nodeClick: single ? false : 'zoomToNode',
+              squareRatio: 1.2,
+              breadcrumb: {
+                show: !single,
+                top: 0,
+                left: 0,
+                height: 22,
+                itemStyle: { color: theme.dark ? '#27272a' : '#f4f4f5', borderColor: c.surface, textStyle: { color: c.secondary } },
+                emphasis: { itemStyle: { color: theme.dark ? '#3f3f46' : '#e4e4e7' } },
+              },
+              itemStyle: { borderColor: c.surface, borderWidth: 1, gapWidth: 1 },
+              upperLabel: { show: !single, height: 20, fontWeight: 600, fontSize: 11, formatter: '{b}' },
+              label: {
+                show: true,
+                fontSize: 11,
+                overflow: 'truncate',
+                formatter: (p: { name: string; value: unknown }) => `{name|${p.name}}\n{value|${formatValue(p.value, m, { compact: true })}}`,
+                rich: { name: { fontSize: 12, fontWeight: 600, lineHeight: 16 }, value: { fontSize: 11, opacity: 0.85, lineHeight: 15 } },
+              },
+              levels: [
+                { itemStyle: { borderWidth: 0, gapWidth: 3 }, upperLabel: { show: false } },
+                { itemStyle: { borderWidth: 2, gapWidth: 1 } },
+                { itemStyle: { borderWidth: 2, gapWidth: 1 } },
+                { itemStyle: { borderWidth: 0 } },
+              ],
+              data: tree as never,
+            },
+          ] as SeriesOption[],
+        },
+      }
+    }
+    if (type === 'treemap') return null
+  }
+
+  if (type === 'calendar') {
+    // Days on a calendar, one per year (the three most recent): a dot sized by the value, or a coloured square.
+    const { dims, metrics } = roles(result, settings)
+    const d = dims.find(isTemporal) ?? result.columns.find(isTemporal)
+    const m = metrics[0]
+    if (!d || !m) return null
+    const di = result.columns.indexOf(d)
+    const mi = result.columns.indexOf(m)
+    const days = new Map<string, { value: number; raw: unknown }>()
+    for (const row of result.rows) {
+      const t = timeOf(row[di])
+      if (t === null) continue
+      const day = new Date(t).toISOString().slice(0, 10)
+      const found = days.get(day)
+      if (found) found.value += Number(row[mi]) || 0
+      else days.set(day, { value: Number(row[mi]) || 0, raw: row[di] })
+    }
+    const years = [...new Set([...days.keys()].map((k) => k.slice(0, 4)))].sort().slice(-3)
+    if (years.length === 0) return null
+    const max = Math.max(1e-9, ...[...days.values()].map((x) => Math.abs(x.value)))
+    const min = Math.min(...[...days.values()].map((x) => x.value))
+    const color = settings.color ?? paletteOf(settings, theme, 1)(0)
+    const heat = settings.calendar_style === 'heatmap'
+    const lang = intlLocale()
+    const weekday = new Intl.DateTimeFormat(lang, { weekday: 'short', timeZone: 'UTC' })
+    const month = new Intl.DateTimeFormat(lang, { month: 'short', timeZone: 'UTC' })
+    // 4 January 2015 was a Sunday: ECharts names the days from Sunday.
+    const dayNames = Array.from({ length: 7 }, (_, i) => weekday.format(Date.UTC(2015, 0, 4 + i)))
+    const monthNames = Array.from({ length: 12 }, (_, i) => month.format(Date.UTC(2021, i, 15)))
+    const n = years.length
+    const bottom = heat ? 12 : 4
+    const block = (100 - bottom - 2) / n
+    return {
+      clickColumn: d,
+      option: {
+        ...base,
+        tooltip: {
+          ...base.tooltip,
+          trigger: 'item',
+          formatter: (params: unknown) => {
+            const p = params as { data: { value: [string, number]; raw: unknown } }
+            return `${formatValue(p.data.raw, { ...d, unit: 'day' })}<br/><b>${formatValue(p.data.value[1], m)}</b>`
+          },
+        },
+        ...(heat
+          ? {
+              visualMap: {
+                min: Math.min(0, min),
+                max,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: 0,
+                itemWidth: 10,
+                itemHeight: 140,
+                calculable: false,
+                text: [formatValue(max, m, { compact: true }), formatValue(Math.min(0, min), m, { compact: true })],
+                inRange: { color: [mix(color, c.surface, 0.88), mix(color, c.surface, 0.45), color] },
+                textStyle: { color: c.muted, fontSize: 10 },
+                formatter: (v: unknown) => formatValue(Number(v), m, { compact: true }),
+              },
+            }
+          : {}),
+        calendar: years.map((y, i) => ({
+          range: y,
+          top: `${2 + i * block + 5}%`,
+          height: `${block - 9}%`,
+          left: 52,
+          right: 12,
+          cellSize: ['auto', 'auto'],
+          splitLine: { lineStyle: { color: c.grid, width: 1 } },
+          itemStyle: { color: theme.dark ? '#1c1c1f' : '#fafafa', borderColor: c.surface, borderWidth: 2 },
+          dayLabel: { firstDay: weekStart(), nameMap: dayNames, color: c.muted, fontSize: 9 },
+          monthLabel: { nameMap: monthNames, color: c.muted, fontSize: 10 },
+          yearLabel: { show: true, color: c.secondary, fontSize: 12, fontWeight: 600, margin: 28 },
+        })),
+        series: years.map((y, i) => {
+          const data = [...days.entries()].filter(([k]) => k.startsWith(y)).map(([k, x]) => ({ value: [k, x.value], raw: x.raw }))
+          return heat
+            ? { type: 'heatmap', coordinateSystem: 'calendar', calendarIndex: i, data }
+            : {
+                type: 'scatter',
+                coordinateSystem: 'calendar',
+                calendarIndex: i,
+                data,
+                symbolSize: (v: [string, number]) => 2 + 7 * Math.sqrt(Math.abs(v[1]) / max),
+                itemStyle: { color, opacity: 0.85 },
+                emphasis: { itemStyle: { opacity: 1, borderColor: c.surface, borderWidth: 1 } },
+              }
+        }) as SeriesOption[],
+      } as EChartsOption,
+    }
   }
 
   if (type === 'pie' || type === 'funnel') {
@@ -723,6 +1035,19 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     ...(settings.x_axis === false ? { show: false } : {}),
     inverse: horizontal,
   }
+  // Lines and areas over dates may sit on a continuous time axis: periods spaced as they are.
+  const timeAxis = !!settings.x_time && isTemporal(x) && (type === 'line' || type === 'area')
+  const at = (j: number) => timeOf(categories[j])
+  const onAxis = (values: readonly unknown[]) => (timeAxis ? values.map((v, j) => [at(j), v]) : values)
+  const isoOf = (t: number) => new Date(t).toISOString()
+  const timeAx = {
+    type: 'time' as const,
+    axisTick: { show: false },
+    axisLine: { lineStyle: { color: c.grid } },
+    axisLabel: { color: c.muted, hideOverlap: true, formatter: (t: number) => formatValue(x.type === 'date' ? isoOf(t).slice(0, 10) : isoOf(t), x) },
+    splitLine: { show: false },
+    ...(settings.x_axis === false ? { show: false } : {}),
+  }
   const valAxis = {
     type: settings.y_scale === 'log' ? ('log' as const) : ('value' as const),
     ...(settings.y_min !== undefined && settings.y_min !== null ? { min: settings.y_min } : {}),
@@ -782,7 +1107,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
             color: c.secondary,
             fontSize: 11,
             formatter: (p: { value: unknown; dataIndex: number }) => {
-              const v = p.value as number | null
+              const v = (Array.isArray(p.value) ? p.value[1] : p.value) as number | null
               if (v === null || v === undefined) return ''
               const shown = spot >= 0 && !settings.values ? p.dataIndex === spot : fewEnough || v === hi || v === lo || p.dataIndex === lastIndex
               return shown ? (percent ? percentText(v, 0) : formatValue(v, s.metric, { compact: true })) : ''
@@ -822,7 +1147,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     return {
       type: 'line',
       name: s.name,
-      data,
+      data: onAxis(data as unknown[]),
       stack,
       smooth,
       step: settings.line_style === 'step' ? 'middle' : undefined,
@@ -840,7 +1165,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       emphasis: { focus: 'series' },
       label: label('top'),
       // The highlighted point, ringed and labelled.
-      ...(spot >= 0 ? { markPoint: { symbol: 'circle', symbolSize: 12, itemStyle: { color, borderColor: c.surface, borderWidth: 3 }, label: { show: false }, data: [{ coord: [spot, values[spot]] }] } } : {}),
+      ...(spot >= 0 ? { markPoint: { symbol: 'circle', symbolSize: 12, itemStyle: { color, borderColor: c.surface, borderWidth: 3 }, label: { show: false }, data: [{ coord: [timeAxis ? at(spot) : spot, values[spot]] }] } } : {}),
       // Two to four lines are named at their end: the eye need not go back to the legend.
       ...(endLabels ? { endLabel: { show: true, formatter: '{a}', color, fontSize: 11, fontWeight: 600, distance: 6 }, labelLayout: { moveOverlap: 'shiftY' } } : {}),
     } as SeriesOption
@@ -863,7 +1188,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       out.push({
         type: 'line',
         name: forecastName(s.name),
-        data,
+        data: onAxis(data),
         ...(stack ? { stack: 'forecast' } : {}),
         smooth: settings.line_style === 'smooth',
         connectNulls: true,
@@ -889,8 +1214,8 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
           width[n + k] = (fc.upper[k] as number) - v
         })
         const quiet = { type: 'line', stack: 'band', symbol: 'none', connectNulls: true, silent: true, lineStyle: { opacity: 0 }, emphasis: { disabled: true }, smooth: settings.line_style === 'smooth' }
-        out.push({ ...quiet, name: `${HIDDEN}bas`, data: base } as SeriesOption)
-        out.push({ ...quiet, name: `${HIDDEN}haut`, data: width, areaStyle: { color: alpha(fcColor, 0.13) } } as SeriesOption)
+        out.push({ ...quiet, name: `${HIDDEN}bas`, data: onAxis(base) } as SeriesOption)
+        out.push({ ...quiet, name: `${HIDDEN}haut`, data: onAxis(width), areaStyle: { color: alpha(fcColor, 0.13) } } as SeriesOption)
       }
     })
     // The forecast periods, shaded and named.
@@ -899,9 +1224,53 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       silent: true,
       itemStyle: { color: alpha(brand, theme.dark ? 0.08 : 0.06) },
       label: { show: true, position: 'insideTop', color: brand, fontSize: 10, fontWeight: 600, formatter: $t('Prévision') },
-      data: [[{ xAxis: label(n) }, { xAxis: label(n + horizon - 1) }]],
+      data: [[{ xAxis: timeAxis ? at(n) : label(n) }, { xAxis: timeAxis ? at(n + horizon - 1) : label(n + horizon - 1) }]],
     }
   }
+
+  // Periods set apart (« area pieces »): a band and a name over each, and with a single line,
+  // the line itself in the period's colour.
+  const pieces = (type === 'line' || type === 'area') && !horizontal
+    ? (settings.pieces ?? []).flatMap((piece, k) => {
+        let a = categories.findIndex((v) => keyOf(v) === piece.from)
+        let b = categories.findIndex((v) => keyOf(v) === piece.to)
+        if (a < 0 || b < 0) return []
+        if (a > b) [a, b] = [b, a]
+        return [{ a, b, color: piece.color ?? pal(series.length + k), label: piece.label ?? '' }]
+      })
+    : []
+  if (pieces.length && out[0]) {
+    const host = out[0] as { markArea?: { data?: unknown[] } & Record<string, unknown> }
+    const bands = pieces.map((p) => [
+      {
+        xAxis: timeAxis ? at(p.a) : catAxis.data[p.a],
+        itemStyle: { color: alpha(p.color, theme.dark ? 0.12 : 0.09) },
+        label: { show: !!p.label, formatter: p.label, color: p.color, fontSize: 10, fontWeight: 600, position: 'insideTop' },
+      },
+      { xAxis: timeAxis ? at(p.b) : catAxis.data[p.b] },
+    ])
+    host.markArea = host.markArea
+      ? { ...host.markArea, data: [...(host.markArea.data ?? []), ...bands] }
+      : { silent: true, data: bands }
+    if (series.length === 1) {
+      // The visual map paints the line (and its area) piece by piece; it needs them uncoloured.
+      const line = out[0] as { lineStyle?: object; itemStyle?: object; areaStyle?: object }
+      line.lineStyle = { width: 2 }
+      line.itemStyle = { borderColor: c.surface, borderWidth: 2 }
+      if (line.areaStyle) line.areaStyle = { opacity: 0.18 }
+    }
+  }
+  const visualMap =
+    pieces.length && series.length === 1
+      ? {
+          type: 'piecewise' as const,
+          show: false,
+          dimension: 0,
+          seriesIndex: 0,
+          pieces: pieces.map((p) => ({ gte: timeAxis ? (at(p.a) as number) : p.a, lte: timeAxis ? (at(p.b) as number) : p.b, color: p.color })),
+          outOfRange: { color: colors[0] as string },
+        }
+      : undefined
 
   // Reference lines: a goal, the average, the median — on the first series.
   const marks: unknown[] = []
@@ -963,14 +1332,18 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       tooltip: {
         ...base.tooltip,
         trigger: 'axis',
-        ...(forecastFrom !== undefined
+        ...(forecastFrom !== undefined || timeAxis
           ? {
               formatter: (params: unknown) => {
                 const list = (Array.isArray(params) ? params : [params]) as { seriesName: string; value: unknown; marker: string; axisValueLabel: string; dataIndex: number }[]
-                const shown = list.filter((p) => !p.seriesName.startsWith(HIDDEN) && p.value !== null && p.value !== undefined && (p.dataIndex >= (forecastFrom as number) || !forecastNames.has(p.seriesName)))
+                const valueOf = (v: unknown) => (Array.isArray(v) ? v[1] : typeof v === 'object' && v !== null && 'value' in v ? (v as { value: unknown }).value : v)
+                const forecastAt = (j: number) => forecastFrom !== undefined && j >= forecastFrom
+                const shown = list.filter((p) => !p.seriesName.startsWith(HIDDEN) && valueOf(p.value) !== null && valueOf(p.value) !== undefined && (forecastAt(p.dataIndex) || !forecastNames.has(p.seriesName)))
                 if (!shown.length) return ''
-                const head = `${list[0]?.axisValueLabel ?? ''}${(list[0]?.dataIndex ?? 0) >= (forecastFrom as number) ? ` · <i>${$t('prévision')}</i>` : ''}`
-                return [head, ...shown.map((p) => `${p.marker} ${p.seriesName} <b style="float:right;margin-left:16px">${formatValue(typeof p.value === 'object' && p.value !== null && 'value' in p.value ? (p.value as { value: unknown }).value : p.value, metric ?? x)}</b>`)].join('<br/>')
+                const j = list[0]?.dataIndex ?? 0
+                const when = timeAxis ? formatValue(categories[j], x) : (list[0]?.axisValueLabel ?? '')
+                const head = `${when}${forecastAt(j) ? ` · <i>${$t('prévision')}</i>` : ''}`
+                return [head, ...shown.map((p) => `${p.marker} ${p.seriesName} <b style="float:right;margin-left:16px">${formatValue(valueOf(p.value), metric ?? x)}</b>`)].join('<br/>')
               },
             }
           : {}),
@@ -978,7 +1351,8 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
         valueFormatter: (v) => (percent ? percentText(Number(v)) : formatValue(v, metric ?? x)),
       },
       dataZoom: many && !horizontal ? [{ type: 'inside' }, { type: 'slider', height: 16, bottom: 4, borderColor: 'transparent', fillerColor: theme.dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)', showDetail: false }] : undefined,
-      xAxis: horizontal ? valAxis : catAxis,
+      ...(visualMap ? { visualMap } : {}),
+      xAxis: horizontal ? valAxis : timeAxis ? timeAx : catAxis,
       yAxis: horizontal ? catAxis : valAxis,
       series: out,
     },

@@ -6,6 +6,9 @@ import {
   BarChart,
   FunnelChart,
   GaugeChart,
+  HeatmapChart,
+  SunburstChart,
+  TreemapChart,
   LineChart,
   MapChart,
   PieChart,
@@ -13,6 +16,7 @@ import {
   ScatterChart,
 } from 'echarts/charts'
 import {
+  CalendarComponent,
   DataZoomComponent,
   GeoComponent,
   GraphicComponent,
@@ -39,6 +43,10 @@ import { useEffect, useRef } from 'react'
  */
 
 echarts.use([
+  HeatmapChart,
+  SunburstChart,
+  TreemapChart,
+  CalendarComponent,
   RadarChart,
   RadarComponent,
   MarkPointComponent,

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { $t, $tp, msg } from '@/lib/i18n'
-import { LOOK_HEX } from '@/lib/format'
+import { LOOK_HEX, formatValue } from '@/lib/format'
 import { DEFAULT_SCHEME, PALETTES, checkPalette, schemeColors } from '@/lib/palettes'
 import { VIZ_LABELS, type Result, autoVisualization, chartOption, roles, vizFits } from '@/lib/viz'
 import { Hint } from '@/components/ui/tooltip'
@@ -22,6 +22,13 @@ import {
   ChartColumnBig,
   ChartBarDecreasing,
   ChartSpline,
+  CalendarDays,
+  LayoutPanelLeft,
+  Clock,
+  Trash2,
+  CircleDashed,
+  Layers,
+  Grid2x2,
   Play,
   Rabbit,
   Snail,
@@ -81,6 +88,8 @@ export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
   radar: Radar,
   bar_race: ChartBarDecreasing,
   line_race: ChartSpline,
+  treemap: LayoutPanelLeft,
+  calendar: CalendarDays,
   pivot: Grid3x3,
   map: MapPin,
 }
@@ -186,8 +195,8 @@ const IconRows1 = rows(3)
 const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = [
   { label: msg('Chiffres clés'), tone: 'bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300', types: ['scalar', 'trend', 'progress', 'gauge'] },
   { label: msg('Comparer'), tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar'] },
-  { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'bar_race', 'line_race'] },
-  { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'funnel'] },
+  { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'bar_race', 'line_race', 'calendar'] },
+  { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'treemap', 'funnel'] },
   { label: msg('Relation'), tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter'] },
   { label: msg('Détail'), tone: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300', types: ['table', 'pivot', 'map'] },
 ]
@@ -201,6 +210,7 @@ const UNFIT: Partial<Record<VisualizationType, string>> = {
   scatter: msg('Il faut deux mesures, ou une dimension et une mesure.'),
   bar_race: msg('Il faut une date, une mesure, et une seconde dimension ou plusieurs mesures.'),
   line_race: msg('Il faut une date et une mesure.'),
+  calendar: msg('Il faut une date et une mesure.'),
 }
 
 export function VizPicker({ value, result, onChange }: { value: VisualizationType; result: Result | null; onChange: (v: VisualizationType) => void }) {
@@ -440,6 +450,60 @@ function SeriesColors({ type, settings, result, set }: { type: VisualizationType
   )
 }
 
+/** Periods of a line or an area set apart: from, to, a colour and a name. */
+function Pieces({ settings, set, result, column }: { settings: VisualizationSettings; set: (patch: Partial<VisualizationSettings>) => void; result: Result; column: ResultColumn }) {
+  const i = result.columns.findIndex((c) => c.name === column.name)
+  const seen = new Set<string>()
+  const options: { value: string; label: string }[] = []
+  for (const row of result.rows) {
+    const v = row[i]
+    const key = v === null || v === undefined ? '∅' : String(v)
+    if (seen.has(key)) continue
+    seen.add(key)
+    options.push({ value: key, label: formatValue(v, column) || '∅' })
+  }
+  const pieces = settings.pieces ?? []
+  const swatches = schemeColors(settings.scheme, settings.colors, false, 8)
+  const update = (k: number, patch: Partial<NonNullable<VisualizationSettings['pieces']>[number]>) =>
+    set({ pieces: pieces.map((p, j) => (j === k ? { ...p, ...patch } : p)) })
+  return (
+    <div className="space-y-2">
+      {pieces.length === 0 ? <p className="text-[11px] text-muted-foreground">{$t('Une période colorée et nommée sur la courbe : une promotion, une grève, un confinement…')}</p> : null}
+      {pieces.map((p, k) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: the pieces have no identity but their place
+        <div key={k} className="space-y-1.5 rounded-lg border p-2">
+          <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-1.5">
+            <Choice size="xs" value={p.from} onValueChange={(v) => update(k, { from: v })} options={options} aria-label={$t('Du')} />
+            <Choice size="xs" value={p.to} onValueChange={(v) => update(k, { to: v })} options={options} aria-label={$t('Au')} />
+            <button type="button" onClick={() => set({ pieces: pieces.filter((_, j) => j !== k) })} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Retirer la période')}>
+              <Trash2 className="size-3.5" />
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Input value={p.label ?? ''} onChange={(e) => update(k, { label: e.target.value })} placeholder={$t('Nom (facultatif)')} className="h-7 flex-1 text-xs" />
+            {swatches.slice(0, 6).map((c) => (
+              <button key={c} type="button" onClick={() => update(k, { color: c })} className={cn('size-5 shrink-0 rounded-full border-2', p.color === c ? 'border-foreground' : 'border-transparent')} style={{ background: c }} aria-label={c} />
+            ))}
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        disabled={options.length < 2}
+        onClick={() => {
+          const n = options.length
+          const from = options[Math.floor(n / 3)]?.value ?? options[0]?.value ?? ''
+          const to = options[Math.floor((2 * n) / 3)]?.value ?? options[n - 1]?.value ?? ''
+          set({ pieces: [...pieces, { from, to, color: swatches[(pieces.length + 1) % swatches.length] }] })
+        }}
+        className="flex w-full items-center justify-center gap-1 rounded-md border border-dashed py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
+      >
+        <Plus className="size-3.5" /> {$t('Ajouter une période')}
+      </button>
+    </div>
+  )
+}
+
 export function VizSettings({ type, settings, result, onChange }: { type: VisualizationType; settings: VisualizationSettings; result: Result | null; onChange: (s: VisualizationSettings) => void }) {
   const set = (patch: Partial<VisualizationSettings>) => onChange({ ...settings, ...patch })
   const columns = result?.columns.filter((c) => !c.hidden) ?? []
@@ -460,11 +524,11 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
     set({ ref_lines: [...next] })
   }
   const race = type === 'bar_race' || type === 'line_race'
-  const colored = cartesian || race || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
+  const colored = cartesian || race || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
 
   return (
     <div className="space-y-4">
-      {cartesian || race || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
+      {cartesian || race || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
         <Section title={$t('Données')}>
           <ColumnsPick label={$t('Dimensions (axe, puis séries)')} columns={columns} value={settings.dimensions ?? detected.dims.map((d) => d.name)} onChange={(v) => set({ dimensions: v })} />
           <ColumnsPick label={$t('Mesures')} columns={numeric} value={settings.metrics ?? detected.metrics.map((d) => d.name)} onChange={(v) => set({ metrics: v })} />
@@ -477,7 +541,7 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           {settings.scheme === 'custom' ? <CustomPalette colors={settings.colors ?? []} onChange={(colors) => set({ colors })} /> : null}
           {settings.scheme === 'degrade' ? <p className="text-[11px] text-muted-foreground">{$t('Pour des catégories ordonnées (tranches, niveaux) : du plus clair au plus foncé, 5 au plus.')}</p> : null}
           {result ? <SeriesColors type={type} settings={settings} result={result} set={set} /> : null}
-          {!splitSeries && (cartesian || type === 'scatter') ? (
+          {(!splitSeries && (cartesian || type === 'scatter')) || type === 'calendar' ? (
             <Field label={$t('Couleur unique')}>
               <div className="flex flex-wrap gap-1.5">
                 {schemeColors(settings.scheme, settings.colors, false, 8).map((c) => (
@@ -555,6 +619,12 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
               <Input value={settings.goal_label ?? ''} onChange={(e) => set({ goal_label: e.target.value })} placeholder={$t('Objectif')} className="h-8" />
             </Field>
           </div>
+        </Section>
+      ) : null}
+
+      {(type === 'line' || type === 'area') && result && xCol ? (
+        <Section title={$t('Périodes mises en avant')}>
+          <Pieces settings={settings} set={set} result={result} column={xCol} />
         </Section>
       ) : null}
 
@@ -688,6 +758,15 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
 
       {cartesian ? (
         <Section title={$t('Axes')}>
+          {(type === 'line' || type === 'area') && xCol && (xCol.type === 'date' || xCol.type === 'datetime') ? (
+            <div className="space-y-1">
+              <Toggle label={$t('Axe du temps continu')} checked={!!settings.x_time} onChange={(v) => set({ x_time: v })} />
+              <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                <Clock className="mt-px size-3 shrink-0" />
+                {$t('Les dates s’espacent selon le temps réel qui les sépare : un trou dans les données se voit.')}
+              </p>
+            </div>
+          ) : null}
           <Field label={$t('Échelle')}>
             <Segmented
               value={settings.y_scale ?? 'linear'}
@@ -722,6 +801,32 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           <Toggle label={$t('Axe horizontal')} checked={settings.x_axis !== false} onChange={(v) => set({ x_axis: v })} />
           <Toggle label={$t('Axe vertical')} checked={settings.y_axis !== false} onChange={(v) => set({ y_axis: v })} />
           <Toggle label={$t('Grille')} checked={settings.grid_lines !== false} onChange={(v) => set({ grid_lines: v })} />
+        </Section>
+      ) : null}
+
+      {type === 'pie' || type === 'treemap' ? (
+        <p className="flex items-start gap-1.5 rounded-md bg-muted/50 px-2 py-1.5 text-[11px] text-muted-foreground">
+          <Layers className="mt-px size-3 shrink-0" />
+          {type === 'pie'
+            ? $t('Plusieurs dimensions (type, motif, sous-motif…) : un anneau par niveau, du centre vers l’extérieur. Cliquez une part pour zoomer dessus.')
+            : $t('Plusieurs dimensions : des rectangles imbriqués, un niveau par dimension. Cliquez un rectangle pour zoomer dessus.')}
+        </p>
+      ) : null}
+
+      {type === 'calendar' ? (
+        <Section title={$t('Calendrier')}>
+          <Field label={$t('Chaque jour, dessiner')}>
+            <Segmented
+              value={settings.calendar_style ?? 'scatter'}
+              onValueChange={(v) => set({ calendar_style: v })}
+              options={[
+                { value: 'scatter', label: $t('Points'), icon: CircleDashed, hint: $t('Un point par jour, d’autant plus grand que la valeur') },
+                { value: 'heatmap', label: $t('Cases colorées'), icon: Grid2x2, hint: $t('Chaque case teintée selon la valeur, avec sa légende') },
+              ]}
+              aria-label={$t('Chaque jour, dessiner')}
+            />
+          </Field>
+          <p className="text-[11px] text-muted-foreground">{$t('Les trois années les plus récentes du résultat, une ligne par année.')}</p>
         </Section>
       ) : null}
 

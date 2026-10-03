@@ -282,10 +282,20 @@ export const VISUALIZATIONS = [
   'radar',
   'bar_race',
   'line_race',
+  'treemap',
+  'calendar',
   'pivot',
   'map',
 ] as const
 export type VisualizationType = (typeof VISUALIZATIONS)[number]
+
+/** A period of a line or an area set apart: from one value of the axis to another (keys of the result). */
+export interface AreaPiece {
+  readonly from: string
+  readonly to: string
+  readonly color?: string
+  readonly label?: string
+}
 
 /** How a series of a line, bar or combo chart is drawn. */
 export interface SeriesSettings {
@@ -410,6 +420,14 @@ export interface VisualizationSettings {
   readonly forecast_method?: 'auto' | 'linear' | 'smooth' | 'seasonal'
   /** The 80 % interval around a single forecast line — shown by default. */
   readonly forecast_band?: boolean
+
+  // ── Time ──
+  /** Lines and areas on a continuous time axis: dates spaced by their real interval. */
+  readonly x_time?: boolean
+  /** Periods of a line or an area drawn in a colour of their own, with a band and a name. */
+  readonly pieces?: readonly AreaPiece[]
+  /** A calendar: a dot sized by the value, or each day's square coloured by it. */
+  readonly calendar_style?: 'scatter' | 'heatmap'
 
   // ── Races ──
   /** How long each period stays on screen, in milliseconds (300 to 5 000; 1 000 by default). */

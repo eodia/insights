@@ -16,10 +16,31 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 |---|---|---|
 | **Key figures** | Number, Trend, Progress, Gauge | a figure, its change, its share of a goal |
 | **Compare** | Bars, Horizontal bars, **Radar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
-| **Trend** | Lines, Areas, Combo, **Bar race**, **Line race** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
-| **Breakdown** | Pie, Funnel | shares, stages |
+| **Trend** | Lines, Areas, Combo, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
+| **Breakdown** | Pie (on several rings), **Treemap**, Funnel | shares, shares of shares, stages |
 | **Relationship** | Scatter plot | two measures against each other |
 | **Detail** | Table, Pivot table, Map | rows, a cross-tabulated measure, values by region |
+
+### Shares on several levels
+
+A **pie with several dimensions** — say type, reason, sub-reason — becomes rings: the first
+level in the center, each next level around it, in shades of its parent slice. Click a slice to
+zoom into it; click the center to go back. The **treemap** lays out the same levels as nested
+rectangles, each as large as its value, with each group's name in its header; click to zoom,
+and the breadcrumb at the top takes you back. Three levels at most.
+
+### Calendar
+
+One value per day, laid out on the calendar of the three most recent years: a **dot** that
+grows with the value, or **colored squares** with their legend. Weekdays, seasons and gaps show
+at a glance. Clicking a day filters the dashboard.
+
+### Time and periods
+
+On a dated line or area, **Continuous time axis** spaces dates by the real time between them: a
+missing month leaves a gap instead of being skipped. **Highlighted periods** marks one or more
+periods — a promotion, a sale, a strike — with a named band, and on a single line the line
+itself takes the period's color.
 
 ### Races
 

@@ -18,12 +18,16 @@ import {
   BarChart,
   FunnelChart,
   GaugeChart,
+  HeatmapChart,
+  SunburstChart,
+  TreemapChart,
   LineChart,
   PieChart,
   RadarChart,
   ScatterChart,
 } from 'echarts/charts'
 import {
+  CalendarComponent,
   DataZoomComponent,
   GraphicComponent,
   GridComponent,
@@ -35,6 +39,7 @@ import {
   TimelineComponent,
   TitleComponent,
   TooltipComponent,
+  VisualMapComponent,
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
@@ -42,6 +47,11 @@ import { formatValue } from '../../web/src/lib/format'
 import { autoVisualization, chartOption } from '../../web/src/lib/viz'
 
 echarts.use([
+  HeatmapChart,
+  SunburstChart,
+  TreemapChart,
+  CalendarComponent,
+  VisualMapComponent,
   RadarChart,
   RadarComponent,
   MarkPointComponent,
