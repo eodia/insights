@@ -279,6 +279,7 @@ export const VISUALIZATIONS = [
   'pie',
   'scatter',
   'funnel',
+  'radar',
   'pivot',
   'map',
 ] as const
@@ -399,6 +400,14 @@ export interface VisualizationSettings {
   readonly gradient?: boolean
   /** Lines named at their end rather than only in the legend — by default for 2 to 4 lines. */
   readonly end_labels?: boolean
+
+  // ── Forecast ──
+  /** Periods drawn beyond the last one, extrapolated from the series (0 or absent: none). */
+  readonly forecast?: number | null
+  /** How: a straight line, a smoothed trend, a trend with its season — or chosen from the data. */
+  readonly forecast_method?: 'auto' | 'linear' | 'smooth' | 'seasonal'
+  /** The 80 % interval around a single forecast line — shown by default. */
+  readonly forecast_band?: boolean
   /** Colours by value: a number, the cells of a table or a pivot. */
   readonly rules?: readonly ColorRule[]
   /** The trend: a fall is good news — a cost, a delay. */

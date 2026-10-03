@@ -113,6 +113,8 @@ export function Visualization({
               const index = e.dataIndex
               const raw = model.categories ? model.categories[index] : (e.data as { raw?: unknown })?.raw
               if (raw === OTHER_CATEGORY || (e.data as { key?: string })?.key === '__other__') return
+              // A forecast period has no rows to filter by.
+              if (model.forecastFrom !== undefined && index >= model.forecastFrom) return
               const native = e.event?.event as unknown as MouseEvent | undefined
               onPointClick({
                 column: col,

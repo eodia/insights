@@ -9,6 +9,7 @@ import {
   LineChart,
   MapChart,
   PieChart,
+  RadarChart,
   ScatterChart,
 } from 'echarts/charts'
 import {
@@ -16,7 +17,10 @@ import {
   GeoComponent,
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
   MarkLineComponent,
+  MarkPointComponent,
+  RadarComponent,
   TitleComponent,
   TooltipComponent,
   VisualMapComponent,
@@ -33,6 +37,10 @@ import { useEffect, useRef } from 'react'
  */
 
 echarts.use([
+  RadarChart,
+  RadarComponent,
+  MarkPointComponent,
+  MarkAreaComponent,
   BarChart,
   LineChart,
   PieChart,

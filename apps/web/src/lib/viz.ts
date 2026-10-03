@@ -4,10 +4,11 @@
  * jamais recyclées ; un seul axe des ordonnées ; marques fines ; légende dès deux séries ;
  * grille discrète ; info-bulle partout.
  */
-import type { ResultColumn, VisualizationSettings, VisualizationType } from '@eodia/contracts'
+import type { ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { LOOK_HEX, formatValue } from './format'
 import { $t } from './i18n'
+import { FORECAST_UNITS, type Forecast, forecast, nextPeriods } from './forecast'
 import { PALETTES, schemeColors } from './palettes'
 
 /** Validated categorical order (light / dark), never cycled past eight — see `palettes.ts`. */
@@ -107,6 +108,14 @@ export function vizFits(type: VisualizationType, result: Result): boolean {
       return metrics.length >= 1 && dims.length >= 1
     case 'scatter':
       return metrics.length >= 2 || (metrics.length >= 1 && dims.length >= 1)
+    case 'radar': {
+      // Three to thirty spokes: fewer is not a shape, more is not readable.
+      const d = dims[0]
+      if (!d || metrics.length < 1) return false
+      const i = result.columns.indexOf(d)
+      const n = new Set(result.rows.map((r) => String(r[i]))).size
+      return n >= 3 && n <= 30
+    }
     case 'pivot':
       return dims.length >= 2 && metrics.length >= 1
     case 'map':
@@ -130,6 +139,7 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   pie: 'Camembert',
   scatter: 'Nuage de points',
   funnel: 'Entonnoir',
+  radar: 'Radar',
   pivot: 'Tableau croisé',
   map: 'Carte',
 }
@@ -221,7 +231,15 @@ export interface ChartModel {
   readonly categories?: unknown[]
   /** What can take a colour of its own — series, slices or bars —, with the one it has. */
   readonly targets?: readonly ColorTarget[]
+  /** The first forecast category: from it on, nothing is clicked to filter. */
+  readonly forecastFrom?: number
 }
+
+/** The green of insights, for what is forecast rather than measured. */
+export const FORECAST_GREEN = { light: '#2da31d', dark: '#42cd2a' } as const
+
+/** Names of the series a tooltip leaves out (the forecast interval's two halves). */
+const HIDDEN = '\u200b'
 
 export interface ColorTarget {
   /** Its key in `settings.series`. */
@@ -389,9 +407,69 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     }
   }
 
+  if (type === 'radar') {
+    const { x, series, categories } = cartesian(result, settings)
+    if (!x || series.length === 0 || categories.length < 3) return null
+    const pal = paletteOf(settings, theme, series.length)
+    let next = 0
+    const colors = series.map((s) => settings.series?.[s.key]?.color ?? (s.key === '__other__' ? (theme.dark ? OTHER.dark : OTHER.light) : (s.look ?? pal(next++))))
+    // One scale for every spoke: the shapes compare.
+    const top = Math.max(0, ...series.flatMap((s) => s.values.map((v) => v ?? 0)))
+    const max = top > 0 ? 10 ** Math.floor(Math.log10(top)) * Math.ceil(top / 10 ** Math.floor(Math.log10(top))) : 1
+    const legend = series.length > 1 && settings.legend !== false
+    return {
+      targets: series.map((s, i) => ({ key: s.key, name: s.name, color: colors[i] as string })),
+      option: {
+        ...base,
+        color: colors,
+        legend: legend ? { top: 0, left: 0, type: 'scroll', icon: 'roundRect', itemWidth: 10, itemHeight: 10, itemGap: 18, textStyle: { color: c.secondary } } : undefined,
+        tooltip: { ...base.tooltip, trigger: 'item' },
+        radar: {
+          indicator: categories.map((v) => ({ name: v === OTHER_CATEGORY ? $t('Autres') : formatValue(v, x) || '∅', max })),
+          center: ['50%', legend ? '56%' : '52%'],
+          radius: '66%',
+          splitNumber: 4,
+          axisName: { color: c.secondary, fontSize: 11 },
+          splitLine: { lineStyle: { color: c.grid } },
+          splitArea: { show: false },
+          axisLine: { lineStyle: { color: c.grid } },
+        },
+        series: [
+          {
+            type: 'radar',
+            symbol: 'circle',
+            symbolSize: 5,
+            data: series.map((s, i) => ({
+              name: s.name,
+              value: s.values.map((v) => v ?? 0),
+              lineStyle: { color: colors[i], width: 2 },
+              itemStyle: { color: colors[i], borderColor: c.surface, borderWidth: 1 },
+              areaStyle: { color: alpha(colors[i] as string, series.length > 1 ? 0.1 : 0.18) },
+              label: settings.values ? { show: true, color: c.secondary, fontSize: 10, formatter: (p: { value: unknown }) => formatValue(p.value, s.metric, { compact: true }) } : undefined,
+            })),
+          },
+        ] as SeriesOption[],
+      },
+    }
+  }
+
   // Cartesian: bar, row, line, area, combo.
   const { x, series, categories } = cartesian(result, settings)
   if (!x || series.length === 0) return null
+  // A forecast prolongs a series in time: its periods join the axis, drawn in dashes.
+  const unit = x.unit as TemporalUnit | undefined
+  const horizon = Math.min(Math.max(Math.round(settings.forecast ?? 0), 0), 36)
+  let forecasts: (Forecast | null)[] = []
+  let forecastFrom: number | undefined
+  if (horizon > 0 && isTemporal(x) && unit && FORECAST_UNITS.includes(unit) && type !== 'row' && settings.stack !== 'percent') {
+    const future = nextPeriods(categories[categories.length - 1], unit, horizon)
+    forecasts = future ? series.map((s) => (s.key === '__other__' ? null : forecast(s.values, horizon, settings.forecast_method ?? 'auto', unit))) : []
+    if (future && forecasts.some(Boolean)) {
+      forecastFrom = categories.length
+      categories.push(...future)
+    } else forecasts = []
+  }
+  const brand = theme.dark ? FORECAST_GREEN.dark : FORECAST_GREEN.light
   const horizontal = type === 'row'
   const stack = settings.stack && settings.stack !== 'none' ? 'total' : undefined
   const percent = settings.stack === 'percent'
@@ -439,7 +517,8 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
         : first.reduce<number>((best, v, j) => (v === null ? best : best < 0 || (settings.highlight === 'max' ? v > (first[best] as number) : v < (first[best] as number)) ? j : best), -1)
       : -1
   const lines = series.length >= 2 && series.length <= 4 && (type === 'line' || type === 'area') && !horizontal
-  const endLabels = lines && settings.end_labels !== false
+  // Names at the end of measured lines would sit on their forecast: not with one.
+  const endLabels = lines && settings.end_labels !== false && forecastFrom === undefined
   const out: SeriesOption[] = series.map((s, i) => {
     const display = type === 'combo' ? (settings.series?.[s.key]?.display ?? (i === 0 ? 'bar' : 'line')) : type === 'row' ? 'bar' : type === 'area' ? 'area' : type === 'line' ? 'line' : 'bar'
     const color = colors[i] as string
@@ -475,6 +554,15 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     // In a stack, only the outer end is rounded; a hairline of the surface parts the segments.
     const lastBar = stack ? i === series.length - 1 : true
     const radius = lastBar ? (horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]) : 0
+    const fc = forecasts[i]
+    const fcColor = series.length === 1 ? brand : color
+    if (display === 'bar' && fc) {
+      // Forecast bars: the green of insights, in dashes, lightly filled.
+      ;(data as unknown[]).push(
+        ...Array.from({ length: (forecastFrom as number) - values.length }, () => null),
+        ...fc.values.map((v) => ({ value: v, itemStyle: { color: alpha(fcColor, 0.18), borderColor: fcColor, borderType: 'dashed', borderWidth: 1.5, borderRadius: radius } })),
+      )
+    }
     if (display === 'bar') {
       const totalsLabel =
         stack && !percent && settings.stack_totals && i === series.length - 1
@@ -519,6 +607,64 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       ...(endLabels ? { endLabel: { show: true, formatter: '{a}', color, fontSize: 11, fontWeight: 600, distance: 6 }, labelLayout: { moveOverlap: 'shiftY' } } : {}),
     } as SeriesOption
   })
+  if (forecastFrom !== undefined) {
+    const n = forecastFrom
+    const label = (j: number) => (catAxis.data[j] as string) ?? ''
+    series.forEach((s, i) => {
+      const fc = forecasts[i]
+      const display = type === 'combo' ? (settings.series?.[s.key]?.display ?? (i === 0 ? 'bar' : 'line')) : type === 'area' ? 'area' : type === 'line' ? 'line' : 'bar'
+      if (!fc || display === 'bar') return
+      const fcColor = series.length === 1 ? brand : (colors[i] as string)
+      // From the last measured point on, so the dashes continue the line.
+      const lastAt = s.values.length - 1 - [...s.values].reverse().findIndex((v) => v !== null)
+      const data: (number | null)[] = Array.from({ length: n + horizon }, () => null)
+      data[lastAt] = s.values[lastAt] ?? null
+      fc.values.forEach((v, k) => {
+        data[n + k] = v
+      })
+      out.push({
+        type: 'line',
+        name: `${s.name} · ${$t('prévision')}`,
+        data,
+        ...(stack ? { stack: 'forecast' } : {}),
+        smooth: settings.line_style === 'smooth',
+        connectNulls: true,
+        showSymbol: horizon <= 12,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: { width: 2, type: 'dashed', color: fcColor },
+        itemStyle: { color: fcColor, borderColor: c.surface, borderWidth: 2 },
+        areaStyle:
+          display === 'area'
+            ? { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: alpha(fcColor, 0.2) }, { offset: 1, color: alpha(fcColor, 0.02) }] } }
+            : undefined,
+        emphasis: { focus: 'series' },
+      } as SeriesOption)
+      // The 80 % interval of a single forecast: a band that widens with the horizon.
+      if (series.length === 1 && !stack && settings.forecast_band !== false) {
+        const base: (number | null)[] = Array.from({ length: n + horizon }, () => null)
+        const width: (number | null)[] = Array.from({ length: n + horizon }, () => null)
+        base[lastAt] = s.values[lastAt] ?? null
+        width[lastAt] = 0
+        fc.lower.forEach((v, k) => {
+          base[n + k] = v
+          width[n + k] = (fc.upper[k] as number) - v
+        })
+        const quiet = { type: 'line', stack: 'band', symbol: 'none', connectNulls: true, silent: true, lineStyle: { opacity: 0 }, emphasis: { disabled: true }, smooth: settings.line_style === 'smooth' }
+        out.push({ ...quiet, name: `${HIDDEN}bas`, data: base } as SeriesOption)
+        out.push({ ...quiet, name: `${HIDDEN}haut`, data: width, areaStyle: { color: alpha(fcColor, 0.13) } } as SeriesOption)
+      }
+    })
+    // The forecast periods, shaded and named.
+    const host = out[0] as { markArea?: unknown }
+    host.markArea = {
+      silent: true,
+      itemStyle: { color: alpha(brand, theme.dark ? 0.08 : 0.06) },
+      label: { show: true, position: 'insideTop', color: brand, fontSize: 10, fontWeight: 600, formatter: $t('Prévision') },
+      data: [[{ xAxis: label(n) }, { xAxis: label(n + horizon - 1) }]],
+    }
+  }
+
   // Reference lines: a goal, the average, the median — on the first series.
   const marks: unknown[] = []
   if (settings.goal !== undefined && settings.goal !== null) {
@@ -554,14 +700,42 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     clickColumn: x,
     categories,
     targets,
+    ...(forecastFrom !== undefined ? { forecastFrom } : {}),
     option: {
       ...base,
       color: colors,
-      grid: { left: 8, right: endLabels ? 72 : 16, top: legend ? 36 : 14, bottom: many ? 34 : 6, containLabel: true },
-      legend: legend ? { top: 0, left: 0, type: 'scroll', icon: 'roundRect', itemWidth: 10, itemHeight: 10, itemGap: 18, textStyle: { color: c.secondary } } : undefined,
+      grid: { left: 8, right: endLabels ? 72 : 16, top: legend || forecastFrom !== undefined ? 36 : 14, bottom: many ? 34 : 6, containLabel: true },
+      legend:
+        legend || forecastFrom !== undefined
+          ? {
+              top: 0,
+              left: 0,
+              type: 'scroll',
+              icon: 'roundRect',
+              itemWidth: 10,
+              itemHeight: 10,
+              itemGap: 18,
+              textStyle: { color: c.secondary },
+              // Several forecasts wear their series' colour in dashes: the legend need not repeat them.
+              data: out
+                .map((o) => (o as { name?: string }).name)
+                .filter((name): name is string => !!name && !name.startsWith(HIDDEN) && (series.length === 1 || !name.endsWith(` · ${$t('prévision')}`))),
+            }
+          : undefined,
       tooltip: {
         ...base.tooltip,
         trigger: 'axis',
+        ...(forecastFrom !== undefined
+          ? {
+              formatter: (params: unknown) => {
+                const list = (Array.isArray(params) ? params : [params]) as { seriesName: string; value: unknown; marker: string; axisValueLabel: string; dataIndex: number }[]
+                const shown = list.filter((p) => !p.seriesName.startsWith(HIDDEN) && p.value !== null && p.value !== undefined && (p.dataIndex >= (forecastFrom as number) || !p.seriesName.endsWith($t('prévision'))))
+                if (!shown.length) return ''
+                const head = `${list[0]?.axisValueLabel ?? ''}${(list[0]?.dataIndex ?? 0) >= (forecastFrom as number) ? ` · <i>${$t('prévision')}</i>` : ''}`
+                return [head, ...shown.map((p) => `${p.marker} ${p.seriesName} <b style="float:right;margin-left:16px">${formatValue(typeof p.value === 'object' && p.value !== null && 'value' in p.value ? (p.value as { value: unknown }).value : p.value, metric ?? x)}</b>`)].join('<br/>')
+              },
+            }
+          : {}),
         axisPointer: { type: type === 'line' || type === 'area' ? 'line' : 'shadow', lineStyle: { color: c.muted }, shadowStyle: { color: theme.dark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.035)' } },
         valueFormatter: (v) => (percent ? `${Number(v).toFixed(1)} %` : formatValue(v, metric ?? x)),
       },

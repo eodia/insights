@@ -9,7 +9,8 @@ import { Switch } from '@/components/ui/switch'
 import { $t } from '@/lib/i18n'
 import { LOOK_HEX } from '@/lib/format'
 import { DEFAULT_SCHEME, PALETTES, checkPalette, schemeColors } from '@/lib/palettes'
-import { VIZ_LABELS, type Result, chartOption, roles, vizFits } from '@/lib/viz'
+import { VIZ_LABELS, type Result, autoVisualization, chartOption, roles, vizFits } from '@/lib/viz'
+import { Hint } from '@/components/ui/tooltip'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -35,6 +36,9 @@ import {
   Palette,
   Plus,
   X,
+  Radar,
+  Sparkles,
+  TrendingUpDown,
 } from 'lucide-react'
 
 export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
@@ -51,6 +55,7 @@ export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
   pie: PieChart,
   scatter: ChartScatter,
   funnel: Filter,
+  radar: Radar,
   pivot: Grid3x3,
   map: MapPin,
 }
@@ -95,28 +100,76 @@ function ColumnsPick({ columns, value, onChange, label }: { columns: readonly Re
   )
 }
 
+/** The forms by what they are for, each family with its tint. */
+const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = [
+  { label: 'Chiffres clés', tone: 'bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300', types: ['scalar', 'trend', 'progress', 'gauge'] },
+  { label: 'Comparer', tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar'] },
+  { label: 'Évolution', tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo'] },
+  { label: 'Répartition', tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'funnel'] },
+  { label: 'Relation', tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter'] },
+  { label: 'Détail', tone: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300', types: ['table', 'pivot', 'map'] },
+]
+
+/** Why a form does not suit the result, said briefly. */
+const UNFIT: Partial<Record<VisualizationType, string>> = {
+  trend: 'Il faut une date et une mesure.',
+  pivot: 'Il faut deux dimensions et une mesure.',
+  map: 'Il faut une latitude et une longitude.',
+  radar: 'Il faut de 3 à 30 catégories et une mesure.',
+  scatter: 'Il faut deux mesures, ou une dimension et une mesure.',
+}
+
 export function VizPicker({ value, result, onChange }: { value: VisualizationType; result: Result | null; onChange: (v: VisualizationType) => void }) {
+  const suggested = result ? autoVisualization(result) : null
   return (
-    <div className="grid grid-cols-3 gap-1.5">
-      {VISUALIZATIONS.map((v) => {
-        const Icon = VIZ_ICONS[v]
-        const fits = !result || vizFits(v, result)
-        return (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className={cn(
-              'flex flex-col items-center gap-1 rounded-lg border px-1 py-2 text-[11px] transition-colors',
-              value === v ? 'border-primary bg-primary/10 font-semibold text-foreground' : 'hover:bg-accent',
-              !fits && value !== v && 'opacity-40',
-            )}
-          >
-            <Icon className={cn('size-4', value === v ? 'text-primary' : 'text-muted-foreground')} />
-            {$t(VIZ_LABELS[v])}
-          </button>
-        )
-      })}
+    <div className="space-y-3">
+      {FAMILIES.map((f) => (
+        <div key={f.label} className="space-y-1.5">
+          <div className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{$t(f.label)}</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {f.types.map((v) => {
+              const Icon = VIZ_ICONS[v]
+              const fits = !result || vizFits(v, result)
+              const on = value === v
+              const tile = (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => onChange(v)}
+                  aria-pressed={on}
+                  className={cn(
+                    'group relative flex w-full flex-col items-center gap-1.5 rounded-xl border px-1 pt-2.5 pb-2 text-center text-[11px] leading-tight transition-all',
+                    on ? 'border-primary bg-primary/5 font-semibold text-foreground shadow-sm ring-1 ring-primary/30' : 'border-transparent bg-muted/40 text-muted-foreground hover:-translate-y-px hover:border-border hover:bg-background hover:text-foreground hover:shadow-sm',
+                    !fits && !on && 'opacity-45',
+                  )}
+                >
+                  <span className={cn('flex size-8 items-center justify-center rounded-lg transition-transform group-hover:scale-105', on ? 'bg-primary text-primary-foreground' : f.tone)}>
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="line-clamp-2">{$t(VIZ_LABELS[v])}</span>
+                  {on ? (
+                    <span className="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="size-2.5" />
+                    </span>
+                  ) : suggested === v ? (
+                    <span className="absolute top-1 right-1 text-primary" aria-label={$t('Conseillé')}>
+                      <Sparkles className="size-3" />
+                    </span>
+                  ) : null}
+                </button>
+              )
+              const hint = !fits ? $t(UNFIT[v] ?? 'Il faut au moins une dimension et une mesure.') : suggested === v && !on ? $t('Conseillé pour ce résultat') : undefined
+              return hint ? (
+                <Hint key={v} label={hint}>
+                  {tile}
+                </Hint>
+              ) : (
+                tile
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -321,7 +374,7 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
     else next.delete(k)
     set({ ref_lines: [...next] })
   }
-  const colored = cartesian || type === 'pie' || type === 'funnel' || type === 'scatter'
+  const colored = cartesian || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
 
   return (
     <div className="space-y-4">
@@ -380,6 +433,46 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
               <Input value={settings.goal_label ?? ''} onChange={(e) => set({ goal_label: e.target.value })} placeholder={$t('Objectif')} className="h-8" />
             </Field>
           </div>
+        </Section>
+      ) : null}
+
+      {cartesian && type !== 'row' && xCol && (xCol.type === 'date' || xCol.type === 'datetime') ? (
+        <Section title={$t('Prévision')}>
+          <Field label={$t('Prolonger la tendance de')}>
+            <div className="flex items-center gap-2">
+              <Input type="number" min={0} max={36} value={settings.forecast ?? ''} placeholder="0" onChange={(e) => set({ forecast: num(e.target.value) })} className="h-8 w-20" />
+              <span className="text-xs text-muted-foreground">{$t('périodes')}</span>
+              <span className="flex-1" />
+              {[3, 6, 12].map((n) => (
+                <button key={n} type="button" onClick={() => set({ forecast: settings.forecast === n ? null : n })} className={cn('h-7 rounded-md border px-2 text-xs', settings.forecast === n ? 'border-primary bg-primary/10 font-medium' : 'hover:bg-accent')}>
+                  +{n}
+                </button>
+              ))}
+            </div>
+          </Field>
+          {settings.forecast ? (
+            <>
+              <Field label={$t('Méthode')}>
+                <Choice
+                  value={settings.forecast_method ?? 'auto'}
+                  onValueChange={(v) => set({ forecast_method: v as VisualizationSettings['forecast_method'] })}
+                  options={[
+                    { value: 'auto', label: $t('Automatique') },
+                    { value: 'linear', label: $t('Droite de tendance') },
+                    { value: 'smooth', label: $t('Tendance lissée (Holt)') },
+                    { value: 'seasonal', label: $t('Tendance et saison (Holt-Winters)') },
+                  ]}
+                  aria-label={$t('Méthode')}
+                  className="w-full"
+                />
+              </Field>
+              {!splitSeries ? <Toggle label={$t('Intervalle de confiance (80 %)')} checked={settings.forecast_band !== false} onChange={(v) => set({ forecast_band: v })} /> : null}
+              <p className="flex gap-1.5 text-[11px] text-muted-foreground">
+                <TrendingUpDown className="mt-px size-3.5 shrink-0 text-primary" />
+                {$t('La partie prévue est dessinée en pointillés verts. Automatique choisit la saison quand la série en couvre deux (12 mois, 4 trimestres, 7 jours), sinon une tendance lissée.')}
+              </p>
+            </>
+          ) : null}
         </Section>
       ) : null}
 

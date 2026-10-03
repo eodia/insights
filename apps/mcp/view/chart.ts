@@ -19,13 +19,17 @@ import {
   GaugeChart,
   LineChart,
   PieChart,
+  RadarChart,
   ScatterChart,
 } from 'echarts/charts'
 import {
   DataZoomComponent,
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
   MarkLineComponent,
+  MarkPointComponent,
+  RadarComponent,
   TitleComponent,
   TooltipComponent,
 } from 'echarts/components'
@@ -35,6 +39,10 @@ import { formatValue } from '../../web/src/lib/format'
 import { autoVisualization, chartOption } from '../../web/src/lib/viz'
 
 echarts.use([
+  RadarChart,
+  RadarComponent,
+  MarkPointComponent,
+  MarkAreaComponent,
   BarChart,
   LineChart,
   PieChart,
