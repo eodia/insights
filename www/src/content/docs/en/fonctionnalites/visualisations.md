@@ -16,10 +16,22 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 |---|---|---|
 | **Key figures** | Number, Trend, Progress, Gauge | a figure, its change, its share of a goal |
 | **Compare** | Bars, Horizontal bars, **Radar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
-| **Trend** | Lines, Areas, Combo | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/) |
+| **Trend** | Lines, Areas, Combo, **Bar race**, **Line race** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
 | **Breakdown** | Pie, Funnel | shares, stages |
 | **Relationship** | Scatter plot | two measures against each other |
 | **Detail** | Table, Pivot table, Map | rows, a cross-tabulated measure, values by region |
+
+### Races
+
+A **bar race** plays the periods one after another: at each date the bars take their value and
+overtake each other, the period is written large in the corner, and a timeline at the bottom
+lets you play, pause or jump to a date. A **line race** draws the lines over time, each named at
+its tip with its value; *Replay* starts it again.
+
+They need a date (the race moves forward with it), a measure, and competitors: the values of a
+second dimension (countries, products) or several measures. Settings: the speed (slow, normal,
+fast), how many bars are shown (5 to 20), **Accumulate periods** for a race on the running total
+rather than each month's value, and whether it starts on opening.
 
 ## Colors
 

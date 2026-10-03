@@ -11,7 +11,7 @@ import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, 
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowDown, ArrowUp, ArrowUpDown, Minus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Minus, RotateCcw } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 export interface PointClick {
@@ -79,7 +79,7 @@ export function Visualization({
   const model = useMemo(() => {
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
     const m = chartOption(viz.type, result, settings, { dark })
-    return m && selected?.length ? withSelection(m, new Set(selected)) : m
+    return m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
   }, [viz.type, result, settings, dark, selected])
 
   if (result.rows.length === 0) {
@@ -102,6 +102,7 @@ export function Visualization({
   if (!model) {
     return <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">{$t('Ce résultat ne se prête pas à cette visualisation : il faut au moins une dimension et une mesure.')}</div>
   }
+  if (viz.type === 'line_race') return <Replay option={model.option} label={$t(VIZ_LABELS.line_race)} />
   return (
     <EChart
       option={model.option}
@@ -126,6 +127,23 @@ export function Visualization({
           }
         : {})}
     />
+  )
+}
+
+/** A race of lines plays once; the button draws it again. */
+function Replay({ option, label }: { option: ChartModel['option']; label: string }) {
+  const [round, setRound] = useState(0)
+  return (
+    <div className="relative size-full">
+      <EChart key={round} option={option} label={label} />
+      <button
+        type="button"
+        onClick={() => setRound((r) => r + 1)}
+        className="absolute top-1 right-1 flex items-center gap-1 rounded-md border bg-background/80 px-2 py-1 text-[11px] text-muted-foreground backdrop-blur hover:text-foreground"
+      >
+        <RotateCcw className="size-3" /> {$t('Rejouer')}
+      </button>
+    </div>
   )
 }
 

@@ -21,7 +21,7 @@ import {
   pruneJoins,
   withJoinFor,
 } from '@/lib/builder'
-import { $t } from '@/lib/i18n'
+import { $t, $tp } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { ArrowDownAZ, ArrowUpAZ, Database, Filter as FilterIcon, ListOrdered, Plus, Sigma, SquareFunction, Rows3, X, Group, Merge } from 'lucide-react'
 import { useState } from 'react'
@@ -438,7 +438,7 @@ export function Notebook({
 
       {!grouped ? (
         <Step icon={Rows3} title={$t('Colonnes')} tone={TONES.sort}>
-          <span className="self-center text-sm text-muted-foreground">{(query.fields ?? []).length ? `${query.fields?.length} ${$t('colonnes choisies')}` : $t('Toutes les colonnes')}</span>
+          <span className="self-center text-sm text-muted-foreground">{(query.fields ?? []).length ? $tp((query.fields ?? []).length, '{count} colonne choisie', '{count} colonnes choisies') : $t('Toutes les colonnes')}</span>
           <AddButton label={$t('Choisir')}>
             <div className="max-h-[420px] w-72 overflow-y-auto p-1">
               {shownOptions.map((o, i) => {

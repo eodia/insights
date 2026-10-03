@@ -6,7 +6,7 @@ import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { $t } from '@/lib/i18n'
+import { $t, $tp, msg } from '@/lib/i18n'
 import { LOOK_HEX } from '@/lib/format'
 import { DEFAULT_SCHEME, PALETTES, checkPalette, schemeColors } from '@/lib/palettes'
 import { VIZ_LABELS, type Result, autoVisualization, chartOption, roles, vizFits } from '@/lib/viz'
@@ -20,6 +20,12 @@ import {
   BarChart3,
   BarChartHorizontal,
   ChartColumnBig,
+  ChartBarDecreasing,
+  ChartSpline,
+  Play,
+  Rabbit,
+  Snail,
+  Sigma,
   ChartScatter,
   Filter,
   Gauge,
@@ -73,6 +79,8 @@ export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
   scatter: ChartScatter,
   funnel: Filter,
   radar: Radar,
+  bar_race: ChartBarDecreasing,
+  line_race: ChartSpline,
   pivot: Grid3x3,
   map: MapPin,
 }
@@ -176,21 +184,23 @@ const IconRows1 = rows(3)
 
 /** The forms by what they are for, each family with its tint. */
 const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = [
-  { label: 'Chiffres clés', tone: 'bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300', types: ['scalar', 'trend', 'progress', 'gauge'] },
-  { label: 'Comparer', tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar'] },
-  { label: 'Évolution', tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo'] },
-  { label: 'Répartition', tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'funnel'] },
-  { label: 'Relation', tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter'] },
-  { label: 'Détail', tone: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300', types: ['table', 'pivot', 'map'] },
+  { label: msg('Chiffres clés'), tone: 'bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300', types: ['scalar', 'trend', 'progress', 'gauge'] },
+  { label: msg('Comparer'), tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar'] },
+  { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'bar_race', 'line_race'] },
+  { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'funnel'] },
+  { label: msg('Relation'), tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter'] },
+  { label: msg('Détail'), tone: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300', types: ['table', 'pivot', 'map'] },
 ]
 
 /** Why a form does not suit the result, said briefly. */
 const UNFIT: Partial<Record<VisualizationType, string>> = {
-  trend: 'Il faut une date et une mesure.',
-  pivot: 'Il faut deux dimensions et une mesure.',
-  map: 'Il faut une latitude et une longitude.',
-  radar: 'Il faut de 3 à 30 catégories et une mesure.',
-  scatter: 'Il faut deux mesures, ou une dimension et une mesure.',
+  trend: msg('Il faut une date et une mesure.'),
+  pivot: msg('Il faut deux dimensions et une mesure.'),
+  map: msg('Il faut une latitude et une longitude.'),
+  radar: msg('Il faut de 3 à 30 catégories et une mesure.'),
+  scatter: msg('Il faut deux mesures, ou une dimension et une mesure.'),
+  bar_race: msg('Il faut une date, une mesure, et une seconde dimension ou plusieurs mesures.'),
+  line_race: msg('Il faut une date et une mesure.'),
 }
 
 export function VizPicker({ value, result, onChange }: { value: VisualizationType; result: Result | null; onChange: (v: VisualizationType) => void }) {
@@ -232,7 +242,8 @@ export function VizPicker({ value, result, onChange }: { value: VisualizationTyp
                   ) : null}
                 </button>
               )
-              const hint = !fits ? $t(UNFIT[v] ?? 'Il faut au moins une dimension et une mesure.') : suggested === v && !on ? $t('Conseillé pour ce résultat') : undefined
+              const unfit = UNFIT[v]
+              const hint = !fits ? (unfit ? $t(unfit) : $t('Il faut au moins une dimension et une mesure.')) : suggested === v && !on ? $t('Conseillé pour ce résultat') : undefined
               return hint ? (
                 <Hint key={v} label={hint}>
                   {tile}
@@ -412,7 +423,7 @@ function SeriesColors({ type, settings, result, set }: { type: VisualizationType
         ))}
         {targets.length > shown.length ? (
           <button type="button" onClick={() => setAll(true)} className="px-1 text-xs text-primary hover:underline">
-            {$t('Voir les {n} autres', { n: targets.length - shown.length })}
+            {$tp(targets.length - shown.length, 'Voir l’autre', 'Voir les {count} autres')}
           </button>
         ) : null}
         {overridden ? (
@@ -448,11 +459,12 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
     else next.delete(k)
     set({ ref_lines: [...next] })
   }
-  const colored = cartesian || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
+  const race = type === 'bar_race' || type === 'line_race'
+  const colored = cartesian || race || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
 
   return (
     <div className="space-y-4">
-      {cartesian || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
+      {cartesian || race || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
         <Section title={$t('Données')}>
           <ColumnsPick label={$t('Dimensions (axe, puis séries)')} columns={columns} value={settings.dimensions ?? detected.dims.map((d) => d.name)} onChange={(v) => set({ dimensions: v })} />
           <ColumnsPick label={$t('Mesures')} columns={numeric} value={settings.metrics ?? detected.metrics.map((d) => d.name)} onChange={(v) => set({ metrics: v })} />
@@ -474,6 +486,43 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
               </div>
             </Field>
           ) : null}
+        </Section>
+      ) : null}
+
+      {race ? (
+        <Section title={$t('Course')}>
+          <Field label={$t('Vitesse')}>
+            <Segmented
+              value={String(settings.race_speed ?? 1000) as '2000' | '1000' | '500'}
+              onValueChange={(v) => set({ race_speed: Number(v) })}
+              options={[
+                { value: '2000', label: $t('Lente'), icon: Snail, hint: $t('Deux secondes par période') },
+                { value: '1000', label: $t('Normale'), icon: Gauge, hint: $t('Une seconde par période') },
+                { value: '500', label: $t('Rapide'), icon: Rabbit, hint: $t('Une demi-seconde par période') },
+              ]}
+              aria-label={$t('Vitesse')}
+            />
+          </Field>
+          {type === 'bar_race' ? (
+            <Field label={$t('Barres affichées')}>
+              <Segmented
+                value={String(settings.top_n ?? 10) as '5' | '10' | '15' | '20'}
+                onValueChange={(v) => set({ top_n: Number(v) })}
+                options={['5', '10', '15', '20'].map((n) => ({ value: n as '5' | '10' | '15' | '20', label: n, icon: ListOrdered }))}
+                aria-label={$t('Barres affichées')}
+              />
+            </Field>
+          ) : null}
+          <div className="space-y-2">
+            <Toggle label={$t('Cumuler les périodes')} checked={!!settings.race_cumulative} onChange={(v) => set({ race_cumulative: v })} />
+            {type === 'bar_race' ? <Toggle label={$t('Lancer la course à l’ouverture')} checked={settings.race_autoplay !== false} onChange={(v) => set({ race_autoplay: v })} /> : null}
+          </div>
+          <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+            {settings.race_cumulative ? <Sigma className="mt-px size-3 shrink-0" /> : <Play className="mt-px size-3 shrink-0" />}
+            {settings.race_cumulative
+              ? $t('Chaque période s’ajoute aux précédentes : un total qui grandit.')
+              : $t('La date fait avancer la course ; la seconde dimension, ou chaque mesure, est un concurrent.')}
+          </p>
         </Section>
       ) : null}
 

@@ -55,7 +55,7 @@ Règles :
 - run_query n'est disponible que si la personne y a consenti ; il lit sous ses propres droits. Garde les requêtes légères (agrégats, LIMIT).
 - Pour une proposition de question, valide d'abord ton SQL avec run_query quand c'est permis.
 - Réponds dans la langue de la personne (celle de son dernier message), de façon concise et concrète. Formate le SQL dans des blocs \`\`\`sql.
-- Visualisations disponibles : ${VISUALIZATIONS.join(', ')}. Choisis « line » ou « area » pour une évolution dans le temps, « bar »/« row » pour comparer des catégories, « scalar » pour un seul chiffre, « pie » pour une répartition de moins de 8 parts, « table » sinon.`
+- Visualisations disponibles : ${VISUALIZATIONS.join(', ')}. Choisis « line » ou « area » pour une évolution dans le temps, « bar »/« row » pour comparer des catégories, « scalar » pour un seul chiffre, « pie » pour une répartition de moins de 8 parts, « bar_race » ou « line_race » pour rejouer dans le temps la compétition entre plusieurs valeurs (une date, une seconde dimension, une mesure), « table » sinon.`
 
 const TOOLS: readonly ToolSpec[] = [
   {

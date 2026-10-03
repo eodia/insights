@@ -8,6 +8,7 @@ import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { api } from '@/lib/api'
 import { type ColumnOption, DATE_PRESETS, OPS_BY_KIND, OP_LABELS, semanticLabel } from '@/lib/builder'
+import { formatCount } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -112,7 +113,7 @@ export function SourceList({ tables, models, onPick }: { tables: readonly TableM
               <button key={t.id} type="button" onClick={() => onPick({ kind: 'table', id: t.id })} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent">
                 {t.icon ? <LookIcon name={t.icon} color={t.color} className="size-4" /> : <ItemTile kind="table" className="size-6" />}
                 <span className="flex-1 truncate">{t.label}</span>
-                {t.row_count ? <span className="text-[11px] text-muted-foreground tabular-nums">{t.row_count.toLocaleString()}</span> : null}
+                {t.row_count ? <span className="text-[11px] text-muted-foreground tabular-nums">{formatCount(t.row_count)}</span> : null}
               </button>
             ))}
           </div>
@@ -159,7 +160,7 @@ export function ValuesChecklist({ columnId, selected, onChange, linked = [] }: {
               ) : (
                 <span className="truncate">{v.label || v.value}</span>
               )}
-              {v.count ? <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">{v.count.toLocaleString()}</span> : null}
+              {v.count ? <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">{formatCount(v.count)}</span> : null}
             </label>
           )
         })}

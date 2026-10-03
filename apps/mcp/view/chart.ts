@@ -25,12 +25,14 @@ import {
 } from 'echarts/charts'
 import {
   DataZoomComponent,
+  GraphicComponent,
   GridComponent,
   LegendComponent,
   MarkAreaComponent,
   MarkLineComponent,
   MarkPointComponent,
   RadarComponent,
+  TimelineComponent,
   TitleComponent,
   TooltipComponent,
 } from 'echarts/components'
@@ -56,6 +58,8 @@ echarts.use([
   DataZoomComponent,
   MarkLineComponent,
   TitleComponent,
+  GraphicComponent,
+  TimelineComponent,
   SVGRenderer,
 ])
 

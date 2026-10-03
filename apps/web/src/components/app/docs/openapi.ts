@@ -79,6 +79,26 @@ export interface Endpoint {
 
 export const endpointId = (method: Method, path: string) => `${method}-${path.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
 
+/**
+ * The API's tags, in French as it declares them (`apps/api/src/routes`): marked here so the
+ * catalog carries them, translated where the documentation shows a tag.
+ */
+export const API_TAGS = [
+  msg('Administration'),
+  msg('Authentification'),
+  msg('Copilot'),
+  msg('Dossiers'),
+  msg('Exécution'),
+  msg('Partage'),
+  msg('Permissions'),
+  msg('Profil'),
+  msg('Public'),
+  msg('Questions'),
+  msg('Sources'),
+  msg('Structure'),
+  msg('Tableaux de bord'),
+] as const
+
 /** Every operation, grouped by tag in the order the API declares them. */
 export function endpointsOf(doc: OpenApiDoc): { tag: string; endpoints: Endpoint[] }[] {
   const groups = new Map<string, Endpoint[]>()

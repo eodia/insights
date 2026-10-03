@@ -116,6 +116,14 @@ export function vizFits(type: VisualizationType, result: Result): boolean {
       const n = new Set(result.rows.map((r) => String(r[i]))).size
       return n >= 3 && n <= 30
     }
+    case 'bar_race':
+    case 'line_race': {
+      // A period that moves on, and things that compete: a second dimension, or several measures.
+      const time = dims.find(isTemporal)
+      if (!time || metrics.length < 1) return false
+      const i = result.columns.indexOf(time)
+      return new Set(result.rows.map((r) => keyOf(r[i]))).size >= 2 && (dims.length >= 2 || metrics.length >= 2 || type === 'line_race')
+    }
     case 'pivot':
       return dims.length >= 2 && metrics.length >= 1
     case 'map':
@@ -140,6 +148,8 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   scatter: msg('Nuage de points'),
   funnel: msg('Entonnoir'),
   radar: msg('Radar'),
+  bar_race: msg('Course de barres'),
+  line_race: msg('Course de courbes'),
   pivot: msg('Tableau croisé'),
   map: msg('Carte'),
 }
@@ -218,6 +228,68 @@ function cartesian(result: Result, settings: VisualizationSettings) {
     categories.splice(0, categories.length, ...next)
   }
   return { x, dims, metrics, categories, series }
+}
+
+interface RaceEntry {
+  readonly key: string
+  readonly name: string
+  readonly look?: string
+  /** One value per period. */
+  values: number[]
+}
+
+/**
+ * A race's data: the periods in order and, for each competitor — a value of the other
+ * dimension, or a measure —, its value in each period; a running total when asked.
+ */
+function raceData(result: Result, settings: VisualizationSettings) {
+  const { dims, metrics } = roles(result, settings)
+  const time = dims.find(isTemporal)
+  const metric = metrics[0]
+  if (!time || !metric) return null
+  const other = dims.find((d) => d !== time)
+  const ti = result.columns.indexOf(time)
+  const byKey = new Map<string, unknown>()
+  for (const row of result.rows) if (!byKey.has(keyOf(row[ti]))) byKey.set(keyOf(row[ti]), row[ti])
+  const periods = [...byKey.values()].sort((a, b) =>
+    typeof a === 'number' && typeof b === 'number' ? a - b : String(a ?? '').localeCompare(String(b ?? '')),
+  )
+  const at = new Map(periods.map((p, j) => [keyOf(p), j]))
+  const entries: RaceEntry[] = []
+  if (other) {
+    const oi = result.columns.indexOf(other)
+    const mi = result.columns.indexOf(metric)
+    const found = new Map<string, RaceEntry>()
+    for (const row of result.rows) {
+      const k = keyOf(row[oi])
+      let e = found.get(k)
+      if (!e) {
+        const look = valueColor(result, other, row[oi])
+        e = { key: k, name: formatValue(row[oi], other) || '∅', values: periods.map(() => 0), ...(look ? { look } : {}) }
+        found.set(k, e)
+        entries.push(e)
+      }
+      const j = at.get(keyOf(row[ti])) as number
+      e.values[j] = (e.values[j] ?? 0) + (Number(row[mi]) || 0)
+    }
+  } else {
+    for (const m of metrics) {
+      const mi = result.columns.indexOf(m)
+      const values = periods.map(() => 0)
+      for (const row of result.rows) {
+        const j = at.get(keyOf(row[ti])) as number
+        values[j] = (values[j] ?? 0) + (Number(row[mi]) || 0)
+      }
+      entries.push({ key: m.name, name: settings.series?.[m.name]?.label ?? m.label, values })
+    }
+  }
+  if (settings.race_cumulative) {
+    for (const e of entries) {
+      let sum = 0
+      e.values = e.values.map((v) => (sum += v))
+    }
+  }
+  return { time, metric, periods, entries }
 }
 
 function axisLabel(col: ResultColumn | undefined, compact = true) {
@@ -353,6 +425,161 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
           },
         ],
       },
+    }
+  }
+
+  if (type === 'bar_race' || type === 'line_race') {
+    const race = raceData(result, settings)
+    if (!race) return null
+    const { time, metric, periods, entries } = race
+    const speed = Math.min(Math.max(settings.race_speed ?? 1000, 300), 5000)
+    const muted = theme.dark ? OTHER.dark : OTHER.light
+    // The largest get the palette's colours, in its order; a colour chosen or owned comes first.
+    const pal = paletteOf(settings, theme, entries.length)
+    const rank = entries.map((_, i) => i).sort((a, b) => Math.max(...(entries[b]?.values ?? [0])) - Math.max(...(entries[a]?.values ?? [0])))
+    const colors: string[] = entries.map(() => muted)
+    let next = 0
+    for (const i of rank) {
+      const e = entries[i] as RaceEntry
+      colors[i] = settings.series?.[e.key]?.color ?? e.look ?? pal(next++)
+    }
+    const targets = entries.map((e, i) => ({ key: e.key, name: e.name, color: colors[i] as string }))
+    const periodText = periods.map((p) => formatValue(p, time) || '∅')
+    const show = (v: unknown) => formatValue(v, metric, { compact: true })
+
+    if (type === 'line_race') {
+      // The lines draw themselves period after period, each named at its tip with its value.
+      // The eight largest: past them, the lines tangle and the names overlap.
+      const kept = rank.slice(0, 8).sort((a, b) => a - b)
+      const lines = kept.map((i) => entries[i] as RaceEntry)
+      const lineColors = kept.map((i) => colors[i] as string)
+      return {
+        targets: kept.map((i) => targets[i] as ColorTarget),
+        option: {
+          ...base,
+          animationDuration: speed * periods.length,
+          animationEasing: 'linear',
+          color: lineColors,
+          grid: { left: 8, right: 132, top: 14, bottom: 6, containLabel: true },
+          tooltip: { ...base.tooltip, trigger: 'axis', order: 'valueDesc', valueFormatter: (v) => formatValue(v, metric) },
+          xAxis: {
+            type: 'category',
+            data: periodText,
+            boundaryGap: false,
+            axisTick: { show: false },
+            axisLine: { lineStyle: { color: c.grid } },
+            axisLabel: { color: c.muted, hideOverlap: true },
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { color: c.muted, formatter: axisLabel(metric) },
+            splitLine: { lineStyle: { color: c.grid, type: 'dashed' } },
+          },
+          series: lines.map((e, i) => ({
+            type: 'line',
+            name: e.name,
+            data: e.values,
+            showSymbol: false,
+            smooth: settings.line_style === 'smooth',
+            lineStyle: { width: 2.5, color: lineColors[i] },
+            itemStyle: { color: lineColors[i] },
+            emphasis: { focus: 'series' },
+            endLabel: {
+              show: true,
+              color: lineColors[i],
+              fontSize: 11,
+              fontWeight: 600,
+              distance: 6,
+              valueAnimation: true,
+              formatter: (p: { seriesName?: string; value?: unknown }) => `${p.seriesName ?? ''} · ${show(p.value)}`,
+            },
+            labelLayout: { moveOverlap: 'shiftY' },
+          })) as SeriesOption[],
+        },
+      }
+    }
+
+    // Bars that overtake each other: one frame per period, played by the timeline.
+    const top = Math.min(Math.max(settings.top_n ?? 10, 3), 30)
+    const autoplay = settings.race_autoplay !== false
+    const accent = colors[rank[0] ?? 0] ?? pal(0)
+    const big = Math.max(...entries.flatMap((e) => e.values))
+    return {
+      targets,
+      option: {
+        baseOption: {
+          ...base,
+          animationDuration: 0,
+          animationDurationUpdate: speed,
+          animationEasing: 'linear',
+          animationEasingUpdate: 'linear',
+          timeline: {
+            axisType: 'category',
+            data: periodText,
+            autoPlay: autoplay,
+            playInterval: speed,
+            loop: false,
+            currentIndex: autoplay ? 0 : periods.length - 1,
+            left: 8,
+            right: 8,
+            bottom: 0,
+            height: 44,
+            symbol: 'circle',
+            symbolSize: 5,
+            lineStyle: { color: c.grid, width: 2 },
+            itemStyle: { color: c.grid },
+            label: { color: c.muted, fontSize: 10 },
+            checkpointStyle: { color: accent, borderColor: c.surface, borderWidth: 2, symbolSize: 12, animationDuration: Math.min(speed, 600) },
+            progress: { lineStyle: { color: accent }, itemStyle: { color: accent }, label: { color: c.secondary } },
+            controlStyle: { color: c.secondary, borderColor: c.secondary, itemSize: 18 },
+            emphasis: { label: { color: c.primary }, itemStyle: { color: accent }, controlStyle: { color: accent, borderColor: accent } },
+          },
+          grid: { left: 8, right: 72, top: 8, bottom: 64, containLabel: true },
+          tooltip: { ...base.tooltip, trigger: 'item', valueFormatter: (v) => formatValue(v, metric) },
+          xAxis: {
+            type: 'value',
+            max: (v: { max: number }) => Math.max(v.max, big > 0 ? 0 : 1),
+            axisLabel: { color: c.muted, formatter: axisLabel(metric) },
+            splitLine: { lineStyle: { color: c.grid, type: 'dashed' } },
+          },
+          yAxis: {
+            type: 'category',
+            data: entries.map((e) => e.name),
+            inverse: true,
+            max: Math.min(top, entries.length) - 1,
+            animationDuration: 300,
+            animationDurationUpdate: 300,
+            axisTick: { show: false },
+            axisLine: { lineStyle: { color: c.grid } },
+            axisLabel: { color: c.secondary, width: 150, overflow: 'truncate' },
+          },
+          series: [
+            {
+              type: 'bar',
+              realtimeSort: true,
+              barMaxWidth: 28,
+              itemStyle: { borderRadius: [0, 4, 4, 0] },
+              label: { show: true, position: 'right', valueAnimation: true, color: c.secondary, fontSize: 11, formatter: (p: { value: unknown }) => show(p.value) },
+            },
+          ],
+        },
+        // Each period: its bars, and its name written large in the corner.
+        options: periods.map((_, j) => ({
+          series: [{ data: entries.map((e, i) => ({ value: e.values[j] ?? 0, itemStyle: { color: colors[i] } })) }],
+          graphic: {
+            elements: [
+              {
+                type: 'text',
+                right: 84,
+                bottom: 76,
+                z: 100,
+                silent: true,
+                style: { text: periodText[j], fill: c.muted, opacity: 0.55, font: `600 ${periodText[j] && periodText[j].length > 9 ? 22 : 34}px ${base.textStyle && 'fontFamily' in base.textStyle ? base.textStyle.fontFamily : 'sans-serif'}`, textAlign: 'right' },
+              },
+            ],
+          },
+        })),
+      } as EChartsOption,
     }
   }
 

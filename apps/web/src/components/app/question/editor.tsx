@@ -273,7 +273,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const exportAs = async (format: 'csv' | 'xlsx' | 'json') => {
     try {
       const parameters = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''))
-      await download('/v1/query/export', { query: draft.query, parameters, format, name: draft.name || 'resultat' })
+      await download('/v1/query/export', { query: draft.query, parameters, format, name: draft.name || $t('resultat||nom du fichier exporté, sans accent') })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
     }
@@ -295,6 +295,8 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   }
 
   const canEdit = !draft.id || draft.access !== 'view'
+  // One sentence, cut around the value the bold element shows.
+  const drillLabel = drill ? $t('{column} : {value}', { column: drill.column.label }).split('{value}') : []
   const allowSql = !!me?.can.use_sql
   const sqlError: SqlError | null = error && draft.query.kind !== 'builder' ? { message: error.message, ...((error.details as { location?: { line: number; column: number } })?.location ?? {}) } : null
 
@@ -491,7 +493,9 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
             {drill ? (
               <div className="fixed z-50 w-56 rounded-xl border bg-popover p-1 shadow-lg" style={{ left: drill.at.x + 8, top: drill.at.y + 8 }}>
                 <div className="truncate px-2 py-1.5 text-xs text-muted-foreground">
-                  {drill.column.label} : <b className="text-foreground">{String(drill.value)}</b>
+                  {drillLabel[0]}
+                  <b className="text-foreground">{String(drill.value)}</b>
+                  {drillLabel[1]}
                 </div>
                 <button type="button" className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent" onClick={() => drillFilter('is')}>
                   {$t('Filtrer sur cette valeur')}
@@ -563,7 +567,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                   <dl className="space-y-2 text-sm">
                     <div className="flex gap-3">
                       <dt className="w-24 text-muted-foreground">{$t('Requête')}</dt>
-                      <dd>{builder ? $t('Éditeur visuel') : draft.query.kind === 'sql' ? 'SQL Trino' : $t('SQL natif')}</dd>
+                      <dd>{builder ? $t('Éditeur visuel') : draft.query.kind === 'sql' ? $t('SQL Trino') : $t('SQL natif')}</dd>
                     </div>
                     <div className="flex gap-3">
                       <dt className="w-24 text-muted-foreground">{$t('Accès')}</dt>

@@ -280,6 +280,8 @@ export const VISUALIZATIONS = [
   'scatter',
   'funnel',
   'radar',
+  'bar_race',
+  'line_race',
   'pivot',
   'map',
 ] as const
@@ -408,6 +410,14 @@ export interface VisualizationSettings {
   readonly forecast_method?: 'auto' | 'linear' | 'smooth' | 'seasonal'
   /** The 80 % interval around a single forecast line — shown by default. */
   readonly forecast_band?: boolean
+
+  // ── Races ──
+  /** How long each period stays on screen, in milliseconds (300 to 5 000; 1 000 by default). */
+  readonly race_speed?: number
+  /** Each period adds to the ones before: a running total rather than the period's value. */
+  readonly race_cumulative?: boolean
+  /** The race starts by itself — by default; otherwise on the play button. */
+  readonly race_autoplay?: boolean
   /** Colours by value: a number, the cells of a table or a pivot. */
   readonly rules?: readonly ColorRule[]
   /** The trend: a fall is good news — a cost, a delay. */
