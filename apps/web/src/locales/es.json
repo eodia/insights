@@ -1723,5 +1723,353 @@
   "≤ {max} car.": "≤ {max} car.",
   "≤ {max} él.": "≤ {max} elem.",
   "≥ {min} car.": "≥ {min} car.",
-  "≥ {min} él.": "≥ {min} elem."
+  "≥ {min} él.": "≥ {min} elem.",
+  "{count} dernières années": {
+    "one": "Último {count} año",
+    "many": "Últimos {count} años",
+    "other": "Últimos {count} años"
+  },
+  "{count} dernières années complètes": {
+    "one": "Último {count} año completo",
+    "many": "Últimos {count} años completos",
+    "other": "Últimos {count} años completos"
+  },
+  "{count} dernières semaines": {
+    "one": "Última {count} semana",
+    "many": "Últimas {count} semanas",
+    "other": "Últimas {count} semanas"
+  },
+  "{count} dernières semaines complètes": {
+    "one": "Última {count} semana completa",
+    "many": "Últimas {count} semanas completas",
+    "other": "Últimas {count} semanas completas"
+  },
+  "{count} derniers jours": {
+    "one": "Último {count} día",
+    "many": "Últimos {count} días",
+    "other": "Últimos {count} días"
+  },
+  "{count} derniers jours complets": {
+    "one": "Último {count} día completo",
+    "many": "Últimos {count} días completos",
+    "other": "Últimos {count} días completos"
+  },
+  "{count} derniers mois": {
+    "one": "Último {count} mes",
+    "many": "Últimos {count} meses",
+    "other": "Últimos {count} meses"
+  },
+  "{count} derniers mois complets": {
+    "one": "Último {count} mes completo",
+    "many": "Últimos {count} meses completos",
+    "other": "Últimos {count} meses completos"
+  },
+  "{count} derniers trimestres": {
+    "one": "Último {count} trimestre",
+    "many": "Últimos {count} trimestres",
+    "other": "Últimos {count} trimestres"
+  },
+  "{count} derniers trimestres complets": {
+    "one": "Último {count} trimestre completo",
+    "many": "Últimos {count} trimestres completos",
+    "other": "Últimos {count} trimestres completos"
+  },
+  "{count} éléments n’ont pas pu être supprimés : {why}": {
+    "one": "{count} elemento no se pudo eliminar: {why}",
+    "many": "{count} elementos no se pudieron eliminar: {why}",
+    "other": "{count} elementos no se pudieron eliminar: {why}"
+  },
+  "{count} éléments sélectionnés": {
+    "one": "{count} elemento seleccionado",
+    "many": "{count} elementos seleccionados",
+    "other": "{count} elementos seleccionados"
+  },
+  "{count} éléments supprimés.": {
+    "one": "{count} elemento eliminado.",
+    "many": "{count} elementos eliminados.",
+    "other": "{count} elementos eliminados."
+  },
+  "{count} prochaines années": {
+    "one": "Próximo {count} año",
+    "many": "Próximos {count} años",
+    "other": "Próximos {count} años"
+  },
+  "{count} prochaines semaines": {
+    "one": "Próxima {count} semana",
+    "many": "Próximas {count} semanas",
+    "other": "Próximas {count} semanas"
+  },
+  "{count} prochains jours": {
+    "one": "Próximo {count} día",
+    "many": "Próximos {count} días",
+    "other": "Próximos {count} días"
+  },
+  "{count} prochains mois": {
+    "one": "Próximo {count} mes",
+    "many": "Próximos {count} meses",
+    "other": "Próximos {count} meses"
+  },
+  "{count} prochains trimestres": {
+    "one": "Próximo {count} trimestre",
+    "many": "Próximos {count} trimestres",
+    "other": "Próximos {count} trimestres"
+  },
+  "{count} questions": {
+    "one": "{count} pregunta",
+    "many": "{count} preguntas",
+    "other": "{count} preguntas"
+  },
+  "{count} sous-dossiers": {
+    "one": "{count} subcarpeta",
+    "many": "{count} subcarpetas",
+    "other": "{count} subcarpetas"
+  },
+  "{count} tableaux de bord": {
+    "one": "{count} panel",
+    "many": "{count} paneles",
+    "other": "{count} paneles"
+  },
+  "{seconds} s": "{seconds} s",
+  "1 h": "1 h",
+  "1 min": "1 min",
+  "12 derniers mois complets": "Últimos 12 meses completos",
+  "15 min": "15 min",
+  "3 dernières années": "Últimos 3 años",
+  "4 dernières semaines": "Últimas 4 semanas",
+  "4 derniers trimestres": "Últimos 4 trimestres",
+  "5 min": "5 min",
+  "6 derniers mois": "Últimos 6 meses",
+  "90 derniers jours": "Últimos 90 días",
+  "À partir de la prochaine période.": "A partir del próximo período.",
+  "à partir du {day}": "a partir del {day}",
+  "Actions du dossier": "Acciones de la carpeta",
+  "Actualiser les données à intervalle régulier.": "Actualizar los datos a intervalos regulares.",
+  "Année à date": "Año hasta la fecha",
+  "années": {
+    "one": "año",
+    "many": "años",
+    "other": "años"
+  },
+  "Années": "Años",
+  "Annuler la sélection": "Anular la selección",
+  "Annuler la sélection (Échap)": "Anular la selección (Esc)",
+  "Après": "Después",
+  "Après {what}": "Después de {what}",
+  "Après aujourd'hui": "Después de hoy",
+  "aujourd'hui": "hoy",
+  "Avant": "Antes",
+  "Avant {what}": "Antes de {what}",
+  "Avant ce mois-ci": "Antes de este mes",
+  "Avant cette année": "Antes de este año",
+  "Avant l'année dernière": "Antes del año pasado",
+  "Avant le mois dernier": "Antes del mes pasado",
+  "Avant, après": "Antes, después",
+  "Avant, après, depuis ou jusqu’à un moment": "Antes, después, desde o hasta un momento",
+  "ce mois-ci": "este mes",
+  "Ce moment compris, et tout ce qui le suit.": "Ese momento incluido, y todo lo que sigue.",
+  "ce trimestre": "este trimestre",
+  "cette année": "este año",
+  "Cette image n’a pas pu être lue.": "No se pudo leer esta imagen.",
+  "cette semaine": "esta semana",
+  "Changer le picto et la couleur": "Cambiar el icono y el color",
+  "Dates": "Fechas",
+  "de {what}": "de {what}",
+  "Début": "Inicio",
+  "Depuis": "Desde",
+  "Depuis {what}": "Desde {what}",
+  "Depuis le mois dernier": "Desde el mes pasado",
+  "Derniers": "Últimos",
+  "Des jours précis sur le calendrier": "Días exactos en el calendario",
+  "Des périodes complètes, la période en cours laissée de côté.": "Períodos completos, sin contar el período en curso.",
+  "Désactiver le lien": "Desactivar el enlace",
+  "Désélectionner": "Deseleccionar",
+  "Dossier « {name} » supprimé.": "Carpeta «{name}» eliminada.",
+  "du {from} au {to}": "del {from} al {to}",
+  "du {rest}": "del {rest}",
+  "du dossier « {from} »": "de la carpeta «{from}»",
+  "Échap": "Esc",
+  "Effacer {what}": "Borrar {what}",
+  "En pause": "En pausa",
+  "En pause · {interval}": "En pausa · {interval}",
+  "Entrée": "Intro",
+  "Envoyer une image…": "Subir una imagen…",
+  "Façon de dire la période": "Forma de indicar el período",
+  "Fin": "Fin",
+  "Gérer les thèmes": "Gestionar los temas",
+  "Glissante": "Móvil",
+  "Hériter : {theme}": "Heredar: {theme}",
+  "hier": "ayer",
+  "Il contient {last}.": "Contiene {last}.",
+  "Il contient {list} et {last}.": "Contiene {list} y {last}.",
+  "Il y a": "Hace",
+  "il y a {count} ans": {
+    "one": "hace {count} año",
+    "many": "hace {count} años",
+    "other": "hace {count} años"
+  },
+  "il y a {count} jours": {
+    "one": "hace {count} día",
+    "many": "hace {count} días",
+    "other": "hace {count} días"
+  },
+  "il y a {count} mois": {
+    "one": "hace {count} mes",
+    "many": "hace {count} meses",
+    "other": "hace {count} meses"
+  },
+  "il y a {count} semaines": {
+    "one": "hace {count} semana",
+    "many": "hace {count} semanas",
+    "other": "hace {count} semanas"
+  },
+  "il y a {count} trimestres": {
+    "one": "hace {count} trimestre",
+    "many": "hace {count} trimestres",
+    "other": "hace {count} trimestres"
+  },
+  "Il y a…": "Hace…",
+  "Inclure la période en cours": "Incluir el período en curso",
+  "jours": {
+    "one": "día",
+    "many": "días",
+    "other": "días"
+  },
+  "Jusqu’à": "Hasta",
+  "jusqu'à {what}": "hasta {what}",
+  "jusqu'au {day} inclus": "hasta el {day} incluido",
+  "jusqu'au {rest}": "hasta el {rest}",
+  "l'année d'il y a {count} ans": {
+    "one": "el año de hace {count} año",
+    "many": "el año de hace {count} años",
+    "other": "el año de hace {count} años"
+  },
+  "l'année dernière": "el año pasado",
+  "L’habillage par défaut": "El aspecto por defecto",
+  "La période en cours": "El período en curso",
+  "La période en cours compte pour une : « 3 derniers mois » couvre ce mois-ci et les deux d’avant.": "El período en curso cuenta como uno: «últimos 3 meses» abarca este mes y los dos anteriores.",
+  "La période précédente": "El período anterior",
+  "la semaine d'il y a {count} semaines": {
+    "one": "la semana de hace {count} semana",
+    "many": "la semana de hace {count} semanas",
+    "other": "la semana de hace {count} semanas"
+  },
+  "la semaine dernière": "la semana pasada",
+  "le {day}": "el {day}",
+  "Le dossier est vide.": "La carpeta está vacía.",
+  "Le dossier part avec tout ce qu’il contient, sous-dossiers compris. Les tableaux de bord ailleurs perdent les cartes de ses questions.": "La carpeta se va con todo lo que contiene, subcarpetas incluidas. Los paneles de otros lugares pierden las tarjetas de sus preguntas.",
+  "le mois d'il y a {count} mois": {
+    "one": "el mes de hace {count} mes",
+    "many": "el mes de hace {count} meses",
+    "other": "el mes de hace {count} meses"
+  },
+  "le mois dernier": "el mes pasado",
+  "le trimestre d'il y a {count} trimestres": {
+    "one": "el trimestre de hace {count} trimestre",
+    "many": "el trimestre de hace {count} trimestres",
+    "other": "el trimestre de hace {count} trimestres"
+  },
+  "le trimestre dernier": "el trimestre pasado",
+  "Les N derniers ou prochains jours, mois… ou il y a N périodes": "Los últimos o próximos N días, meses… o hace N períodos",
+  "Les questions créées dans un tableau de bord supprimé partent avec lui ; les tableaux de bord qui affichent une question supprimée perdent la carte.": "Las preguntas creadas en un panel eliminado se van con él; los paneles que muestran una pregunta eliminada pierden la tarjeta.",
+  "mois": {
+    "one": "mes",
+    "many": "meses",
+    "other": "meses"
+  },
+  "Mois à date": "Mes hasta la fecha",
+  "Moment": "Momento",
+  "ou par son adresse": "o por su dirección",
+  "Période incomplète": "Período incompleto",
+  "Précisez au moins un jour.": "Indique al menos un día.",
+  "Prochains": "Próximos",
+  "Que faire de son contenu ?": "¿Qué hacer con su contenido?",
+  "Raccourcis": "Atajos",
+  "Rafraîchissement automatique : {state}": "Actualización automática: {state}",
+  "Reporter le contenu à la racine": "Mover el contenido a la raíz",
+  "Reporter le contenu dans « {parent} »": "Mover el contenido a «{parent}»",
+  "Sans début": "Sin inicio",
+  "Sans fin": "Sin fin",
+  "Sélectionner": "Seleccionar",
+  "Sélectionner « {name} »": "Seleccionar «{name}»",
+  "Semaine à date": "Semana hasta la fecha",
+  "semaines": {
+    "one": "semana",
+    "many": "semanas",
+    "other": "semanas"
+  },
+  "Semaines": "Semanas",
+  "Sens": "Sentido",
+  "Ses sous-dossiers, questions et tableaux de bord le portent, sauf là où un autre thème est posé.": "Sus subcarpetas, preguntas y paneles lo llevan, salvo donde se aplica otro tema.",
+  "Seul un administrateur range des éléments à la racine.": "Solo un administrador coloca elementos en la raíz.",
+  "Suppr": "Supr",
+  "Supprimer (Suppr)": "Eliminar (Supr)",
+  "Supprimer {count} éléments": {
+    "one": "Eliminar {count} elemento",
+    "many": "Eliminar {count} elementos",
+    "other": "Eliminar {count} elementos"
+  },
+  "Supprimer {count} éléments ?": {
+    "one": "¿Eliminar {count} elemento?",
+    "many": "¿Eliminar {count} elementos?",
+    "other": "¿Eliminar {count} elementos?"
+  },
+  "Supprimer le dossier": "Eliminar la carpeta",
+  "Supprimer le dossier « {name} » ?": "¿Eliminar la carpeta «{name}»?",
+  "Supprimer le dossier…": "Eliminar la carpeta…",
+  "Tableaux de bord, questions et sous-dossiers remontent d’un niveau ; seul le dossier disparaît.": "Paneles, preguntas y subcarpetas suben un nivel; solo desaparece la carpeta.",
+  "Tout ce qui précède le début de ce moment.": "Todo lo anterior al inicio de ese momento.",
+  "Tout ce qui précède, ce moment compris.": "Todo lo anterior, ese momento incluido.",
+  "Tout ce qui suit la fin de ce moment.": "Todo lo posterior al final de ese momento.",
+  "Tout désélectionner": "Deseleccionar todo",
+  "Tout sélectionner": "Seleccionar todo",
+  "Tout supprimer": "Eliminar todo",
+  "Toutes les {seconds} secondes": "Cada {seconds} segundos",
+  "Trimestre à date": "Trimestre hasta la fecha",
+  "trimestres": {
+    "one": "trimestre",
+    "many": "trimestres",
+    "other": "trimestres"
+  },
+  "Trimestres": "Trimestres",
+  "Un logo, une photo, un drapeau… envoyé depuis votre ordinateur, ou par son adresse (https). Il s’affiche petit et carré, partout où le picto apparaît.": "Un logo, una foto, una bandera… subido desde su equipo, o por su dirección (https). Se muestra pequeño y cuadrado, allí donde aparece el icono.",
+  "Une date": "Una fecha",
+  "Une seule période entière : le mois d’il y a 2 mois, l’année d’il y a 1 an…": "Un solo período completo: el mes de hace 2 meses, el año de hace 1 año…",
+  "3 lignes": "3 filas",
+  "6 lignes · 412 ms": "6 filas · 412 ms",
+  "Administratrice": "Administradora",
+  "Canal": "Canal",
+  "Ce trimestre · commandes livrées": "Este trimestre · pedidos entregados",
+  "Chiffre d’affaires par canal": "Facturación por canal",
+  "Chiffre d’affaires, commandes et clients — filtrable par période et canal.": "Facturación, pedidos y clientes — filtrable por período y canal.",
+  "Clients fidèles en 2026": "Clientes fieles en 2026",
+  "Commandes par canal": "Pedidos por canal",
+  "Commandes par semaine": "Pedidos por semana",
+  "Demandez. Il répond, graphique à l’appui.": "Pregunte. Responde, con el gráfico.",
+  "En SQL": "En SQL",
+  "entre {low} et {high}": "entre {low} y {high}",
+  "Entrée pour envoyer": "Intro para enviar",
+  "Et ce qui vient ensuite.": "Y lo que viene después.",
+  "La partie prévue est dessinée en pointillés verts : tendance et saison, prolongées par Holt-Winters.": "La parte prevista se dibuja en punteado verde: tendencia y estacionalidad, prolongadas por Holt-Winters.",
+  "Le canal Mobile a le panier moyen le plus élevé ce trimestre : {mobile}, devant le Web ({web}) et la Marketplace ({market}).": "El canal Móvil tiene la cesta media más alta este trimestre: {mobile}, por delante de la Web ({web}) y del Marketplace ({market}).",
+  "Les étapes de la démonstration": "Las etapas de la demostración",
+  "Ou tout le SQL que vous voulez.": "O todo el SQL que quiera.",
+  "Panier moyen par canal": "Cesta media por canal",
+  "Paniers et tickets": "Cestas y tickets",
+  "Prévisions": "Previsiones",
+  "Quel canal a le meilleur panier moyen ce trimestre ?": "¿Qué canal tiene la mejor cesta media este trimestre?",
+  "Retours par région": "Devoluciones por región",
+  "Sans SQL": "Sin SQL",
+  "Satisfaction": "Satisfacción",
+  "Service client": "Atención al cliente",
+  "Somme de Montant total": "Suma de Importe total",
+  "Statut est livrée": "Estado es entregado",
+  "Tickets": "Tickets",
+  "Tickets ouverts cette semaine": "Tickets abiertos esta semana",
+  "Tout se retrouve sur un tableau de bord.": "Todo acaba en un panel.",
+  "Toutes vos bases.": "Todas sus bases.",
+  "Une question, sans une ligne de SQL.": "Una pregunta, sin una línea de SQL.",
+  "Une seule vérité.": "Una sola verdad.",
+  "Ventes": "Ventas",
+  "Ventes de la boutique": "Ventas de la tienda",
+  "Visualiser": "Visualizar"
 }

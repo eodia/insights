@@ -1686,5 +1686,316 @@
   "≤ {max} car.": "≤ {max} chars",
   "≤ {max} él.": "≤ {max} items",
   "≥ {min} car.": "≥ {min} chars",
-  "≥ {min} él.": "≥ {min} items"
+  "≥ {min} él.": "≥ {min} items",
+  "{count} dernières années": {
+    "one": "Last {count} year",
+    "other": "Last {count} years"
+  },
+  "{count} dernières années complètes": {
+    "one": "Last {count} full year",
+    "other": "Last {count} full years"
+  },
+  "{count} dernières semaines": {
+    "one": "Last {count} week",
+    "other": "Last {count} weeks"
+  },
+  "{count} dernières semaines complètes": {
+    "one": "Last {count} full week",
+    "other": "Last {count} full weeks"
+  },
+  "{count} derniers jours": {
+    "one": "Last {count} day",
+    "other": "Last {count} days"
+  },
+  "{count} derniers jours complets": {
+    "one": "Last {count} full day",
+    "other": "Last {count} full days"
+  },
+  "{count} derniers mois": {
+    "one": "Last {count} month",
+    "other": "Last {count} months"
+  },
+  "{count} derniers mois complets": {
+    "one": "Last {count} full month",
+    "other": "Last {count} full months"
+  },
+  "{count} derniers trimestres": {
+    "one": "Last {count} quarter",
+    "other": "Last {count} quarters"
+  },
+  "{count} derniers trimestres complets": {
+    "one": "Last {count} full quarter",
+    "other": "Last {count} full quarters"
+  },
+  "{count} éléments n’ont pas pu être supprimés : {why}": {
+    "one": "{count} item could not be deleted: {why}",
+    "other": "{count} items could not be deleted: {why}"
+  },
+  "{count} éléments sélectionnés": {
+    "one": "{count} item selected",
+    "other": "{count} items selected"
+  },
+  "{count} éléments supprimés.": {
+    "one": "{count} item deleted.",
+    "other": "{count} items deleted."
+  },
+  "{count} prochaines années": {
+    "one": "Next {count} year",
+    "other": "Next {count} years"
+  },
+  "{count} prochaines semaines": {
+    "one": "Next {count} week",
+    "other": "Next {count} weeks"
+  },
+  "{count} prochains jours": {
+    "one": "Next {count} day",
+    "other": "Next {count} days"
+  },
+  "{count} prochains mois": {
+    "one": "Next {count} month",
+    "other": "Next {count} months"
+  },
+  "{count} prochains trimestres": {
+    "one": "Next {count} quarter",
+    "other": "Next {count} quarters"
+  },
+  "{count} questions": {
+    "one": "{count} question",
+    "other": "{count} questions"
+  },
+  "{count} sous-dossiers": {
+    "one": "{count} subfolder",
+    "other": "{count} subfolders"
+  },
+  "{count} tableaux de bord": {
+    "one": "{count} dashboard",
+    "other": "{count} dashboards"
+  },
+  "{seconds} s": "{seconds} s",
+  "1 h": "1 h",
+  "1 min": "1 min",
+  "12 derniers mois complets": "Last 12 full months",
+  "15 min": "15 min",
+  "3 dernières années": "Last 3 years",
+  "4 dernières semaines": "Last 4 weeks",
+  "4 derniers trimestres": "Last 4 quarters",
+  "5 min": "5 min",
+  "6 derniers mois": "Last 6 months",
+  "90 derniers jours": "Last 90 days",
+  "À partir de la prochaine période.": "From the next period on.",
+  "à partir du {day}": "from {day}",
+  "Actions du dossier": "Folder actions",
+  "Actualiser les données à intervalle régulier.": "Refresh the data at a regular interval.",
+  "Année à date": "Year to date",
+  "années": {
+    "one": "year",
+    "other": "years"
+  },
+  "Années": "Years",
+  "Annuler la sélection": "Clear the selection",
+  "Annuler la sélection (Échap)": "Clear the selection (Esc)",
+  "Après": "After",
+  "Après {what}": "After {what}",
+  "Après aujourd'hui": "After today",
+  "aujourd'hui": "today",
+  "Avant": "Before",
+  "Avant {what}": "Before {what}",
+  "Avant ce mois-ci": "Before this month",
+  "Avant cette année": "Before this year",
+  "Avant l'année dernière": "Before last year",
+  "Avant le mois dernier": "Before last month",
+  "Avant, après": "Before, after",
+  "Avant, après, depuis ou jusqu’à un moment": "Before, after, since or until a moment",
+  "ce mois-ci": "this month",
+  "Ce moment compris, et tout ce qui le suit.": "That moment included, and everything after it.",
+  "ce trimestre": "this quarter",
+  "cette année": "this year",
+  "Cette image n’a pas pu être lue.": "This image could not be read.",
+  "cette semaine": "this week",
+  "Changer le picto et la couleur": "Change the icon and colour",
+  "Dates": "Dates",
+  "de {what}": "from {what}",
+  "Début": "Start",
+  "Depuis": "Since",
+  "Depuis {what}": "Since {what}",
+  "Depuis le mois dernier": "Since last month",
+  "Derniers": "Last",
+  "Des jours précis sur le calendrier": "Exact days on the calendar",
+  "Des périodes complètes, la période en cours laissée de côté.": "Full periods, leaving out the current one.",
+  "Désactiver le lien": "Turn the link off",
+  "Désélectionner": "Deselect",
+  "Dossier « {name} » supprimé.": "Folder “{name}” deleted.",
+  "du {from} au {to}": "from {from} to {to}",
+  "du {rest}": "from {rest}",
+  "du dossier « {from} »": "from the folder “{from}”",
+  "Échap": "Esc",
+  "Effacer {what}": "Clear {what}",
+  "En pause": "Paused",
+  "En pause · {interval}": "Paused · {interval}",
+  "Entrée": "Enter",
+  "Envoyer une image…": "Upload an image…",
+  "Façon de dire la période": "Way to set the period",
+  "Fin": "End",
+  "Gérer les thèmes": "Manage themes",
+  "Glissante": "Rolling",
+  "Hériter : {theme}": "Inherit: {theme}",
+  "hier": "yesterday",
+  "Il contient {last}.": "It holds {last}.",
+  "Il contient {list} et {last}.": "It holds {list} and {last}.",
+  "Il y a": "Ago",
+  "il y a {count} ans": {
+    "one": "{count} year ago",
+    "other": "{count} years ago"
+  },
+  "il y a {count} jours": {
+    "one": "{count} day ago",
+    "other": "{count} days ago"
+  },
+  "il y a {count} mois": {
+    "one": "{count} month ago",
+    "other": "{count} months ago"
+  },
+  "il y a {count} semaines": {
+    "one": "{count} week ago",
+    "other": "{count} weeks ago"
+  },
+  "il y a {count} trimestres": {
+    "one": "{count} quarter ago",
+    "other": "{count} quarters ago"
+  },
+  "Il y a…": "Some time ago…",
+  "Inclure la période en cours": "Include the current period",
+  "jours": {
+    "one": "day",
+    "other": "days"
+  },
+  "Jusqu’à": "Until",
+  "jusqu'à {what}": "until {what}",
+  "jusqu'au {day} inclus": "up to {day} included",
+  "jusqu'au {rest}": "until {rest}",
+  "l'année d'il y a {count} ans": {
+    "one": "the year {count} year ago",
+    "other": "the year {count} years ago"
+  },
+  "l'année dernière": "last year",
+  "L’habillage par défaut": "The default look",
+  "La période en cours": "The current period",
+  "La période en cours compte pour une : « 3 derniers mois » couvre ce mois-ci et les deux d’avant.": "The current period counts as one: “last 3 months” covers this month and the two before.",
+  "La période précédente": "The previous period",
+  "la semaine d'il y a {count} semaines": {
+    "one": "the week {count} week ago",
+    "other": "the week {count} weeks ago"
+  },
+  "la semaine dernière": "last week",
+  "le {day}": "{day}",
+  "Le dossier est vide.": "The folder is empty.",
+  "Le dossier part avec tout ce qu’il contient, sous-dossiers compris. Les tableaux de bord ailleurs perdent les cartes de ses questions.": "The folder goes with everything it holds, subfolders included. Dashboards elsewhere lose the cards of its questions.",
+  "le mois d'il y a {count} mois": {
+    "one": "the month {count} month ago",
+    "other": "the month {count} months ago"
+  },
+  "le mois dernier": "last month",
+  "le trimestre d'il y a {count} trimestres": {
+    "one": "the quarter {count} quarter ago",
+    "other": "the quarter {count} quarters ago"
+  },
+  "le trimestre dernier": "last quarter",
+  "Les N derniers ou prochains jours, mois… ou il y a N périodes": "The last or next N days, months… or N periods ago",
+  "Les questions créées dans un tableau de bord supprimé partent avec lui ; les tableaux de bord qui affichent une question supprimée perdent la carte.": "Questions created in a deleted dashboard go with it; dashboards showing a deleted question lose the card.",
+  "mois": {
+    "one": "month",
+    "other": "months"
+  },
+  "Mois à date": "Month to date",
+  "Moment": "Moment",
+  "ou par son adresse": "or by its address",
+  "Période incomplète": "Incomplete period",
+  "Précisez au moins un jour.": "Set at least one day.",
+  "Prochains": "Next",
+  "Que faire de son contenu ?": "What to do with its content?",
+  "Raccourcis": "Shortcuts",
+  "Rafraîchissement automatique : {state}": "Automatic refresh: {state}",
+  "Reporter le contenu à la racine": "Move the content to the root",
+  "Reporter le contenu dans « {parent} »": "Move the content to “{parent}”",
+  "Sans début": "No start",
+  "Sans fin": "No end",
+  "Sélectionner": "Select",
+  "Sélectionner « {name} »": "Select “{name}”",
+  "Semaine à date": "Week to date",
+  "semaines": {
+    "one": "week",
+    "other": "weeks"
+  },
+  "Semaines": "Weeks",
+  "Sens": "Direction",
+  "Ses sous-dossiers, questions et tableaux de bord le portent, sauf là où un autre thème est posé.": "Its subfolders, questions and dashboards wear it, except where another theme is set.",
+  "Seul un administrateur range des éléments à la racine.": "Only an administrator puts items at the root.",
+  "Suppr": "Del",
+  "Supprimer (Suppr)": "Delete (Del)",
+  "Supprimer {count} éléments": {
+    "one": "Delete {count} item",
+    "other": "Delete {count} items"
+  },
+  "Supprimer {count} éléments ?": {
+    "one": "Delete {count} item?",
+    "other": "Delete {count} items?"
+  },
+  "Supprimer le dossier": "Delete the folder",
+  "Supprimer le dossier « {name} » ?": "Delete the folder “{name}”?",
+  "Supprimer le dossier…": "Delete the folder…",
+  "Tableaux de bord, questions et sous-dossiers remontent d’un niveau ; seul le dossier disparaît.": "Dashboards, questions and subfolders move up one level; only the folder goes.",
+  "Tout ce qui précède le début de ce moment.": "Everything before that moment begins.",
+  "Tout ce qui précède, ce moment compris.": "Everything before, that moment included.",
+  "Tout ce qui suit la fin de ce moment.": "Everything after that moment ends.",
+  "Tout désélectionner": "Deselect all",
+  "Tout sélectionner": "Select all",
+  "Tout supprimer": "Delete everything",
+  "Toutes les {seconds} secondes": "Every {seconds} seconds",
+  "Trimestre à date": "Quarter to date",
+  "trimestres": {
+    "one": "quarter",
+    "other": "quarters"
+  },
+  "Trimestres": "Quarters",
+  "Un logo, une photo, un drapeau… envoyé depuis votre ordinateur, ou par son adresse (https). Il s’affiche petit et carré, partout où le picto apparaît.": "A logo, a photo, a flag… uploaded from your computer, or by its address (https). It shows small and square, wherever the icon appears.",
+  "Une date": "A date",
+  "Une seule période entière : le mois d’il y a 2 mois, l’année d’il y a 1 an…": "One whole period: the month 2 months ago, the year 1 year ago…",
+  "3 lignes": "3 rows",
+  "6 lignes · 412 ms": "6 rows · 412 ms",
+  "Administratrice": "Administrator",
+  "Canal": "Channel",
+  "Ce trimestre · commandes livrées": "This quarter · delivered orders",
+  "Chiffre d’affaires par canal": "Revenue by channel",
+  "Chiffre d’affaires, commandes et clients — filtrable par période et canal.": "Revenue, orders and customers — filterable by period and channel.",
+  "Clients fidèles en 2026": "Loyal customers in 2026",
+  "Commandes par canal": "Orders by channel",
+  "Commandes par semaine": "Orders per week",
+  "Demandez. Il répond, graphique à l’appui.": "Ask. It answers, chart in hand.",
+  "En SQL": "SQL",
+  "entre {low} et {high}": "between {low} and {high}",
+  "Entrée pour envoyer": "Enter to send",
+  "Et ce qui vient ensuite.": "And what comes next.",
+  "La partie prévue est dessinée en pointillés verts : tendance et saison, prolongées par Holt-Winters.": "The forecast part is drawn in green dashes: trend and season, carried on by Holt-Winters.",
+  "Le canal Mobile a le panier moyen le plus élevé ce trimestre : {mobile}, devant le Web ({web}) et la Marketplace ({market}).": "The Mobile channel has the highest average basket this quarter: {mobile}, ahead of Web ({web}) and the Marketplace ({market}).",
+  "Les étapes de la démonstration": "The steps of the demo",
+  "Ou tout le SQL que vous voulez.": "Or all the SQL you want.",
+  "Panier moyen par canal": "Average basket by channel",
+  "Paniers et tickets": "Baskets and tickets",
+  "Prévisions": "Forecasts",
+  "Quel canal a le meilleur panier moyen ce trimestre ?": "Which channel has the best average basket this quarter?",
+  "Retours par région": "Returns by region",
+  "Sans SQL": "No code",
+  "Satisfaction": "Satisfaction",
+  "Service client": "Customer service",
+  "Somme de Montant total": "Sum of Total amount",
+  "Statut est livrée": "Status is delivered",
+  "Tickets": "Tickets",
+  "Tickets ouverts cette semaine": "Tickets opened this week",
+  "Tout se retrouve sur un tableau de bord.": "It all comes together on a dashboard.",
+  "Toutes vos bases.": "All your databases.",
+  "Une question, sans une ligne de SQL.": "A question, without a line of SQL.",
+  "Une seule vérité.": "One single truth.",
+  "Ventes": "Sales",
+  "Ventes de la boutique": "Shop sales",
+  "Visualiser": "Visualize"
 }
