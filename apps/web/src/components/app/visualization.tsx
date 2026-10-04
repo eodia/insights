@@ -7,7 +7,7 @@ import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
 import { $t, $tp, intlLocale } from '@/lib/i18n'
-import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles } from '@/lib/viz'
+import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles, withTemporalUnits } from '@/lib/viz'
 import { useChartTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
@@ -61,8 +61,10 @@ function useDark(): boolean {
   return dark
 }
 
+const NO_SETTINGS: VisualizationSettings = {}
+
 export function Visualization({
-  result,
+  result: given,
   viz,
   onPointClick,
   compact = false,
@@ -77,8 +79,11 @@ export function Visualization({
 }) {
   const dark = useDark()
   const chartTheme = useChartTheme()
+  // Dates a SQL query left without their grain read at it — months as months, not « 00:00 ».
+  const result = useMemo(() => withTemporalUnits(given), [given])
   // A card that chose no palette takes its theme's.
-  const own = (viz.settings ?? {}) as VisualizationSettings
+  // The same empty settings from one render to the next: a new `{}` would rebuild — and replay — the chart.
+  const own = (viz.settings ?? NO_SETTINGS) as VisualizationSettings
   const settings = useMemo(
     () => (!own.scheme && chartTheme.scheme ? { ...own, scheme: chartTheme.scheme, ...(chartTheme.colors ? { colors: chartTheme.colors } : {}) } : own),
     [own, chartTheme.scheme, chartTheme.colors],

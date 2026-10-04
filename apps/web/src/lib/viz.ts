@@ -6,7 +6,7 @@
  */
 import type { BarFill, ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
-import { LOOK_HEX, formatValue } from './format'
+import { LOOK_HEX, formatValue, parseDate } from './format'
 import { $t, intlLocale, msg } from './i18n'
 import { FORECAST_UNITS, type Forecast, forecast, nextPeriods } from './forecast'
 import { PALETTES, schemeColors } from './palettes'
@@ -92,6 +92,26 @@ function valueColor(result: Result, col: ResultColumn | undefined, raw: unknown)
 const isNumeric = (c: ResultColumn) => c.type === 'number' && !c.unit
 const isTemporal = (c: ResultColumn) => c.type === 'date' || c.type === 'datetime'
 
+/**
+ * Dates a SQL query gives without their grain — `date_trunc('month', …)` is a timestamp — read at
+ * it: all at midnight on the 1st of January, years; on the 1st, months; at midnight, days.
+ */
+export function withTemporalUnits<R extends Result>(result: R): R {
+  let changed = false
+  const columns = result.columns.map((c, i) => {
+    if (c.unit || (c.type !== 'date' && c.type !== 'datetime')) return c
+    const ds = result.rows.map((r) => r[i]).filter((v) => v !== null && v !== undefined && v !== '').map((v) => parseDate(String(v)))
+    if (ds.length < 2 || !ds.every((d): d is Date => d !== null)) return c
+    if (!ds.every((d) => d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0)) return c
+    const unit: TemporalUnit = ds.every((d) => d.getDate() === 1 && d.getMonth() === 0) ? 'year' : ds.every((d) => d.getDate() === 1) ? 'month' : 'day'
+    // A date at the day already reads as one.
+    if (unit === 'day' && c.type === 'date') return c
+    changed = true
+    return { ...c, unit }
+  })
+  return changed ? { ...result, columns } : result
+}
+
 /** Which columns are dimensions and which are measures, by settings or by their kind. */
 export function roles(result: Result, settings: VisualizationSettings = {}): { dims: ResultColumn[]; metrics: ResultColumn[] } {
   const by = (names: readonly string[] | undefined) =>
@@ -102,6 +122,16 @@ export function roles(result: Result, settings: VisualizationSettings = {}): { d
   if (dims.length === 0) {
     dims = visible.filter((c) => c.role === 'dimension')
     if (dims.length === 0) dims = visible.filter((c) => c.role !== 'metric' && (!isNumeric(c) || isTemporal(c))).slice(0, 2)
+    // A column with one value on every row — the year of a query by month — is neither an axis nor
+    // a split: left out, as long as another one varies.
+    if (dims.length > 1 && result.rows.length > 1) {
+      const varies = (c: ResultColumn) => {
+        const i = result.columns.indexOf(c)
+        return new Set(result.rows.map((r) => String(r[i]))).size > 1
+      }
+      const varying = dims.filter(varies)
+      if (varying.length) dims = varying
+    }
   }
   if (metrics.length === 0) {
     metrics = visible.filter((c) => c.role === 'metric')

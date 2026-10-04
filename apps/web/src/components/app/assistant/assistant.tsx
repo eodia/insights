@@ -27,7 +27,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CONVERSATIONS_KEY, type ConversationSummary, History } from './history'
 import { Orb } from './orb'
@@ -307,7 +307,8 @@ function Welcome({
   )
 }
 
-function UserBubble({ text }: { text: string }) {
+/** Memoized, as the answers: typing in the composer redraws neither. */
+const UserBubble = memo(function UserBubble({ text }: { text: string }) {
   return (
     <div className="ai-rise group flex justify-end">
       <div className="relative max-w-[85%] rounded-3xl rounded-br-lg bg-muted px-4 py-2.5 text-[15px] leading-6 whitespace-pre-wrap">
@@ -327,9 +328,10 @@ function UserBubble({ text }: { text: string }) {
       </div>
     </div>
   )
-}
+})
 
-function Answer({ turn }: { turn: Extract<Turn, { role: 'assistant' }> }) {
+/** Memoized: a turn already given does not redraw — its charts do not replay — at each key typed. */
+const Answer = memo(function Answer({ turn }: { turn: Extract<Turn, { role: 'assistant' }> }) {
   const thinking = !turn.done && turn.parts.length === 0
   const text = turn.parts
     .filter((p) => p.type === 'text')
@@ -367,7 +369,7 @@ function Answer({ turn }: { turn: Extract<Turn, { role: 'assistant' }> }) {
       </div>
     </div>
   )
-}
+})
 
 interface ReadConversation {
   readonly id: string

@@ -62,7 +62,8 @@ Moteur : toutes les requêtes passent par Trino. Écris du Trino SQL (ANSI), en 
 
 Règles :
 - Commence par chercher les tables (search_schema) puis lis leur description (describe_table) avant d'écrire une requête : n'invente jamais un nom de table ou de colonne.
-- Les descriptions, types sémantiques et valeurs fournis par l'équipe font foi : appuie-toi dessus (unités, statuts, montants).
+- Les descriptions, types sémantiques et valeurs fournis par l'équipe font foi : appuie-toi dessus (unités, statuts, montants). Dans un filtre, écris la valeur exacte que donne describe_table, jamais son libellé.
+- N'invente jamais un chiffre : ne cite que ceux que run_query ou show_chart t'ont renvoyés. Si tu ne les vois pas, décris ce que montre le graphique sans chiffrer.
 - Tu ne modifies rien toi-même. Pour créer une question, un tableau de bord ou décrire une table, utilise les outils propose_* : la personne verra la proposition et décidera de l'appliquer.
 - run_query n'est disponible que si la personne y a consenti ; il lit sous ses propres droits. Garde les requêtes légères (agrégats, LIMIT).
 - Pour une proposition de question, valide d'abord ton SQL avec run_query quand c'est permis.
@@ -107,7 +108,7 @@ const TOOLS: readonly ToolSpec[] = [
   {
     name: 'show_chart',
     description:
-      "Montre des données dans la conversation, en graphique ou en tableau : la requête s'exécute sous les droits de la personne et le résultat s'affiche, interactif, sous ta réponse. Préfère-le à un long tableau Markdown dès qu'il y a des chiffres à montrer.",
+      "Montre des données dans la conversation, en graphique ou en tableau : la requête s'exécute sous les droits de la personne et le résultat s'affiche, interactif, sous ta réponse. Préfère-le à un long tableau Markdown dès qu'il y a des chiffres à montrer. Forme du résultat : d'abord la dimension (le mois, la catégorie…), éventuellement une seconde pour découper en séries, puis la ou les mesures ; aucune colonne qui répète la même valeur sur toutes les lignes (l'année d'une requête par mois, par exemple).",
     input_schema: {
       type: 'object',
       properties: {
@@ -206,6 +207,22 @@ interface ToolEnv {
   callId?: string
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** A table as the model names it: its id, or its full name (`boutique.public.commandes`, quoted or not). */
+async function tableIdOf(core: Core, actor: Actor, ref: string): Promise<string> {
+  if (UUID.test(ref.trim())) {
+    // A model or a metric is a question, not a table: say so, rather than « introuvable ».
+    const q = await core.db.one<{ type: string; name: string }>("SELECT type, name FROM question WHERE id = $1 AND type IN ('model', 'metric')", [ref.trim()])
+    if (q) throw new AppError('INVALID_INPUT', `« ${q.name} » est ${q.type === 'model' ? 'un modèle' : 'une métrique'}, pas une table : décris les tables sur lesquelles ${q.type === 'model' ? 'il' : 'elle'} repose (search_schema les donne) et écris ta requête sur elles.`)
+    return ref.trim()
+  }
+  const bare = (s: string) => s.replace(/"/g, '').trim().toLowerCase()
+  const found = (await listTables(core, actor)).find((t) => bare(t.qualified) === bare(ref))
+  if (!found) throw new AppError('NOT_FOUND', `Table « ${ref} » introuvable : passe l'identifiant que donne search_schema.`)
+  return found.id
+}
+
 let proposalSeq = 0
 const proposalId = () => `p${Date.now().toString(36)}${(proposalSeq++).toString(36)}`
 
@@ -240,11 +257,11 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
     }
     case 'describe_table': {
       const { table_id } = parsed.data as z.infer<typeof Inputs.describe_table>
-      const t = await getTable(core, actor, table_id)
+      const t = await getTable(core, actor, await tableIdOf(core, actor, table_id))
       const relations = await listRelations(core, actor, t.datasource)
       const tables = new Map((await listTables(core, actor, { datasource: t.datasource })).map((x) => [x.id, x]))
       const values = await core.db.many<{ column_id: string; values: string[] }>(
-        `SELECT column_id, array_agg(coalesce(label || ' (' || value || ')', value) ORDER BY position) FILTER (WHERE position < 25) AS values
+        `SELECT column_id, array_agg(quote_literal(value) || CASE WHEN label IS NOT NULL AND label <> value THEN ' « ' || label || ' »' ELSE '' END ORDER BY position) FILTER (WHERE position < 25) AS values
          FROM column_value WHERE column_id = ANY($1) GROUP BY column_id`,
         [(t.columns ?? []).map((c) => c.id)],
       )
@@ -254,7 +271,7 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
         const rel = c.fk ? tables.get(c.fk.table) : undefined
         const v = byCol.get(c.id)
         lines.push(
-          `- "${c.name}" ${c.type}${c.label !== c.name ? ` « ${c.label} »` : ''}${c.semantic ? ` [${SEMANTIC_LABELS[c.semantic]}]` : ''}${c.pk ? ' [clé primaire]' : ''}${rel ? ` → ${rel.qualified}."${c.fk?.name}"` : ''}${c.description ? ` — ${c.description}` : ''}${v ? ` ; valeurs : ${v.join(', ')}` : ''}`,
+          `- "${c.name}" ${c.type}${c.label !== c.name ? ` « ${c.label} »` : ''}${c.semantic ? ` [${SEMANTIC_LABELS[c.semantic]}]` : ''}${c.pk ? ' [clé primaire]' : ''}${rel ? ` → ${rel.qualified}."${c.fk?.name}"` : ''}${c.description ? ` — ${c.description}` : ''}${v ? ` ; valeurs exactes (à écrire telles quelles dans le SQL, libellé entre « ») : ${v.join(', ')}` : ''}`,
         )
       }
       const incoming = relations.filter((r) => r.to.table === t.id).map((r) => tables.get(r.from.table)?.qualified).filter(Boolean)
@@ -297,15 +314,34 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
     }
     case 'show_chart': {
       const p = parsed.data as z.infer<typeof Inputs.show_chart>
+      const query = QuestionQuerySchema.parse({ kind: 'sql', sql: p.sql.trim().replace(/;+\s*$/, '') })
+      // Run first, under the person's rights: a chart that fails or shows nothing is not shown, and
+      // the model learns why — rather than commenting figures it never saw.
+      let r: QueryResult
+      try {
+        r = await runQuery(core, actor, { query, origin: 'copilot', adhoc: true, limit: 200 })
+      } catch (err) {
+        return { ok: false, text: `Erreur : ${err instanceof Error ? err.message : String(err)}. Corrige la requête puis rappelle show_chart.`, summary: 'erreur' }
+      }
+      if (r.rows.length === 0 || r.rows.every((row) => row.every((v) => v === null))) {
+        return {
+          ok: false,
+          text: `La requête ne renvoie ${r.rows.length === 0 ? 'aucune ligne' : 'que des valeurs vides'} : rien n'a été affiché. Vérifie les filtres — les valeurs exactes sont celles de describe_table, pas leurs libellés — et les dates, puis rappelle show_chart.`,
+          summary: 'vide',
+        }
+      }
       const chart: Chart = {
         id: env.callId ?? proposalId(),
         title: p.title,
         ...(p.description ? { description: p.description } : {}),
-        query: QuestionQuerySchema.parse({ kind: 'sql', sql: p.sql.trim().replace(/;+\s*$/, '') }),
+        query,
         visualization: { type: p.visualization },
       }
       env.emit({ type: 'chart', chart })
-      return { ok: true, text: `Graphique « ${p.title} » affiché sous ta réponse ; ne recopie pas ses chiffres en tableau, commente-les.`, summary: p.title }
+      const seen = env.allowRun
+        ? `Voici ce qu'il montre, pour le commenter :\n${resultText(r)}`
+        : "Tu ne vois pas ses chiffres (la personne n'a pas autorisé leur lecture) : décris ce qu'il montre sans en citer."
+      return { ok: true, text: `Graphique « ${p.title} » affiché sous ta réponse (${r.rows.length} ligne(s)) ; ne recopie pas ses chiffres en tableau. ${seen}`, summary: p.title }
     }
     case 'propose_dashboard': {
       const p = parsed.data as z.infer<typeof Inputs.propose_dashboard>
