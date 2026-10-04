@@ -226,6 +226,16 @@
   }
 }
 
+/* The login page's steps: the bar of the moment shown fills until the next one. */
+@keyframes step-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* The screens before a session move a lot; asked for less motion, they arrive still. */
 @media (prefers-reduced-motion: reduce) {
   [data-auth-screen] *,
