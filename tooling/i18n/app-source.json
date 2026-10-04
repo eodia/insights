@@ -863,7 +863,7 @@
   },
   "Actualiser les données à intervalle régulier.": {
     "where": [
-      "components/app/dashboard/refresh-timer.tsx:123"
+      "components/app/dashboard/refresh-timer.tsx:115"
     ]
   },
   "actuel": {
@@ -1632,9 +1632,9 @@
   },
   "Auto": {
     "where": [
-      "components/app/dashboard/refresh-timer.tsx:105",
       "components/app/login-stage.tsx:627",
-      "components/app/question/viz-settings.tsx:665"
+      "components/app/question/viz-settings.tsx:665",
+      "components/app/question/viz-settings.tsx:736"
     ]
   },
   "Automatique": {
@@ -3771,14 +3771,9 @@
       "app/(app)/admin/themes/page.tsx:412"
     ]
   },
-  "En pause": {
-    "where": [
-      "components/app/dashboard/refresh-timer.tsx:47"
-    ]
-  },
   "En pause · {interval}": {
     "where": [
-      "components/app/dashboard/refresh-timer.tsx:49"
+      "components/app/dashboard/refresh-timer.tsx:48"
     ]
   },
   "En pétales": {
@@ -7505,12 +7500,12 @@
   },
   "Rafraîchissement automatique": {
     "where": [
-      "components/app/dashboard/refresh-timer.tsx:120"
+      "components/app/dashboard/refresh-timer.tsx:112"
     ]
   },
   "Rafraîchissement automatique : {state}": {
     "where": [
-      "components/app/dashboard/refresh-timer.tsx:48"
+      "components/app/dashboard/refresh-timer.tsx:47"
     ]
   },
   "Rangez questions et tableaux de bord ; les droits du dossier s’appliquent à son contenu.": {

@@ -13,7 +13,7 @@ import {
 import { Hint } from '@/components/ui/tooltip'
 import { $t, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { ChevronDown, Timer, TimerOff } from 'lucide-react'
+import { Timer, TimerOff } from 'lucide-react'
 
 const CHOICES: readonly { value: number | null; label: string; shortLabel: string }[] = [
   { value: null, label: msg('Pas de rafraîchissement'), shortLabel: msg('Désactivé') },
@@ -44,7 +44,6 @@ export function RefreshTimer({
     : $t('Toutes les {seconds} secondes', { seconds: seconds ?? 0 })
   const active = seconds !== null && !paused
   const interval = current ? $t(current.shortLabel) : $t('{seconds} s', { seconds: seconds ?? 0 })
-  const state = paused && seconds !== null ? $t('En pause') : interval
   const accessibleLabel = $t('Rafraîchissement automatique : {state}', {
     state: paused && seconds !== null ? $t('En pause · {interval}', { interval: label }) : label,
   })
@@ -57,16 +56,18 @@ export function RefreshTimer({
             size="sm"
             variant="outline"
             aria-label={accessibleLabel}
+            // Off, a bare stopwatch; on, the ring and the interval — the words are in the hint.
             className={cn(
-              'group gap-2 rounded-lg px-2.5 shadow-none',
-              active &&
-                'border-primary/25 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary',
+              'gap-1.5 rounded-lg shadow-none',
+              active
+                ? 'border-primary/25 bg-primary/5 px-2 text-primary hover:bg-primary/10 hover:text-primary'
+                : 'size-8 px-0',
             )}
           >
             {active ? (
               <svg
                 viewBox="0 0 20 20"
-                className="size-5 -rotate-90"
+                className="size-4.5 -rotate-90"
                 aria-hidden="true"
                 focusable="false"
               >
@@ -102,16 +103,7 @@ export function RefreshTimer({
             ) : (
               <Timer className="size-4 text-muted-foreground" />
             )}
-            <span className="hidden sm:inline">{$t('Auto')}</span>
-            <span
-              className={cn(
-                'text-xs tabular-nums',
-                active ? 'rounded bg-primary/10 px-1.5 py-0.5' : 'text-muted-foreground',
-              )}
-            >
-              {state}
-            </span>
-            <ChevronDown className="size-3 text-muted-foreground transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
+            {active ? <span className="text-xs font-medium tabular-nums">{interval}</span> : null}
           </Button>
         </DropdownMenuTrigger>
       </Hint>
