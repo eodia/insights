@@ -1,6 +1,7 @@
 'use client'
 
 import type { Folder } from '@eodia/contracts'
+import { BrandMark } from '@/components/app/brand-mark'
 import { Avatar, LookIcon } from '@/components/app/look'
 import {
   DropdownMenu,
@@ -174,11 +175,7 @@ export function Sidebar() {
     <aside className="flex h-full w-[264px] shrink-0 flex-col border-r bg-sidebar">
       {/* Application */}
       <div className="flex h-[76px] items-center gap-3 border-b px-4">
-        <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-            <path d="M5 18v-5M10 18V7M15 18v-8M20 18v-3" />
-          </svg>
-        </span>
+        <BrandMark size={40} className="size-10 shrink-0" />
         <div className="min-w-0 flex-1 leading-tight">
           <div className="truncate text-[15px] font-semibold">eodia insights</div>
           <div className="truncate text-xs text-muted-foreground">{$t('Toutes les sources')}</div>

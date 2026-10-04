@@ -1,3 +1,4 @@
+import { BrandMark } from '@/components/app/brand-mark'
 import { ImageResponse } from 'next/og'
 
 export const alt =
@@ -32,15 +33,7 @@ export default function Image() {
       />
       <div style={{ display: 'flex', flexDirection: 'column', width: 550, position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <svg width="56" height="56" viewBox="0 0 32 32" role="img" aria-label="eodia insights">
-            <rect width="32" height="32" rx="9" fill="#2da31e" />
-            <path
-              d="M9 21.5V15m5 6.5V10.5m5 11V13m5 8.5v-4"
-              stroke="#fff"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-            />
-          </svg>
+          <BrandMark size={56} />
           <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: -1 }}>eodia insights</div>
         </div>
         <div

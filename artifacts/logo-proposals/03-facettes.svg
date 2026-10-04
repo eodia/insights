@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Eodia — Facettes</title>
+  <rect width="64" height="64" rx="16" fill="#104832"/>
+  <path d="m30 12-16 9 18 10 18-10-16-9a4 4 0 0 0-4 0Z" fill="#76cf98"/>
+  <path d="m14 27 14 8v17l-12-7a4 4 0 0 1-2-3V27Zm22 8 14-8v15a4 4 0 0 1-2 3l-12 7V35Z" fill="#dcf3bd"/>
+</svg>
