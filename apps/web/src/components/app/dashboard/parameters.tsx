@@ -6,7 +6,9 @@ import { ValueList } from './value-list'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { DATE_PRESETS, UNIT_LABELS } from '@/lib/builder'
+import { PeriodPicker } from '@/components/app/period-picker'
+import { UNIT_LABELS } from '@/lib/builder'
+import { periodLabel } from '@/lib/periods'
 import { $t, intlLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Calendar, ChevronDown, Hash, ListFilter, Type, X, Clock } from 'lucide-react'
@@ -16,12 +18,7 @@ export type Values = Record<string, ParameterValue | null>
 
 export function valueLabel(p: DashboardParameter, v: ParameterValue | null | undefined): string {
   if (!parameterHasValue(v)) return ''
-  if (p.type === 'date') {
-    const s = String(v)
-    const preset = DATE_PRESETS.find((d) => d.value === s)
-    if (preset) return $t(preset.label)
-    return s.replace('~', ' → ')
-  }
+  if (p.type === 'date') return periodLabel(String(v))
   if (p.type === 'temporal_unit') return $t(UNIT_LABELS[String(Array.isArray(v) ? v[0] : v) as TemporalTruncation] ?? String(v))
   if (Array.isArray(v)) {
     if (p.type === 'number') return v.filter((x) => x !== null).join(' – ')
@@ -54,34 +51,9 @@ function Editor({
   onDone: () => void
 }) {
   const [text, setText] = useState(typeof value === 'string' ? value : '')
-  const [range, setRange] = useState<[string, string]>(() => {
-    const s = typeof value === 'string' && value.includes('~') ? value.split('~') : ['', '']
-    return [s[0] ?? '', s[1] ?? '']
-  })
   switch (p.type) {
     case 'date':
-      return (
-        <div className="w-80 space-y-3 p-3">
-          <div className="grid grid-cols-2 gap-1">
-            {DATE_PRESETS.map((d) => (
-              <button key={d.value} type="button" onClick={() => onChange(d.value)} className={cn('rounded-md border px-2 py-1.5 text-left text-xs hover:bg-accent', value === d.value && 'border-primary bg-primary/10 font-medium')}>
-                {$t(d.label)}
-              </button>
-            ))}
-          </div>
-          <div className="space-y-1.5">
-            <div className="text-xs text-muted-foreground">{$t('Période précise')}</div>
-            <div className="flex items-center gap-2">
-              <Input type="date" value={range[0]} onChange={(e) => setRange([e.target.value, range[1]])} className="h-8" />
-              <span className="text-xs">→</span>
-              <Input type="date" value={range[1]} onChange={(e) => setRange([range[0], e.target.value])} className="h-8" />
-            </div>
-            <Button size="sm" variant="outline" className="w-full" disabled={!range[0] && !range[1]} onClick={() => onChange(`${range[0]}~${range[1]}`)}>
-              {$t('Appliquer la période')}
-            </Button>
-          </div>
-        </div>
-      )
+      return <PeriodPicker value={typeof value === 'string' ? value : null} onChange={onChange} onClear={() => onChange(null)} />
     case 'temporal_unit':
       return (
         <div className="w-48 p-1">

@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { api } from '@/lib/api'
-import { type ColumnOption, DATE_PRESETS, OPS_BY_KIND, OP_LABELS, semanticLabel } from '@/lib/builder'
+import { PeriodPicker } from '@/components/app/period-picker'
+import { type ColumnOption, OPS_BY_KIND, OP_LABELS, semanticLabel } from '@/lib/builder'
 import { formatCount } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -181,19 +182,16 @@ export function FilterEditor({ option, initial, onApply }: { option: ColumnOptio
   const apply = () => onApply({ column: option.ref, op: op as never, values: noValue ? [] : values } as Filter)
 
   return (
-    <div className="w-80 space-y-3 p-3">
+    <div className={cn('space-y-3 p-3', op === 'date' ? 'w-auto' : 'w-80')}>
       <div className="flex items-center gap-2">
         <KindIcon kind={option.kind} />
         <span className="flex-1 truncate text-sm font-medium">{option.label}</span>
         <Choice value={op} onValueChange={(v) => { setOp(v); setValues([]) }} options={ops.map((o) => ({ value: o, label: $t(OP_LABELS[o] ?? o) }))} aria-label={$t('Opérateur')} size="xs" className="w-36" />
       </div>
       {noValue ? null : op === 'date' ? (
-        <div className="grid grid-cols-2 gap-1">
-          {DATE_PRESETS.map((p) => (
-            <button key={p.value} type="button" onClick={() => setValues([p.value])} className={cn('rounded-md border px-2 py-1.5 text-left text-xs hover:bg-accent', values[0] === p.value && 'border-primary bg-primary/10 font-medium')}>
-              {$t(p.label)}
-            </button>
-          ))}
+        // The period: a shortcut or « Appliquer » sets the filter at once.
+        <div className="-mx-3 -mb-3 border-t">
+          <PeriodPicker value={typeof values[0] === 'string' ? values[0] : null} onChange={(e) => onApply({ column: option.ref, op: 'date', values: [e] } as Filter)} />
         </div>
       ) : op === 'between' ? (
         <div className="flex items-center gap-2">
@@ -213,7 +211,7 @@ export function FilterEditor({ option, initial, onApply }: { option: ColumnOptio
           className="h-8"
         />
       )}
-      <div className="flex justify-end">
+      <div className={cn('flex justify-end', op === 'date' && 'hidden')}>
         <Button size="sm" onClick={apply} disabled={!noValue && values.filter((v) => v !== '').length === 0}>
           {initial ? $t('Mettre à jour') : $t('Ajouter le filtre')}
         </Button>

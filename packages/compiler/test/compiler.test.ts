@@ -7,6 +7,7 @@ import {
   renderSql,
   rowPolicySql,
 } from '../src'
+import { resolveDateExpression } from '@eodia/contracts'
 
 const orders = {
   id: 't-orders',
@@ -169,5 +170,39 @@ describe('rowPolicySql', () => {
     expect(
       rowPolicySql({ match: 'all', conditions: [{ column: 'region', op: 'eq', values: ['{{user.region}}'] }] }, types, {}),
     ).toBe('(FALSE)')
+  })
+})
+
+describe('resolveDateExpression', () => {
+  // A Sunday in the middle of October: weeks start on Monday.
+  const today = '2026-10-04'
+  const span = (e: string) => resolveDateExpression(e, today, 1)
+
+  it('reads the current, the past and the next periods', () => {
+    expect(span('thismonth')).toEqual({ start: '2026-10-01', end: '2026-10-31' })
+    expect(span('lastmonth')).toEqual({ start: '2026-09-01', end: '2026-09-30' })
+    expect(span('past3months')).toEqual({ start: '2026-08-01', end: '2026-10-31' })
+    expect(span('last3months')).toEqual({ start: '2026-07-01', end: '2026-09-30' })
+    expect(span('next2weeks')).toEqual({ start: '2026-10-05', end: '2026-10-18' })
+  })
+
+  it('reads one period some periods ago', () => {
+    expect(span('2monthsago')).toEqual({ start: '2026-08-01', end: '2026-08-31' })
+    expect(span('1yearago')).toEqual({ start: '2025-01-01', end: '2025-12-31' })
+    expect(span('3daysago')).toEqual({ start: '2026-10-01', end: '2026-10-01' })
+  })
+
+  it('reads before and after a period', () => {
+    expect(span('before:lastmonth')).toEqual({ start: null, end: '2026-08-31' })
+    expect(span('after:lastmonth')).toEqual({ start: '2026-10-01', end: null })
+    expect(span('before:2026-03-15')).toEqual({ start: null, end: '2026-03-14' })
+    expect(span('before:2monthsago')).toEqual({ start: null, end: '2026-07-31' })
+    expect(span('before:nonsense')).toBeNull()
+  })
+
+  it('reads spans whose sides are relative', () => {
+    expect(span('thisyear~today')).toEqual({ start: '2026-01-01', end: '2026-10-04' })
+    expect(span('lastmonth~')).toEqual({ start: '2026-09-01', end: null })
+    expect(span('~lastyear')).toEqual({ start: null, end: '2025-12-31' })
   })
 })

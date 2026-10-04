@@ -967,6 +967,8 @@ function shift(start: string, period: Period, n: number): string {
 
 const RELATIVE = /^(past|last|next)(\d{0,4})(day|week|month|quarter|year)s?$/
 const THIS = /^this(day|week|month|quarter|year)$/
+const AGO = /^(\d{1,4})(day|week|month|quarter|year)s?ago$/
+const SIDE = /^(before|after):(.+)$/
 
 /**
  * The days a date expression covers, seen from `today` — or `null` when it reads as none.
@@ -975,8 +977,11 @@ const THIS = /^this(day|week|month|quarter|year)$/
  * - `pastNunits`: the N periods ending with the current one — `past7days` is today and the
  *   six days before it; `lastNunits`: the N complete periods before the current one —
  *   `lastmonth` is the month before this one; `nextNunits`: the N periods after it;
+ * - `Nunitsago`: the one period N periods before the current one — `2monthsago`;
  * - a day `2026-03-15`, a month `2026-03`, a quarter `2026-Q1`, a year `2026`;
- * - a span `2026-01-01~2026-03-31`, open on one side: `2026-01-01~`, `~2026-03-31`.
+ * - a span `2026-01-01~2026-03-31`, open on one side: `2026-01-01~`, `~2026-03-31` — each
+ *   side any of the above: `lastmonth~` is since last month, `thisyear~today` the year to date;
+ * - `before:X`, `after:X`: every day before X begins, after X ends — `before:lastmonth`.
  */
 export function resolveDateExpression(
   expression: string,
@@ -1009,6 +1014,20 @@ export function resolveDateExpression(
       return { start: shift(start, period, -n), end: addDays(start, -1) }
     }
     return { start: shift(start, period, 1), end: addDays(shift(start, period, n + 1), -1) }
+  }
+
+  const ago = AGO.exec(text)
+  if (ago !== null) {
+    const period = ago[2] as Period
+    const start = shift(startOfPeriod(today, period, weekStart), period, -Number(ago[1]))
+    return { start, end: addDays(shift(start, period, 1), -1) }
+  }
+
+  const side = SIDE.exec(text)
+  if (side !== null) {
+    const of = resolveDateExpression(side[2] ?? '', today, weekStart)
+    if (side[1] === 'before') return of?.start ? { start: null, end: addDays(of.start, -1) } : null
+    return of?.end ? { start: addDays(of.end, 1), end: null } : null
   }
 
   if (text.includes('~')) {

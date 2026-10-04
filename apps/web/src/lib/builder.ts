@@ -16,6 +16,7 @@ import type {
 } from '@eodia/contracts'
 import { SEMANTIC_LABELS, columnName, kindOfTrinoType } from '@eodia/contracts'
 import { $t, msg } from './i18n'
+import { periodLabel } from './periods'
 
 export interface ColumnOption {
   readonly ref: ColumnRef
@@ -139,23 +140,6 @@ export const UNIT_LABELS: Record<TemporalUnit, string> = {
   quarter_of_year: msg("Trimestre de l'année"),
 }
 
-export const DATE_PRESETS: { value: string; label: string }[] = [
-  { value: 'today', label: msg("Aujourd'hui") },
-  { value: 'yesterday', label: msg('Hier') },
-  { value: 'past7days', label: msg('7 derniers jours') },
-  { value: 'past30days', label: msg('30 derniers jours') },
-  { value: 'thisweek', label: msg('Cette semaine') },
-  { value: 'lastweek', label: msg('Semaine dernière') },
-  { value: 'thismonth', label: msg('Ce mois-ci') },
-  { value: 'lastmonth', label: msg('Mois dernier') },
-  { value: 'past3months', label: msg('3 derniers mois') },
-  { value: 'past12months', label: msg('12 derniers mois') },
-  { value: 'thisquarter', label: msg('Ce trimestre') },
-  { value: 'lastquarter', label: msg('Trimestre dernier') },
-  { value: 'thisyear', label: msg('Cette année') },
-  { value: 'lastyear', label: msg("L'année dernière") },
-]
-
 export const OP_LABELS: Record<string, string> = {
   is: msg('est'),
   is_not: msg("n'est pas"),
@@ -192,10 +176,7 @@ export function filterLabel(f: Filter, options: readonly ColumnOption[]): string
   const col = findOption(options, f.column)?.label ?? columnName(f.column)
   const op = $t(OP_LABELS[f.op] ?? f.op)
   if (['empty', 'not_empty', 'true', 'false'].includes(f.op)) return $t('{column} {operator}', { column: col, operator: op })
-  if (f.op === 'date') {
-    const preset = DATE_PRESETS.find((p) => p.value === f.values[0])
-    return $t('{column} : {period}', { column: col, period: preset ? $t(preset.label) : String(f.values[0] ?? '') })
-  }
+  if (f.op === 'date') return $t('{column} : {period}', { column: col, period: periodLabel(String(f.values[0] ?? '')) })
   if (f.op === 'between') return $t('{column} entre {from} et {to}', { column: col, from: String(f.values[0] ?? '…'), to: String(f.values[1] ?? '…') })
   const values = f.values.map(String)
   return $t('{column} {operator} {values}', {
