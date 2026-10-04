@@ -1,4 +1,5 @@
 import type { Config } from './config'
+import { needsSetup } from './auth/users'
 import { Core } from './context'
 import { demoContent, seedDemo } from './demo'
 import { Worker } from './jobs'
@@ -83,7 +84,12 @@ const defaultLog = (m: string) => console.log(`[eodia] ${m}`)
 export async function start(core: Core, opts: { worker?: boolean; log?: (m: string) => void } = {}): Promise<Booted> {
   const log = opts.log ?? defaultLog
   const config = core.config
-  const trino = await core.engine.info()
+  const runsWorker = opts.worker ?? config.inProcessWorker
+  // The demo is created by the process that runs the jobs — its content is one —, once Trino
+  // takes statements: in a single container (`all`), the worker may come up before Trino, or
+  // before the API whose OPA endpoint Trino asks.
+  const seeding = config.demo && runsWorker && (await needsSetup(core))
+  const trino = seeding ? await trinoReady(core, log) : await core.engine.info()
   if (trino.up) {
     try {
       const { created, failed } = await ensureCatalogs(core)
@@ -95,15 +101,33 @@ export async function start(core: Core, opts: { worker?: boolean; log?: (m: stri
   } else {
     log(`Trino injoignable (${config.trinoUrl}) : les requêtes échoueront jusqu'à son démarrage.`)
   }
-  if (config.demo && trino.up) {
+  if (seeding && trino.up) {
     if (await seedDemo(core)) log('instance de démonstration créée (admin@eodia.local / eodia-insights)')
   }
   let worker: Worker | null = null
-  if (opts.worker ?? config.inProcessWorker) {
+  if (runsWorker) {
     worker = new Worker(core, JOB_HANDLERS, () => housekeeping(core))
     worker.start()
   }
   return { core, worker }
+}
+
+/** Trino up and taking statements — its OPA endpoint answering —, waited for three minutes at most. */
+async function trinoReady(core: Core, log: (m: string) => void): Promise<{ up: boolean; version?: string }> {
+  for (let i = 0; i < 90; i++) {
+    const info = await core.engine.info()
+    if (info.up) {
+      try {
+        await core.engine.catalogs()
+        return info
+      } catch {
+        // The OPA endpoint does not answer yet.
+      }
+    }
+    if (i === 0) log('démo : en attente de Trino…')
+    await new Promise((r) => setTimeout(r, 2000))
+  }
+  return core.engine.info()
 }
 
 export { Core }
