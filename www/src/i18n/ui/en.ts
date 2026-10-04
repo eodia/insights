@@ -16,6 +16,11 @@ export default {
 		home: 'https://eodia.com/en/',
 	},
 
+	demo: {
+		short: 'Demo',
+		cta: 'Try the demo',
+	},
+
 	nav: {
 		aria: 'Main navigation',
 		home: 'eodia insights, home',
@@ -486,7 +491,7 @@ export default {
 		lede: 'What gets a team to adopt it — and lets an admin sleep at night.',
 		items: {
 			engines: { stat: '7', title: 'Engines', text: 'PostgreSQL, MySQL, SQL Server, Oracle, Snowflake, MongoDB and Trino.', href: '/fonctionnalites/sources/' },
-			structure: { title: 'Structure screen', text: 'Descriptions, semantic types, relationships and values: your schema, readable at last.', href: '/fonctionnalites/sources/' },
+			structure: { title: 'Data sources', text: 'Connection, descriptions, semantic types, relationships and values: your schema, readable at last.', href: '/fonctionnalites/sources/' },
 			metrics: { code: 'CA = sum(montant_total)', title: 'Models and metrics', text: 'Defined once, reused everywhere, queryable through the API and MCP.', href: '/fonctionnalites/modeles-et-metriques/' },
 			sso: { title: 'Single sign-on', text: 'OpenID Connect; attributes and groups come from your directory.', href: '/hebergement/sso/' },
 			folders: { title: 'Folders', text: 'A personal folder for everyone, shared folders with per-group permissions.', href: '/fonctionnalites/partage/' },

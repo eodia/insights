@@ -29,6 +29,14 @@ const fr = {
 		home: 'https://eodia.com/fr/',
 	},
 
+	/** The words that lead to the public demo (`DEMO_URL`, `lib/demo.ts`). */
+	demo: {
+		/** In the bar, beside GitHub. */
+		short: 'Démo',
+		/** A button: the first screen of the home page, the menu on a phone. */
+		cta: 'Essayer la démo',
+	},
+
 	nav: {
 		aria: 'Navigation principale',
 		home: 'eodia insights, accueil',
@@ -556,7 +564,7 @@ const fr = {
 		lede: 'Ce qui fait qu’une équipe l’adopte, et qu’un administrateur dort tranquille.',
 		items: {
 			engines: tile({ stat: '7', title: 'Moteurs', text: 'PostgreSQL, MySQL, SQL Server, Oracle, Snowflake, MongoDB et Trino.', href: '/fonctionnalites/sources/' }),
-			structure: tile({ title: 'Écran Structure', text: 'Descriptions, types sémantiques, relations et valeurs : votre schéma, enfin lisible.', href: '/fonctionnalites/sources/' }),
+			structure: tile({ title: 'Sources de données', text: 'Connexion, descriptions, types sémantiques, relations et valeurs : votre schéma, enfin lisible.', href: '/fonctionnalites/sources/' }),
 			sso: tile({ title: 'Connexion unique', text: 'OpenID Connect ; les attributs et les groupes viennent de votre annuaire.', href: '/hebergement/sso/' }),
 			metrics: tile({ code: 'CA = sum(montant_total)', title: 'Modèles et métriques', text: 'Définies une fois, réutilisées partout, interrogeables par l’API et le MCP.', href: '/fonctionnalites/modeles-et-metriques/' }),
 			folders: tile({ title: 'Dossiers', text: 'Un dossier personnel pour chacun, des dossiers partagés avec des droits par groupe.', href: '/fonctionnalites/partage/' }),

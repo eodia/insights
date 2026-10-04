@@ -10,6 +10,7 @@
  * Over a black section (`.night`), the bar goes dark with it.
  */
 import { type Locale, i18n } from '../../i18n';
+import { DEMO_URL } from '../../lib/demo';
 import Icon from './Icon.astro';
 import type { IconName } from './icons';
 import LanguagePicker from './LanguagePicker.astro';
@@ -173,6 +174,7 @@ const panels = [
 				>
 				<span class="gh-label">GitHub</span>
 			</a>
+			<a href={DEMO_URL} class="bd-nav-demo">{t.demo.short}</a>
 			<a href={href('/guides/introduction/')} class="bd-nav-docs">{t.nav.docs}</a>
 			<a href={href('/guides/installation/')} class="bd-nav-cta">{t.nav.install}</a>
 			<button type="button" class="bd-burger" aria-expanded="false" aria-controls="bd-sheet" aria-label={m.open} data-open-label={m.open} data-close-label={m.close}>
@@ -214,6 +216,7 @@ const panels = [
 	}
 	<div class="sheet-actions">
 		<a href={href('/guides/installation/')} class="bd-btn bd-btn-primary">{t.nav.install}</a>
+		<a href={DEMO_URL} class="bd-btn bd-btn-secondary">{t.demo.cta}</a>
 		<a href={href('/guides/introduction/')} class="bd-btn bd-btn-secondary">{t.nav.docs}</a>
 		<a href="https://github.com/eodia/insights" class="bd-btn bd-btn-secondary">GitHub</a>
 	</div>
@@ -355,6 +358,7 @@ const panels = [
 		color: #fff;
 	}
 	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-nav-gh,
+	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-nav-demo,
 	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) .bd-nav-docs,
 	.bd-nav-wrap[data-dark]:not([data-open]):not([data-sheet]) :global(.bd-lang summary) {
 		color: rgba(245, 245, 247, 0.85);
@@ -695,6 +699,18 @@ const panels = [
 	.bd-nav-gh:hover {
 		color: var(--bd-text);
 	}
+	.bd-nav-demo {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--bd-text-soft);
+		padding: 6px 12px;
+		border: 1px solid var(--bd-border);
+		border-radius: 999px;
+		background: #fff;
+	}
+	.bd-nav-demo:hover {
+		color: var(--bd-text);
+	}
 	.bd-nav-docs {
 		font-size: 13px;
 		font-weight: 600;
@@ -876,6 +892,7 @@ const panels = [
 			display: none;
 		}
 		/* In the menu, as a button. */
+		.bd-nav-demo,
 		.bd-nav-docs {
 			display: none;
 		}
