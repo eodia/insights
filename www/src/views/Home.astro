@@ -32,12 +32,13 @@ const { t, href } = i18n(locale);
 <Landing locale={locale} path="/" title={t.meta.title} description={t.meta.description}>
 	<main class="tm">
 		<Story locale={locale} />
-		<Engine locale={locale} />
-		<Rights locale={locale} />
+		{/* What is new first — the assistant, the forecasts —, the light and dark sections in turn. */}
 		<Assistant locale={locale} />
 		<Dashboards locale={locale} />
-		<Themes locale={locale} />
 		<Forecast locale={locale} />
+		<Themes locale={locale} />
+		<Rights locale={locale} />
+		<Engine locale={locale} />
 		<News locale={locale} />
 		<Agents locale={locale} />
 		<Features locale={locale} />

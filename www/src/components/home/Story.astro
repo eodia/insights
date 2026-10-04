@@ -4,8 +4,8 @@
  *
  * The headline, and under it the window of eodia insights, tilted back. Scrolling stands
  * the window up and pins it; then each stretch of scroll shows one moment — the question
- * without SQL, the SQL editor, the Copilot, the dashboard — under its caption, while the
- * bars at the bottom fill up. A click on a bar scrolls to its moment.
+ * without SQL, the SQL editor, the AI assistant, the dashboard, the forecast — under its
+ * caption, while the bars at the bottom fill up. A click on a bar scrolls to its moment.
  *
  * The section is tall (the scroll it takes), its content sticky. Without JavaScript it is
  * a plain first screen: the headline, then the question.
@@ -21,7 +21,7 @@ const { locale } = Astro.props;
 const { t, href } = i18n(locale);
 const h = t.hero;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const STEPS = ['builder', 'sql', 'copilot', 'dashboard'] as const;
+const STEPS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 const steps = STEPS.map((id) => ({ id, ...t.story.steps[id], label: t.story.steps[id].tab }));
 ---
 
@@ -90,7 +90,7 @@ const steps = STEPS.map((id) => ({ id, ...t.story.steps[id], label: t.story.step
 <script>
 	import { clamp, ease, progress, reducedMotion } from '../../lib/motion';
 
-	const STEPS = ['builder', 'sql', 'copilot', 'dashboard'];
+	const STEPS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'];
 	/** The share of the scroll the headline takes to give way; then each view's share. */
 	const INTRO = 0.1;
 	const SPAN = (1 - INTRO) / STEPS.length;
@@ -184,7 +184,7 @@ const steps = STEPS.map((id) => ({ id, ...t.story.steps[id], label: t.story.step
 		position: relative;
 	}
 	:global(.bd-js) .story {
-		height: 600vh;
+		height: 720vh;
 	}
 	.pin {
 		position: relative;

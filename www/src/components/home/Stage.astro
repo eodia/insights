@@ -1,14 +1,15 @@
 ---
 /**
  * The window of the home page's story: eodia insights, drawn as the application draws it —
- * its sidebar, its bar, and four moments of the same afternoon on the demo shop: a question
- * built without SQL, the SQL editor joining PostgreSQL and MongoDB, the Copilot asked
- * about the chart, the dashboard where it all ends up.
+ * its sidebar, its bar, and five moments of the same afternoon on the demo shop: a question
+ * built without SQL, the SQL editor joining PostgreSQL and MongoDB, the AI assistant asked
+ * about the channels, the dashboard where it all ends up, and the curve prolonged by its
+ * forecast.
  *
- * The `data-view` its parent writes (`builder`, `sql`, `copilot`, `dashboard`) picks what
- * shows; CSS does the rest — bars that grow, a curve that draws itself, cards that rise.
- * Without JavaScript, the question. Drawn at a fixed size, 1080 × 600, and scaled to the
- * width it is given.
+ * The `data-view` its parent writes (`builder`, `sql`, `assistant`, `dashboard`, `forecast`)
+ * picks what shows; CSS does the rest — bars that grow, a curve that draws itself, cards that
+ * rise, steps that tick. Without JavaScript, the question. Drawn at a fixed size, 1080 × 600,
+ * and scaled to the width it is given.
  */
 import { type Locale, i18n } from '../../i18n';
 
@@ -26,11 +27,13 @@ const money = (n: number, compact = false) =>
 	new Intl.NumberFormat(lang, {
 		style: 'currency',
 		currency: 'EUR',
-		...(compact ? { notation: 'compact', maximumFractionDigits: 0 } : { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
+		...(compact ? { notation: 'compact', maximumFractionDigits: compact && n >= 1e6 ? 2 : 0 } : { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
 	}).format(n);
 const number = (n: number, digits = 0) => new Intl.NumberFormat(lang, { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n);
+const monthName = (i: number, style: 'short' | 'long' = 'short') =>
+	new Intl.DateTimeFormat(lang, { month: style, year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(2025, i, 1)));
 
-/** Revenue by channel: the question's bars, and the dashboard's ring. */
+/** Revenue by channel: the question's bars. */
 const CHANNELS = [612_400, 438_150, 231_900];
 const CHANNEL_COLORS = ['#2da31e', '#14b8a6', '#a3d93a'];
 const TOP = Math.max(...CHANNELS);
@@ -40,14 +43,10 @@ const channels = s.channels.map((label, i) => ({
 	height: Math.round((CHANNELS[i]! / TOP) * 100),
 	color: CHANNEL_COLORS[i]!,
 }));
-const total = CHANNELS.reduce((a, b) => a + b, 0);
-let offset = 0;
-const ring = channels.map((c, i) => {
-	const share = (CHANNELS[i]! / total) * 100;
-	const arc = { ...c, share: share - 0.8, offset: -offset, percent: number(share) };
-	offset += share;
-	return arc;
-});
+
+/** The assistant's answer: the average basket by channel. */
+const BASKETS = [82.1, 87.4, 76.8];
+const baskets = s.channels.map((label, i) => ({ label, value: money(BASKETS[i]!), height: Math.round(((BASKETS[i]! - 60) / (90 - 60)) * 100), hot: i === 1 }));
 
 /** The SQL editor's result: one line per region. */
 const REGION_FACTS: Array<[number, number, number]> = [
@@ -63,14 +62,46 @@ const regions = s.regions.map((name, i) => {
 	return { name, basket: money(basket), tickets: number(tickets), score: number(score, 1), bar: Math.round((tickets / 1284) * 100) };
 });
 
-/** The dashboard's curve: thirteen weeks of revenue, drawn in a 520 × 180 box. */
-const WEEKS = [72, 78, 74, 86, 91, 88, 97, 104, 99, 112, 118, 115, 128];
-const LO = 60;
-const HI = 135;
-const points = WEEKS.map((v, i) => [Math.round((i / (WEEKS.length - 1)) * 500 + 10), Math.round(170 - ((v - LO) / (HI - LO)) * 160)] as const);
-const line = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x} ${y}`).join(' ');
-const area = `${line} L510 180 L10 180 Z`;
-const last = points[points.length - 1]!;
+/**
+ * Monthly revenue: two years measured (January 2025 on), then six months forecast — a trend
+ * and a season, prolonged as the application's Holt-Winters would.
+ */
+const N = 24;
+const H = 6;
+const truth = (i: number) => 420 + 26 * i + 120 * Math.sin((2 * Math.PI * (i - 4)) / 12);
+const noise = (i: number) => (((i * 37) % 11) - 5) * 9;
+const measured = Array.from({ length: N }, (_, i) => truth(i) + noise(i));
+const ahead = Array.from({ length: H }, (_, k) => truth(N + k));
+const spread = (k: number) => 30 + 22 * Math.sqrt(k + 1);
+const curve = (w: number, h: number, count: number, lo: number, hi: number) => {
+	const x = (i: number) => 8 + (i / (count - 1)) * (w - 16);
+	const y = (v: number) => h - 6 - ((v - lo) / (hi - lo)) * (h - 16);
+	const path = (pts: Array<[number, number]>) => pts.map(([i, v], j) => `${j ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+	return { x, y, path };
+};
+// The dashboard's card: the last twelve months.
+const dash = curve(520, 170, 12, 600, 1250);
+const last12 = measured.slice(N - 12).map((v, i) => [i, v] as [number, number]);
+const dashLine = dash.path(last12);
+const dashArea = `${dashLine} L${dash.x(11).toFixed(1)} 170 L${dash.x(0).toFixed(1)} 170 Z`;
+// The forecast's chart: the two years and the six months.
+const fc = curve(600, 300, N + H, 250, 1350);
+const pastLine = fc.path(measured.map((v, i) => [i, v]));
+const pastArea = `${pastLine} L${fc.x(N - 1).toFixed(1)} 300 L${fc.x(0).toFixed(1)} 300 Z`;
+const nextLine = fc.path([[N - 1, measured[N - 1]!], ...ahead.map((v, k) => [N + k, v] as [number, number])]);
+const band = `${fc.path([[N - 1, measured[N - 1]!], ...ahead.map((v, k) => [N + k, v + spread(k)] as [number, number])])} ${ahead
+	.map((v, k) => [N + k, v - spread(k)] as [number, number])
+	.reverse()
+	.map(([i, v]) => `L${fc.x(i).toFixed(1)} ${fc.y(v).toFixed(1)}`)
+	.join(' ')} L${fc.x(N - 1).toFixed(1)} ${fc.y(measured[N - 1]!).toFixed(1)} Z`;
+const TIP = 2;
+const tip = { x: fc.x(N + TIP), y: fc.y(ahead[TIP]!), month: monthName(N + TIP, 'long'), value: money(ahead[TIP]! * 1000, true), lo: money((ahead[TIP]! - spread(TIP)) * 1000, true), hi: money((ahead[TIP]! + spread(TIP)) * 1000, true) };
+const fcTicks = [0, 6, 12, 18, 24].map((i) => ({ x: fc.x(i), label: monthName(i) }));
+const zone = { x: fc.x(N - 0.5), w: fc.x(N + H - 1) - fc.x(N - 0.5) + 8 };
+
+/** A sparkline: weekly orders, the last one down. */
+const WEEKLY = [60, 64, 58, 66, 63, 70, 67, 72, 69, 74, 71, 52];
+const spark = WEEKLY.map((v, i) => `${i ? 'L' : 'M'}${(i / (WEEKLY.length - 1)) * 96 + 2} ${32 - ((v - 48) / 28) * 28}`).join(' ');
 
 /** The SQL, as the editor colours it. */
 const kw = (w: string) => `<span class="k">${w}</span>`;
@@ -87,19 +118,56 @@ const SQL = [
 	` ${kw('group by')} c.region ${kw('order by')} tickets ${kw('desc')}`,
 ];
 
+const ICON = {
+	home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+	folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+	sql: '<path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/>',
+	sources: '<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+	structure: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
+	history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+	admin: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+	api: '<path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM8 7h7"/>',
+	lock: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><rect x="10" y="12" width="5" height="4" rx="1"/><path d="M11 12v-1.2a1.5 1.5 0 0 1 3 0V12"/>',
+	headset: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',
+	bag: '<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+	check: '<path d="M20 6 9 17l-5-5"/>',
+	chevron: '<path d="m6 9 6 6 6-6"/>',
+	updown: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>',
+	sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>',
+	search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+	panel: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',
+	plus: '<path d="M12 5v14M5 12h14"/>',
+	play: '<path d="M7 4v16l13-8z"/>',
+	calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+	filter: '<path d="M4 6h16M7 12h10M10 18h4"/>',
+	share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
+	db: '<ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6"/>',
+	send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+	trend: '<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+	bars: '<path d="M5 20V10M12 20V4M19 20v-7"/>',
+	table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M10 4v16"/>',
+	waves: '<path d="M2 12c2.5-4 5-4 7.5 0s5 4 7.5 0 3.5-2.5 5-2"/>',
+} as const;
+const svg = (name: keyof typeof ICON, size = 15, width = 1.9) =>
+	`<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round">${ICON[name]}</svg>`;
+
 const nav = [
-	{ key: 'home', show: '', icon: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>' },
-	{ key: 'browse', show: 'builder copilot dashboard', icon: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' },
-	{ key: 'sql', show: 'sql', icon: '<path d="m8 9-3 3 3 3M16 9l3 3-3 3M13.5 6l-3 12"/>' },
-	{ key: 'data', show: '', icon: '<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>' },
-	{ key: 'history', show: '', icon: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>' },
+	{ key: 'home', icon: 'home', on: '' },
+	{ key: 'assistant', icon: '', on: 'assistant' },
+	{ key: 'folders', icon: 'folder', on: '' },
 ] as const;
-const FOLDER_COLORS = ['#71717a', '#2da31e', '#8b5cf6', '#f59e0b'];
-const titles = [
-	{ view: 'builder copilot', text: s.builder.title },
-	{ view: 'sql', text: s.sql.title },
-	{ view: 'dashboard', text: s.dashboard.title },
-];
+const folders = [
+	{ name: s.folderNames[0], icon: 'lock', color: '#71717a', on: '' },
+	{ name: s.folderNames[1], icon: 'headset', color: '#8b5cf6', on: '' },
+	{ name: s.folderNames[2], icon: 'bag', color: '#16a34a', on: 'builder dashboard forecast' },
+] as const;
+const tools = [
+	{ key: 'sql', icon: 'sql', on: 'sql' },
+	{ key: 'sources', icon: 'sources', on: '' },
+	{ key: 'structure', icon: 'structure', on: '' },
+	{ key: 'history', icon: 'history', on: '' },
+] as const;
+const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 ---
 
 <div class="frame" data-frame data-min={minScale}>
@@ -109,105 +177,134 @@ const titles = [
 			<span class="url">{s.url}</span>
 		</div>
 
-		<!-- The sidebar -->
+		<!-- The sidebar, as the application has it -->
 		<aside class="side" aria-hidden="true">
 			<div class="ws">
-				<span class="mark">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M5 18v-5M10 18V7M15 18v-8M20 18v-3"></path></svg>
-				</span>
-				<span class="who"><b>{s.workspace}</b><small>{s.workspaceSub}</small></span>
+				<svg class="mark" width="30" height="30" viewBox="0 0 64 64" fill="none">
+					<rect width="64" height="64" rx="16" fill="#104832"></rect>
+					<path d="M32 15a17 17 0 1 0 17 17" stroke="#dcf3bd" stroke-width="9" stroke-linecap="round"></path>
+					<rect x="27" y="27" width="10" height="10" rx="3" fill="#dcf3bd"></rect>
+					<circle cx="46" cy="18" r="5" fill="#76cf98"></circle>
+				</svg>
+				<span class="who"><b>{s.product}</b><small>{s.sources}</small></span>
+				<span class="ud" set:html={svg('updown', 13)} />
 			</div>
 			<ul class="nav">
 				{
 					nav.map((n) => (
-						<li data-on={n.show || undefined}>
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" set:html={n.icon} />
-							{s.nav[n.key]}
+						<li data-on={n.on || undefined}>
+							{n.icon ? <Fragment set:html={svg(n.icon)} /> : <span class="orb-i" />}
+							<span class="grow">{s.nav[n.key]}</span>
+							{n.key === 'assistant' ? <em class="badge">{s.badge}</em> : null}
+						</li>
+					))
+				}
+				{
+					folders.map((f) => (
+						<li class="sub" data-on={f.on || undefined} style={`--c:${f.color}`}>
+							<Fragment set:html={svg(f.icon, 14)} />
+							<span class="grow">{f.name}</span>
+						</li>
+					))
+				}
+				{
+					tools.map((n) => (
+						<li data-on={n.on || undefined}>
+							<Fragment set:html={svg(n.icon)} />
+							<span class="grow">{s.nav[n.key]}</span>
 						</li>
 					))
 				}
 			</ul>
-			<p class="side-title">{s.folders}</p>
-			<ul class="nav folders">
-				{
-					s.folderNames.map((name, i) => (
-						<li data-on={i === 1 ? 'builder copilot dashboard' : undefined}>
-							<i style={`--c:${FOLDER_COLORS[i]}`} />
-							{name}
-						</li>
-					))
-				}
+			<ul class="nav foot">
+				<li>
+					<Fragment set:html={svg('admin')} />
+					<span class="grow">{s.nav.admin}</span>
+					<Fragment set:html={svg('chevron', 12)} />
+				</li>
+				<li>
+					<Fragment set:html={svg('api')} />
+					<span class="grow">{s.nav.api}</span>
+				</li>
 			</ul>
 			<div class="me">
-				<span class="avatar">AM</span>
-				<span class="who"><b>Alice Martin</b><small>admin@exemple.fr</small></span>
+				<span class="avatar">AM<i></i></span>
+				<span class="who"><b>{s.user.name}</b><small>{s.user.role}</small></span>
+				<span class="ud" set:html={svg('updown', 13)} />
 			</div>
 		</aside>
 
-		<!-- The bar -->
+		<!-- The bar: where one is, and what is always at hand -->
 		<header class="top" aria-hidden="true">
-			<div>
-				<small>{s.breadcrumb}</small>
-				<span class="stack">
-					{titles.map((ti) => <b data-show={ti.view}>{ti.text}</b>)}
-				</span>
-			</div>
-			<div class="top-end">
-				<span class="btn ghost" data-show="builder copilot">
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg>
-					{s.copilot.title}
-				</span>
-				<span class="btn green" data-show="builder copilot">{s.builder.save}</span>
-				<span class="btn green" data-show="sql">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg>
-					{s.sql.run}
-				</span>
-				<span class="chip" data-show="dashboard"><i></i>{s.dashboard.refresh}</span>
-			</div>
+			<span class="tb-icon" set:html={svg('panel', 16)} />
+			<span class="crumbs">
+				{
+					VIEWS.map((v) => (
+						<span data-show={v}>
+							{s.crumbs[v].map((c, i, all) => (
+								<>
+									{i > 0 ? <i>/</i> : null}
+									<b class:list={[i === all.length - 1 && all.length > 1 && 'last']}>{c}</b>
+								</>
+							))}
+						</span>
+					))
+				}
+			</span>
+			<span class="new"><Fragment set:html={svg('plus', 13, 2.4)} />{s.newItem}</span>
+			<span class="search"><Fragment set:html={svg('search', 13)} />{s.search}<kbd>Ctrl</kbd><kbd>K</kbd></span>
+			<span class="spark" set:html={svg('sparkle', 16)} />
 		</header>
 
 		<!-- 1. The question, without SQL -->
-		<section class="pane builder" data-show="builder copilot" aria-hidden="true">
-			<div class="notebook">
-				<div class="step">
-					<p>{s.builder.data}</p>
-					<span class="pill blue">
-						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M9 3v18"></path></svg>
-						{s.builder.table}
-					</span>
-				</div>
-				<div class="step">
-					<p>{s.builder.filter}</p>
-					<span class="pill violet">{s.builder.filterValue}</span>
-				</div>
-				<div class="step">
-					<p>{s.builder.summarize}</p>
-					<div class="row">
-						<span class="pill green">{s.builder.metric}</span>
-						<span class="by">{s.builder.by}</span>
-						<span class="pill green">{s.builder.group}</span>
-					</div>
-				</div>
-				<span class="visualize">{s.builder.visualize}</span>
+		<section class="pane builder" data-show="builder" aria-hidden="true">
+			<div class="pane-head">
+				<b>{s.builder.title}</b>
+				<span class="btn green">{s.builder.save}</span>
 			</div>
-			<div class="card chart">
-				<p class="card-title">{s.builder.title}</p>
-				<div class="bars">
-					{
-						channels.map((c, i) => (
-							<div class="bar" style={`--h:${c.height}%;--i:${i};--c:${c.color}`} data-hot={i === 1 ? '' : undefined}>
-								<span class="val">{c.value}</span>
-								<i />
-								<span class="lab">{c.label}</span>
-							</div>
-						))
-					}
+			<div class="builder-body">
+				<div class="notebook">
+					<div class="step">
+						<p>{s.builder.data}</p>
+						<span class="pill blue"><Fragment set:html={svg('table', 13, 2)} />{s.builder.table}</span>
+					</div>
+					<div class="step">
+						<p>{s.builder.filter}</p>
+						<span class="pill violet">{s.builder.filterValue}</span>
+					</div>
+					<div class="step">
+						<p>{s.builder.summarize}</p>
+						<div class="row">
+							<span class="pill green">{s.builder.metric}</span>
+							<span class="by">{s.builder.by}</span>
+							<span class="pill green">{s.builder.group}</span>
+						</div>
+					</div>
+					<span class="visualize">{s.builder.visualize}</span>
+				</div>
+				<div class="card chart">
+					<p class="card-title">{s.builder.title}</p>
+					<div class="bars">
+						{
+							channels.map((c, i) => (
+								<div class="bar" style={`--h:${c.height}%;--i:${i};--c:${c.color}`}>
+									<span class="val">{c.value}</span>
+									<i />
+									<span class="lab">{c.label}</span>
+								</div>
+							))
+						}
+					</div>
 				</div>
 			</div>
 		</section>
 
 		<!-- 2. The SQL editor -->
 		<section class="pane sql" data-show="sql" aria-hidden="true">
+			<div class="pane-head">
+				<b>{s.sql.title}</b>
+				<span class="btn green"><Fragment set:html={svg('play', 11, 0)} />{s.sql.run}</span>
+			</div>
 			<div class="editor">
 				<ol>
 					{SQL.map((l) => <li set:html={l} />)}
@@ -235,96 +332,179 @@ const titles = [
 			</div>
 		</section>
 
-		<!-- 3. The Copilot, beside the question -->
-		<aside class="pane copilot" data-show="copilot" aria-hidden="true">
-			<p class="cp-head">
-				<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg>
-				{s.copilot.title}
-			</p>
-			<p class="ask">{s.copilot.ask}</p>
-			<ul class="cp-steps">
-				{
-					s.copilot.steps.map((step, i) => (
-						<li style={`--i:${i}`}>
-							<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-							{step}
-						</li>
-					))
-				}
-			</ul>
-			<p class="answer" set:html={s.copilot.answer} />
-			<span class="btn green apply">{s.copilot.apply}</span>
-			<span class="prompt">{s.copilot.placeholder}</span>
-		</aside>
+		<!-- 3. The AI assistant: a conversation with the data -->
+		<section class="pane assistant" data-show="assistant" aria-hidden="true">
+			<div class="threads">
+				<span class="btn green wide"><Fragment set:html={svg('plus', 13, 2.4)} />{s.assistant.newChat}</span>
+				<span class="find"><Fragment set:html={svg('search', 12)} />{s.assistant.search}</span>
+				<small>{s.assistant.today}</small>
+				{s.assistant.history.map((h, i) => <span class:list={['thread', i === 0 && 'on']}>{h}</span>)}
+			</div>
+			<div class="talk">
+				<div class="glow-a"></div>
+				<p class="ask">{s.assistant.ask}</p>
+				<div class="answer">
+					<span class="orb"></span>
+					<div class="answer-body">
+						<ul class="chips">
+							{
+								s.assistant.steps.map((step, i) => (
+									<li style={`--i:${i}`}>
+										<Fragment set:html={svg('check', 11, 3)} />
+										{step}
+									</li>
+								))
+							}
+						</ul>
+						<p class="said" set:html={s.assistant.answer} />
+						<div class="card mini">
+							<div class="mini-head">
+								<span>
+									<b>{s.assistant.chartTitle}</b>
+									<small>{s.assistant.chartSub}</small>
+								</span>
+								<span class="kinds">
+									<i class="on" set:html={svg('bars', 12)} />
+									<i set:html={svg('trend', 12)} />
+									<i set:html={svg('table', 12)} />
+								</span>
+							</div>
+							<div class="mini-bars">
+								{
+									baskets.map((b, i) => (
+										<div class="mbar" style={`--h:${b.height}%;--i:${i}`} data-hot={b.hot ? '' : undefined}>
+											<span class="val">{b.value}</span>
+											<i />
+											<span class="lab">{b.label}</span>
+										</div>
+									))
+								}
+							</div>
+							<div class="mini-foot">
+								<span><Fragment set:html={svg('db', 11)} />{s.assistant.rows}</span>
+								<span class="save">{s.assistant.save} ›</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="composer">
+					<span class="ph">{s.assistant.placeholder}</span>
+					<span class="row">
+						<span class="src"><Fragment set:html={svg('db', 11)} />{s.assistant.sources}</span>
+						<span class="hint">{s.assistant.hint}</span>
+						<span class="go" set:html={svg('send', 13, 2.2)} />
+					</span>
+				</div>
+			</div>
+		</section>
 
 		<!-- 4. The dashboard -->
 		<section class="pane dash" data-show="dashboard" aria-hidden="true">
+			<div class="dash-head">
+				<span>
+					<b>{s.dashboard.title}</b>
+					<small>{s.dashboard.description}</small>
+				</span>
+				<span class="btn ghost"><Fragment set:html={svg('share', 12)} />{s.dashboard.share}</span>
+				<span class="btn ghost">{s.dashboard.edit}</span>
+			</div>
 			<div class="filters">
 				{
-					s.dashboard.filters.map((f) => (
-						<span class="filter">
-							{f}
-							<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m6 9 6 6 6-6" /></svg>
+					s.dashboard.filters.map((f, i) => (
+						<span class:list={['filter', f.value && 'set']}>
+							<Fragment set:html={svg(i === 0 ? 'calendar' : 'filter', 12)} />
+							<span class="fl">{f.label}</span>
+							{f.value ? <b>{f.value}</b> : null}
+							<Fragment set:html={svg('chevron', 11, 2.4)} />
 						</span>
 					))
 				}
 			</div>
+			<div class="tabs">{s.dashboard.tabs.map((tab, i) => <span class:list={[i === 0 && 'on']}>{tab}</span>)}</div>
 			<div class="kpis">
 				{
 					s.dashboard.kpis.map((k, i) => (
 						<div class="card kpi" style={`--i:${i}`}>
 							<small>{k.label}</small>
-							<b>{k.value}</b>
-							<em>{k.delta}</em>
+							<span class="kv">
+								<b>{k.value}</b>
+								{i === 3 ? <svg class="sparkline" viewBox="0 0 100 36" preserveAspectRatio="none"><path d={spark} /></svg> : null}
+							</span>
+							{k.delta ? <em>{k.delta}</em> : null}
 						</div>
 					))
 				}
 			</div>
 			<div class="card trend" style="--i:4">
 				<p class="card-title">{s.dashboard.trend}</p>
-				<svg viewBox="0 0 520 190" preserveAspectRatio="none">
+				<svg viewBox="0 0 520 172" preserveAspectRatio="none">
 					<defs>
 						<linearGradient id="st-area" x1="0" y1="0" x2="0" y2="1">
-							<stop offset="0" stop-color="#2da31e" stop-opacity="0.28"></stop>
-							<stop offset="1" stop-color="#2da31e" stop-opacity="0"></stop>
+							<stop offset="0" stop-color="#2563eb" stop-opacity="0.22"></stop>
+							<stop offset="1" stop-color="#2563eb" stop-opacity="0"></stop>
 						</linearGradient>
 					</defs>
-					{[40, 85, 130].map((y) => <line x1="10" x2="510" y1={y} y2={y} class="grid" />)}
-					<path d={area} class="area" fill="url(#st-area)"></path>
-					<path d={line} class="line" pathLength="1"></path>
-					<circle cx={last[0]} cy={last[1]} r="5" class="dot"></circle>
+					{[40, 85, 130].map((y) => <line x1="8" x2="512" y1={y} y2={y} class="grid" />)}
+					<path d={dashArea} class="area" fill="url(#st-area)"></path>
+					<path d={dashLine} class="line" pathLength="1"></path>
 				</svg>
 			</div>
-			<div class="card ring" style="--i:5">
+			<div class="card chan" style="--i:5">
 				<p class="card-title">{s.dashboard.channels}</p>
-				<div class="ring-body">
-					<svg viewBox="0 0 42 42">
-						<circle cx="21" cy="21" r="15.9" class="track"></circle>
-						{ring.map((r, i) => <circle cx="21" cy="21" r="15.9" pathLength="100" class="arc" style={`--c:${r.color};--share:${r.share};--off:${r.offset};--i:${i}`} />)}
-					</svg>
-					<ul>
-						{
-							ring.map((r) => (
-								<li>
-									<i style={`--c:${r.color}`} />
-									{r.label}
-									<b>{r.percent} %</b>
-								</li>
-							))
-						}
-					</ul>
+				<div class="cbars">
+					{channels.map((c, i) => <i style={`--h:${c.height}%;--i:${i}`} />)}
 				</div>
 			</div>
-			<div class="card regions" style="--i:6">
-				{
-					regions.slice(0, 4).map((r, i) => (
-						<div class="reg" style={`--w:${r.bar}%;--j:${i}`}>
-							<span>{r.name}</span>
-							<i />
-						</div>
-					))
-				}
+		</section>
+
+		<!-- 5. The forecast: the curve, prolonged -->
+		<section class="pane forecast" data-show="forecast" aria-hidden="true">
+			<div class="card fchart">
+				<div class="fhead">
+					<b>{s.forecast.title}</b>
+					<span class="legend"><i class="m"></i>{s.forecast.legend[0]}<i class="p"></i>{s.forecast.legend[1]}</span>
+				</div>
+				<div class="fplot">
+				<svg viewBox="0 0 600 322" preserveAspectRatio="none">
+					<defs>
+						<linearGradient id="st-past" x1="0" y1="0" x2="0" y2="1">
+							<stop offset="0" stop-color="#2563eb" stop-opacity="0.2"></stop>
+							<stop offset="1" stop-color="#2563eb" stop-opacity="0"></stop>
+						</linearGradient>
+					</defs>
+					<rect x={zone.x} y="4" width={zone.w} height="296" class="zone" rx="4"></rect>
+					<text x={zone.x + zone.w / 2} y="18" class="zone-label" text-anchor="middle">{s.forecast.zone}</text>
+					{[80, 150, 220].map((y) => <line x1="8" x2="592" y1={y} y2={y} class="grid" />)}
+					<path d={pastArea} class="area" fill="url(#st-past)"></path>
+					<path d={pastLine} class="past" pathLength="1"></path>
+					<path d={band} class="band"></path>
+					<path d={nextLine} class="next" pathLength="1"></path>
+					{fcTicks.map((tk) => <text x={tk.x} y="318" class="axis" text-anchor="middle">{tk.label}</text>)}
+				</svg>
+				<span class="tip-dot" style={`left:${((tip.x / 600) * 100).toFixed(2)}%;top:${((tip.y / 322) * 100).toFixed(2)}%`}></span>
+				<div class="tooltip" style={`left:${((tip.x / 600) * 100).toFixed(2)}%;top:${((tip.y / 322) * 100).toFixed(2)}%`}>
+					<b>{tip.month}</b>
+					<span><i></i>{s.forecast.legend[1]} · {tip.value}</span>
+					<small>{s.forecast.range} {tip.lo} – {tip.hi}</small>
+				</div>
+				</div>
 			</div>
+			<aside class="card fpanel">
+				<p class="fp-title">{s.forecast.panel}</p>
+				<label>{s.forecast.extend}</label>
+				<div class="fp-row">
+					<span class="num-in">6</span>
+					<small>{s.forecast.periods}</small>
+					<span class="grow"></span>
+					{['+3', '+6', '+12'].map((n) => <span class:list={['qk', n === '+6' && 'on']}>{n}</span>)}
+				</div>
+				<label>{s.forecast.method}</label>
+				<div class="seg">
+					{s.forecast.methods.map((m, i) => <span class:list={[i === 3 && 'on']} set:html={`${svg(i === 0 ? 'sparkle' : i === 1 ? 'trend' : i === 2 ? 'trend' : 'waves', 13)}<em>${m}</em>`} />)}
+				</div>
+				<div class="toggle"><span class="sw"><i></i></span>{s.forecast.band}</div>
+				<p class="fp-note">{s.forecast.note}</p>
+			</aside>
 		</section>
 	</div>
 </div>
@@ -345,6 +525,7 @@ const titles = [
 		--line: #e4e4e7;
 		--tint: #f4f4f5;
 		--green: #2da31e;
+		--blue: #2563eb;
 		position: relative;
 		width: 100%;
 		max-width: 1080px;
@@ -378,11 +559,14 @@ const titles = [
 		padding: 0;
 		list-style: none;
 	}
-	.stack {
-		display: inline-grid;
+	.stage :global(svg) {
+		flex-shrink: 0;
 	}
-	.stack > * {
-		grid-area: 1 / 1;
+	.grow {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	/* What each view shows: everything that belongs to some views carries `data-show`. */
@@ -396,25 +580,37 @@ const titles = [
 	}
 	.stage[data-view='builder'] [data-show~='builder'],
 	.stage[data-view='sql'] [data-show~='sql'],
-	.stage[data-view='copilot'] [data-show~='copilot'],
-	.stage[data-view='dashboard'] [data-show~='dashboard'] {
+	.stage[data-view='assistant'] [data-show~='assistant'],
+	.stage[data-view='dashboard'] [data-show~='dashboard'],
+	.stage[data-view='forecast'] [data-show~='forecast'] {
 		opacity: 1;
 		visibility: visible;
 	}
 	.pane {
 		position: absolute;
-		top: 84px;
-		left: 200px;
+		top: 74px;
+		left: 208px;
 		right: 0;
 		bottom: 0;
-		padding: 16px;
+		padding: 14px 16px 16px;
 		transform: translateY(14px) scale(0.985);
 	}
 	.stage[data-view='builder'] .pane[data-show~='builder'],
 	.stage[data-view='sql'] .pane[data-show~='sql'],
-	.stage[data-view='copilot'] .pane[data-show~='copilot'],
-	.stage[data-view='dashboard'] .pane[data-show~='dashboard'] {
+	.stage[data-view='assistant'] .pane[data-show~='assistant'],
+	.stage[data-view='dashboard'] .pane[data-show~='dashboard'],
+	.stage[data-view='forecast'] .pane[data-show~='forecast'] {
 		transform: none;
+	}
+	.pane-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 12px;
+	}
+	.pane-head b {
+		font-size: 16px;
+		letter-spacing: -0.01em;
 	}
 
 	/* The window */
@@ -466,8 +662,8 @@ const titles = [
 		z-index: 2;
 		display: flex;
 		flex-direction: column;
-		width: 200px;
-		padding: 12px 10px 10px;
+		width: 208px;
+		padding: 10px 10px 10px;
 		border-right: 1px solid var(--line);
 		background: #fff;
 	}
@@ -475,16 +671,16 @@ const titles = [
 		display: flex;
 		align-items: center;
 		gap: 9px;
-		padding: 2px 4px 14px;
+		padding: 0 4px 10px;
+		margin: 0 -10px 8px;
+		padding-left: 14px;
+		padding-right: 12px;
+		border-bottom: 1px solid var(--line);
 	}
-	.mark {
+	.ud {
 		display: grid;
-		place-items: center;
-		width: 30px;
-		height: 30px;
-		border-radius: 9px;
-		color: #fff;
-		background: var(--green);
+		margin-left: auto;
+		color: var(--soft);
 	}
 	.who {
 		display: flex;
@@ -511,52 +707,70 @@ const titles = [
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		height: 32px;
+		height: 30px;
 		padding: 0 10px;
 		border-radius: 8px;
+		font-size: 12.5px;
 		color: #3f3f46;
 		white-space: nowrap;
 		transition:
 			background-color 0.4s ease,
 			color 0.4s ease;
 	}
-	.nav li svg {
+	.nav li :global(svg) {
 		color: var(--soft);
+	}
+	.nav li.sub {
+		height: 27px;
+		padding-left: 26px;
+		font-size: 12px;
+		color: var(--soft);
+	}
+	.nav li.sub :global(svg) {
+		color: var(--c);
+	}
+	.orb-i {
+		width: 15px;
+		height: 15px;
+		border-radius: 50%;
+		border: 2px solid transparent;
+		background:
+			linear-gradient(#fff, #fff) padding-box,
+			conic-gradient(from 0deg, #22d3ee, #2da31e, #8b5cf6, #22d3ee) border-box;
+	}
+	.badge {
+		padding: 1px 6px;
+		border-radius: 999px;
+		font-size: 9.5px;
+		font-style: normal;
+		font-weight: 700;
+		color: #fff;
+		background: linear-gradient(90deg, #2da31e, #7c3aed);
 	}
 	.stage[data-view='builder'] .nav li[data-on~='builder'],
 	.stage[data-view='sql'] .nav li[data-on~='sql'],
-	.stage[data-view='copilot'] .nav li[data-on~='copilot'],
-	.stage[data-view='dashboard'] .nav li[data-on~='dashboard'] {
+	.stage[data-view='assistant'] .nav li[data-on~='assistant'],
+	.stage[data-view='dashboard'] .nav li[data-on~='dashboard'],
+	.stage[data-view='forecast'] .nav li[data-on~='forecast'] {
 		background: var(--tint);
 		color: var(--ink);
 		font-weight: 600;
 	}
-	.side-title {
-		margin: 16px 10px 6px !important;
-		font-size: 11px;
-		font-weight: 600;
-		color: var(--soft);
-	}
-	.folders li {
-		height: 30px;
-		padding-left: 14px;
-		font-size: 12.5px;
-	}
-	.folders li i {
-		width: 9px;
-		height: 9px;
-		border-radius: 3px;
-		background: var(--c);
+	.nav.foot {
+		margin-top: auto;
+		padding-top: 8px;
+		border-top: 1px solid var(--line);
 	}
 	.me {
 		display: flex;
 		align-items: center;
 		gap: 9px;
-		margin-top: auto;
-		padding: 10px 4px 0;
+		margin: 6px -10px 0;
+		padding: 8px 12px 0 14px;
 		border-top: 1px solid var(--line);
 	}
 	.avatar {
+		position: relative;
 		display: grid;
 		place-items: center;
 		width: 28px;
@@ -564,60 +778,107 @@ const titles = [
 		border-radius: 50%;
 		font-size: 10.5px;
 		font-weight: 700;
-		color: #fff;
-		background: linear-gradient(135deg, #f472b6, #8b5cf6);
+		color: #0f5132;
+		background: #dcf3e4;
+	}
+	.avatar i {
+		position: absolute;
+		right: -1px;
+		bottom: -1px;
+		width: 8px;
+		height: 8px;
+		border: 2px solid #fff;
+		border-radius: 50%;
+		background: #22c55e;
 	}
 
 	/* The bar */
 	.top {
 		position: absolute;
 		top: 30px;
-		left: 200px;
+		left: 208px;
 		right: 0;
 		z-index: 2;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		height: 54px;
-		padding: 0 16px 0 20px;
+		gap: 10px;
+		height: 44px;
+		padding: 0 14px;
 		border-bottom: 1px solid var(--line);
 		background: #fff;
 	}
-	.top small {
-		display: block;
-		font-size: 11px;
+	.tb-icon {
+		display: grid;
 		color: var(--soft);
 	}
-	.top b {
-		font-size: 15.5px;
-		letter-spacing: -0.01em;
+	.crumbs {
+		display: inline-grid;
+		flex: 1;
+		min-width: 0;
+		font-size: 14.5px;
+	}
+	.crumbs > span {
+		grid-area: 1 / 1;
+		display: flex;
+		align-items: center;
+		gap: 7px;
 		white-space: nowrap;
 	}
-	.top-end {
-		display: grid;
-		grid-auto-flow: column;
+	.crumbs i {
+		font-style: normal;
+		color: #a1a1aa;
+	}
+	.crumbs b.last {
+		font-weight: 500;
+		color: var(--soft);
+	}
+	.new {
+		display: inline-flex;
 		align-items: center;
-		justify-content: end;
-		gap: 8px;
+		gap: 5px;
+		height: 28px;
+		padding: 0 11px;
+		border-radius: 7px;
+		font-size: 12.5px;
+		font-weight: 600;
+		color: #fff;
+		background: var(--green);
 	}
-	.top-end > * {
-		grid-row: 1;
+	.search {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		width: 210px;
+		height: 28px;
+		padding: 0 9px;
+		border: 1px solid var(--line);
+		border-radius: 7px;
+		font-size: 12px;
+		color: var(--soft);
 	}
-	.top-end > [data-show='builder copilot']:first-child {
-		grid-column: 1;
+	.search kbd {
+		padding: 0 4px;
+		border: 1px solid var(--line);
+		border-radius: 4px;
+		font-family: var(--bd-font-mono);
+		font-size: 9.5px;
+		background: var(--tint);
 	}
-	.top-end > [data-show='builder copilot']:nth-child(2),
-	.top-end > [data-show='sql'],
-	.top-end > [data-show='dashboard'] {
-		grid-column: 2;
+	.search kbd:first-of-type {
+		margin-left: auto;
 	}
+	.spark {
+		display: grid;
+		color: #8b5cf6;
+	}
+
 	.btn {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		height: 30px;
+		height: 28px;
 		padding: 0 12px;
-		border-radius: 8px;
+		border-radius: 7px;
 		font-size: 12.5px;
 		font-weight: 600;
 		white-space: nowrap;
@@ -630,33 +891,6 @@ const titles = [
 		border: 1px solid var(--line);
 		background: #fff;
 	}
-	.stage[data-view='copilot'] .btn.ghost {
-		color: var(--green);
-		border-color: rgba(45, 163, 30, 0.4);
-		background: #f0faee;
-	}
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		gap: 7px;
-		font-size: 12px;
-		color: var(--soft);
-		white-space: nowrap;
-	}
-	.chip i {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--green);
-		box-shadow: 0 0 0 4px rgba(45, 163, 30, 0.15);
-		animation: st-pulse 2s ease-in-out infinite;
-	}
-	@keyframes st-pulse {
-		50% {
-			box-shadow: 0 0 0 7px rgba(45, 163, 30, 0);
-		}
-	}
-
 	.card {
 		border: 1px solid var(--line);
 		border-radius: 12px;
@@ -669,24 +903,25 @@ const titles = [
 	}
 
 	/* 1. The question */
-	.builder {
+	.builder-body {
 		display: grid;
-		grid-template-columns: 300px minmax(0, 1fr);
-		gap: 16px;
+		grid-template-columns: 290px minmax(0, 1fr);
+		gap: 14px;
+		height: calc(100% - 40px);
 	}
 	.notebook {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 10px;
 	}
 	.step {
-		padding: 12px 14px 14px;
+		padding: 11px 13px 13px;
 		border: 1px solid var(--line);
 		border-radius: 12px;
 		background: #fff;
 	}
 	.step > p {
-		margin-bottom: 9px !important;
+		margin-bottom: 8px !important;
 		font-size: 11.5px;
 		font-weight: 700;
 		color: var(--green);
@@ -726,7 +961,7 @@ const titles = [
 	.visualize {
 		display: grid;
 		place-items: center;
-		height: 38px;
+		height: 36px;
 		border-radius: 10px;
 		font-weight: 600;
 		color: #fff;
@@ -735,11 +970,7 @@ const titles = [
 	.chart {
 		display: flex;
 		flex-direction: column;
-		padding: 16px 18px;
-		transition: margin-right 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-	}
-	.stage[data-view='copilot'] .chart {
-		margin-right: 340px;
+		padding: 14px 18px;
 	}
 	.bars {
 		display: flex;
@@ -747,11 +978,13 @@ const titles = [
 		align-items: flex-end;
 		justify-content: space-around;
 		gap: 18px;
+		margin-bottom: 26px;
 		padding: 16px 8px 0;
 		border-bottom: 1px solid var(--line);
 		background-image: repeating-linear-gradient(to top, transparent 0 63px, #f1f1f3 63px 64px);
 	}
-	.bar {
+	.bar,
+	.mbar {
 		position: relative;
 		display: flex;
 		flex-direction: column;
@@ -767,17 +1000,10 @@ const titles = [
 		background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, #fff), var(--c));
 		transform: scaleY(0);
 		transform-origin: bottom;
-		transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.15s + var(--i) * 0.1s),
-			box-shadow 0.5s ease;
+		transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.15s + var(--i) * 0.1s);
 	}
-	.stage:is([data-view='builder'], [data-view='copilot']) .bar i {
+	.stage[data-view='builder'] .bar i {
 		transform: none;
-	}
-	.stage[data-view='copilot'] .bar:not([data-hot]) i {
-		opacity: 0.35;
-	}
-	.stage[data-view='copilot'] .bar[data-hot] i {
-		box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--c), 0 18px 30px -10px var(--c);
 	}
 	.val {
 		margin-bottom: 6px;
@@ -787,28 +1013,25 @@ const titles = [
 	}
 	.lab {
 		position: absolute;
-		bottom: -24px;
+		bottom: -22px;
 		font-size: 12px;
 		color: var(--soft);
 		white-space: nowrap;
-	}
-	.chart .bars {
-		margin-bottom: 26px;
 	}
 
 	/* 2. The SQL editor */
 	.sql {
 		display: grid;
-		grid-template-rows: auto minmax(0, 1fr);
-		gap: 14px;
+		grid-template-rows: auto auto minmax(0, 1fr);
 	}
 	.editor {
 		position: relative;
-		padding: 14px 0;
+		margin-bottom: 12px;
+		padding: 12px 0;
 		border-radius: 12px;
 		font-family: var(--bd-font-mono);
 		font-size: 12.5px;
-		line-height: 1.75;
+		line-height: 1.7;
 		color: #d4d4d8;
 		background: #1c1d24;
 		font-variant-ligatures: none;
@@ -843,7 +1066,7 @@ const titles = [
 	.caret {
 		position: absolute;
 		left: 342px;
-		bottom: 18px;
+		bottom: 16px;
 		width: 2px;
 		height: 16px;
 		background: #7ee0a1;
@@ -863,7 +1086,7 @@ const titles = [
 		display: grid;
 		grid-template-columns: 1.6fr 1fr 1.4fr 1fr;
 		align-items: center;
-		height: 30px;
+		height: 28px;
 		padding: 0 16px;
 	}
 	.result-head {
@@ -901,118 +1124,380 @@ const titles = [
 		background: linear-gradient(90deg, #a78bfa, #8b5cf6);
 	}
 	.foot {
-		padding: 8px 16px;
+		padding: 7px 16px;
 		font-size: 11.5px;
 		color: var(--soft);
 	}
 
-	/* 3. The Copilot */
-	.copilot {
-		top: 84px;
-		left: auto;
-		width: 340px;
+	/* 3. The assistant */
+	.assistant {
+		display: grid;
+		grid-template-columns: 196px minmax(0, 1fr);
+		padding: 0;
+	}
+	.threads {
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+		padding: 12px;
+		border-right: 1px solid var(--line);
+		background: #fff;
+	}
+	.btn.wide {
+		justify-content: center;
+	}
+	.find {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		height: 28px;
+		padding: 0 9px;
+		border: 1px solid var(--line);
+		border-radius: 7px;
+		font-size: 11.5px;
+		color: var(--soft);
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	.threads small {
+		margin-top: 4px;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #a1a1aa;
+	}
+	.thread {
+		padding: 6px 9px;
+		border-radius: 7px;
+		font-size: 12px;
+		color: #3f3f46;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.thread.on {
+		font-weight: 500;
+		background: var(--tint);
+		box-shadow: inset 2px 0 0 var(--green);
+	}
+	.talk {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
-		padding: 16px;
-		border-left: 1px solid var(--line);
-		background: #fff;
-		box-shadow: -24px 0 50px -30px rgba(0, 0, 0, 0.25);
-		transform: translateX(40px);
+		overflow: hidden;
+		padding: 16px 40px 14px;
+		background:
+			linear-gradient(rgba(24, 24, 27, 0.035) 1px, transparent 1px) 0 0 / 28px 28px,
+			linear-gradient(90deg, rgba(24, 24, 27, 0.035) 1px, transparent 1px) 0 0 / 28px 28px,
+			#fff;
 	}
-	.cp-head {
-		display: flex;
-		align-items: center;
-		gap: 7px;
-		font-weight: 700;
-		color: var(--green);
+	.glow-a {
+		position: absolute;
+		top: -120px;
+		left: 50%;
+		width: 520px;
+		height: 260px;
+		border-radius: 50%;
+		background: radial-gradient(closest-side, rgba(45, 163, 30, 0.14), transparent);
+		transform: translateX(-50%);
+		pointer-events: none;
 	}
 	.ask {
+		position: relative;
 		align-self: flex-end;
-		max-width: 260px;
-		padding: 10px 13px;
-		border-radius: 14px 14px 4px 14px;
-		line-height: 1.45;
-		color: #fff;
-		background: #18181b;
-	}
-	.cp-steps {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-	.cp-steps li {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		font-size: 12px;
-		color: var(--soft);
-		opacity: 0;
-		transform: translateY(6px);
-		transition:
-			opacity 0.4s ease calc(0.5s + var(--i) * 0.45s),
-			transform 0.4s ease calc(0.5s + var(--i) * 0.45s);
-	}
-	.cp-steps svg {
-		color: var(--green);
+		padding: 9px 14px;
+		border-radius: 18px 18px 6px 18px;
+		font-size: 13px;
+		background: var(--tint);
 	}
 	.answer {
-		padding: 12px 13px;
-		border-radius: 14px 14px 14px 4px;
-		line-height: 1.5;
-		background: var(--tint);
+		position: relative;
+		display: flex;
+		gap: 12px;
+		min-height: 0;
+	}
+	.orb {
+		flex-shrink: 0;
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+		border: 3px solid transparent;
+		background:
+			linear-gradient(#fff, #fff) padding-box,
+			conic-gradient(from 0deg, #22d3ee, #2da31e, #8b5cf6, #22d3ee) border-box;
+		animation: st-spin 3s linear infinite;
+	}
+	@keyframes st-spin {
+		to {
+			transform: rotate(1turn);
+		}
+	}
+	.answer-body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 9px;
+		min-width: 0;
+	}
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+	}
+	.chips li {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 3px 9px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		font-size: 11px;
+		color: var(--soft);
+		background: #fff;
 		opacity: 0;
-		transition: opacity 0.6s ease 2s;
+		transform: translateY(5px);
+		transition:
+			opacity 0.35s ease calc(0.3s + var(--i) * 0.35s),
+			transform 0.35s ease calc(0.3s + var(--i) * 0.35s);
 	}
-	.answer :global(b) {
-		color: #0f766e;
+	.chips li :global(svg) {
+		color: var(--green);
 	}
-	.apply {
-		align-self: flex-start;
+	.said {
+		font-size: 13px;
+		line-height: 1.55;
 		opacity: 0;
-		transition: opacity 0.5s ease 2.4s;
+		transition: opacity 0.5s ease 1.7s;
 	}
-	.stage[data-view='copilot'] :is(.cp-steps li, .answer, .apply) {
+	.said :global(b) {
+		font-weight: 700;
+	}
+	.mini {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: 14px;
+		box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.14);
+		opacity: 0;
+		transform: translateY(10px);
+		transition:
+			opacity 0.5s ease 2s,
+			transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 2s;
+	}
+	.stage[data-view='assistant'] :is(.chips li, .said, .mini) {
 		opacity: 1;
 		transform: none;
 	}
-	.prompt {
+	.mini-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		padding: 10px 12px 0;
+	}
+	.mini-head > span:first-child {
+		display: flex;
+		flex-direction: column;
+	}
+	.mini-head b {
+		font-size: 12.5px;
+	}
+	.mini-head small {
+		font-size: 10.5px;
+		color: var(--soft);
+	}
+	.kinds {
+		display: flex;
+		gap: 2px;
+		padding: 2px;
+		border-radius: 7px;
+		background: var(--tint);
+	}
+	.kinds i {
+		display: grid;
+		padding: 4px;
+		border-radius: 5px;
+		color: var(--soft);
+	}
+	.kinds i.on {
+		color: var(--ink);
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+	}
+	.mini-bars {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-around;
+		height: 132px;
+		margin: 8px 18px 22px;
+		border-bottom: 1px solid var(--line);
+	}
+	.mbar {
+		width: 64px;
+	}
+	.mbar i {
+		width: 100%;
+		height: var(--h);
+		border-radius: 7px 7px 2px 2px;
+		background: #c7d7fb;
+		transform: scaleY(0);
+		transform-origin: bottom;
+		transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) calc(2.2s + var(--i) * 0.1s);
+	}
+	.mbar[data-hot] i {
+		background: var(--blue);
+	}
+	.stage[data-view='assistant'] .mbar i {
+		transform: none;
+	}
+	.mbar .val {
+		font-size: 11px;
+	}
+	.mbar .lab {
+		bottom: -19px;
+		font-size: 11px;
+	}
+	.mini-foot {
+		display: flex;
+		justify-content: space-between;
+		padding: 6px 12px;
+		border-top: 1px solid var(--line);
+		font-size: 10.5px;
+		color: var(--soft);
+		background: #fafafa;
+	}
+	.mini-foot span {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+	}
+	.mini-foot .save {
+		font-weight: 600;
+		color: #3f3f46;
+	}
+	.composer {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 		margin-top: auto;
-		padding: 11px 13px;
-		border: 1px solid var(--line);
-		border-radius: 12px;
+		padding: 10px 12px 8px;
+		border: 1.5px solid transparent;
+		border-radius: 16px;
+		background:
+			linear-gradient(#fff, #fff) padding-box,
+			linear-gradient(90deg, #2da31e, #22d3ee, #8b5cf6) border-box;
+		box-shadow: 0 10px 30px -14px rgba(45, 163, 30, 0.45);
+	}
+	.ph {
 		font-size: 12.5px;
 		color: #a1a1aa;
+	}
+	.composer .row {
+		flex-wrap: nowrap;
+	}
+	.src {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 3px 9px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		font-size: 11px;
+	}
+	.hint {
+		margin-left: auto;
+		font-size: 10px;
+		color: #a1a1aa;
+	}
+	.go {
+		display: grid;
+		place-items: center;
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+		color: var(--soft);
+		background: var(--tint);
 	}
 
 	/* 4. The dashboard */
 	.dash {
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
-		grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
-		gap: 12px;
+		grid-template-rows: auto auto auto auto minmax(0, 1fr);
+		gap: 10px;
+	}
+	.dash-head {
+		grid-column: 1 / -1;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.dash-head > span:first-child {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.dash-head b {
+		font-size: 16px;
+		letter-spacing: -0.01em;
+	}
+	.dash-head small {
+		font-size: 11.5px;
+		color: var(--soft);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.filters {
 		grid-column: 1 / -1;
 		display: flex;
-		gap: 8px;
+		gap: 7px;
 	}
 	.filter {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		padding: 5px 10px;
+		height: 28px;
+		padding: 0 10px;
 		border: 1px solid var(--line);
 		border-radius: 8px;
 		font-size: 12px;
-		font-weight: 500;
 		background: #fff;
+	}
+	.filter :global(svg) {
+		color: var(--soft);
+	}
+	.filter.set {
+		border-color: rgba(45, 163, 30, 0.45);
+		background: #f2faef;
+	}
+	.filter.set .fl {
+		color: var(--soft);
+	}
+	.tabs {
+		grid-column: 1 / -1;
+		display: flex;
+		gap: 18px;
+		border-bottom: 1px solid var(--line);
+		font-size: 12.5px;
+		color: var(--soft);
+	}
+	.tabs span {
+		padding: 0 2px 7px;
+	}
+	.tabs .on {
+		font-weight: 600;
+		color: var(--ink);
+		box-shadow: inset 0 -2px 0 var(--green);
 	}
 	.kpis {
 		grid-column: 1 / -1;
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 12px;
+		gap: 10px;
 	}
 	.dash .card {
 		opacity: 0;
@@ -1029,166 +1514,373 @@ const titles = [
 		display: flex;
 		flex-direction: column;
 		gap: 3px;
-		padding: 12px 14px;
+		padding: 10px 13px;
 	}
 	.kpi small {
 		font-size: 11.5px;
-		color: var(--soft);
+		font-weight: 600;
+	}
+	.kv {
+		display: flex;
+		align-items: center;
+		gap: 8px;
 	}
 	.kpi b {
-		font-size: 22px;
+		font-size: 21px;
 		font-weight: 800;
 		letter-spacing: -0.03em;
 		font-variant-numeric: tabular-nums;
 	}
+	.sparkline {
+		flex: 1;
+		height: 28px;
+	}
+	.sparkline path {
+		fill: none;
+		stroke: #ef4444;
+		stroke-width: 2;
+		vector-effect: non-scaling-stroke;
+	}
 	.kpi em {
 		align-self: flex-start;
-		padding: 1px 7px;
-		border-radius: 999px;
 		font-size: 11px;
 		font-style: normal;
 		font-weight: 700;
-		color: #1c7a12;
-		background: #ecf8e9;
+		color: #dc2626;
 	}
 	.trend {
 		grid-column: 1 / 4;
-		grid-row: 3 / 5;
 		display: flex;
 		flex-direction: column;
-		padding: 14px 16px 10px;
+		padding: 12px 14px 8px;
 	}
 	.trend svg {
 		flex: 1;
 		width: 100%;
-		margin-top: 8px;
+		margin-top: 6px;
 	}
-	.trend .grid {
+	.grid {
 		stroke: #f1f1f3;
 		stroke-width: 1;
 	}
 	.trend .line {
 		fill: none;
-		stroke: var(--green);
-		stroke-width: 3;
+		stroke: var(--blue);
+		stroke-width: 2.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 		vector-effect: non-scaling-stroke;
-		stroke-dasharray: 1;
-		stroke-dashoffset: 1;
+		/* 2, not 1: the curve is stretched, its dash measured on screen — 2 covers it whole. */
+		stroke-dasharray: 2;
+		stroke-dashoffset: 2;
 		transition: stroke-dashoffset 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
 	}
 	.trend .area {
 		opacity: 0;
 		transition: opacity 1s ease 1.4s;
 	}
-	.trend .dot {
-		fill: #fff;
-		stroke: var(--green);
-		stroke-width: 3;
-		opacity: 0;
-		transition: opacity 0.4s ease 2s;
-	}
 	.stage[data-view='dashboard'] .trend .line {
 		stroke-dashoffset: 0;
 	}
-	.stage[data-view='dashboard'] :is(.trend .area, .trend .dot) {
+	.stage[data-view='dashboard'] .trend .area {
 		opacity: 1;
 	}
-	.ring {
-		grid-column: 4;
-		grid-row: 3;
+	.chan {
+		display: flex;
+		flex-direction: column;
 		padding: 12px 14px;
 	}
-	.ring-body {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin-top: 6px;
-	}
-	.ring svg {
-		width: 62px;
-		height: 62px;
-		flex-shrink: 0;
-		transform: rotate(-90deg);
-	}
-	.ring .track {
-		fill: none;
-		stroke: #f1f1f3;
-		stroke-width: 6;
-	}
-	.ring .arc {
-		fill: none;
-		stroke: var(--c);
-		stroke-width: 6;
-		stroke-dasharray: 0 100;
-		stroke-dashoffset: var(--off);
-		transition: stroke-dasharray 1s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.6s + var(--i) * 0.2s);
-	}
-	.stage[data-view='dashboard'] .ring .arc {
-		stroke-dasharray: var(--share) 100;
-	}
-	.ring ul {
+	.cbars {
 		display: flex;
 		flex: 1;
-		flex-direction: column;
-		gap: 4px;
-		min-width: 0;
-		font-size: 10.5px;
+		align-items: flex-end;
+		justify-content: space-around;
+		margin-top: 8px;
+		border-bottom: 1px solid var(--line);
 	}
-	.ring li {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		white-space: nowrap;
+	.cbars i {
+		width: 26px;
+		height: var(--h);
+		border-radius: 5px 5px 1px 1px;
+		background: var(--blue);
+		transform: scaleY(0);
+		transform-origin: bottom;
+		transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.7s + var(--i) * 0.12s);
 	}
-	.ring li i {
-		width: 7px;
-		height: 7px;
-		border-radius: 2px;
-		background: var(--c);
-	}
-	.ring li b {
-		margin-left: auto;
-		padding-left: 4px;
-	}
-	.regions {
-		grid-column: 4;
-		grid-row: 4;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 9px;
-		padding: 12px 14px;
-	}
-	.reg {
-		display: flex;
-		flex-direction: column;
-		gap: 3px;
-		font-size: 11px;
-		color: var(--soft);
-	}
-	.reg span {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.reg i {
-		width: var(--w);
-		height: 6px;
-		border-radius: 3px;
-		background: linear-gradient(90deg, #2da31e, #a3d93a);
-		transform: scaleX(0);
-		transform-origin: left;
-		transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.8s + var(--j) * 0.1s);
-	}
-	.stage[data-view='dashboard'] .reg i {
+	.stage[data-view='dashboard'] .cbars i {
 		transform: none;
 	}
 
+	/* 5. The forecast */
+	.forecast {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 236px;
+		gap: 14px;
+	}
+	.fchart {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		padding: 14px 16px 10px;
+	}
+	.fhead {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+	.fhead b {
+		font-size: 14px;
+	}
+	.legend {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 11px;
+		color: var(--soft);
+	}
+	.legend i {
+		width: 9px;
+		height: 9px;
+		border-radius: 2px;
+		margin-left: 6px;
+	}
+	.legend .m {
+		background: var(--blue);
+	}
+	.legend .p {
+		background: var(--green);
+	}
+	.fplot {
+		position: relative;
+		flex: 1;
+		margin-top: 8px;
+	}
+	.fplot svg {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+	.zone {
+		fill: rgba(45, 163, 30, 0.07);
+		opacity: 0;
+		transition: opacity 0.6s ease 1.5s;
+	}
+	.zone-label {
+		font-size: 10px;
+		font-weight: 700;
+		fill: #1c7a12;
+		opacity: 0;
+		transition: opacity 0.6s ease 1.6s;
+	}
+	.past {
+		fill: none;
+		stroke: var(--blue);
+		stroke-width: 2.4;
+		stroke-linejoin: round;
+		vector-effect: non-scaling-stroke;
+		/* 2, not 1: the curve is stretched, its dash measured on screen — 2 covers it whole. */
+		stroke-dasharray: 2;
+		stroke-dashoffset: 2;
+		transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+	}
+	.fchart .area {
+		opacity: 0;
+		transition: opacity 0.8s ease 1s;
+	}
+	.band {
+		fill: rgba(45, 163, 30, 0.16);
+		opacity: 0;
+		transition: opacity 0.8s ease 2.1s;
+	}
+	.next {
+		fill: none;
+		stroke: var(--green);
+		stroke-width: 2.4;
+		stroke-dasharray: 0.012 0.012;
+		vector-effect: non-scaling-stroke;
+		opacity: 0;
+		transition: opacity 0.6s ease 1.7s;
+	}
+	.tip-dot {
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		border: 2.5px solid var(--green);
+		border-radius: 50%;
+		background: #fff;
+		transform: translate(-50%, -50%);
+		opacity: 0;
+		transition: opacity 0.4s ease 2.5s;
+	}
+	.axis {
+		font-size: 10px;
+		fill: #a1a1aa;
+	}
+	.tooltip {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: 8px 10px;
+		border: 1px solid var(--line);
+		border-radius: 9px;
+		font-size: 11px;
+		background: #fff;
+		box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.25);
+		white-space: nowrap;
+		opacity: 0;
+		transform: translate(-50%, calc(-100% - 12px)) translateY(6px);
+		transition:
+			opacity 0.4s ease 2.7s,
+			transform 0.5s ease 2.7s;
+	}
+	.tooltip b {
+		text-transform: capitalize;
+	}
+	.tooltip span {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+	}
+	.tooltip span i {
+		width: 8px;
+		height: 8px;
+		border-radius: 2px;
+		background: var(--green);
+	}
+	.tooltip small {
+		color: var(--soft);
+	}
+	.stage[data-view='forecast'] .past {
+		stroke-dashoffset: 0;
+	}
+	.stage[data-view='forecast'] :is(.zone, .zone-label, .fchart .area, .band, .next, .tip-dot) {
+		opacity: 1;
+	}
+	.stage[data-view='forecast'] .tooltip {
+		opacity: 1;
+		transform: translate(-50%, calc(-100% - 12px));
+	}
+	.fpanel {
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+		padding: 14px;
+		opacity: 0;
+		transform: translateX(16px);
+		transition:
+			opacity 0.5s ease 0.5s,
+			transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s;
+	}
+	.stage[data-view='forecast'] .fpanel {
+		opacity: 1;
+		transform: none;
+	}
+	.fp-title {
+		margin-bottom: 4px !important;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--soft);
+	}
+	.fpanel label {
+		font-size: 11.5px;
+		font-weight: 600;
+	}
+	.fp-row {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-bottom: 4px;
+	}
+	.fp-row small {
+		font-size: 11px;
+		color: var(--soft);
+	}
+	.num-in {
+		display: grid;
+		place-items: center start;
+		width: 44px;
+		height: 26px;
+		padding: 0 8px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		font-size: 12px;
+	}
+	.qk {
+		padding: 3px 6px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		font-size: 11px;
+	}
+	.qk.on {
+		border-color: var(--green);
+		font-weight: 600;
+		background: #f0faee;
+	}
+	.seg {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 2px;
+		margin-bottom: 4px;
+		padding: 2px;
+		border-radius: 8px;
+		background: var(--tint);
+	}
+	.seg span {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		padding: 5px 0;
+		border-radius: 6px;
+		color: var(--soft);
+	}
+	.seg span :global(em) {
+		font-size: 9.5px;
+		font-style: normal;
+	}
+	.seg span.on {
+		color: var(--green);
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+	}
+	.toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 11.5px;
+	}
+	.sw {
+		position: relative;
+		width: 28px;
+		height: 16px;
+		border-radius: 999px;
+		background: var(--green);
+	}
+	.sw i {
+		position: absolute;
+		top: 2px;
+		right: 2px;
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background: #fff;
+	}
+	.fp-note {
+		margin-top: auto !important;
+		font-size: 10.5px;
+		line-height: 1.5;
+		color: var(--soft);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.chip i,
-		.caret {
+		.caret,
+		.orb {
 			animation: none;
 		}
 	}
