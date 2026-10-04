@@ -15,6 +15,9 @@ import {
   SESSION_COOKIE,
   actorFromSession,
   actorFromToken,
+  isAdmin,
+  isInstanceAdmin,
+  principalOf,
   rightsOf,
 } from '@eodia/core'
 import type { Context, MiddlewareHandler } from 'hono'
@@ -53,7 +56,8 @@ export function identify(core: Core): MiddlewareHandler<Env> {
       if (!actor) return c.json({ error: { code: 'UNAUTHENTICATED', message: "Jeton d'intégration invalide, expiré ou non autorisé sur cette surface." } }, 401)
     } else {
       const token = getCookie(c, SESSION_COOKIE)
-      if (token) actor = await actorFromSession(core, token, ip)
+      // The space the interface works in; checked — a space the person may not enter is ignored.
+      if (token) actor = await actorFromSession(core, token, ip, c.req.header('x-eodia-workspace') ?? null)
       const writes = !['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)
       if (actor && writes && c.req.header('x-eodia-csrf') !== '1') {
         return c.json({ error: { code: 'CSRF', message: 'Requête refusée (protection CSRF).' } }, 403)
@@ -70,20 +74,28 @@ export function actorOf(c: Ctx): Actor {
   return actor
 }
 
+/** A right of administration in the current space. */
 export async function requireRight(c: Ctx, right: AdminRight): Promise<Actor> {
   const actor = actorOf(c)
   const snap = await c.get('core').snapshot()
-  if (!rightsOf(snap, actor.userId).has(right)) {
+  if (!rightsOf(snap, principalOf(actor)).has(right)) {
     throw new AppError('FORBIDDEN', 'Cette action demande un droit d’administration.')
   }
   return actor
 }
 
+/** An administrator of the current space (or of the instance). */
 export async function requireAdmin(c: Ctx): Promise<Actor> {
   const actor = actorOf(c)
   const snap = await c.get('core').snapshot()
-  const { isAdmin } = await import('@eodia/core')
-  if (!isAdmin(snap, actor.userId)) throw new AppError('FORBIDDEN', 'Réservé aux administrateurs.')
+  if (!isAdmin(snap, principalOf(actor))) throw new AppError('FORBIDDEN', 'Réservé aux administrateurs.')
+  return actor
+}
+
+/** An administrator of the instance: what concerns every space. */
+export async function requireInstanceAdmin(c: Ctx): Promise<Actor> {
+  const actor = actorOf(c)
+  if (!isInstanceAdmin(await c.get('core').snapshot(), actor.userId)) throw new AppError('FORBIDDEN', 'Réservé aux administrateurs de l’instance.')
   return actor
 }
 

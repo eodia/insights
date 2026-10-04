@@ -1,7 +1,9 @@
 'use client'
 
-import type { Datasource } from '@eodia/contracts'
+import type { Datasource, LookColor } from '@eodia/contracts'
 import { SourceForm } from '@/components/app/data/source-form'
+import { WorkspaceLogo } from '@/components/app/workspace-menu'
+import { Checkbox } from '@/components/ui/checkbox'
 import { CatalogName } from '@/components/app/data/source-look'
 import { SyncPanel } from '@/components/app/data/sync-panel'
 import { ConfirmDialog } from '@/components/app/dialogs'
@@ -12,7 +14,7 @@ import { $t } from '@/lib/i18n'
 import { keys, useEngines, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Pencil, Trash2 } from 'lucide-react'
+import { Loader2, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -101,9 +103,82 @@ function ConnectionView({ source, canEdit }: { source: Datasource; canEdit: bool
   )
 }
 
+interface SpaceRef {
+  readonly id: string
+  readonly name: string
+  readonly color: LookColor | null
+  readonly icon: string | null
+}
+
+/**
+ * The spaces a source is shared with, read only: each reads it under its own groups' rights;
+ * its connection, its sync and its descriptions stay here.
+ */
+function SharePanel({ source }: { source: Datasource }) {
+  const qc = useQueryClient()
+  const spaces = useQuery({ queryKey: ['workspaces-all'], queryFn: () => api.get<SpaceRef[]>('/v1/workspaces/all') })
+  const others = (spaces.data ?? []).filter((w) => w.id !== source.workspace.id)
+  const [chosen, setChosen] = useState<Set<string>>(() => new Set(source.shared_with.map((w) => w.id)))
+  const [busy, setBusy] = useState(false)
+  const before = new Set(source.shared_with.map((w) => w.id))
+  const changed = chosen.size !== before.size || [...chosen].some((id) => !before.has(id))
+  if (!spaces.isLoading && others.length === 0) return null
+  return (
+    <div className="space-y-3 border-t pt-5">
+      <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Partager avec d’autres espaces')}</div>
+      <p className="text-xs text-muted-foreground">
+        {$t('Ils la lisent avec les droits de leurs propres groupes ; sa connexion, sa synchronisation et ses descriptions restent gérées ici.')}
+      </p>
+      <ul className="space-y-1">
+        {others.map((w) => (
+          <li key={w.id}>
+            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/60">
+              <Checkbox
+                checked={chosen.has(w.id)}
+                onCheckedChange={(on) =>
+                  setChosen((s) => {
+                    const next = new Set(s)
+                    if (on) next.add(w.id)
+                    else next.delete(w.id)
+                    return next
+                  })
+                }
+              />
+              <WorkspaceLogo workspace={w} className="size-6 text-[10px]" iconClassName="size-3.5" />
+              <span className="min-w-0 flex-1 truncate">{w.name}</span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      {changed ? (
+        <Button
+          size="sm"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true)
+            try {
+              await api.put(`/v1/datasources/${source.id}/shares`, { workspaces: [...chosen] })
+              await qc.invalidateQueries({ queryKey: ['datasource', source.id] })
+              await qc.invalidateQueries({ queryKey: keys.datasources })
+              toast.success($t('Partages enregistrés.'))
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : String(err))
+            } finally {
+              setBusy(false)
+            }
+          }}
+        >
+          {busy ? <Loader2 className="animate-spin" /> : <Share2 />} {$t('Enregistrer les partages')}
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+
 /**
  * A source's « Connexion » tab: its size, its connection, its synchronisation and — for who
- * manages the sources — its removal. Read again every two seconds while a sync runs.
+ * manages the sources — its shares and its removal. A source shared with this space is read
+ * here and managed in its own. Read again every two seconds while a sync runs.
  */
 export function SourceSettings({ id }: { id: string }) {
   const router = useRouter()
@@ -117,11 +192,23 @@ export function SourceSettings({ id }: { id: string }) {
   const [confirm, setConfirm] = useState(false)
   if (error) return <p className="m-6 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{(error as Error).message}</p>
   if (!source) return <Loader2 className="mx-auto mt-16 size-5 animate-spin text-muted-foreground" />
-  const canSources = !!me?.can.manage_sources
+  // A source shared with this space is read here; it is managed in its own.
+  const own = !source.shared
+  const canSources = !!me?.can.manage_sources && own
 
   return (
     <div className="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-6">
+        {source.shared ? (
+          <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50/60 px-4 py-3 text-sm text-sky-900 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200">
+            <Share2 className="mt-0.5 size-4 shrink-0" />
+            <p>
+              {$t('Partagée par l’espace « {name} » : sa connexion, sa synchronisation et ses descriptions se gèrent là-bas. Ici, vos groupes décident qui la lit, dans Permissions.', {
+                name: source.workspace.name,
+              })}
+            </p>
+          </div>
+        ) : null}
         {source.description ? <p className="text-sm">{source.description}</p> : null}
         <ConnectionView source={source} canEdit={canSources} />
       </div>
@@ -140,8 +227,9 @@ export function SourceSettings({ id }: { id: string }) {
         </div>
         <div className="space-y-3">
           <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Synchronisation')}</div>
-          <SyncPanel source={source} canSync={!!me?.can.manage_metadata} />
+          <SyncPanel source={source} canSync={!!me?.can.manage_metadata && own} />
         </div>
+        {canSources ? <SharePanel source={source} /> : null}
         {canSources ? (
           <div className="space-y-2 border-t pt-5">
             <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Zone sensible')}</div>

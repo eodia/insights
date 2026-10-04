@@ -17,6 +17,30 @@ export class ApiError extends Error {
   }
 }
 
+// ── L'espace courant ─────────────────────────────────────────────────────────
+
+const WORKSPACE_KEY = 'eodia-workspace'
+
+/** The space this browser works in — sent with every call; the API checks it. */
+export function storedWorkspace(): string | null {
+  try {
+    return localStorage.getItem(WORKSPACE_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function rememberWorkspace(id: string): void {
+  try {
+    localStorage.setItem(WORKSPACE_KEY, id)
+  } catch {}
+}
+
+const workspaceHeader = (): Record<string, string> => {
+  const id = typeof window === 'undefined' ? null : storedWorkspace()
+  return id ? { 'x-eodia-workspace': id } : {}
+}
+
 async function request<T>(method: string, path: string, body?: unknown, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
     method,
@@ -24,6 +48,7 @@ async function request<T>(method: string, path: string, body?: unknown, init: Re
     headers: {
       ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       ...(method === 'GET' ? {} : { 'x-eodia-csrf': '1' }),
+      ...workspaceHeader(),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     ...init,
@@ -34,6 +59,14 @@ async function request<T>(method: string, path: string, body?: unknown, init: Re
       payload = await res.json()
     } catch {}
     const err = new ApiError(res.status, payload.error?.code ?? 'INTERNAL', payload.error?.message ?? $t('Erreur {status}', { status: res.status }), payload.error?.details)
+    // What was opened lives in another space of the person's: go there, and open it again.
+    const elsewhere = (err.details as { workspace?: { id?: string } } | undefined)?.workspace?.id
+    if (err.code === 'OTHER_WORKSPACE' && elsewhere && typeof window !== 'undefined' && elsewhere !== storedWorkspace()) {
+      rememberWorkspace(elsewhere)
+      await fetch(`/api/v1/workspaces/${elsewhere}/switch`, { method: 'POST', headers: { 'x-eodia-csrf': '1' } }).catch(() => undefined)
+      window.location.reload()
+      return new Promise<T>(() => undefined)
+    }
     if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth') && !path.startsWith('/public')) {
       const back = window.location.pathname + window.location.search
       if (!window.location.pathname.startsWith('/login')) window.location.href = `/login?return=${encodeURIComponent(back)}`
@@ -62,7 +95,7 @@ export interface RunResult extends QueryResult {
 export async function download(path: string, body: unknown): Promise<void> {
   const res = await fetch(`/api${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-eodia-csrf': '1' },
+    headers: { 'content-type': 'application/json', 'x-eodia-csrf': '1', ...workspaceHeader() },
     body: JSON.stringify(body),
   })
   if (!res.ok) {
@@ -82,7 +115,7 @@ export async function download(path: string, body: unknown): Promise<void> {
 export async function* postStream(path: string, body: unknown, signal?: AbortSignal): AsyncGenerator<{ event: string; data: unknown }> {
   const res = await fetch(`/api${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-eodia-csrf': '1' },
+    headers: { 'content-type': 'application/json', 'x-eodia-csrf': '1', ...workspaceHeader() },
     body: JSON.stringify(body),
     ...(signal ? { signal } : {}),
   })

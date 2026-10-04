@@ -429,13 +429,23 @@ export async function copilotTurn(
   let conversationId = input.conversation
   let messages: MessageParam[] = []
   if (conversationId) {
-    const row = await core.db.one<{ messages: MessageParam[] }>('SELECT messages FROM ai_conversation WHERE id = $1 AND user_id = $2', [conversationId, actor.userId])
+    const row = await core.db.one<{ messages: MessageParam[] }>('SELECT messages FROM ai_conversation WHERE id = $1 AND user_id = $2 AND workspace_id = $3', [
+      conversationId,
+      actor.userId,
+      actor.workspaceId,
+    ])
     if (!row) throw new AppError('NOT_FOUND', 'Conversation introuvable.')
     messages = row.messages
   } else {
     const row = await core.db.one<{ id: string }>(
-      `INSERT INTO ai_conversation (user_id, context_kind, context_id, title) VALUES ($1, $2, $3, $4) RETURNING id`,
-      [actor.userId, input.context.kind, 'id' in input.context ? (input.context.id ?? null) : 'table' in input.context ? input.context.table : null, input.message.slice(0, 80)],
+      `INSERT INTO ai_conversation (user_id, context_kind, context_id, title, workspace_id) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [
+        actor.userId,
+        input.context.kind,
+        'id' in input.context ? (input.context.id ?? null) : 'table' in input.context ? input.context.table : null,
+        input.message.slice(0, 80),
+        actor.workspaceId,
+      ],
     )
     conversationId = row?.id as string
   }
@@ -490,7 +500,11 @@ export async function copilotTurn(
 /** The conversations of a person, newest first — the assistant's, or the panel's. */
 export async function listConversations(core: Core, actor: Actor, kind?: 'assistant' | 'panel') {
   const where = kind === 'assistant' ? "AND context_kind = 'assistant'" : kind === 'panel' ? "AND context_kind <> 'assistant'" : ''
-  return core.db.many(`SELECT id, context_kind, context_id, title, updated_at FROM ai_conversation WHERE user_id = $1 ${where} ORDER BY updated_at DESC LIMIT 200`, [actor.userId])
+  return core.db.many(
+    `SELECT id, context_kind, context_id, title, updated_at FROM ai_conversation WHERE user_id = $1 AND workspace_id = $2 ${where}
+     ORDER BY updated_at DESC LIMIT 200`,
+    [actor.userId, actor.workspaceId],
+  )
 }
 
 /** What a conversation shows, turn by turn: the person's words, and the assistant's text, steps, charts and proposals in order. */
@@ -501,7 +515,10 @@ export type ShownPart =
   | { readonly type: 'proposal'; readonly proposal: Proposal }
 
 export async function readConversation(core: Core, actor: Actor, id: string) {
-  const row = await core.db.one<{ id: string; title: string; context_kind: string; messages: MessageParam[] }>('SELECT id, title, context_kind, messages FROM ai_conversation WHERE id = $1 AND user_id = $2', [id, actor.userId])
+  const row = await core.db.one<{ id: string; title: string; context_kind: string; messages: MessageParam[] }>(
+    'SELECT id, title, context_kind, messages FROM ai_conversation WHERE id = $1 AND user_id = $2 AND workspace_id = $3',
+    [id, actor.userId, actor.workspaceId],
+  )
   if (!row) throw new AppError('NOT_FOUND', 'Conversation introuvable.')
   const turns: ({ role: 'user'; text: string } | { role: 'assistant'; parts: ShownPart[] })[] = []
   const failed = new Set<string>()

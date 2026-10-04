@@ -38,6 +38,7 @@ export * from './sharing/links'
 export * from './sources/datasources'
 export * from './sources/metadata'
 export * from './sources/sync'
+export * from './workspaces'
 
 export const JOB_HANDLERS = {
   sync: syncJob,

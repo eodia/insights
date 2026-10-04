@@ -1,1 +1,10 @@
-{}
+{
+  "0.2.3": {
+    "0001_catalogue.sql": "b9cd3fc5a7dfafba830ee1db485aeba05e7cf6835ffad83ef40186dd3b38c045",
+    "0002_question_tableau.sql": "8aa1a03e102759e0cc7c021155708d4b9c7004a083af85331fee90115f8f8086",
+    "0003_themes.sql": "066b103a7608c8c8434ae490b674b80c515945474923a04a33d752b560180cd1"
+  },
+  "0.3.0": {
+    "0004_espaces.sql": "ccc840c42a8bfae9ec4b5a4ce6a8840b84445351ead535848ad760012e8d5481"
+  }
+}

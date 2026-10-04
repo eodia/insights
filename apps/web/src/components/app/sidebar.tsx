@@ -1,7 +1,7 @@
 'use client'
 
 import type { Folder } from '@eodia/contracts'
-import { BrandMark } from '@/components/app/brand-mark'
+import { WorkspaceMenu } from '@/components/app/workspace-menu'
 import { Avatar, LookIcon } from '@/components/app/look'
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ import {
   Home,
   KeyRound,
   Languages,
+  Layers,
   LogOut,
   Moon,
   Network,
@@ -175,15 +176,8 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-[264px] shrink-0 flex-col border-r bg-sidebar">
-      {/* Application */}
-      <div className="flex h-[76px] items-center gap-3 border-b px-4">
-        <BrandMark size={40} className="size-10 shrink-0" />
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="truncate text-[15px] font-semibold">eodia insights</div>
-          <div className="truncate text-xs text-muted-foreground">{$t('Toutes les sources')}</div>
-        </div>
-        <ChevronsUpDown className="size-4 text-muted-foreground" />
-      </div>
+      {/* L'application, et l'espace où l'on travaille */}
+      <WorkspaceMenu me={me} />
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         <NavItem href="/" icon={Home} label={$t('Accueil')} active={path === '/'} />
@@ -219,6 +213,7 @@ export function Sidebar() {
             </button>
             {admin ? (
               <div className="space-y-0.5 pb-1">
+                {me?.can.create_workspaces ? <NavItem href="/admin/workspaces" icon={Layers} label={$t('Espaces')} active={is('/admin/workspaces')} sub /> : null}
                 <NavItem href="/admin/people" icon={Users} label={$t('Personnes')} active={is('/admin/people')} sub />
                 <NavItem href="/admin/groups" icon={UsersRound} label={$t('Groupes')} active={is('/admin/groups')} sub />
                 <NavItem href="/admin/permissions" icon={Shield} label={$t('Permissions')} active={is('/admin/permissions')} sub />

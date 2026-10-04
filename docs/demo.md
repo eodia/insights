@@ -28,6 +28,10 @@ Les données racontent des histoires, que les tableaux de bord mettent en scène
 
 Et ce qui fait la différence d'eodia insights :
 
+- **deux espaces** : « Maison Arvor » (la boutique, sa base PostgreSQL) et « Service client »
+  (le support, sa base MongoDB), chacun partageant sa source avec l'autre ; le sélecteur en haut
+  de la barre latérale passe de l'un à l'autre, et le lien « Service client » du tableau de
+  pilotage y bascule de lui-même ;
 - **requêtes inter-bases** : les tickets MongoDB joints aux clients PostgreSQL dans une seule
   requête (Service client) ;
 - **sécurité appliquée par Trino** : sous le profil « Analyste en Bretagne », les mêmes tableaux
@@ -104,7 +108,8 @@ c'est aussi le plafond de la facture.
 `DEMO_PUBLIC=1` (posé par `docker-compose.demo.yml`) ferme ce qui touche à l'instance
 elle-même (`apps/api/src/demo-guard.ts`) :
 
-- les connexions aux bases (création, test, modification, suppression) ;
+- les connexions aux bases (création, test, modification, suppression) et leurs partages ;
+- les espaces et leurs membres (on passe librement de l'un à l'autre) ;
 - l'administration : personnes, invitations, groupes, droits, réglages ;
 - le nom et le mot de passe des comptes de démonstration ;
 - le contenu créé par « Équipe data » : il ne se modifie ni ne se supprime, il se **duplique**.

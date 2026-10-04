@@ -17,6 +17,7 @@ const STATUS: Record<ErrorCode, number> = {
   AI_DISABLED: 400,
   AI_QUOTA: 429,
   SETUP_REQUIRED: 409,
+  OTHER_WORKSPACE: 409,
   INTERNAL: 500,
 }
 

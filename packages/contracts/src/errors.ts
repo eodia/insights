@@ -16,6 +16,8 @@ export const ERROR_CODES = [
   'AI_DISABLED',
   'AI_QUOTA',
   'SETUP_REQUIRED',
+  /** The element lives in another space the person belongs to: `details.workspace` says which. */
+  'OTHER_WORKSPACE',
   'INTERNAL',
 ] as const
 export type ErrorCode = (typeof ERROR_CODES)[number]

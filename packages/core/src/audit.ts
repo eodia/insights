@@ -1,16 +1,19 @@
 import type { Actor, Core } from './context'
 
+/** Who an audit line is about: an actor, or a person before any space (a sign-in). */
+type Audited = Pick<Actor, 'userId' | 'via' | 'ip'> & { readonly workspaceId?: string }
+
 /** Writes one line of the audit log. Never fails the action it records. */
 export async function audit(
   core: Core,
-  actor: Actor | null,
+  actor: Audited | null,
   action: string,
   target?: { kind: string; id: string | null },
   details: Record<string, unknown> = {},
 ): Promise<void> {
   await core.db
     .exec(
-      'INSERT INTO audit_log (actor_id, action, target_kind, target_id, details, ip) VALUES ($1, $2, $3, $4, $5, $6)',
+      'INSERT INTO audit_log (actor_id, action, target_kind, target_id, details, ip, workspace_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       [
         actor && actor.via !== 'system' ? actor.userId : null,
         action,
@@ -18,6 +21,7 @@ export async function audit(
         target?.id ?? null,
         JSON.stringify({ ...details, ...(actor && actor.via !== 'session' ? { via: actor.via } : {}) }),
         actor?.ip ?? null,
+        actor?.workspaceId || null,
       ],
     )
     .catch(() => undefined)
@@ -25,7 +29,7 @@ export async function audit(
 
 export async function listAudit(
   core: Core,
-  opts: { limit?: number; before?: number; action?: string; actor?: string } = {},
+  opts: { limit?: number; before?: number; action?: string; actor?: string; workspace?: string } = {},
 ) {
   const where: string[] = []
   const params: unknown[] = []
@@ -40,6 +44,10 @@ export async function listAudit(
   if (opts.actor) {
     params.push(opts.actor)
     where.push(`a.actor_id = $${params.length}`)
+  }
+  if (opts.workspace) {
+    params.push(opts.workspace)
+    where.push(`a.workspace_id = $${params.length}`)
   }
   params.push(Math.min(opts.limit ?? 100, 500))
   return core.db.many(

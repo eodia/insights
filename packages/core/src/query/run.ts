@@ -32,7 +32,7 @@ import {
 import { TrinoCancelled, TrinoQueryError } from '@eodia/engine'
 import { accessFingerprint, canQuery, columnAccess, nativeAllowed, queryLevel, tableAccess } from '../access/decide'
 import type { Snapshot } from '../access/snapshot'
-import type { Actor, Core } from '../context'
+import { type Actor, type Core, principalOf } from '../context'
 import { getDashboard, getQuestion, metricDefinition } from '../content/items'
 import { AppError } from '../errors'
 import { ensureCatalogs } from '../sources/datasources'
@@ -122,7 +122,7 @@ async function prepare(core: Core, actor: Actor, snap: Snapshot, query: Question
     refs.push(m.source)
   }
   for (const ref of refs) {
-    if (ref.kind === 'table') await loadTable(core, snap, (actor.dataUser ?? actor.userId), ref.id, prepared)
+    if (ref.kind === 'table') await loadTable(core, snap, principalOf(actor), ref.id, prepared)
     else if (!prepared.questions.has(ref.id)) {
       const q = await getQuestion(core, actor, ref.id)
       const compiled = await compileQuery(core, actor, snap, q.query, {}, [], prepared, depth + 1)
@@ -136,7 +136,7 @@ async function prepare(core: Core, actor: Actor, snap: Snapshot, query: Question
               ...(c.format ? { format: c.format } : {}),
               ...(c.source?.column ? { id: c.source.column } : {}),
             }))
-          : await describe(core, (actor.dataUser ?? actor.userId), compiled.sql)
+          : await describe(core, principalOf(actor), compiled.sql)
       // A model's own column metadata wins.
       const meta = q.columns_meta ?? {}
       prepared.questions.set(ref.id, {
@@ -175,7 +175,7 @@ async function compileQuery(
   try {
     if (query.kind === 'builder') {
       await prepare(core, actor, snap, query, prepared, depth)
-      const allowSql = [...prepared.datasources].every((ds) => canQuery(snap, (actor.dataUser ?? actor.userId), ds, 'sql'))
+      const allowSql = [...prepared.datasources].every((ds) => canQuery(snap, principalOf(actor), ds, 'sql'))
       const withConstraints: BuilderQuery = constraints.length ? applyConstraints(query, constraints) : query
       const out = compileBuilder(withConstraints, contextOf(prepared, allowSql))
       return { sql: out.sql, columns: out.columns }
@@ -183,7 +183,10 @@ async function compileQuery(
     const snippets = snippetNames(query.sql)
     let text = query.sql
     if (snippets.length) {
-      const rows = await core.db.many<{ name: string; content: string }>('SELECT name, content FROM snippet WHERE name = ANY($1)', [snippets])
+      const rows = await core.db.many<{ name: string; content: string }>('SELECT name, content FROM snippet WHERE name = ANY($1) AND workspace_id = $2', [
+        snippets,
+        actor.workspaceId,
+      ])
       const byName = new Map(rows.map((r) => [r.name, r.content]))
       text = expandSnippets(text, (n) => byName.get(n))
     }
@@ -191,7 +194,7 @@ async function compileQuery(
     if (query.kind === 'native') {
       const ds = snap.datasources.get(query.datasource)
       if (!ds) throw new AppError('NOT_FOUND', 'Source introuvable.')
-      if (!nativeAllowed(snap, (actor.dataUser ?? actor.userId), ds.id)) {
+      if (!nativeAllowed(snap, principalOf(actor), ds.id)) {
         throw new AppError('DATA_ACCESS_DENIED', 'Le SQL natif est réservé aux personnes sans restriction de ligne ni de colonne sur cette source.')
       }
       return { sql: nativeSql(ds.catalog, rendered), columns: null, datasource: ds.id }
@@ -245,7 +248,7 @@ export async function runQuery(core: Core, actor: Actor, input: RunInput): Promi
   const snap = await core.snapshot()
   const prepared: Prepared = { tables: new Map(), questions: new Map(), metrics: new Map(), datasources: new Set() }
   if (input.adhoc) {
-    const levels = [...snap.datasources.keys()].map((ds) => queryLevel(snap, (actor.dataUser ?? actor.userId), ds))
+    const levels = [...snap.datasources.keys()].map((ds) => queryLevel(snap, principalOf(actor), ds))
     const needed = input.query.kind === 'builder' ? 'builder' : input.query.kind === 'sql' ? 'sql' : 'native'
     const rank = ['none', 'builder', 'sql', 'native']
     if (!levels.some((l) => rank.indexOf(l) >= rank.indexOf(needed))) {
@@ -258,11 +261,11 @@ export async function runQuery(core: Core, actor: Actor, input: RunInput): Promi
   const compiled = await compileQuery(core, actor, snap, input.query, input.parameters ?? {}, input.constraints ?? [], prepared)
   if (input.adhoc && input.query.kind === 'builder') {
     for (const ds of prepared.datasources) {
-      if (!canQuery(snap, (actor.dataUser ?? actor.userId), ds, 'builder')) throw new AppError('FORBIDDEN', "Vous n'avez pas le droit d'interroger cette source.")
+      if (!canQuery(snap, principalOf(actor), ds, 'builder')) throw new AppError('FORBIDDEN', "Vous n'avez pas le droit d'interroger cette source.")
     }
   }
   const limit = Math.min(input.limit ?? core.config.maxRows, 1_000_000)
-  const key = cacheKey(compiled.sql, accessFingerprint(snap, (actor.dataUser ?? actor.userId)), limit)
+  const key = cacheKey(compiled.sql, accessFingerprint(snap, principalOf(actor)), limit)
   const useCache = input.origin !== 'editor' && !input.fresh
   if (useCache) {
     const hit = await cacheGet(core, key)
@@ -280,7 +283,7 @@ export async function runQuery(core: Core, actor: Actor, input: RunInput): Promi
     let res: Awaited<ReturnType<typeof core.engine.run>>
     const run = () =>
       core.engine.run(compiled.sql, {
-        user: (actor.dataUser ?? actor.userId),
+        user: principalOf(actor),
         maxRows: limit,
         timeoutMs: core.config.queryTimeoutMs,
         signal: controller.signal,
@@ -375,9 +378,9 @@ async function ttlFor(core: Core, input: RunInput, prepared: Prepared): Promise<
 async function logExecution(core: Core, actor: Actor, input: RunInput, sql: string, ms: number, rows: number | null, error: string | null, cached: boolean) {
   await core.db
     .exec(
-      `INSERT INTO query_execution (user_id, origin, question_id, dashboard_id, sql, duration_ms, row_count, error, cached)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [actor.via === 'system' ? null : actor.userId, input.origin, input.questionId ?? null, input.dashboardId ?? null, sql, ms, rows, error, cached],
+      `INSERT INTO query_execution (user_id, origin, question_id, dashboard_id, sql, duration_ms, row_count, error, cached, workspace_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [actor.via === 'system' ? null : actor.userId, input.origin, input.questionId ?? null, input.dashboardId ?? null, sql, ms, rows, error, cached, actor.workspaceId || null],
     )
     .catch(() => undefined)
 }
@@ -443,12 +446,17 @@ export async function runCard(
 
 /** Warms the cache of the dashboards marked « préchargés », as their author. */
 export async function prewarmDashboards(core: Core): Promise<number> {
-  const dashboards = await core.db.many<{ id: string; created_by: string; cards: { id: string; kind: string }[]; parameters: { id: string; default?: ParameterValue | null }[] }>(
-    'SELECT id, created_by, cards, parameters FROM dashboard WHERE preload AND NOT archived AND created_by IS NOT NULL',
-  )
+  const dashboards = await core.db.many<{
+    id: string
+    created_by: string
+    workspace_id: string
+    cards: { id: string; kind: string }[]
+    parameters: { id: string; default?: ParameterValue | null }[]
+  }>('SELECT id, created_by, workspace_id, cards, parameters FROM dashboard WHERE preload AND NOT archived AND created_by IS NOT NULL')
   let n = 0
   for (const d of dashboards) {
-    const actor: Actor = { userId: d.created_by, via: 'system' }
+    // In the dashboard's space: its author's rights there, and its sources.
+    const actor: Actor = { userId: d.created_by, workspaceId: d.workspace_id, via: 'system' }
     const values = Object.fromEntries(d.parameters.map((p) => [p.id, p.default ?? null]))
     for (const card of d.cards.filter((c) => c.kind === 'question')) {
       await runCard(core, actor, d.id, card.id, values, { origin: 'card', fresh: true }).then(() => n++).catch(() => undefined)

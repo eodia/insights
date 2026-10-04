@@ -15,6 +15,7 @@ import {
 } from '@eodia/contracts'
 import { audit } from '../audit'
 import type { Actor, Core } from '../context'
+import { isInstanceAdmin } from '../access/decide'
 import { forbidden, invalid, notFound } from '../errors'
 import { contentIndex } from './access'
 
@@ -23,7 +24,11 @@ interface ThemeRow {
   name: string
   settings: Record<string, unknown>
   updated_at: Date
+  workspace_id: string | null
 }
+
+/** The themes of a space: its own, and those of the instance (without space). */
+const IN_SPACE = '(workspace_id IS NULL OR workspace_id = $2)'
 
 function dto(r: ThemeRow): Theme {
   // A setting written by an older version and no longer understood is dropped, not trusted.
@@ -36,35 +41,48 @@ function dto(r: ThemeRow): Theme {
   }
 }
 
-async function assertAdmin(core: Core, actor: Actor): Promise<void> {
-  const idx = await contentIndex(core, actor.userId)
+/**
+ * Who may change a theme: an administrator of the space for its own; one of the instance for
+ * those every space shares.
+ */
+async function assertAdmin(core: Core, actor: Actor, theme?: ThemeRow): Promise<void> {
+  const idx = await contentIndex(core, actor)
   if (!idx.admin) throw forbidden('Seul un administrateur crée ou modifie un thème.')
+  if (theme && theme.workspace_id === null && !isInstanceAdmin(idx.snap, actor.userId)) {
+    throw forbidden('Ce thème sert à tous les espaces : seul un administrateur de l’instance le modifie.')
+  }
 }
 
-export async function listThemes(core: Core): Promise<Theme[]> {
+export async function listThemes(core: Core, actor: Actor): Promise<Theme[]> {
   return (
-    await core.db.many<ThemeRow>('SELECT id, name, settings, updated_at FROM theme ORDER BY name')
+    await core.db.many<ThemeRow>(`SELECT id, name, settings, updated_at, workspace_id FROM theme WHERE ${IN_SPACE.replace('$2', '$1')} ORDER BY name`, [
+      actor.workspaceId,
+    ])
   ).map(dto)
 }
 
-export async function getTheme(core: Core, id: string): Promise<Theme> {
-  const r = await core.db.one<ThemeRow>(
-    'SELECT id, name, settings, updated_at FROM theme WHERE id = $1',
-    [id],
-  )
+async function themeRow(core: Core, actor: Pick<Actor, 'workspaceId'>, id: string): Promise<ThemeRow> {
+  const r = await core.db.one<ThemeRow>(`SELECT id, name, settings, updated_at, workspace_id FROM theme WHERE id = $1 AND ${IN_SPACE}`, [
+    id,
+    actor.workspaceId,
+  ])
   if (!r) throw notFound('Thème introuvable.')
-  return dto(r)
+  return r
+}
+
+export async function getTheme(core: Core, actor: Pick<Actor, 'workspaceId'>, id: string): Promise<Theme> {
+  return dto(await themeRow(core, actor, id))
 }
 
 export async function createTheme(core: Core, actor: Actor, input: ThemeInput): Promise<Theme> {
   await assertAdmin(core, actor)
   const row = await core.db.one<{ id: string }>(
-    'INSERT INTO theme (name, settings, created_by) VALUES ($1, $2, $3) RETURNING id',
-    [input.name.trim(), JSON.stringify(input.settings), actor.userId],
+    'INSERT INTO theme (name, settings, created_by, workspace_id) VALUES ($1, $2, $3, $4) RETURNING id',
+    [input.name.trim(), JSON.stringify(input.settings), actor.userId, actor.workspaceId],
   )
   if (!row) throw invalid('Thème non créé.')
   await audit(core, actor, 'theme.create', { kind: 'theme', id: row.id }, { name: input.name })
-  return getTheme(core, row.id)
+  return getTheme(core, actor, row.id)
 }
 
 export async function updateTheme(
@@ -73,27 +91,27 @@ export async function updateTheme(
   id: string,
   input: Partial<ThemeInput>,
 ): Promise<Theme> {
-  await assertAdmin(core, actor)
-  const current = await getTheme(core, id)
+  const row = await themeRow(core, actor, id)
+  await assertAdmin(core, actor, row)
+  const current = dto(row)
   await core.db.exec(
     'UPDATE theme SET name = $2, settings = $3, updated_at = now() WHERE id = $1',
     [id, (input.name ?? current.name).trim(), JSON.stringify(input.settings ?? current.settings)],
   )
   await audit(core, actor, 'theme.update', { kind: 'theme', id }, { fields: Object.keys(input) })
-  return getTheme(core, id)
+  return getTheme(core, actor, id)
 }
 
 export async function deleteTheme(core: Core, actor: Actor, id: string): Promise<void> {
-  await assertAdmin(core, actor)
-  await getTheme(core, id)
+  await assertAdmin(core, actor, await themeRow(core, actor, id))
   // Folders and dashboards that wore it fall back to what they inherit (ON DELETE SET NULL).
   await core.db.exec('DELETE FROM theme WHERE id = $1', [id])
   await audit(core, actor, 'theme.delete', { kind: 'theme', id }, {})
 }
 
-/** A theme may be set on a folder or a dashboard only if it exists. */
-export async function checkTheme(core: Core, id: string | null | undefined): Promise<void> {
-  if (id) await getTheme(core, id)
+/** A theme may be set on a folder or a dashboard only if the space has it. */
+export async function checkTheme(core: Core, actor: Pick<Actor, 'workspaceId'>, id: string | null | undefined): Promise<void> {
+  if (id) await themeRow(core, actor, id)
 }
 
 /**

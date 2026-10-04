@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth'
 import { contentRoutes } from './routes/content'
 import { sharingRoutes } from './routes/sharing'
 import { sourceRoutes } from './routes/sources'
+import { workspaceRoutes } from './routes/workspaces'
 
 export async function createApp() {
   const config = loadConfig()
@@ -95,6 +96,7 @@ export async function createApp() {
 
   authRoutes(app)
   sourceRoutes(app)
+  workspaceRoutes(app)
   contentRoutes(app)
   adminRoutes(app)
   sharingRoutes(app)

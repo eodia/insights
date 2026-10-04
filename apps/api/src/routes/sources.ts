@@ -29,6 +29,9 @@ import {
   schemaTree,
   testDatasource,
   updateDatasource,
+  assertOwnSource,
+  principalOf,
+  shareDatasource,
 } from '@eodia/core'
 import { streamSSE } from 'hono/streaming'
 import { actorOf, bodyOf, type newApp, ok, param, queryOf, requireRight, route } from '../http'
@@ -39,6 +42,7 @@ const ValuesQuery = z.object({ search: z.string().max(200).optional() })
 const ValuesInput = z.object({ values: z.array(ColumnValueSchema).max(1000) })
 const ImportInput = z.object({ table: z.string().optional(), column: z.string().optional(), config: z.record(z.string(), z.unknown()) })
 const TestInput = DatasourceInputSchema.extend({ id: z.string().optional() })
+const SharesInput = z.object({ workspaces: z.array(z.string()).max(200) })
 
 export function sourceRoutes(app: ReturnType<typeof newApp>) {
   const tags = ['Sources']
@@ -46,19 +50,17 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'get', path: '/api/v1/engines', tags, summary: 'Moteurs disponibles et leurs champs de connexion' }, (c) => ok(c, Object.values(ENGINE_SPECS)))
 
   route(app, { method: 'get', path: '/api/v1/datasources', tags, summary: 'Lister les sources' }, async (c) => {
-    actorOf(c)
-    return ok(c, await listDatasources(c.get('core')))
+    return ok(c, await listDatasources(c.get('core'), actorOf(c)))
   })
 
   route(app, { method: 'get', path: '/api/v1/datasources/:id', tags, summary: 'Lire une source' }, async (c) => {
-    actorOf(c)
-    return ok(c, await getDatasource(c.get('core'), param(c, 'id')))
+    return ok(c, await getDatasource(c.get('core'), actorOf(c), param(c, 'id')))
   })
 
   route(app, { method: 'post', path: '/api/v1/datasources/test', tags, summary: 'Tester une connexion avec le pilote natif', body: TestInput }, async (c) => {
-    await requireRight(c, 'manage_sources')
+    const actor = await requireRight(c, 'manage_sources')
     const { id, ...input } = bodyOf(c, TestInput)
-    return ok(c, await testDatasource(c.get('core'), input, id))
+    return ok(c, await testDatasource(c.get('core'), actor, input, id))
   })
 
   route(app, {
@@ -84,8 +86,15 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
     return ok(c)
   })
 
+  route(app, { method: 'put', path: '/api/v1/datasources/:id/shares', tags, summary: 'Espaces avec lesquels la source est partagée (en lecture)', body: SharesInput }, async (c) => {
+    const actor = await requireRight(c, 'manage_sources')
+    return ok(c, await shareDatasource(c.get('core'), actor, param(c, 'id'), bodyOf(c, SharesInput).workspaces))
+  })
+
   route(app, { method: 'post', path: '/api/v1/datasources/:id/sync', tags, summary: 'Synchroniser le schéma de la base de données', body: SyncInput }, async (c) => {
     const actor = await requireRight(c, 'manage_metadata')
+    // A source syncs from its own space.
+    await assertOwnSource(c.get('core'), actor, param(c, 'id'))
     const job = await requestSync(c.get('core'), param(c, 'id'), actor.userId, bodyOf(c, SyncInput).passes)
     return ok(c, { job })
   })
@@ -164,7 +173,7 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
     body: Linked,
   }, async (c) => {
     const input = bodyOf(c, Linked)
-    return ok(c, { values: (await linkedValues(c.get('core'), actorOf(c).dataUser ?? actorOf(c).userId, param(c, 'id'), input.filters, input.search ?? '')).map((value) => ({ value })) })
+    return ok(c, { values: (await linkedValues(c.get('core'), principalOf(actorOf(c)), param(c, 'id'), input.filters, input.search ?? '')).map((value) => ({ value })) })
   })
 
   route(app, {

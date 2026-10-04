@@ -6,7 +6,7 @@ import { SaveDialog } from '@/components/app/dialogs'
 import { Palette } from '@/components/app/palette'
 import { Sidebar } from '@/components/app/sidebar'
 import { Topbar } from '@/components/app/topbar'
-import { api } from '@/lib/api'
+import { api, rememberWorkspace, storedWorkspace } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
@@ -14,7 +14,7 @@ import type { Dashboard, Folder } from '@eodia/contracts'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: me, isLoading, error } = useMe()
@@ -26,6 +26,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [newFolder, setNewFolder] = useState(false)
   const [newDashboard, setNewDashboard] = useState(false)
   const currentFolder = path.startsWith('/browse/') ? path.split('/')[2] : undefined
+  // The space the server settled on (the one asked for, or the one the person works in) is the
+  // one this browser asks for from now on.
+  useEffect(() => {
+    if (me?.workspace && storedWorkspace() !== me.workspace.id) rememberWorkspace(me.workspace.id)
+  }, [me?.workspace])
 
   if (isLoading || (!me && !error)) {
     return (

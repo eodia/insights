@@ -118,7 +118,8 @@ export async function oidcCallback(
       [userId, claim, Array.isArray(v) ? v.join(',') : String(v)],
     )
   }
-  // Provider groups mirrored onto the groups of the same name.
+  // Provider groups mirrored onto the groups of the same name — in every space the person
+  // belongs to — and onto the instance's administrators.
   if (oidc.groupsClaim) {
     const raw = payload[oidc.groupsClaim]
     const names = (Array.isArray(raw) ? raw : []).map((g) => String(g).replace(/^\//, ''))
@@ -127,7 +128,11 @@ export async function oidcCallback(
       [userId],
     )
     await core.db.exec(
-      `INSERT INTO group_member (group_id, user_id) SELECT id, $1 FROM user_group WHERE kind <> 'all' AND name = ANY($2) ON CONFLICT DO NOTHING`,
+      `INSERT INTO group_member (group_id, user_id)
+       SELECT g.id, $1 FROM user_group g
+       WHERE g.name = ANY($2) AND (g.kind = 'admin'
+         OR (g.kind = 'custom' AND g.workspace_id IN (SELECT workspace_id FROM workspace_member WHERE user_id = $1)))
+       ON CONFLICT DO NOTHING`,
       [userId, names],
     )
   }

@@ -18,8 +18,9 @@ import type {
 import { columnAccess, tableAccess } from '../access/decide'
 import type { Snapshot } from '../access/snapshot'
 import { audit } from '../audit'
-import type { Actor, Core } from '../context'
+import { type Actor, type Core, principalOf } from '../context'
 import { AppError, notFound } from '../errors'
+import { assertOwnSource } from './datasources'
 import { liveValues, scopedValues } from './sync'
 
 interface TableRow {
@@ -147,7 +148,7 @@ export async function listTables(
   }
   if (!opts.includeRemoved) where.push(`t.status = 'active'`)
   const rows = (await core.db.many<TableRow>(`${TABLE_SELECT} ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY t.schema_name, t.label`, params)).filter(
-    (t) => readable(snap, actor.userId, t),
+    (t) => readable(snap, principalOf(actor), t),
   )
   if (!opts.withColumns) return rows.map((r) => tableDto(r))
   const cols = await core.db.many<ColumnRow>(
@@ -160,21 +161,34 @@ export async function listTables(
     list.push(columnDto(c))
     byTable.set(c.table_id, list)
   }
-  return rows.map((r) => tableDto(r, visibleColumns(snap, actor.userId, r.id, byTable.get(r.id) ?? [])))
+  return rows.map((r) => tableDto(r, visibleColumns(snap, principalOf(actor), r.id, byTable.get(r.id) ?? [])))
 }
 
 export async function getTable(core: Core, actor: Actor, id: string, opts: { includeRemoved?: boolean } = {}): Promise<TableMeta> {
   const snap = await core.snapshot()
   const row = await core.db.one<TableRow>(`${TABLE_SELECT} WHERE t.id = $1`, [id])
-  if (!row || !readable(snap, actor.userId, row)) throw notFound('Table introuvable.')
+  if (!row || !readable(snap, principalOf(actor), row)) throw notFound('Table introuvable.')
   const cols = await core.db.many<ColumnRow>(
     `${COLUMN_SELECT} WHERE c.table_id = $1 ${opts.includeRemoved ? '' : `AND c.status = 'active'`} ORDER BY c.status, c.position`,
     [id],
   )
-  return tableDto(row, visibleColumns(snap, actor.userId, id, cols.map(columnDto)))
+  return tableDto(row, visibleColumns(snap, principalOf(actor), id, cols.map(columnDto)))
+}
+
+/**
+ * The metadata of a source is written from its own space: one it is shared with reads its
+ * descriptions — one truth — but does not rewrite them.
+ */
+async function assertDescribes(core: Core, actor: Actor, by: { table?: string; column?: string }): Promise<void> {
+  const row = by.table
+    ? await core.db.one<{ datasource_id: string }>('SELECT datasource_id FROM db_table WHERE id = $1', [by.table])
+    : await core.db.one<{ datasource_id: string }>('SELECT t.datasource_id FROM db_column c JOIN db_table t ON t.id = c.table_id WHERE c.id = $1', [by.column])
+  if (!row) throw notFound(by.table ? 'Table introuvable.' : 'Colonne introuvable.')
+  await assertOwnSource(core, actor, row.datasource_id)
 }
 
 export async function patchTable(core: Core, actor: Actor, id: string, patch: TablePatch): Promise<TableMeta> {
+  await assertDescribes(core, actor, { table: id })
   const fields = Object.entries(patch).filter(([, v]) => v !== undefined)
   if (fields.length > 0) {
     const sets = fields.map(([k], i) => `${k} = $${i + 2}`)
@@ -187,6 +201,7 @@ export async function patchTable(core: Core, actor: Actor, id: string, patch: Ta
 
 export async function patchColumn(core: Core, actor: Actor, id: string, patch: ColumnPatch): Promise<ColumnMeta> {
   const { fk, semantic, ...rest } = patch
+  await assertDescribes(core, actor, { column: id })
   await core.db.tx(async (c) => {
     const exists = await core.db.one<{ table_id: string }>('SELECT table_id FROM db_column WHERE id = $1', [id], c)
     if (!exists) throw notFound('Colonne introuvable.')
@@ -225,10 +240,10 @@ export async function columnValues(core: Core, actor: Actor, columnId: string, s
     [columnId],
   )
   if (!col) throw notFound('Colonne introuvable.')
-  const decision = tableAccess(snap, actor.userId, col.datasource_id, col.schema_name, col.table_id)
+  const decision = tableAccess(snap, principalOf(actor), col.datasource_id, col.schema_name, col.table_id)
   if (decision.access === 'none') throw notFound('Colonne introuvable.')
   const t = snap.tables.get(col.table_id)
-  if (t && columnAccess(snap, actor.userId, t, col.name).access !== 'read') return { values: [], complete: true }
+  if (t && columnAccess(snap, principalOf(actor), t, col.name).access !== 'read') return { values: [], complete: true }
   const stored = await core.db.many<ColumnValue & { position: number }>(
     'SELECT value, label, color, icon, image_url, count, position FROM column_value WHERE column_id = $1 ORDER BY position, value',
     [columnId],
@@ -236,7 +251,7 @@ export async function columnValues(core: Core, actor: Actor, columnId: string, s
   const looks = new Map(stored.map((v) => [v.value, v]))
   // Restricted readers only see the values of their own rows: read live, under their identity.
   if (decision.access === 'restricted' || !col.has_values || search) {
-    const live = await liveValues(core, actor.userId, columnId, search).catch(() => [] as string[])
+    const live = await liveValues(core, principalOf(actor), columnId, search).catch(() => [] as string[])
     return {
       values: live.map((value) => {
         const look = looks.get(value)
@@ -276,7 +291,7 @@ export async function scopedColumnValues(
     [columnId],
   )
   if (!col) throw notFound('Colonne introuvable.')
-  const reader = actor.dataUser ?? actor.userId
+  const reader = principalOf(actor)
   if (tableAccess(snap, reader, col.datasource_id, col.schema_name, col.table_id).access === 'none') throw notFound('Colonne introuvable.')
   const t = snap.tables.get(col.table_id)
   if (t && columnAccess(snap, reader, t, col.name).access !== 'read') return { values: [], complete: true }
@@ -295,6 +310,7 @@ export async function scopedColumnValues(
 }
 
 export async function putColumnValues(core: Core, actor: Actor, columnId: string, values: readonly ColumnValue[]): Promise<void> {
+  await assertDescribes(core, actor, { column: columnId })
   await core.db.tx(async (c) => {
     for (const [i, v] of values.entries()) {
       await core.db.exec(
@@ -335,7 +351,7 @@ export async function listRelations(core: Core, actor: Actor, datasource: string
     [datasource],
   )
   return rows
-    .filter((r) => readable(snap, actor.userId, { id: r.from_table, datasource_id: datasource, schema_name: r.fs }) && readable(snap, actor.userId, { id: r.to_table, datasource_id: datasource, schema_name: r.ts }))
+    .filter((r) => readable(snap, principalOf(actor), { id: r.from_table, datasource_id: datasource, schema_name: r.fs }) && readable(snap, principalOf(actor), { id: r.to_table, datasource_id: datasource, schema_name: r.ts }))
     .map((r) => ({ id: r.id, from: { table: r.from_table, column: r.from_column }, to: { table: r.to_table, column: r.to_column }, origin: r.origin }))
 }
 

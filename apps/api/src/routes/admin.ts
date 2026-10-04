@@ -38,8 +38,10 @@ import {
   setMembers,
   setQueryPermission,
   updateUser,
+  folderPermissions,
+  isInstanceAdmin,
 } from '@eodia/core'
-import { actorOf, bodyOf, type newApp, ok, param, queryOf, requireAdmin, requireRight, route } from '../http'
+import { actorOf, bodyOf, type newApp, ok, param, queryOf, requireAdmin, requireInstanceAdmin, requireRight, route } from '../http'
 
 const UserInput = z.object({
   email: z.string().email(),
@@ -54,7 +56,13 @@ const UserPatch = z.object({
   groups: z.array(z.string()).optional(),
   attributes: z.record(z.string(), z.string().max(500)).optional(),
 })
-const InvitationInput = z.object({ email: z.string().email(), name: z.string().max(120).optional(), groups: z.array(z.string()).optional(), send: z.boolean().optional() })
+const InvitationInput = z.object({
+  email: z.string().email(),
+  name: z.string().max(120).optional(),
+  groups: z.array(z.string()).optional(),
+  role: z.enum(['admin', 'member']).optional(),
+  send: z.boolean().optional(),
+})
 const GroupInput = z.object({ name: z.string().min(1).max(120), description: z.string().max(500).nullable().optional() })
 const Members = z.object({ users: z.array(z.string()).max(10_000) })
 const DataPerm = DataPermissionSchema.extend({ access: z.enum(['none', 'read', 'restricted', 'inherit']) })
@@ -70,12 +78,13 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
   const tags = ['Administration']
 
   route(app, { method: 'get', path: '/api/v1/admin/users', tags, summary: 'Personnes' }, async (c) => {
-    await requireAdmin(c)
-    return ok(c, await listUsers(c.get('core')))
+    const actor = await requireAdmin(c)
+    return ok(c, await listUsers(c.get('core'), actor))
   })
+  // A person created by a space's administrator enters that space, as a member.
   route(app, { method: 'post', path: '/api/v1/admin/users', tags, summary: 'Créer une personne', body: UserInput }, async (c) => {
-    await requireAdmin(c)
-    return ok(c, { id: await createUser(c.get('core'), bodyOf(c, UserInput)) })
+    const actor = await requireAdmin(c)
+    return ok(c, { id: await createUser(c.get('core'), { ...bodyOf(c, UserInput), workspace: { id: actor.workspaceId, role: 'member' } }) })
   })
   route(app, { method: 'patch', path: '/api/v1/admin/users/:id', tags, summary: 'Modifier une personne (groupes, attributs, activation)', body: UserPatch }, async (c) => {
     const actor = await requireAdmin(c)
@@ -83,16 +92,21 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
     return ok(c)
   })
   // People and groups, for any signed-in person: what the share dialog offers.
+  // The members of the current space and its groups: those its content can be shared with.
   route(app, { method: 'get', path: '/api/v1/directory', tags, summary: 'Annuaire (personnes et groupes) pour le partage' }, async (c) => {
-    actorOf(c)
+    const actor = actorOf(c)
     const core = c.get('core')
-    const users = await core.db.many('SELECT id, name, email, color FROM app_user WHERE active ORDER BY name')
-    return ok(c, { users, groups: await listGroups(core) })
+    const users = await core.db.many(
+      `SELECT u.id, u.name, u.email, u.color FROM app_user u JOIN workspace_member m ON m.user_id = u.id AND m.workspace_id = $1
+       WHERE u.active ORDER BY u.name`,
+      [actor.workspaceId],
+    )
+    return ok(c, { users, groups: await listGroups(core, actor) })
   })
 
   route(app, { method: 'get', path: '/api/v1/admin/invitations', tags, summary: 'Invitations en attente' }, async (c) => {
-    await requireAdmin(c)
-    return ok(c, { invitations: await listInvitations(c.get('core')), mail: mailEnabled(c.get('core')) })
+    const actor = await requireAdmin(c)
+    return ok(c, { invitations: await listInvitations(c.get('core'), actor), mail: mailEnabled(c.get('core')) })
   })
   route(app, { method: 'post', path: '/api/v1/admin/invitations', tags, summary: 'Inviter une personne (lien, et e-mail si SMTP)', body: InvitationInput }, async (c) => {
     const actor = await requireAdmin(c)
@@ -113,8 +127,7 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
 
   // ── Groupes ──
   route(app, { method: 'get', path: '/api/v1/admin/groups', tags, summary: 'Groupes' }, async (c) => {
-    actorOf(c)
-    return ok(c, await listGroups(c.get('core')))
+    return ok(c, await listGroups(c.get('core'), actorOf(c)))
   })
   route(app, { method: 'post', path: '/api/v1/admin/groups', tags, summary: 'Créer un groupe', body: GroupInput }, async (c) =>
     ok(c, { id: await saveGroup(c.get('core'), await requireRight(c, 'manage_permissions'), bodyOf(c, GroupInput)) }),
@@ -127,8 +140,7 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
     return ok(c)
   })
   route(app, { method: 'get', path: '/api/v1/admin/groups/:id/members', tags, summary: "Membres d'un groupe" }, async (c) => {
-    await requireRight(c, 'manage_permissions')
-    return ok(c, await groupMembers(c.get('core'), param(c, 'id')))
+    return ok(c, await groupMembers(c.get('core'), await requireRight(c, 'manage_permissions'), param(c, 'id')))
   })
   route(app, { method: 'put', path: '/api/v1/admin/groups/:id/members', tags, summary: "Remplacer les membres d'un groupe", body: Members }, async (c) => {
     await setMembers(c.get('core'), await requireRight(c, 'manage_permissions'), param(c, 'id'), bodyOf(c, Members).users)
@@ -138,9 +150,9 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
   // ── Permissions ──
   const ptags = ['Permissions']
   route(app, { method: 'get', path: '/api/v1/permissions', tags: ptags, summary: 'Toutes les permissions (données, requêtes, colonnes, lignes, administration)' }, async (c) => {
-    await requireRight(c, 'manage_permissions')
+    const actor = await requireRight(c, 'manage_permissions')
     const core = c.get('core')
-    return ok(c, { ...(await permissionsOverview(core)), folders: await core.db.many('SELECT group_id AS group, folder_id AS folder, access FROM folder_permission'), attributes: await attributeKeys(core) })
+    return ok(c, { ...(await permissionsOverview(core, actor)), folders: await folderPermissions(core, actor), attributes: await attributeKeys(core) })
   })
   route(app, { method: 'put', path: '/api/v1/permissions/data', tags: ptags, summary: 'Accès aux données d’un groupe (source, schéma ou table)', body: DataPerm }, async (c) => {
     await setDataPermission(c.get('core'), await requireRight(c, 'manage_permissions'), bodyOf(c, DataPerm))
@@ -174,9 +186,19 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
 
   // ── Journal, cache, intégrations ──
   route(app, { method: 'get', path: '/api/v1/admin/audit', tags, summary: "Journal d'audit", query: AuditQuery }, async (c) => {
-    await requireAdmin(c)
+    const actor = await requireAdmin(c)
     const q = queryOf(c, AuditQuery)
-    return ok(c, await listAudit(c.get('core'), { ...(q.before ? { before: Number(q.before) } : {}), ...(q.action ? { action: q.action } : {}), ...(q.actor ? { actor: q.actor } : {}) }))
+    // The space's own journal; everything, for an administrator of the instance.
+    const all = isInstanceAdmin(await c.get('core').snapshot(), actor.userId)
+    return ok(
+      c,
+      await listAudit(c.get('core'), {
+        ...(q.before ? { before: Number(q.before) } : {}),
+        ...(q.action ? { action: q.action } : {}),
+        ...(q.actor ? { actor: q.actor } : {}),
+        ...(all ? {} : { workspace: actor.workspaceId }),
+      }),
+    )
   })
   route(app, { method: 'get', path: '/api/v1/admin/status', tags, summary: 'État de Trino, du cache et du copilot' }, async (c) => {
     await requireAdmin(c)
@@ -196,16 +218,15 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
     })
   })
   route(app, { method: 'put', path: '/api/v1/admin/settings/cache', tags, summary: "Durée de cache de l'instance", body: CacheSetting }, async (c) => {
-    await putSetting(c.get('core'), await requireAdmin(c), 'cache', bodyOf(c, CacheSetting))
+    await putSetting(c.get('core'), await requireInstanceAdmin(c), 'cache', bodyOf(c, CacheSetting))
     return ok(c)
   })
   route(app, { method: 'post', path: '/api/v1/admin/cache/clear', tags, summary: 'Vider le cache de résultats' }, async (c) => {
-    await requireAdmin(c)
+    await requireInstanceAdmin(c)
     return ok(c, { removed: await cacheClear(c.get('core')) })
   })
   route(app, { method: 'get', path: '/api/v1/admin/embed-secrets', tags, summary: "Secrets d'intégration signée" }, async (c) => {
-    await requireAdmin(c)
-    return ok(c, await listEmbedSecrets(c.get('core')))
+    return ok(c, await listEmbedSecrets(c.get('core'), await requireAdmin(c)))
   })
   route(app, { method: 'post', path: '/api/v1/admin/embed-secrets', tags, summary: "Créer un secret d'intégration (affiché une seule fois)", body: EmbedInput }, async (c) =>
     ok(c, await createEmbedSecret(c.get('core'), await requireAdmin(c), bodyOf(c, EmbedInput))),

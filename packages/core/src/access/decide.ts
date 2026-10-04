@@ -28,13 +28,55 @@ import type { SnapTable, SnapUser, Snapshot } from './snapshot'
 /** The order of data access, from the narrowest: `restricted` is less than `read`. */
 const DATA_ORDER: readonly DataAccess[] = ['none', 'restricted', 'read']
 
-export function userOf(snap: Snapshot, userId: string): SnapUser | undefined {
-  const u = snap.users.get(userId)
-  return u?.active ? u : undefined
+/** The identity under which a person acts in a space — what Trino is told, what `userOf` reads. */
+export const principal = (userId: string, workspaceId: string) => `${userId}@${workspaceId}`
+
+/**
+ * Who acts: a person as the catalog knows them (`id`: no space, hence no data), a person in a
+ * space (`id@space`: the groups they have there, its « everyone » group, and the
+ * administrators' group when they administer the space or the instance), or a signed embed's
+ * visitor (registered with its space). Nobody outside a space reads anything of it.
+ */
+export function userOf(snap: Snapshot, who: string): SnapUser | undefined {
+  const at = who.indexOf('@')
+  if (at < 0) {
+    const u = snap.users.get(who)
+    return u?.active ? u : undefined
+  }
+  const known = snap.principals.get(who)
+  if (known !== undefined) return known ?? undefined
+  const userId = who.slice(0, at)
+  const workspaceId = who.slice(at + 1)
+  const base = snap.users.get(userId)
+  const space = snap.workspaces.get(workspaceId)
+  const instanceAdmin = base?.groups.has(snap.adminGroup) ?? false
+  const role = snap.members.get(userId)?.get(workspaceId)
+  let out: SnapUser | null = null
+  if (base?.active && space && (role !== undefined || instanceAdmin) && (!space.archived || instanceAdmin)) {
+    const groups = new Set<string>()
+    for (const g of base.groups) if (snap.groupWorkspace.get(g) === workspaceId) groups.add(g)
+    if (space.allGroup) groups.add(space.allGroup)
+    if (instanceAdmin || role === 'admin') groups.add(snap.adminGroup)
+    out = { ...base, groups, workspace: workspaceId }
+  }
+  snap.principals.set(who, out)
+  return out ?? undefined
 }
 
-export function isAdmin(snap: Snapshot, userId: string): boolean {
-  return userOf(snap, userId)?.groups.has(snap.adminGroup) ?? false
+/** Administers the space the identity acts in — or, without space, the instance. */
+export function isAdmin(snap: Snapshot, who: string): boolean {
+  return userOf(snap, who)?.groups.has(snap.adminGroup) ?? false
+}
+
+/** Administers the instance: every space, and the spaces themselves. */
+export function isInstanceAdmin(snap: Snapshot, userId: string): boolean {
+  const u = snap.users.get(userId)
+  return (u?.active ?? false) && (u?.groups.has(snap.adminGroup) ?? false)
+}
+
+/** Whether a source can be read from the identity's space: its own, or one shared with it. */
+function reachable(snap: Snapshot, u: SnapUser, datasource: string): boolean {
+  return u.workspace !== undefined && (snap.datasources.get(datasource)?.workspaces.has(u.workspace) ?? false)
 }
 
 export function rightsOf(snap: Snapshot, userId: string): Set<AdminRight> {
@@ -80,7 +122,7 @@ export function tableAccess(
   table: string | null,
 ): TableDecision {
   const u = userOf(snap, userId)
-  if (!u) return { access: 'none', restrictedBy: [] }
+  if (!u || !reachable(snap, u, datasource)) return { access: 'none', restrictedBy: [] }
   if (u.groups.has(snap.adminGroup)) return { access: 'read', restrictedBy: [] }
   let access: DataAccess = 'none'
   const restrictedBy: string[] = []
@@ -95,7 +137,7 @@ export function tableAccess(
 /** Whether a person can reach anything in a source: its catalog is then visible. */
 export function datasourceVisible(snap: Snapshot, userId: string, datasource: string): boolean {
   const u = userOf(snap, userId)
-  if (!u) return false
+  if (!u || !reachable(snap, u, datasource)) return false
   if (u.groups.has(snap.adminGroup)) return true
   for (const g of u.groups) {
     for (const p of snap.dataPermissions.get(g) ?? []) {
@@ -107,7 +149,7 @@ export function datasourceVisible(snap: Snapshot, userId: string, datasource: st
 
 export function schemaVisible(snap: Snapshot, userId: string, datasource: string, schema: string): boolean {
   const u = userOf(snap, userId)
-  if (!u) return false
+  if (!u || !reachable(snap, u, datasource)) return false
   if (u.groups.has(snap.adminGroup)) return true
   if (tableAccess(snap, userId, datasource, schema, null).access !== 'none') return true
   // A table granted on its own makes its schema visible.
@@ -169,7 +211,7 @@ export function rowFilter(snap: Snapshot, userId: string, table: SnapTable): str
 
 export function queryLevel(snap: Snapshot, userId: string, datasource: string): QueryLevel {
   const u = userOf(snap, userId)
-  if (!u) return 'none'
+  if (!u || !reachable(snap, u, datasource)) return 'none'
   if (u.groups.has(snap.adminGroup)) return 'native'
   let level: QueryLevel = 'none'
   for (const g of u.groups) {

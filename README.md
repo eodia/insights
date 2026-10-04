@@ -215,11 +215,30 @@ pnpm catalog check [--release]       # échoue si une migration scellée a chang
 Une migration publiée ne se modifie jamais : les installations ont noté sa somme de contrôle
 et refusent de démarrer si elle change. La correction va dans la migration suivante.
 
+## Espaces
+
+Une instance se découpe en **espaces** — les équipes, les filiales d'une même entreprise. Chaque
+espace a ses sources, ses dossiers et leur contenu, ses groupes et leurs droits, ses extraits SQL,
+ses liens et ses jetons ; les personnes sont celles de l'instance et appartiennent à un ou
+plusieurs espaces, comme membres ou administrateurs. En haut de la barre latérale, le sélecteur
+passe de l'un à l'autre ; un lien vers un élément d'un autre de vos espaces y bascule de lui-même.
+
+- **Une source se partage**, en lecture, avec d'autres espaces : chacun la lit sous les droits de
+  ses propres groupes ; sa connexion, sa synchronisation et ses descriptions restent gérées dans
+  son espace.
+- **Le cloisonnement est dans Trino** : chaque requête s'exécute « dans » un espace (l'identité
+  transmise à Trino est `personne@espace`) et le point de décision n'y laisse lire que les sources
+  de l'espace et celles qu'on lui partage — pour ses administrateurs aussi, et en SQL libre.
+- **Les administrateurs de l'instance** (groupe « Administrateurs ») créent les espaces et les
+  voient tous ; ceux d'un espace en gèrent les membres, les groupes et les droits.
+- L'existant d'une instance antérieure rejoint l'espace « Principal » (migration 0004).
+
 ## Modèle de sécurité
 
 - **Identité de bout en bout.** Chaque requête de données part vers Trino sous l'identité de la
-  personne (ou du propriétaire du jeton). Trino demande à l'endpoint OPA de l'API ce qu'elle peut
-  lire ; les décisions viennent d'une fonction pure et testée (`packages/core/src/access/decide.ts`).
+  personne (ou du propriétaire du jeton), dans son espace. Trino demande à l'endpoint OPA de l'API
+  ce qu'elle peut lire ; les décisions viennent d'une fonction pure et testée
+  (`packages/core/src/access/decide.ts`).
 - **Données** : accès par groupe à une source, un schéma ou une table ; niveau de requête par
   source (aucune, éditeur visuel, SQL) ; SQL natif réservé à qui n'a aucune restriction sur la
   source.

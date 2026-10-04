@@ -120,6 +120,11 @@ function SourceFolder({
           >
             {$t(SCHEDULE_LABELS[source.sync.schedule])}
           </span>
+          {source.shared ? (
+            <span className={cn(chip, dark ? 'bg-violet-300/15 text-violet-200' : 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300')}>
+              {$t('Partagée par « {name} »', { name: source.workspace.name })}
+            </span>
+          ) : null}
           {source.options.native_sql && ENGINE_SPECS[source.engine].nativeQuery ? (
             <span
               className={cn(

@@ -1,7 +1,8 @@
 /**
  * La démo publique (`DEMO_PUBLIC=1`) : n'importe qui entre en un clic, sous un compte de
  * démonstration. Ce qui touche à l'instance elle-même est verrouillé — les connexions aux
- * bases, les personnes, les groupes et les droits, le mot de passe —, et le contenu créé par
+ * bases et leurs partages, les espaces et leurs membres, les personnes, les groupes et les
+ * droits, le mot de passe — (changer d'espace reste permis), et le contenu créé par
  * « Équipe data » ne se modifie ni ne se supprime : on le duplique. Tout le reste s'essaie
  * librement ; l'instance est remise à zéro chaque nuit (scripts/demo-reset.sh).
  */
@@ -21,8 +22,15 @@ export function demoGuard(core: Core): MiddlewareHandler<Env> {
     if (/^\/api\/v1\/(admin|permissions)\//.test(path)) {
       throw new AppError('FORBIDDEN', 'Démo publique : les personnes, les groupes et les droits se consultent mais ne se modifient pas.')
     }
-    if ((method === 'POST' && /^\/api\/v1\/datasources(\/test)?$/.test(path)) || /^\/api\/v1\/datasources\/[^/]+$/.test(path)) {
+    if (
+      (method === 'POST' && /^\/api\/v1\/datasources(\/test)?$/.test(path)) ||
+      /^\/api\/v1\/datasources\/[^/]+(\/shares)?$/.test(path)
+    ) {
       throw new AppError('FORBIDDEN', 'Démo publique : les connexions aux bases de données ne se modifient pas.')
+    }
+    // Moving from one space to another, yes; creating or changing them, no.
+    if (/^\/api\/v1\/workspace(s|\/members)/.test(path) && !/^\/api\/v1\/workspaces\/[^/]+\/switch$/.test(path)) {
+      throw new AppError('FORBIDDEN', 'Démo publique : les espaces et leurs membres se consultent mais ne se modifient pas.')
     }
     if (method === 'PATCH' && path === '/api/v1/me') {
       const body = (await c.req.raw

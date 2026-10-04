@@ -5,6 +5,7 @@ import { checkTheme, resolveTheme } from './themes'
 import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { AppError, forbidden, invalid, notFound } from '../errors'
+import { notHere } from '../workspaces'
 import { type ContentIndex, QUESTION_ROWS, type QuestionAccessRow, atLeastAccess, contentIndex, questionAccess } from './access'
 
 interface FolderRow {
@@ -36,8 +37,11 @@ function dto(r: FolderRow, idx: ContentIndex): Folder {
 
 /** Every folder the person can open, with their access. */
 export async function listFolders(core: Core, actor: Actor): Promise<Folder[]> {
-  const idx = await contentIndex(core, actor.userId)
-  const rows = await core.db.many<FolderRow>('SELECT * FROM folder WHERE NOT archived ORDER BY personal_owner_id IS NOT NULL, name')
+  const idx = await contentIndex(core, actor)
+  const rows = await core.db.many<FolderRow>(
+    'SELECT * FROM folder WHERE NOT archived AND workspace_id = $1 ORDER BY personal_owner_id IS NOT NULL, name',
+    [actor.workspaceId],
+  )
   return rows
     .filter((r) => idx.folder(r.id) !== 'none')
     // Other people's personal folders only under « Dossiers personnels » for admins.
@@ -46,9 +50,9 @@ export async function listFolders(core: Core, actor: Actor): Promise<Folder[]> {
 }
 
 export async function getFolder(core: Core, actor: Actor, id: string): Promise<Folder> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const row = await core.db.one<FolderRow>('SELECT * FROM folder WHERE id = $1', [id])
-  if (!row || idx.folder(id) === 'none') throw notFound('Dossier introuvable.')
+  if (!row || idx.folder(id) === 'none') throw await notHere(core, actor, 'folder', id, 'Dossier introuvable.')
   return { ...dto(row, idx), resolved_theme: await resolveTheme(core, { folder: row.id }) }
 }
 
@@ -57,21 +61,22 @@ export async function createFolder(
   actor: Actor,
   input: { name: string; parent?: string | null; description?: string | null; color?: LookColor | null; icon?: string | null },
 ): Promise<Folder> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const parent = input.parent ?? null
   if (parent === null ? !idx.admin : !atLeastAccess(idx.folder(parent), 'edit')) {
     throw forbidden("Vous ne pouvez pas créer de dossier ici.")
   }
   const row = await core.db.one<{ id: string }>(
-    'INSERT INTO folder (parent_id, name, description, color, icon, created_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-    [parent, input.name.trim(), input.description ?? null, input.color ?? null, input.icon ?? null, actor.userId],
+    'INSERT INTO folder (parent_id, name, description, color, icon, created_by, workspace_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+    [parent, input.name.trim(), input.description ?? null, input.color ?? null, input.icon ?? null, actor.userId, actor.workspaceId],
   )
   const id = row?.id as string
-  // A new shared folder at the root: everyone may add to it, as Metabase's root collection.
+  // A new shared folder at the root: every member of the space may add to it, as Metabase's
+  // root collection.
   if (parent === null) {
     await core.db.exec(
-      `INSERT INTO folder_permission (group_id, folder_id, access) SELECT id, $1, 'edit' FROM user_group WHERE kind = 'all'`,
-      [id],
+      `INSERT INTO folder_permission (group_id, folder_id, access) SELECT id, $1, 'edit' FROM user_group WHERE kind = 'all' AND workspace_id = $2`,
+      [id, actor.workspaceId],
     )
   }
   await audit(core, actor, 'folder.create', { kind: 'folder', id }, { name: input.name })
@@ -84,7 +89,7 @@ export async function updateFolder(
   id: string,
   patch: { name?: string; parent?: string | null; description?: string | null; color?: LookColor | null; icon?: string | null; archived?: boolean; theme?: string | null },
 ): Promise<Folder> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const row = await core.db.one<FolderRow>('SELECT * FROM folder WHERE id = $1', [id])
   if (!row) throw notFound('Dossier introuvable.')
   if (!atLeastAccess(idx.folder(id), 'edit')) throw forbidden()
@@ -94,7 +99,7 @@ export async function updateFolder(
     if (!atLeastAccess(idx.folder(patch.parent), 'edit')) throw forbidden('Vous ne pouvez pas déplacer le dossier ici.')
     if (idx.path(patch.parent).some((p) => p.id === id) || patch.parent === id) throw invalid('Un dossier ne peut pas se ranger dans lui-même.')
   }
-  if (patch.theme !== undefined) await checkTheme(core, patch.theme)
+  if (patch.theme !== undefined) await checkTheme(core, actor, patch.theme)
   const fields = Object.entries({ ...patch, parent_id: patch.parent, theme_id: patch.theme }).filter(([k, v]) => v !== undefined && k !== 'parent' && k !== 'theme')
   if (fields.length) {
     await core.db.exec(
@@ -121,7 +126,7 @@ doomed_question AS (
 
 /** What a folder holds, sub-folders included — what its deletion would take, or hand to its parent. */
 export async function folderContents(core: Core, actor: Actor, id: string): Promise<{ folders: number; dashboards: number; questions: number }> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   if (idx.folder(id) === 'none') throw notFound('Dossier introuvable.')
   const row = await core.db.one<{ folders: number; dashboards: number; questions: number }>(
     `${DOOMED}
@@ -139,7 +144,7 @@ export async function folderContents(core: Core, actor: Actor, id: string): Prom
  * left outside still relies on a model or a metric it holds.
  */
 export async function deleteFolder(core: Core, actor: Actor, id: string, mode: 'move' | 'delete'): Promise<void> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const row = await core.db.one<FolderRow>('SELECT * FROM folder WHERE id = $1', [id])
   if (!row || idx.folder(id) === 'none') throw notFound('Dossier introuvable.')
   if (row.personal_owner_id) throw invalid('Un dossier personnel ne se supprime pas.')
@@ -178,12 +183,13 @@ export async function deleteFolder(core: Core, actor: Actor, id: string, mode: '
 
 /** Questions, models, metrics, dashboards and sub-folders of a folder the person may see. */
 export async function folderItems(core: Core, actor: Actor, folderId: string | null): Promise<{ folders: Folder[]; items: ItemSummary[] }> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   if (folderId !== null && idx.folder(folderId) === 'none') throw notFound('Dossier introuvable.')
   const folders = (
     await core.db.many<FolderRow>(
-      `SELECT * FROM folder WHERE NOT archived AND parent_id IS NOT DISTINCT FROM $1 AND (personal_owner_id IS NULL OR personal_owner_id = $2) ORDER BY name`,
-      [folderId, actor.userId],
+      `SELECT * FROM folder WHERE NOT archived AND workspace_id = $3 AND parent_id IS NOT DISTINCT FROM $1
+         AND (personal_owner_id IS NULL OR personal_owner_id = $2) ORDER BY name`,
+      [folderId, actor.userId, actor.workspaceId],
     )
   )
     .filter((f) => idx.folder(f.id) !== 'none')
@@ -207,14 +213,14 @@ export async function itemsWhere(core: Core, actor: Actor, idx: ContentIndex, wh
   }>(
     `SELECT * FROM (
        SELECT CASE type WHEN 'question' THEN 'question' ELSE type END AS kind, id, name, description, folder_id,
-              visualization->>'type' AS viz, updated_at, updated_by, created_by, archived
+              visualization->>'type' AS viz, updated_at, updated_by, created_by, archived, workspace_id
        FROM question WHERE dashboard_id IS NULL -- a dashboard's own questions live in it, not in a folder
        UNION ALL
-       SELECT 'dashboard', id, name, description, folder_id, NULL, updated_at, updated_by, created_by, archived FROM dashboard
+       SELECT 'dashboard', id, name, description, folder_id, NULL, updated_at, updated_by, created_by, archived, workspace_id FROM dashboard
      ) i
      CROSS JOIN LATERAL (SELECT EXISTS (SELECT 1 FROM bookmark b WHERE b.user_id = $${params.length + 1} AND b.item_id = i.id) AS bookmarked) bm
-     WHERE NOT archived AND ${where} ORDER BY name`,
-    [...params, actor.userId],
+     WHERE NOT archived AND workspace_id = $${params.length + 2} AND ${where} ORDER BY name`,
+    [...params, actor.userId, actor.workspaceId],
   )
   const visible = rows.filter((r) => idx.item(r.kind, r.id, r.folder_id, r.created_by) !== 'none')
   const users = await summaryOf(core, visible.map((r) => r.updated_by))
@@ -233,13 +239,19 @@ export async function itemsWhere(core: Core, actor: Actor, idx: ContentIndex, wh
 
 // ── Droits de dossier et partages ────────────────────────────────────────────
 
-export async function folderPermissions(core: Core) {
-  return core.db.many('SELECT group_id AS group, folder_id AS folder, access FROM folder_permission')
+/** The rights of the groups on the folders of the actor's space. */
+export async function folderPermissions(core: Core, actor: Actor) {
+  return core.db.many(
+    `SELECT p.group_id AS group, p.folder_id AS folder, p.access FROM folder_permission p JOIN folder f ON f.id = p.folder_id
+     WHERE f.workspace_id = $1`,
+    [actor.workspaceId],
+  )
 }
 
 export async function setFolderPermission(core: Core, actor: Actor, group: string, folder: string, access: ContentAccess | 'none' | 'inherit') {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   if (!atLeastAccess(idx.folder(folder), 'manage')) throw forbidden('Il faut le droit « Gestion » sur ce dossier.')
+  await assertGroupHere(core, actor, group)
   if (access === 'inherit') await core.db.exec('DELETE FROM folder_permission WHERE group_id = $1 AND folder_id = $2', [group, folder])
   else {
     await core.db.exec(
@@ -268,6 +280,7 @@ export async function share(
   input: { item_kind: ItemKind; item_id: string; principal_kind: 'user' | 'group'; principal_id: string; access: 'view' | 'edit' },
 ) {
   await assertItemAccess(core, actor, input.item_kind, input.item_id, 'edit')
+  if (input.principal_kind === 'group') await assertGroupHere(core, actor, input.principal_id)
   await core.db.exec(
     `INSERT INTO item_share (item_kind, item_id, principal_kind, principal_id, access, created_by) VALUES ($1, $2, $3, $4, $5, $6)
      ON CONFLICT (item_kind, item_id, principal_kind, principal_id) DO UPDATE SET access = EXCLUDED.access`,
@@ -284,9 +297,15 @@ export async function unshare(core: Core, actor: Actor, shareId: string) {
   await audit(core, actor, 'share.remove', { kind: row.item_kind, id: row.item_id })
 }
 
+/** A group of the actor's space — the only ones its rights and shares may name. */
+export async function assertGroupHere(core: Core, actor: Actor, group: string): Promise<void> {
+  const row = await core.db.one('SELECT 1 FROM user_group WHERE id = $1 AND workspace_id = $2', [group, actor.workspaceId])
+  if (!row) throw notFound('Groupe introuvable dans cet espace.')
+}
+
 /** Throws unless the person has at least `min` on the item. Returns their access. */
 export async function assertItemAccess(core: Core, actor: Actor, kind: ItemKind, id: string, min: ContentAccess): Promise<ContentAccess> {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   let access: ContentAccess | 'none'
   if (kind === 'folder') access = idx.folder(id)
   else if (kind === 'dashboard') {
@@ -298,7 +317,7 @@ export async function assertItemAccess(core: Core, actor: Actor, kind: ItemKind,
     if (!row) throw notFound()
     access = questionAccess(idx, row)
   }
-  if (access === 'none') throw notFound()
+  if (access === 'none') throw await notHere(core, actor, kind === 'folder' || kind === 'dashboard' ? kind : 'question', id)
   if (!atLeastAccess(access, min)) throw new AppError('FORBIDDEN', min === 'view' ? "Vous n'avez pas accès à cet élément." : 'Vous ne pouvez pas modifier cet élément.')
   return access
 }
@@ -320,7 +339,7 @@ export async function recordView(core: Core, actor: Actor, kind: ItemKind, id: s
 }
 
 export async function homeItems(core: Core, actor: Actor) {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const recent = await itemsWhere(
     core,
     actor,
@@ -337,12 +356,14 @@ export async function homeItems(core: Core, actor: Actor) {
 }
 
 export async function search(core: Core, actor: Actor, text: string, limit = 30, kind?: ItemKind) {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const like = `%${text.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
   const items = kind
     ? await itemsWhere(core, actor, idx, '(name ILIKE $1 OR description ILIKE $1) AND kind = $2', [like, kind])
     : await itemsWhere(core, actor, idx, '(name ILIKE $1 OR description ILIKE $1)', [like])
-  const folders = (await core.db.many<FolderRow>('SELECT * FROM folder WHERE NOT archived AND name ILIKE $1 LIMIT 50', [like]))
+  const folders = (
+    await core.db.many<FolderRow>('SELECT * FROM folder WHERE NOT archived AND workspace_id = $2 AND name ILIKE $1 LIMIT 50', [like, actor.workspaceId])
+  )
     .filter((f) => idx.folder(f.id) !== 'none' && (!f.personal_owner_id || f.personal_owner_id === actor.userId))
     .map((f) => dto(f, idx))
   return { items: items.slice(0, limit), folders: folders.slice(0, 10) }

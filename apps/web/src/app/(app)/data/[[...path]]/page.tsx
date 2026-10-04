@@ -35,7 +35,7 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
   const pathname = usePathname()
   const params = useSearchParams()
   const { data: me } = useMe()
-  const readOnly = !me?.can.manage_metadata
+  const canDescribe = !!me?.can.manage_metadata
   const canManage = !!me?.can.manage_sources
   const [adding, setAdding] = useState(false)
   // « Nouveau › Source de données » arrives with `?new=1`.
@@ -50,6 +50,8 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
   // Arriving on `/data`, no source is chosen: they are all shown, as folders.
   const datasourceId = dsParam ?? null
   const source = sources.find((s) => s.id === datasourceId)
+  // A source shared with this space is described in its own: here, its metadata is read.
+  const readOnly = !canDescribe || !!source?.shared
   const { data: table, error: tableError } = useTable(tableId)
   const { data: sourceTables = [] } = useTables(datasourceId ?? undefined, true)
   const asked = params.get('tab')
@@ -146,6 +148,14 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
                       <CatalogName catalog={source.catalog} suffix={`.${$t('schéma.table')}`} />
                       <span>·</span>
                       <span>{ENGINE_NAMES[source.engine]}</span>
+                      {source.shared ? (
+                        <>
+                          <span>·</span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-xs text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                            {$t('Partagée par « {name} »', { name: source.workspace.name })}
+                          </span>
+                        </>
+                      ) : null}
                       <span>·</span>
                       <span className="inline-flex items-center gap-1.5">
                         <SyncDot status={source.sync.status} /> {syncSummary(source)}

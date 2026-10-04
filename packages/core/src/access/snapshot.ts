@@ -19,8 +19,22 @@ export interface SnapUser {
   readonly email: string
   readonly name: string
   readonly active: boolean
+  /** The space they last worked in: where a new session takes them. */
+  readonly home?: string | null
   readonly groups: ReadonlySet<string>
   readonly attributes: Readonly<Record<string, string>>
+  /**
+   * The space this identity acts in. A person as the catalog knows them has none — and reads
+   * no data: data is only ever read in a space (`userOf(snap, 'person@space')`).
+   */
+  readonly workspace?: string
+}
+
+export interface SnapWorkspace {
+  readonly id: string
+  /** Its « everyone » group: every member is in it. */
+  readonly allGroup: string
+  readonly archived: boolean
 }
 
 export interface SnapDatasource {
@@ -28,6 +42,10 @@ export interface SnapDatasource {
   readonly catalog: string
   readonly engine: Engine
   readonly nativeSql: boolean
+  /** The space it belongs to. */
+  readonly workspace: string
+  /** The spaces it can be read from: its own, and those it is shared with. */
+  readonly workspaces: ReadonlySet<string>
 }
 
 export interface SnapColumn {
@@ -59,9 +77,16 @@ export interface SnapRowPolicy {
 export interface Snapshot {
   readonly version: number
   readonly loadedAt: number
+  /** The instance's administrators: every right in every space. */
   readonly adminGroup: string
-  readonly allGroup: string
   readonly users: ReadonlyMap<string, SnapUser>
+  readonly workspaces: ReadonlyMap<string, SnapWorkspace>
+  /** Person → space → role. */
+  readonly members: ReadonlyMap<string, ReadonlyMap<string, 'admin' | 'member'>>
+  /** Group → its space (none for the administrators' group). */
+  readonly groupWorkspace: ReadonlyMap<string, string | null>
+  /** The identities `person@space` already worked out (`userOf`). */
+  readonly principals: Map<string, SnapUser | null>
   readonly rights: ReadonlyMap<string, ReadonlySet<AdminRight>>
   readonly datasources: ReadonlyMap<string, SnapDatasource>
   readonly byCatalog: ReadonlyMap<string, SnapDatasource>
@@ -89,15 +114,17 @@ function groupBy<T, K, V>(rows: readonly T[], key: (r: T) => K, value: (r: T) =>
 }
 
 export async function loadSnapshot(db: Db, version: number): Promise<Snapshot> {
-  const [groups, users, members, attributes, rights, sources, tables, columns, data, query, cols, rows] =
+  const [groups, users, members, attributes, rights, sources, tables, columns, data, query, cols, rows, spaces, roles, shares] =
     await Promise.all([
-      db.many<{ id: string; kind: string }>('SELECT id, kind FROM user_group'),
-      db.many<{ id: string; email: string; name: string; active: boolean }>('SELECT id, email, name, active FROM app_user'),
+      db.many<{ id: string; kind: string; workspace_id: string | null }>('SELECT id, kind, workspace_id FROM user_group'),
+      db.many<{ id: string; email: string; name: string; active: boolean; workspace_id: string | null }>(
+        'SELECT id, email, name, active, workspace_id FROM app_user',
+      ),
       db.many<{ group_id: string; user_id: string }>('SELECT group_id, user_id FROM group_member'),
       db.many<{ user_id: string; key: string; value: string }>('SELECT user_id, key, value FROM user_attribute'),
       db.many<{ group_id: string; right_name: AdminRight }>('SELECT group_id, right_name FROM admin_right'),
-      db.many<{ id: string; catalog: string; engine: Engine; options: { native_sql?: boolean } }>(
-        'SELECT id, catalog, engine, options FROM datasource',
+      db.many<{ id: string; catalog: string; engine: Engine; options: { native_sql?: boolean }; workspace_id: string }>(
+        'SELECT id, catalog, engine, options, workspace_id FROM datasource',
       ),
       db.many<{ id: string; datasource_id: string; schema_name: string; name: string }>(
         `SELECT id, datasource_id, schema_name, name FROM db_table WHERE status = 'active'`,
@@ -116,22 +143,38 @@ export async function loadSnapshot(db: Db, version: number): Promise<Snapshot> {
       db.many<{ group_id: string; table_id: string; match: 'all' | 'any'; conditions: RowCondition[] }>(
         'SELECT group_id, table_id, match, conditions FROM row_policy',
       ),
+      db.many<{ id: string; archived: boolean }>('SELECT id, archived FROM workspace'),
+      db.many<{ workspace_id: string; user_id: string; role: 'admin' | 'member' }>('SELECT workspace_id, user_id, role FROM workspace_member'),
+      db.many<{ datasource_id: string; workspace_id: string }>('SELECT datasource_id, workspace_id FROM datasource_share'),
     ])
 
   const adminGroup = groups.find((g) => g.kind === 'admin')?.id ?? ''
-  const allGroup = groups.find((g) => g.kind === 'all')?.id ?? ''
   const memberOf = groupBy(members, (m) => m.user_id, (m) => m.group_id)
   const attrsOf = groupBy(attributes, (a) => a.user_id, (a) => [a.key, a.value] as const)
 
+  const groupWorkspace = new Map(groups.map((g) => [g.id, g.workspace_id] as const))
+  const workspaces = new Map<string, SnapWorkspace>()
+  for (const w of spaces) {
+    const all = groups.find((g) => g.kind === 'all' && g.workspace_id === w.id)
+    workspaces.set(w.id, { id: w.id, allGroup: all?.id ?? '', archived: w.archived })
+  }
+  const membersMap = new Map<string, Map<string, 'admin' | 'member'>>()
+  for (const r of roles) {
+    const m = membersMap.get(r.user_id) ?? new Map<string, 'admin' | 'member'>()
+    m.set(r.workspace_id, r.role)
+    membersMap.set(r.user_id, m)
+  }
+
   const snapUsers = new Map<string, SnapUser>()
   for (const u of users) {
+    // Every group the person is in, whatever its space: `userOf` keeps those of one space.
     const g = new Set(memberOf.get(u.id) ?? [])
-    if (allGroup) g.add(allGroup)
     snapUsers.set(u.id, {
       id: u.id,
       email: u.email,
       name: u.name,
       active: u.active,
+      home: u.workspace_id,
       groups: g,
       attributes: Object.fromEntries(attrsOf.get(u.id) ?? []),
     })
@@ -139,8 +182,16 @@ export async function loadSnapshot(db: Db, version: number): Promise<Snapshot> {
 
   const datasources = new Map<string, SnapDatasource>()
   const byCatalog = new Map<string, SnapDatasource>()
+  const sharedWith = groupBy(shares, (s) => s.datasource_id, (s) => s.workspace_id)
   for (const s of sources) {
-    const d = { id: s.id, catalog: s.catalog, engine: s.engine, nativeSql: s.options?.native_sql !== false }
+    const d: SnapDatasource = {
+      id: s.id,
+      catalog: s.catalog,
+      engine: s.engine,
+      nativeSql: s.options?.native_sql !== false,
+      workspace: s.workspace_id,
+      workspaces: new Set([s.workspace_id, ...(sharedWith.get(s.id) ?? [])]),
+    }
     datasources.set(s.id, d)
     byCatalog.set(s.catalog, d)
   }
@@ -194,8 +245,11 @@ export async function loadSnapshot(db: Db, version: number): Promise<Snapshot> {
     version,
     loadedAt: Date.now(),
     adminGroup,
-    allGroup,
     users: snapUsers,
+    workspaces,
+    members: membersMap,
+    groupWorkspace,
+    principals: new Map(),
     rights: rightsMap,
     datasources,
     byCatalog,

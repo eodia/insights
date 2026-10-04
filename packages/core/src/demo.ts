@@ -15,7 +15,8 @@ import { createDashboard, createQuestion } from './content/items'
 import { createFolder, setBookmark } from './content/folders'
 import { enqueue } from './jobs'
 import { saveGroup, saveRowPolicy, setColumnRule, setDataPermission, setMembers, setQueryPermission } from './admin/permissions'
-import { createDatasource } from './sources/datasources'
+import { createDatasource, shareDatasource } from './sources/datasources'
+import { addMember, createWorkspace, defaultWorkspace } from './workspaces'
 
 export const DEMO_ADMIN = { email: 'admin@eodia.local', password: 'eodia-insights', name: 'Marc Jamain' }
 export const DEMO_ANALYST = { email: 'analyste@eodia.local', password: 'eodia-insights', name: 'Camille Durand' }
@@ -24,13 +25,31 @@ export const DEMO_AUTHOR_EMAIL = 'equipe-data@eodia.local'
 
 export async function seedDemo(core: Core): Promise<boolean> {
   if (!(await needsSetup(core))) return false
+  // Two spaces: the shop's, and its customer service's — each its own source, shared with the other.
+  const arvor = await defaultWorkspace(core)
+  await core.db.exec(
+    `UPDATE workspace SET name = 'Maison Arvor', description = 'La boutique en ligne : ventes, marketing, catalogue, logistique.', color = 'green', icon = 'store'
+     WHERE id = $1`,
+    [arvor],
+  )
   const admin = await createUser(core, { ...DEMO_ADMIN, admin: true })
   const analyst = await createUser(core, { ...DEMO_ANALYST, attributes: { region: 'Bretagne' } })
   const author = await createUser(core, { email: DEMO_AUTHOR_EMAIL, name: 'Équipe data', admin: true })
-  const actor: Actor = { userId: author, via: 'system' }
+  const actor: Actor = { userId: author, workspaceId: arvor, via: 'system' }
+  const care = (
+    await createWorkspace(core, actor, {
+      name: 'Service client',
+      description: 'Les tickets du support, la satisfaction et les agents.',
+      color: 'violet',
+      icon: 'headset',
+    })
+  ).id
+  await addMember(core, care, admin, 'admin')
+  core.changed()
+  const careActor: Actor = { ...actor, workspaceId: care }
   const { postgres, mongoUrl } = core.config.demoSources
   try {
-    await createDatasource(core, actor, {
+    const boutique = await createDatasource(core, actor, {
       name: 'Boutique',
       engine: 'postgresql',
       catalog: 'boutique',
@@ -38,7 +57,7 @@ export async function seedDemo(core: Core): Promise<boolean> {
       config: { host: postgres.host, port: postgres.port, database: 'boutique', user: 'lecteur', password: 'lecteur', ssl: false },
       schedule: 'daily',
     })
-    await createDatasource(core, actor, {
+    const support = await createDatasource(core, careActor, {
       name: 'Support client',
       engine: 'mongodb',
       catalog: 'support',
@@ -46,12 +65,15 @@ export async function seedDemo(core: Core): Promise<boolean> {
       config: { connection_url: mongoUrl },
       schedule: 'daily',
     })
+    // The shop reads the tickets and the visits; the customer service, the customers and orders.
+    await shareDatasource(core, actor, boutique.id, [care])
+    await shareDatasource(core, careActor, support.id, [arvor])
   } catch (err) {
     console.warn(`[demo] sources non créées : ${err instanceof Error ? err.message : String(err)}`)
     return true
   }
   // The content needs the synced structure: queued after both syncs.
-  await enqueue(core, 'demo_content', { user: author, admin, analyst })
+  await enqueue(core, 'demo_content', { user: author, admin, analyst, arvor, care })
   return true
 }
 
@@ -104,7 +126,10 @@ const B = 'boutique.public'
 const S = 'support.support'
 
 export async function demoContent(core: Core, payload: Record<string, unknown>): Promise<unknown> {
-  const actor: Actor = { userId: String(payload.user), via: 'system' }
+  const actor: Actor = { userId: String(payload.user), workspaceId: String(payload.arvor), via: 'system' }
+  // The customer service's folder and dashboard live in its own space.
+  const careActor: Actor = { ...actor, workspaceId: String(payload.care ?? payload.arvor) }
+  const spaceOf = new Map<string, Actor>()
   const t = {
     commandes: await tableId(core, 'boutique', 'public', 'commandes'),
     clients: await tableId(core, 'boutique', 'public', 'clients'),
@@ -123,14 +148,19 @@ export async function demoContent(core: Core, payload: Record<string, unknown>):
   await describeTables(core, t)
 
   // ── Folders ────────────────────────────────────────────────────────────────
-  const folder = async (name: string, description: string, color: string, icon: string) =>
-    (await createFolder(core, actor, { name, description, color: color as never, icon })).id
+  const folder = async (name: string, description: string, color: string, icon: string, who = actor) => {
+    const id = (await createFolder(core, who, { name, description, color: color as never, icon })).id
+    spaceOf.set(id, who)
+    return id
+  }
+  /** Who creates in a folder: the author, in the folder's space. */
+  const by = (folderId: string) => spaceOf.get(folderId) ?? actor
   const fDirection = await folder('Direction', 'Le pilotage de Maison Arvor : chiffre d’affaires, objectifs, prévisions.', 'indigo', 'landmark')
   const fVentes = await folder('Ventes', 'Le suivi commercial de la boutique.', 'green', 'shopping-bag')
   const fMarketing = await folder('Marketing', 'Acquisition, fidélité, parcours sur le site.', 'pink', 'megaphone')
   const fCatalogue = await folder('Catalogue', 'Produits, marges et avis.', 'amber', 'package')
   const fLogistique = await folder('Logistique', 'Entrepôts, délais et annulations.', 'sky', 'truck')
-  const fSupport = await folder('Service client', 'Tickets, satisfaction et agents (MongoDB, joint aux clients PostgreSQL).', 'violet', 'headset')
+  const fSupport = await folder('Service client', 'Tickets, satisfaction et agents (MongoDB, joint aux clients PostgreSQL).', 'violet', 'headset', careActor)
 
   const q = async (
     folderId: string,
@@ -140,7 +170,7 @@ export async function demoContent(core: Core, payload: Record<string, unknown>):
     opts: { description?: string; meta?: Meta; type?: 'question' | 'metric' | 'model' } = {},
   ) =>
     (
-      await createQuestion(core, actor, {
+      await createQuestion(core, by(folderId), {
         name,
         folder: folderId,
         query: query as never,
@@ -954,7 +984,7 @@ ORDER BY CASE c.segment WHEN 'Premium' THEN 0 WHEN 'Professionnel' THEN 1 ELSE 2
 
   // ── Dashboards ─────────────────────────────────────────────────────────────
   const dash = async (folderId: string, name: string, description: string, cards: DashboardCard[]) =>
-    (await createDashboard(core, actor, { name, description, folder: folderId, tabs: [], parameters: [], auto_refresh: null, cards: cards as never })).id
+    (await createDashboard(core, by(folderId), { name, description, folder: folderId, tabs: [], parameters: [], auto_refresh: null, cards: cards as never })).id
 
   const marketing = await dash(fMarketing, 'Acquisition et fidélité', 'D’où viennent les clients, combien ils coûtent, s’ils reviennent — et où ils décrochent sur le site.', [
     card('depenses', spend, null, 0, 0, 14, 9),
@@ -1011,7 +1041,7 @@ ORDER BY CASE c.segment WHEN 'Premium' THEN 0 WHEN 'Professionnel' THEN 1 ELSE 2
 
   // The admin finds the steering dashboard among their favourites on the home page.
   if (payload.admin) {
-    const admin: Actor = { userId: String(payload.admin), via: 'system' }
+    const admin: Actor = { userId: String(payload.admin), workspaceId: actor.workspaceId, via: 'system' }
     await setBookmark(core, admin, 'dashboard', pilotage, true)
     await setBookmark(core, admin, 'dashboard', ventes.id, true)
   }
@@ -1168,7 +1198,7 @@ async function describeTables(core: Core, t: Tables) {
 
 async function demoPermissions(core: Core, actor: Actor, t: Tables, analyst: string) {
   const boutique = await core.db.one<{ id: string }>(`SELECT id FROM datasource WHERE catalog = 'boutique'`)
-  const all = await core.db.one<{ id: string }>(`SELECT id FROM user_group WHERE kind = 'all'`)
+  const all = await core.db.one<{ id: string }>(`SELECT id FROM user_group WHERE kind = 'all' AND workspace_id = $1`, [actor.workspaceId])
   if (!boutique || !all || !t.clients || !t.commandes) return
   const team = await saveGroup(core, actor, { name: 'Équipe régionale', description: 'Voit les clients de sa région et les commandes de son canal ; e-mails masqués.' })
   await setMembers(core, actor, team, [analyst])

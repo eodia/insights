@@ -7,6 +7,11 @@ import { Db } from './db'
 /** Who acts: a person through a session, an integration token, a share link or a signed embed. */
 export interface Actor {
   readonly userId: string
+  /**
+   * The space they act in: what they see, create, and read data in. A session's is the one the
+   * interface chose (`x-eodia-workspace`, checked), a token's is its own, a link's its item's.
+   */
+  readonly workspaceId: string
   readonly via: 'session' | 'token' | 'share' | 'embed' | 'system'
   /** For a token: the surfaces it may use. */
   readonly surfaces?: readonly string[]
@@ -15,6 +20,12 @@ export interface Actor {
   /** The identity data is read under, when not the person's own: a signed embed's visitor. */
   readonly dataUser?: string
 }
+
+/**
+ * The identity data is read under: a signed embed's visitor, or the person in their space —
+ * what Trino is told, and what every decision of `access/decide.ts` is about.
+ */
+export const principalOf = (actor: Actor): string => actor.dataUser ?? `${actor.userId}@${actor.workspaceId}`
 
 /** People a signed embed acts as: not in the catalog, known to the decision point for a while. */
 interface VirtualUser {

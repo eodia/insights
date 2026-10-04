@@ -14,7 +14,7 @@ import { userOf } from '../access/decide'
 import { audit } from '../audit'
 import type { Actor, Core } from '../context'
 import { getDashboard, getQuestion } from '../content/items'
-import { assertItemAccess } from '../content/folders'
+import { assertGroupHere, assertItemAccess } from '../content/folders'
 import { decrypt, encrypt, randomToken } from '../crypto'
 import { AppError, notFound } from '../errors'
 
@@ -42,6 +42,7 @@ interface LinkRow {
   locked_parameters: Record<string, ParameterValue | null>
   created_by: string
   created_at: Date
+  workspace_id: string
 }
 
 const dto = (core: Core, r: LinkRow): ShareLink => ({
@@ -70,9 +71,19 @@ export async function createShareLink(
 ): Promise<ShareLink> {
   await assertItemAccess(core, actor, input.item_kind, input.item_id, 'edit')
   const row = await core.db.one<LinkRow>(
-    `INSERT INTO share_link (item_kind, item_id, token, audience, groups, can_embed, locked_parameters, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-    [input.item_kind, input.item_id, randomToken(18), input.audience, input.groups ?? [], input.can_embed ?? false, input.locked_parameters ?? {}, actor.userId],
+    `INSERT INTO share_link (item_kind, item_id, token, audience, groups, can_embed, locked_parameters, created_by, workspace_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    [
+      input.item_kind,
+      input.item_id,
+      randomToken(18),
+      input.audience,
+      input.groups ?? [],
+      input.can_embed ?? false,
+      input.locked_parameters ?? {},
+      actor.userId,
+      actor.workspaceId,
+    ],
   )
   await audit(core, actor, 'share_link.create', { kind: input.item_kind, id: input.item_id }, { audience: input.audience, embed: input.can_embed ?? false })
   return dto(core, row as LinkRow)
@@ -113,7 +124,8 @@ export async function openShareLink(core: Core, token: string, viewer: Actor | n
       if (!groups || !row.groups.some((g) => groups.has(g))) throw new AppError('FORBIDDEN', "Ce contenu n'est pas partagé avec vous.")
     }
   }
-  const actor: Actor = { userId: row.created_by, via: 'share' }
+  // The link reads as its author, in the space of what it shows.
+  const actor: Actor = { userId: row.created_by, workspaceId: row.workspace_id, via: 'share' }
   // The author lost access: the link goes dark with it.
   await assertItemAccess(core, actor, row.item_kind, row.item_id, 'view').catch(() => {
     throw notFound('Ce lien de partage n’est plus actif.')
@@ -138,14 +150,17 @@ export async function sharedContent(core: Core, token: string, viewer: Actor | n
 
 // ── Intégration signée ───────────────────────────────────────────────────────
 
-export async function listEmbedSecrets(core: Core) {
+/** The secrets of the space: each signs embeds read with the rights of one of its groups. */
+export async function listEmbedSecrets(core: Core, actor: Actor) {
   return core.db.many(
     `SELECT e.id, e.name, e.group_id AS group, g.name AS group_name, e.created_at FROM embed_secret e JOIN user_group g ON g.id = e.group_id
-     WHERE e.revoked_at IS NULL ORDER BY e.created_at`,
+     WHERE e.revoked_at IS NULL AND g.workspace_id = $1 ORDER BY e.created_at`,
+    [actor.workspaceId],
   )
 }
 
 export async function createEmbedSecret(core: Core, actor: Actor, input: { name: string; group: string }): Promise<{ id: string; secret: string }> {
+  await assertGroupHere(core, actor, input.group)
   const secret = randomToken(32)
   const row = await core.db.one<{ id: string }>(
     'INSERT INTO embed_secret (name, secret, group_id, created_by) VALUES ($1, $2, $3, $4) RETURNING id',
@@ -156,7 +171,10 @@ export async function createEmbedSecret(core: Core, actor: Actor, input: { name:
 }
 
 export async function revokeEmbedSecret(core: Core, actor: Actor, id: string): Promise<void> {
-  await core.db.exec('UPDATE embed_secret SET revoked_at = now() WHERE id = $1', [id])
+  await core.db.exec(
+    'UPDATE embed_secret SET revoked_at = now() WHERE id = $1 AND group_id IN (SELECT id FROM user_group WHERE workspace_id = $2)',
+    [id, actor.workspaceId],
+  )
   await audit(core, actor, 'embed_secret.revoke', { kind: 'embed_secret', id })
 }
 
@@ -174,12 +192,13 @@ export async function openEmbed(core: Core, token: string): Promise<{ claims: Em
   const [headerPart] = token.split('.')
   const header = JSON.parse(Buffer.from(headerPart ?? '', 'base64url').toString('utf8') || '{}') as { kid?: string }
   const row = header.kid
-    ? await core.db.one<{ id: string; secret: Buffer; group_id: string; created_by: string | null }>(
-        'SELECT id, secret, group_id, created_by FROM embed_secret WHERE id = $1 AND revoked_at IS NULL',
+    ? await core.db.one<{ id: string; secret: Buffer; group_id: string; created_by: string | null; workspace_id: string | null }>(
+        `SELECT e.id, e.secret, e.group_id, e.created_by, g.workspace_id FROM embed_secret e JOIN user_group g ON g.id = e.group_id
+         WHERE e.id = $1 AND e.revoked_at IS NULL`,
         [header.kid],
       )
     : undefined
-  if (!row?.created_by) throw new AppError('UNAUTHENTICATED', "Jeton d'intégration inconnu (kid).")
+  if (!row?.created_by || !row.workspace_id) throw new AppError('UNAUTHENTICATED', "Jeton d'intégration inconnu (kid).")
   const key = new TextEncoder().encode(decrypt(core.config.secretKey, row.secret))
   let payload: EmbedClaims
   try {
@@ -190,6 +209,10 @@ export async function openEmbed(core: Core, token: string): Promise<{ claims: Em
   const visitor = payload.user?.id ?? 'anonyme'
   const attributes = Object.fromEntries(Object.entries(payload.user?.attributes ?? {}).map(([k, v]) => [k, String(v)]))
   const id = `embed-${createHash('sha256').update(`${row.id}\u0000${visitor}\u0000${JSON.stringify(attributes)}`).digest('hex').slice(0, 32)}`
-  core.registerVirtualUser({ id, email: `${visitor}@embed`, name: visitor, active: true, groups: new Set([row.group_id]), attributes }, 15 * 60_000)
-  return { claims: payload, actor: { userId: row.created_by, via: 'embed', dataUser: id } }
+  // The visitor reads in the space of the secret's group, with that group's rights only.
+  core.registerVirtualUser(
+    { id, email: `${visitor}@embed`, name: visitor, active: true, groups: new Set([row.group_id]), attributes, workspace: row.workspace_id },
+    15 * 60_000,
+  )
+  return { claims: payload, actor: { userId: row.created_by, workspaceId: row.workspace_id, via: 'embed', dataUser: id } }
 }

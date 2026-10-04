@@ -135,7 +135,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
 
   route(app, { method: 'get', path: '/api/v1/snippets', tags: qtags, summary: 'Snippets SQL' }, async (c) => {
     actorOf(c)
-    return ok(c, await listSnippets(c.get('core')))
+    return ok(c, await listSnippets(c.get('core'), actorOf(c)))
   })
   route(app, { method: 'post', path: '/api/v1/snippets', tags: qtags, summary: 'Créer un snippet', body: SnippetInput }, async (c) => ok(c, await saveSnippet(c.get('core'), actorOf(c), bodyOf(c, SnippetInput))))
   route(app, { method: 'put', path: '/api/v1/snippets/:id', tags: qtags, summary: 'Modifier un snippet', body: SnippetInput }, async (c) =>
@@ -186,8 +186,8 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   // ── Thèmes ──
   const ttags = ['Thèmes']
   const ThemePatch = ThemeInputSchema.partial()
-  route(app, { method: 'get', path: '/api/v1/themes', tags: ttags, summary: 'Lister les thèmes' }, async (c) => ok(c, await listThemes(c.get('core'))))
-  route(app, { method: 'get', path: '/api/v1/themes/:id', tags: ttags, summary: 'Lire un thème' }, async (c) => ok(c, await getTheme(c.get('core'), param(c, 'id'))))
+  route(app, { method: 'get', path: '/api/v1/themes', tags: ttags, summary: 'Lister les thèmes' }, async (c) => ok(c, await listThemes(c.get('core'), actorOf(c))))
+  route(app, { method: 'get', path: '/api/v1/themes/:id', tags: ttags, summary: 'Lire un thème' }, async (c) => ok(c, await getTheme(c.get('core'), actorOf(c), param(c, 'id'))))
   route(app, { method: 'post', path: '/api/v1/themes', tags: ttags, summary: 'Créer un thème (administrateurs)', body: ThemeInputSchema }, async (c) =>
     ok(c, await createTheme(c.get('core'), actorOf(c), bodyOf(c, ThemeInputSchema) as never)),
   )

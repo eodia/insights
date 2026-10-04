@@ -7,9 +7,9 @@
  * personnel appartient à son propriétaire ; les administrateurs les voient tous.
  */
 import type { ContentAccess, ItemKind } from '@eodia/contracts'
-import { isAdmin, userOf } from '../access/decide'
+import { isAdmin, principal, userOf } from '../access/decide'
 import type { Snapshot } from '../access/snapshot'
-import type { Core } from '../context'
+import type { Actor, Core } from '../context'
 
 const ORDER: readonly (ContentAccess | 'none')[] = ['none', 'view', 'edit', 'manage']
 const max = (a: ContentAccess | 'none', b: ContentAccess | 'none') => (ORDER.indexOf(a) >= ORDER.indexOf(b) ? a : b)
@@ -36,13 +36,23 @@ export class ContentIndex {
   private readonly shares: ReadonlyMap<string, readonly Share[]>
   private readonly memo = new Map<string, ContentAccess | 'none'>()
 
+  /** The person acting. */
+  readonly userId: string
+  /** Their identity in the space: their groups there (`userOf`). */
+  readonly who: string
+  /** The space the index covers: its folders only — anything else reads as absent. */
+  readonly workspace: string
+
   constructor(
     readonly snap: Snapshot,
-    readonly userId: string,
+    actor: Pick<Actor, 'userId' | 'workspaceId'>,
     folders: readonly FolderNode[],
     perms: readonly { folder_id: string; group_id: string; access: ContentAccess | 'none' }[],
     shares: readonly Share[],
   ) {
+    this.userId = actor.userId
+    this.workspace = actor.workspaceId
+    this.who = principal(actor.userId, actor.workspaceId)
     this.folders = new Map(folders.map((f) => [f.id, f]))
     const p = new Map<string, Map<string, ContentAccess | 'none'>>()
     for (const r of perms) {
@@ -61,12 +71,19 @@ export class ContentIndex {
     this.shares = s
   }
 
+  /** Administers the space (or the instance). */
   get admin(): boolean {
-    return isAdmin(this.snap, this.userId)
+    return isAdmin(this.snap, this.who)
   }
 
-  private sharedAccess(kind: ItemKind, id: string): ContentAccess | 'none' {
-    const groups = userOf(this.snap, this.userId)?.groups ?? new Set<string>()
+  /** May enter the space at all: a member, or an administrator of the instance. */
+  get member(): boolean {
+    return userOf(this.snap, this.who) !== undefined
+  }
+
+  /** What the shares of an element give the person. */
+  sharedAccess(kind: ItemKind, id: string): ContentAccess | 'none' {
+    const groups = userOf(this.snap, this.who)?.groups ?? new Set<string>()
     let out: ContentAccess | 'none' = 'none'
     for (const s of this.shares.get(`${kind}:${id}`) ?? []) {
       if ((s.principal_kind === 'user' && s.principal_id === this.userId) || (s.principal_kind === 'group' && groups.has(s.principal_id))) {
@@ -78,6 +95,7 @@ export class ContentIndex {
 
   /** The person's access to a folder: nearest explicit right per group, personal ownership, shares. */
   folder(id: string | null): ContentAccess | 'none' {
+    if (!this.member) return 'none'
     if (id === null) return this.admin ? 'manage' : 'view'
     const cached = this.memo.get(id)
     if (cached !== undefined) return cached
@@ -90,7 +108,7 @@ export class ContentIndex {
       } else if (this.admin) {
         out = 'manage'
       } else {
-        const groups = userOf(this.snap, this.userId)?.groups ?? new Set<string>()
+        const groups = userOf(this.snap, this.who)?.groups ?? new Set<string>()
         for (const g of groups) {
           // The nearest folder, this one or an ancestor, with a right for this group.
           let cursor: string | null = id
@@ -129,7 +147,10 @@ export class ContentIndex {
 
   /** An item's access: its folder's, its shares', and `edit` for its author. */
   item(kind: ItemKind, id: string, folder: string | null, createdBy: string | null): ContentAccess | 'none' {
-    let out = folder === null ? (this.admin ? 'manage' : 'none') : this.folder(folder)
+    // Every element lives in a folder (a dashboard's own questions, through their dashboard):
+    // one outside the space's folders is outside the space.
+    if (folder === null || !this.folders.has(folder)) return 'none'
+    let out = this.folder(folder)
     out = max(out, this.sharedAccess(kind, id))
     if (createdBy === this.userId && out === 'view') out = 'edit'
     if (createdBy === this.userId && out === 'none' && folder !== null && this.personalRoot(folder) === this.userId) out = 'manage'
@@ -150,16 +171,21 @@ export class ContentIndex {
   }
 }
 
-export async function contentIndex(core: Core, userId: string): Promise<ContentIndex> {
+/** The content of the actor's space as they may reach it: its folders, their rights, the shares. */
+export async function contentIndex(core: Core, actor: Pick<Actor, 'userId' | 'workspaceId'>): Promise<ContentIndex> {
   const snap = await core.snapshot()
   const [folders, perms, shares] = await Promise.all([
     core.db.many<{ id: string; parent: string | null; name: string; personal: string | null; archived: boolean }>(
-      'SELECT id, parent_id AS parent, name, personal_owner_id AS personal, archived FROM folder',
+      'SELECT id, parent_id AS parent, name, personal_owner_id AS personal, archived FROM folder WHERE workspace_id = $1',
+      [actor.workspaceId],
     ),
-    core.db.many<{ folder_id: string; group_id: string; access: ContentAccess | 'none' }>('SELECT folder_id, group_id, access FROM folder_permission'),
+    core.db.many<{ folder_id: string; group_id: string; access: ContentAccess | 'none' }>(
+      'SELECT p.folder_id, p.group_id, p.access FROM folder_permission p JOIN folder f ON f.id = p.folder_id WHERE f.workspace_id = $1',
+      [actor.workspaceId],
+    ),
     core.db.many<Share>('SELECT item_kind, item_id, principal_kind, principal_id, access FROM item_share'),
   ])
-  return new ContentIndex(snap, userId, folders, perms, shares)
+  return new ContentIndex(snap, actor, folders, perms, shares)
 }
 
 export const atLeastAccess = (a: ContentAccess | 'none', min: ContentAccess) => ORDER.indexOf(a) >= ORDER.indexOf(min)
@@ -184,5 +210,7 @@ export interface QuestionAccessRow {
 export function questionAccess(idx: ContentIndex, r: QuestionAccessRow): ContentAccess | 'none' {
   const kind: ItemKind = r.type === 'question' ? 'question' : r.type
   if (r.dashboard_id === null) return idx.item(kind, r.id, r.folder_id, r.created_by)
-  return max(idx.item('dashboard', r.dashboard_id, r.dashboard_folder, r.dashboard_owner), idx.item(kind, r.id, null, null))
+  // Its dashboard says whether it is in the space at all; its own shares may then open it more.
+  const viaDashboard = idx.item('dashboard', r.dashboard_id, r.dashboard_folder, r.dashboard_owner)
+  return viaDashboard === 'none' ? 'none' : max(viaDashboard, idx.sharedAccess(kind, r.id))
 }

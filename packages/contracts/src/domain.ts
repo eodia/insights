@@ -194,19 +194,59 @@ export interface UserSummary {
 }
 
 export interface Me extends UserSummary {
+  /** Administrator of the current space — or of the instance, which administers them all. */
   readonly is_admin: boolean
+  /** Administrator of the instance: every space, and the spaces themselves. */
+  readonly is_instance_admin: boolean
+  /** The groups the person belongs to in the current space. */
   readonly groups: readonly { id: string; name: string }[]
+  /** Their personal folder in the current space. */
   readonly personal_folder: string
   readonly locale: string
-  /** Rights over the instance. */
+  /** The space the person works in: what every screen and every query is about. */
+  readonly workspace: Workspace
+  /** The spaces they can enter. */
+  readonly workspaces: readonly Workspace[]
+  /** Rights in the current space. */
   readonly can: {
     readonly manage_sources: boolean
     readonly manage_metadata: boolean
     readonly manage_permissions: boolean
     readonly use_sql: boolean
     readonly create_folders: boolean
+    /** Its name, its look, its members. */
+    readonly manage_workspace: boolean
+    /** Creating spaces: the instance's administrators. */
+    readonly create_workspaces: boolean
   }
   readonly ai_enabled: boolean
+}
+
+// ── Espaces ─────────────────────────────────────────────────────────────────
+
+export type WorkspaceRole = 'admin' | 'member'
+
+/**
+ * A space of the instance: a team, a subsidiary. It has its sources (and those shared with
+ * it), its folders and their content, its groups and their rights; people belong to one or
+ * several.
+ */
+export interface Workspace {
+  readonly id: string
+  readonly name: string
+  readonly description: string | null
+  readonly color: LookColor | null
+  /** A lucide name, `emoji:…` or `img:https://…`. */
+  readonly icon: string | null
+  /** The person's role; null for an instance administrator who is not a member. */
+  readonly role: WorkspaceRole | null
+  readonly members: number
+  readonly archived: boolean
+}
+
+export interface WorkspaceMember extends UserSummary {
+  readonly role: WorkspaceRole
+  readonly added_at: string
 }
 
 export interface UserRow extends UserSummary {
@@ -252,6 +292,12 @@ export interface Datasource {
   }
   readonly stats: { readonly schemas: number; readonly tables: number; readonly columns: number }
   readonly created_at: string
+  /** The space it belongs to: its connection, its sync and its metadata are managed there. */
+  readonly workspace: { readonly id: string; readonly name: string }
+  /** Seen from a space it is shared with: read here, managed in its own. */
+  readonly shared: boolean
+  /** The spaces it is shared with — told to its own space only. */
+  readonly shared_with: readonly { readonly id: string; readonly name: string }[]
 }
 
 export interface DatasourceOptions {

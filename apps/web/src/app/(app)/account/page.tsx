@@ -35,6 +35,8 @@ interface ApiToken {
   readonly created_at: string
   readonly last_used_at: string | null
   readonly expires_at: string | null
+  /** The space it acts in: the one it was made in. */
+  readonly workspace: { readonly id: string; readonly name: string }
 }
 
 const SURFACE_LABELS: Record<Surface, string> = { rest: msg('API REST'), mcp: msg('Serveur MCP') }
@@ -152,6 +154,7 @@ function Profile({ me }: { me: Me }) {
 }
 
 function Tokens() {
+  const { data: me } = useMe()
   const qc = useQueryClient()
   const tokens = useQuery({ queryKey: adminKeys.tokens, queryFn: () => api.get<ApiToken[]>('/v1/me/tokens') })
   const [open, setOpen] = useState(false)
@@ -199,7 +202,7 @@ function Tokens() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{t.name}</div>
                     <div className="truncate text-xs text-muted-foreground">
-                      <code className="font-mono">{t.prefix}…</code> · {$t('créé {when}', { when: ago(t.created_at) })} · {t.last_used_at ? $t('utilisé {when}', { when: ago(t.last_used_at) }) : $t('jamais utilisé')}
+                      <code className="font-mono">{t.prefix}…</code> · {t.workspace.name} · {$t('créé {when}', { when: ago(t.created_at) })} · {t.last_used_at ? $t('utilisé {when}', { when: ago(t.last_used_at) }) : $t('jamais utilisé')}
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -277,7 +280,10 @@ function Tokens() {
             >
               <DialogHeader>
                 <DialogTitle>{$t('Nouveau jeton')}</DialogTitle>
-                <DialogDescription>{$t('Donnez-lui un nom qui dit où il sert : vous saurez lequel révoquer.')}</DialogDescription>
+                <DialogDescription>
+                  {$t('Donnez-lui un nom qui dit où il sert : vous saurez lequel révoquer.')}{' '}
+                  {$t('Il agira dans l’espace « {name} », avec vos droits.', { name: me?.workspace.name ?? '' })}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-1.5">
                 <Label htmlFor="token-name">{$t('Nom')}</Label>

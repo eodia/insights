@@ -22,6 +22,7 @@ import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { AppError, forbidden, invalid, notFound } from '../errors'
 import { QUESTION_ROWS, atLeastAccess, contentIndex, questionAccess } from './access'
+import { notHere, personalFolder } from '../workspaces'
 import { assertItemAccess, itemsWhere } from './folders'
 
 interface QuestionRow {
@@ -78,9 +79,9 @@ async function questionDto(core: Core, r: QuestionRow, access: Question['access'
 export async function getQuestion(core: Core, actor: Actor, id: string): Promise<Question> {
   const r = await core.db.one<QuestionRow>(`${QUESTION_ROWS} WHERE q.id = $1`, [id])
   if (!r) throw notFound('Question introuvable.')
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const access = questionAccess(idx, r)
-  if (access === 'none') throw notFound('Question introuvable.')
+  if (access === 'none') throw await notHere(core, actor, 'question', id, 'Question introuvable.')
   return questionDto(core, r, access)
 }
 
@@ -96,8 +97,9 @@ function checkMetric(input: QuestionInput): void {
 }
 
 async function checkFolder(core: Core, actor: Actor, folder: string | null | undefined): Promise<string> {
-  const idx = await contentIndex(core, actor.userId)
-  const target = folder ?? (await core.db.one<{ id: string }>('SELECT id FROM folder WHERE personal_owner_id = $1', [actor.userId]))?.id
+  const idx = await contentIndex(core, actor)
+  // Without a folder: the person's own, in the space they work in.
+  const target = folder ?? (await personalFolder(core, actor.userId, actor.workspaceId))
   if (!target) throw invalid('Choisissez un dossier.')
   if (!atLeastAccess(idx.folder(target), 'edit')) throw forbidden('Vous ne pouvez pas enregistrer dans ce dossier.')
   return target
@@ -117,8 +119,8 @@ export async function createQuestion(core: Core, actor: Actor, input: QuestionIn
   const dashboard = input.dashboard ? await checkDashboard(core, actor, input.dashboard, input.type) : null
   const folder = dashboard ? null : await checkFolder(core, actor, input.folder)
   const row = await core.db.one<{ id: string }>(
-    `INSERT INTO question (folder_id, dashboard_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by)
-     VALUES ($1, $11, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10) RETURNING id`,
+    `INSERT INTO question (folder_id, dashboard_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by, workspace_id)
+     VALUES ($1, $11, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10, $12) RETURNING id`,
     [
       folder,
       input.type ?? 'question',
@@ -131,6 +133,7 @@ export async function createQuestion(core: Core, actor: Actor, input: QuestionIn
       input.cache_ttl ?? null,
       actor.userId,
       dashboard?.id ?? null,
+      actor.workspaceId,
     ],
   )
   const id = row?.id as string
@@ -279,7 +282,7 @@ export async function deleteQuestion(core: Core, actor: Actor, id: string): Prom
 
 /** Models and metrics the person can see — sources for the builder, context for the copilot. */
 export async function listByType(core: Core, actor: Actor, type: Question['type']) {
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   return itemsWhere(core, actor, idx, `kind = $1`, [type])
 }
 
@@ -332,9 +335,9 @@ interface DashboardRow {
 export async function getDashboard(core: Core, actor: Actor, id: string): Promise<Dashboard> {
   const r = await core.db.one<DashboardRow>('SELECT * FROM dashboard WHERE id = $1', [id])
   if (!r) throw notFound('Tableau de bord introuvable.')
-  const idx = await contentIndex(core, actor.userId)
+  const idx = await contentIndex(core, actor)
   const access = idx.item('dashboard', r.id, r.folder_id, r.created_by)
-  if (access === 'none') throw notFound('Tableau de bord introuvable.')
+  if (access === 'none') throw await notHere(core, actor, 'dashboard', id, 'Tableau de bord introuvable.')
   const users = await summaryOf(core, [r.created_by])
   return {
     id: r.id,
@@ -368,8 +371,8 @@ export async function createDashboard(core: Core, actor: Actor, input: Dashboard
   checkCards(input)
   const folder = await checkFolder(core, actor, input.folder)
   const row = await core.db.one<{ id: string }>(
-    `INSERT INTO dashboard (folder_id, name, description, tabs, cards, parameters, auto_refresh, cache_ttl, preload, created_by, updated_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10) RETURNING id`,
+    `INSERT INTO dashboard (folder_id, name, description, tabs, cards, parameters, auto_refresh, cache_ttl, preload, created_by, updated_by, workspace_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10, $11) RETURNING id`,
     [
       folder,
       input.name.trim(),
@@ -381,6 +384,7 @@ export async function createDashboard(core: Core, actor: Actor, input: Dashboard
       input.cache_ttl ?? null,
       input.preload ?? false,
       actor.userId,
+      actor.workspaceId,
     ],
   )
   const id = row?.id as string
@@ -393,7 +397,7 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
   if (!atLeastAccess(current.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier ce tableau de bord.')
   checkCards(input)
   const folder = input.folder !== undefined && input.folder !== current.folder ? await checkFolder(core, actor, input.folder) : current.folder
-  if (input.theme !== undefined) await checkTheme(core, input.theme)
+  if (input.theme !== undefined) await checkTheme(core, actor, input.theme)
   await core.db.exec(
     `UPDATE dashboard SET folder_id = $2, name = $3, description = $4, tabs = $5, cards = $6, parameters = $7, auto_refresh = $8,
        cache_ttl = $9, preload = $10, archived = $11, updated_by = $12, theme_id = $13, updated_at = now() WHERE id = $1`,
@@ -440,9 +444,9 @@ export async function duplicateDashboard(core: Core, actor: Actor, id: string, f
   let cards = JSON.stringify(copy.cards)
   for (const q of own) {
     const row = await core.db.one<{ id: string }>(
-      `INSERT INTO question (folder_id, dashboard_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by)
-       SELECT NULL, $2, type, kind, name, description, query, visualization, columns_meta, cache_ttl, $3, $3 FROM question WHERE id = $1 RETURNING id`,
-      [q.id, copy.id, actor.userId],
+      `INSERT INTO question (folder_id, dashboard_id, type, kind, name, description, query, visualization, columns_meta, cache_ttl, created_by, updated_by, workspace_id)
+       SELECT NULL, $2, type, kind, name, description, query, visualization, columns_meta, cache_ttl, $3, $3, $4 FROM question WHERE id = $1 RETURNING id`,
+      [q.id, copy.id, actor.userId, actor.workspaceId],
     )
     if (row) cards = cards.split(q.id).join(row.id)
   }
