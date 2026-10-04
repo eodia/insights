@@ -1,6 +1,7 @@
 'use client'
 
 import type { Datasource, ItemSummary, TableMeta } from '@eodia/contracts'
+import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { Visualization } from '@/components/app/visualization'
@@ -257,7 +258,14 @@ export function Tables({ tables }: { tables: readonly TableMeta[] }) {
             </span>
           </Link>
         ))}
-        {tables.length === 0 ? <p className="px-2 text-sm text-white/60">{$t('Aucune table accessible pour l’instant.')}</p> : null}
+        {tables.length === 0 ? (
+          // The card is dark in both themes: the scene takes the dark colours.
+          <div className="dark flex flex-col items-center gap-1 pb-2 text-center">
+            <EmptyScene variant="no-tables" className="w-52" />
+            <p className="text-sm font-medium text-white/85">{$t('Aucune table accessible pour l’instant.')}</p>
+            <p className="max-w-64 text-xs text-white/55">{$t('Connectez une source, ou demandez à un administrateur de vous ouvrir ses tables.')}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   )

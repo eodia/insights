@@ -1,0 +1,392 @@
+/* The colours of the sign-in page's scene: the item tiles' tints, the charts' green, teal and lime. */
+.scene {
+  --ill-green: #2da31e;
+  --ill-teal: #14b8a6;
+  --ill-lime: #a3d93a;
+  --ill-indigo: #2563eb;
+  --ill-violet: #7c3aed;
+  --ill-amber: #f59e0b;
+  --ill-ink: color-mix(in oklab, var(--foreground) 22%, var(--card));
+  --ill-ink-strong: color-mix(in oklab, var(--foreground) 55%, var(--card));
+  --ill-soft: color-mix(in oklab, var(--muted-foreground) 30%, var(--card));
+  --ill-shadow: rgb(24 24 27 / 0.12);
+
+  display: block;
+  height: auto;
+  max-width: 100%;
+  overflow: visible;
+  pointer-events: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:global(.dark) .scene {
+  --ill-shadow: rgb(0 0 0 / 0.55);
+  --ill-ink: color-mix(in oklab, var(--foreground) 18%, var(--card));
+}
+
+.glowCenter {
+  stop-color: var(--primary);
+  stop-opacity: 0.13;
+}
+
+.glowWarm {
+  stop-color: var(--ill-amber);
+  stop-opacity: 0.12;
+}
+
+.glowEdge {
+  stop-color: var(--primary);
+  stop-opacity: 0;
+}
+
+.gridDot {
+  fill: var(--muted-foreground);
+  opacity: 0.35;
+}
+
+.shadowColor {
+  flood-color: var(--ill-shadow);
+}
+
+.window {
+  fill: var(--card);
+  stroke: var(--border);
+}
+
+.divider {
+  stroke: var(--border);
+}
+
+.gridLine {
+  stroke: var(--border);
+  stroke-dasharray: 2 3;
+}
+
+.dotRed {
+  fill: #ff5f57;
+}
+
+.dotYellow {
+  fill: #febc2e;
+}
+
+.dotGreen {
+  fill: #28c840;
+}
+
+.ink {
+  fill: var(--ill-ink);
+}
+
+.inkStrong {
+  fill: var(--ill-ink-strong);
+}
+
+.soft {
+  fill: var(--ill-soft);
+}
+
+/* Item tiles: a question is green, a dashboard teal, a model indigo, a folder the brand's green. */
+.question {
+  --tone: var(--ill-green);
+}
+
+.dashboard {
+  --tone: var(--ill-teal);
+}
+
+.model {
+  --tone: var(--ill-indigo);
+}
+
+.folder {
+  --tone: var(--primary);
+}
+
+.filter {
+  --tone: var(--ill-violet);
+}
+
+.toneFill {
+  fill: var(--tone);
+  opacity: 0.55;
+}
+
+.toneSolid {
+  fill: var(--tone);
+}
+
+.tileBack {
+  fill: color-mix(in oklab, var(--tone) 16%, var(--card));
+}
+
+.tileGlyph {
+  stroke: var(--tone);
+  stroke-width: 1.3;
+  fill: none;
+}
+
+.tileCard {
+  fill: color-mix(in oklab, var(--muted) 70%, var(--card));
+  stroke: var(--border);
+}
+
+.bar1Top {
+  stop-color: color-mix(in srgb, var(--ill-green) 78%, #fff);
+}
+
+.bar1 {
+  stop-color: var(--ill-green);
+}
+
+.bar2Top {
+  stop-color: color-mix(in srgb, var(--ill-teal) 78%, #fff);
+}
+
+.bar2 {
+  stop-color: var(--ill-teal);
+}
+
+.bar3Top {
+  stop-color: color-mix(in srgb, var(--ill-lime) 78%, #fff);
+}
+
+.bar3 {
+  stop-color: var(--ill-lime);
+}
+
+.line {
+  stroke: var(--ill-teal);
+  stroke-width: 1.6;
+}
+
+.button {
+  fill: var(--primary);
+}
+
+.selected {
+  fill: color-mix(in oklab, var(--primary) 12%, var(--card));
+  stroke: color-mix(in oklab, var(--primary) 45%, var(--card));
+}
+
+.slot {
+  stroke: var(--border);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+}
+
+.slotTarget {
+  fill: color-mix(in oklab, var(--primary) 7%, var(--card));
+  stroke: color-mix(in oklab, var(--primary) 60%, var(--card));
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+}
+
+.plusBack {
+  fill: color-mix(in oklab, var(--primary) 18%, var(--card));
+}
+
+.plus {
+  stroke: var(--primary);
+  stroke-width: 1.6;
+}
+
+.path {
+  stroke: color-mix(in oklab, var(--primary) 55%, transparent);
+  stroke-width: 1.4;
+  stroke-dasharray: 2 4;
+}
+
+.pathHead {
+  stroke: color-mix(in oklab, var(--primary) 70%, transparent);
+  stroke-width: 1.4;
+}
+
+.cursorShape {
+  fill: var(--foreground);
+  stroke: var(--card);
+  stroke-width: 1.2;
+}
+
+.ripple {
+  fill: color-mix(in oklab, var(--primary) 35%, transparent);
+}
+
+.spark {
+  stroke: color-mix(in oklab, var(--primary) 70%, transparent);
+  stroke-width: 1.5;
+}
+
+.sparkDot {
+  fill: var(--ill-teal);
+  opacity: 0.6;
+}
+
+.area {
+  fill: color-mix(in oklab, var(--ill-teal) 18%, transparent);
+}
+
+/* No row: the lens finds nothing. */
+.lens {
+  fill: var(--card);
+  stroke: var(--ill-ink-strong);
+  stroke-width: 3;
+}
+
+.lensHandle {
+  stroke: var(--ill-ink-strong);
+  stroke-width: 6;
+}
+
+.nothing {
+  stroke: var(--ill-soft);
+  stroke-width: 2;
+}
+
+/* No table: a base, tinted like a model. */
+.baseBody {
+  fill: color-mix(in oklab, var(--ill-indigo) 14%, var(--card));
+  stroke: color-mix(in oklab, var(--ill-indigo) 45%, var(--card));
+}
+
+.baseTop {
+  fill: color-mix(in oklab, var(--ill-indigo) 26%, var(--card));
+  stroke: color-mix(in oklab, var(--ill-indigo) 45%, var(--card));
+}
+
+.baseRing {
+  stroke: color-mix(in oklab, var(--ill-indigo) 40%, var(--card));
+}
+
+.baseLight {
+  fill: var(--ill-green);
+}
+
+/* Not found: the number, in the charts' colours. */
+.bigNumber {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -2px;
+}
+
+/* Error: a warning, in amber. */
+.jolt {
+  stroke: var(--ill-amber);
+  stroke-width: 1.6;
+}
+
+.warningBack {
+  fill: color-mix(in oklab, var(--ill-amber) 16%, var(--card));
+  stroke: color-mix(in oklab, var(--ill-amber) 40%, var(--card));
+}
+
+.warning {
+  fill: var(--ill-amber);
+  stroke: var(--ill-amber);
+  stroke-width: 2;
+}
+
+.warningMark {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.warningDot {
+  fill: #fff;
+}
+
+.float {
+  animation: float 7s ease-in-out infinite;
+}
+
+.floatSlow {
+  animation: float 9s ease-in-out -3s infinite;
+}
+
+.wander {
+  animation: wander 6s ease-in-out infinite;
+}
+
+.bars rect {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bars rect:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.bars rect:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.bars rect:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.click circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: click 3.2s ease-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes wander {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-6px, 4px);
+  }
+  66% {
+    transform: translate(3px, -4px);
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes click {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  45%,
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float,
+  .floatSlow,
+  .wander,
+  .bars rect,
+  .click circle {
+    animation: none;
+  }
+
+  .click circle {
+    opacity: 0;
+  }
+}

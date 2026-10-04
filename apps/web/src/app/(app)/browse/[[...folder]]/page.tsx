@@ -7,7 +7,7 @@ import { FavoriteBadge, FavoriteIcon } from '@/components/app/favorite-icon'
 import { Avatar, Chip, ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
-import { BrowseIllustration } from '@/components/app/browse-illustration'
+import { EmptyScene } from '@/components/app/empty-scene'
 import {
   ItemMenu,
   SelectionBar,
@@ -775,7 +775,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
           ))}
           {!isLoading && visible.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-              <BrowseIllustration variant="folder" className="mx-auto mb-5 w-44" />
+              <EmptyScene variant="folder" className="mx-auto mb-5 w-44" />
               <p>
                 {folderId === 'root' ? $t('Choisissez un dossier.') : $t('Ce dossier est vide.')}
               </p>
@@ -804,7 +804,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
           )
         ) : (
           <div className="m-auto w-full max-w-sm px-6 py-10 text-center">
-            <BrowseIllustration variant="preview" className="mx-auto mb-6 w-64" />
+            <EmptyScene variant="preview" className="mx-auto mb-6 w-64" />
             <p className="text-sm leading-relaxed text-muted-foreground">
               {folder
                 ? folder.description || $t('Sélectionnez un élément pour le prévisualiser.')

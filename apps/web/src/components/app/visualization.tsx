@@ -3,6 +3,7 @@
 import type { ResultColumn, Visualization as Viz, VisualizationSettings } from '@eodia/contracts'
 import { ruleColor } from '@eodia/contracts'
 import { EChart } from '@/components/app/echart'
+import { EmptyScene } from '@/components/app/empty-scene'
 import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
@@ -95,7 +96,13 @@ export function Visualization({
   }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius])
 
   if (result.rows.length === 0) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{$t('Aucun résultat')}</div>
+    return (
+      <div className="flex h-full min-h-0 flex-col items-center justify-center gap-1.5 p-3 text-center">
+        <EmptyScene variant="no-rows" className="h-auto max-h-[62%] min-h-0 w-40" />
+        <p className="text-sm font-medium text-foreground">{$t('Aucun résultat')}</p>
+        {compact ? null : <p className="max-w-xs text-xs text-muted-foreground">{$t('La requête n’a trouvé aucune ligne : un filtre est peut-être trop étroit.')}</p>}
+      </div>
+    )
   }
   switch (viz.type) {
     case 'table':
