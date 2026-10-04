@@ -1,6 +1,7 @@
 'use client'
 
 import type { ItemSummary } from '@eodia/contracts'
+import { FavoriteBadge } from '@/components/app/favorite-icon'
 import { ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { api } from '@/lib/api'
@@ -9,7 +10,7 @@ import { $t } from '@/lib/i18n'
 import { useDatasources, useMe, useTables } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BarChart3, Code2, Database, LayoutDashboard, Sparkles, Star } from 'lucide-react'
+import { ArrowRight, BarChart3, Code2, Database, LayoutDashboard, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 function ItemCard({ item }: { item: ItemSummary }) {
@@ -23,7 +24,7 @@ function ItemCard({ item }: { item: ItemSummary }) {
           {item.updated_by ? ` · ${item.updated_by.name}` : ''}
         </div>
       </div>
-      {item.bookmarked ? <Star className="size-4 fill-amber-400 text-amber-400" /> : null}
+      {item.bookmarked ? <FavoriteBadge /> : null}
     </Link>
   )
 }

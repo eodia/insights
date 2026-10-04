@@ -1,6 +1,7 @@
 'use client'
 
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
+import { FavoriteIcon } from '@/components/app/favorite-icon'
 import { ConfirmDialog, FolderPicker } from '@/components/app/dialogs'
 import { ShareDialog } from '@/components/app/share-dialog'
 import { ThemePicker } from '@/components/app/theme-picker'
@@ -41,7 +42,6 @@ import {
   Plus,
   Settings2,
   Share2,
-  Star,
   Trash2,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -323,7 +323,7 @@ function DashboardScreen({ id }: { id: string }) {
                         toast.success($t('Ajouté aux favoris.'))
                       }}
                     >
-                      <Star /> {$t('Ajouter aux favoris')}
+                      <FavoriteIcon /> {$t('Ajouter aux favoris')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={async () => {

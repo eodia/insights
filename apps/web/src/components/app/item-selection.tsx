@@ -2,6 +2,7 @@
 
 import type { ItemSummary } from '@eodia/contracts'
 import { ConfirmDialog } from '@/components/app/dialogs'
+import { FavoriteIcon } from '@/components/app/favorite-icon'
 import { itemHref } from '@/components/app/palette'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -19,7 +20,7 @@ import { api } from '@/lib/api'
 import { $t, $tp } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowUpRight, CheckSquare, Share2, Square, Star, Trash2, X } from 'lucide-react'
+import { ArrowUpRight, CheckSquare, Share2, Square, Trash2, X } from 'lucide-react'
 import { type MouseEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -228,7 +229,7 @@ export function ItemMenu({
               {ticked ? $t('Désélectionner') : $t('Sélectionner')}
             </ContextMenuItem>
             <ContextMenuItem onSelect={onBookmark}>
-              <Star className={cn(item.bookmarked && 'fill-amber-400 text-amber-400')} />
+              <FavoriteIcon active={item.bookmarked} />
               {item.bookmarked ? $t('Retirer des favoris') : $t('Ajouter aux favoris')}
             </ContextMenuItem>
             <ContextMenuItem onSelect={onShare}>
