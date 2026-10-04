@@ -19,6 +19,15 @@ import { ENGINES } from './domain'
 import { DATE_STYLES, LOOK_COLORS, NUMBER_STYLES, SEMANTIC_TYPES, VISIBILITIES } from './metadata'
 import { COLUMN_ACCESS, DATA_ACCESS, FOLDER_ACCESS, QUERY_LEVELS, ROW_OPS } from './permissions'
 
+/**
+ * A pictogram: a lucide name, `emoji:…`, or `img:` and an image — its `https://` address, or the
+ * image itself, sent small (`data:image/…`, reduced to 96 pixels by the app).
+ */
+export const IconSchema = z
+  .string()
+  .max(20_000)
+  .refine((v) => !v.startsWith('img:') || /^img:(https?:\/\/|data:image\/(png|jpeg|webp|gif|svg\+xml);base64,)/.test(v), 'Image : une adresse https ou une image envoyée.')
+
 const id = z.string().min(1).max(64)
 const name = z.string().trim().min(1).max(200)
 
@@ -183,7 +192,7 @@ export const TablePatchSchema = z
     visibility: z.enum(VISIBILITIES),
     entity: z.string().max(120).nullable(),
     color,
-    icon: z.string().max(500).nullable(),
+    icon: IconSchema.nullable(),
     display_column: z.string().max(256).nullable(),
   })
   .partial()
@@ -204,7 +213,7 @@ export const ColumnValueSchema = z.object({
   value: z.string().max(2000),
   label: z.string().max(200).nullable().optional(),
   color: color.optional(),
-  icon: z.string().max(500).nullable().optional(),
+  icon: IconSchema.nullable().optional(),
   image_url: z.string().max(2000).nullable().optional(),
 })
 
@@ -234,7 +243,7 @@ export const FolderInputSchema = z.object({
   parent: id.nullable().optional(),
   description: z.string().max(2000).nullable().optional(),
   color: color.optional(),
-  icon: z.string().max(500).nullable().optional(),
+  icon: IconSchema.nullable().optional(),
   /** The theme of the folder and all it holds; null: the parent's. */
   theme: id.nullable().optional(),
 })

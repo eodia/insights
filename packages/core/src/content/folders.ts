@@ -106,6 +106,76 @@ export async function updateFolder(
   return getFolder(core, actor, id)
 }
 
+/** The folder and every sub-folder under it, at any depth. */
+const SUBTREE = `WITH RECURSIVE tree AS (
+  SELECT id FROM folder WHERE id = $1
+  UNION ALL SELECT f.id FROM folder f JOIN tree t ON f.parent_id = t.id
+)`
+/** What deleting the subtree takes: its dashboards, and its questions with those of its dashboards. */
+const DOOMED = `${SUBTREE},
+doomed_dashboard AS (SELECT id FROM dashboard WHERE folder_id IN (SELECT id FROM tree)),
+doomed_question AS (
+  SELECT id FROM question
+  WHERE folder_id IN (SELECT id FROM tree) OR dashboard_id IN (SELECT id FROM doomed_dashboard)
+)`
+
+/** What a folder holds, sub-folders included — what its deletion would take, or hand to its parent. */
+export async function folderContents(core: Core, actor: Actor, id: string): Promise<{ folders: number; dashboards: number; questions: number }> {
+  const idx = await contentIndex(core, actor.userId)
+  if (idx.folder(id) === 'none') throw notFound('Dossier introuvable.')
+  const row = await core.db.one<{ folders: number; dashboards: number; questions: number }>(
+    `${DOOMED}
+     SELECT (SELECT count(*)::int - 1 FROM tree) AS folders,
+            (SELECT count(*)::int FROM doomed_dashboard) AS dashboards,
+            (SELECT count(*)::int FROM doomed_question) AS questions`,
+    [id],
+  )
+  return row ?? { folders: 0, dashboards: 0, questions: 0 }
+}
+
+/**
+ * Deletes a folder. `move`: what it holds — sub-folders, dashboards, questions — goes up to its
+ * parent. `delete`: everything under it goes too, sub-folders included; refused while a question
+ * left outside still relies on a model or a metric it holds.
+ */
+export async function deleteFolder(core: Core, actor: Actor, id: string, mode: 'move' | 'delete'): Promise<void> {
+  const idx = await contentIndex(core, actor.userId)
+  const row = await core.db.one<FolderRow>('SELECT * FROM folder WHERE id = $1', [id])
+  if (!row || idx.folder(id) === 'none') throw notFound('Dossier introuvable.')
+  if (row.personal_owner_id) throw invalid('Un dossier personnel ne se supprime pas.')
+  if (!atLeastAccess(idx.folder(id), 'manage')) throw forbidden('Il faut le droit de gestion sur le dossier pour le supprimer.')
+  if (mode === 'move' && row.parent_id === null && !idx.admin) throw forbidden('Seul un administrateur range des éléments à la racine.')
+  const tree = await core.db.many<{ id: string }>(`${SUBTREE} SELECT id FROM tree`, [id])
+  if (mode === 'delete' && tree.some((f) => !atLeastAccess(idx.folder(f.id), 'edit'))) {
+    throw forbidden('Un sous-dossier vous est fermé : il ne peut pas être supprimé avec le reste.')
+  }
+  await core.db.tx(async (client) => {
+    if (mode === 'move') {
+      for (const table of ['question', 'dashboard']) {
+        await core.db.exec(`UPDATE ${table} SET folder_id = $2 WHERE folder_id = $1`, [id, row.parent_id], client)
+      }
+      await core.db.exec('UPDATE folder SET parent_id = $2 WHERE parent_id = $1', [id, row.parent_id], client)
+    } else {
+      const relying = await core.db.one<{ n: number }>(
+        `${DOOMED}
+         SELECT count(*)::int AS n FROM question o
+         WHERE o.id NOT IN (SELECT id FROM doomed_question) AND NOT o.archived
+           AND EXISTS (SELECT 1 FROM doomed_question d WHERE o.query::text LIKE '%' || d.id || '%')`,
+        [id],
+        client,
+      )
+      if ((relying?.n ?? 0) > 0) {
+        throw new AppError('CONFLICT', `${relying?.n} question(s) hors du dossier s'appuient sur un modèle ou une métrique qu'il contient : déplacez-les d'abord, ou reportez le contenu dans le dossier parent.`)
+      }
+      await core.db.exec(`${DOOMED} DELETE FROM question WHERE id IN (SELECT id FROM doomed_question)`, [id], client)
+      await core.db.exec(`${DOOMED} DELETE FROM dashboard WHERE id IN (SELECT id FROM doomed_dashboard)`, [id], client)
+    }
+    // Its sub-folders, if any are left, and its permissions go with it (ON DELETE CASCADE).
+    await core.db.exec('DELETE FROM folder WHERE id = $1', [id], client)
+  })
+  await audit(core, actor, 'folder.delete', { kind: 'folder', id }, { name: row.name, mode })
+}
+
 /** Questions, models, metrics, dashboards and sub-folders of a folder the person may see. */
 export async function folderItems(core: Core, actor: Actor, folderId: string | null): Promise<{ folders: Folder[]; items: ItemSummary[] }> {
   const idx = await contentIndex(core, actor.userId)

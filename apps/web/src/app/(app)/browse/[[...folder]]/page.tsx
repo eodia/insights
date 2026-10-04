@@ -1,7 +1,9 @@
 'use client'
 
 import type { Folder, ItemKind, ItemSummary, LookColor } from '@eodia/contracts'
-import { ColorPicker, IconPicker } from '@/components/app/structure/pickers'
+import { IconPicker } from '@/components/app/structure/pickers'
+import { FolderMenu } from '@/components/app/folder-menu'
+import { FavoriteBadge, FavoriteIcon } from '@/components/app/favorite-icon'
 import { Avatar, Chip, ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
@@ -26,7 +28,6 @@ import { draggable, useDropFolder } from '@/lib/dnd'
 import { keys, useDashboard, useFolderItems, useFolders, useMe, useQuestion } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { VIZ_LABELS } from '@/lib/viz'
-import { ThemePicker } from '@/components/app/theme-picker'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -35,10 +36,10 @@ import {
   FolderOpen,
   FolderPlus,
   Loader2,
+  MoreHorizontal,
   PanelRight,
   Search,
   Share2,
-  Star,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -176,7 +177,7 @@ function Row({
           {item.viz && item.kind === 'question' ? (
             <Chip>{$t(VIZ_LABELS[item.viz as keyof typeof VIZ_LABELS] ?? item.viz)}</Chip>
           ) : null}
-          {item.bookmarked ? <Star className="size-3.5 fill-amber-400 text-amber-400" /> : null}
+          {item.bookmarked ? <FavoriteBadge /> : null}
           <span className="flex-1" />
           {item.updated_by ? (
             <Avatar name={item.updated_by.name} color={item.updated_by.color} size="sm" />
@@ -187,17 +188,28 @@ function Row({
   )
 }
 
-/** A sub-folder: opened by a click, filed elsewhere by a drag, and a place to drop items on. */
+/**
+ * A sub-folder: opened by a click, filed elsewhere by a drag, and a place to drop items on. With
+ * `menu`, a right click opens the folder's menu.
+ */
 function FolderTile({
   folder,
   label,
   draggableAs,
   icon,
-}: { folder: string | null; label: string; draggableAs?: Folder; icon?: React.ReactNode }) {
+  menu,
+}: {
+  folder: string | null
+  label: string
+  draggableAs?: Folder
+  icon?: React.ReactNode
+  menu?: Folder
+}) {
   const drop = useDropFolder(folder, label)
-  return (
+  const href = folder ? `/browse/${folder}` : '/browse'
+  const tile = (
     <Link
-      href={folder ? `/browse/${folder}` : '/browse'}
+      href={href}
       {...(draggableAs
         ? draggable({ kind: 'folder', id: draggableAs.id, name: label, folder: draggableAs.parent })
         : {})}
@@ -211,58 +223,68 @@ function FolderTile({
       <span className="truncate">{label}</span>
     </Link>
   )
+  return menu ? (
+    <FolderMenu folder={menu} as="context">
+      {tile}
+    </FolderMenu>
+  ) : (
+    tile
+  )
 }
 
-/** The folder's name with its pictogram and colour — to change them for those who may. */
+/**
+ * The folder's name and pictogram. For those who may, the pictogram opens its icon and colour,
+ * chosen in one place; « ⋯ » and a right click open its menu — its theme, its deletion.
+ */
 function FolderLook({ folder, label }: { folder: Folder; label: string }) {
   const qc = useQueryClient()
   const editable = folder.access === 'edit' || folder.access === 'manage'
   const patch = async (p: { icon?: string | null; color?: LookColor | null }) => {
     try {
       await api.patch(`/v1/folders/${folder.id}`, p)
-      await Promise.all([qc.invalidateQueries({ queryKey: keys.folders }), qc.invalidateQueries({ queryKey: ['folder-items'] })])
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: keys.folders }),
+        qc.invalidateQueries({ queryKey: ['folder-items'] }),
+      ])
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
     }
   }
+  const glyph = folder.icon ? (
+    <LookIcon name={folder.icon} color={folder.color} className="size-5" />
+  ) : (
+    <FolderOpen className="size-4 text-muted-foreground" />
+  )
   return (
     <div className="flex items-center gap-2 border-b px-3 py-2.5">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-        {folder.icon ? <LookIcon name={folder.icon} color={folder.color} className="size-5" /> : <FolderOpen className="size-4 text-muted-foreground" />}
-      </span>
-      <span className="min-w-0 flex-1 truncate font-semibold">{label}</span>
       {editable ? (
-        <>
-          <FolderTheme folder={folder} />
-          <IconPicker value={folder.icon} color={folder.color} onChange={(icon) => void patch({ icon })} size="xs" />
-          <ColorPicker value={folder.color} onChange={(color) => void patch({ color })} size="xs" />
-        </>
-      ) : null}
+        <IconPicker
+          value={folder.icon}
+          color={folder.color}
+          onChange={(icon) => void patch({ icon })}
+          onColorChange={(color) => void patch({ color })}
+          trigger={
+            <button
+              type="button"
+              aria-label={$t('Changer le picto et la couleur')}
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted transition-shadow hover:ring-2 hover:ring-primary/40 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              {glyph}
+            </button>
+          }
+        />
+      ) : (
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+          {glyph}
+        </span>
+      )}
+      <span className="min-w-0 flex-1 truncate font-semibold">{label}</span>
+      <FolderMenu folder={folder} as="dropdown">
+        <Button variant="ghost" size="icon-sm" aria-label={$t('Actions du dossier')}>
+          <MoreHorizontal className="size-4" />
+        </Button>
+      </FolderMenu>
     </div>
-  )
-}
-
-/** The folder's theme: what it and all it holds wear. */
-function FolderTheme({ folder }: { folder: Folder }) {
-  const qc = useQueryClient()
-  const { data: full } = useQuery({ queryKey: ['folder', folder.id], queryFn: () => api.get<Folder>(`/v1/folders/${folder.id}`) })
-  return (
-    <ThemePicker
-      value={full?.theme ?? folder.theme ?? null}
-      resolved={full?.resolved_theme}
-      self={folder.id}
-      size="xs"
-      className="w-48"
-      onChange={async (theme) => {
-        try {
-          await api.patch(`/v1/folders/${folder.id}`, { theme })
-          await Promise.all([qc.invalidateQueries({ queryKey: ['folder', folder.id] }), qc.invalidateQueries({ queryKey: keys.folders }), qc.invalidateQueries({ queryKey: ['dashboard'] })])
-          toast.success(theme ? $t('Thème posé : tout le dossier le porte.') : $t('Le dossier reprend le thème dont il hérite.'))
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : String(err))
-        }
-      }}
-    />
   )
 }
 
@@ -490,7 +512,7 @@ function Details({
         </dl>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={onBookmark}>
-            <Star className={cn(item.bookmarked && 'fill-amber-400 text-amber-400')} />{' '}
+            <FavoriteIcon active={item.bookmarked} />{' '}
             {item.bookmarked ? $t('Retirer des favoris') : $t('Favori')}
           </Button>
           <Button variant="outline" size="sm" onClick={onShare}>
@@ -594,7 +616,12 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
         max={640}
         className="flex flex-col border-r"
       >
-        {folder && !folder.personal ? <FolderLook folder={folder} label={folderLabel(folder, me?.id)} /> : null}
+        {folder && !folder.personal ? (
+          <FolderLook
+            folder={folder}
+            label={folderLabel(folder, me?.id)}
+          />
+        ) : null}
         <div className="flex items-center gap-2 p-3">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -678,6 +705,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
                     folder={f.id}
                     label={folderLabel(f, me?.id)}
                     {...(f.personal ? {} : { draggableAs: f })}
+                    menu={f}
                     icon={
                       f.icon ? (
                         <LookIcon name={f.icon} color={f.color} />

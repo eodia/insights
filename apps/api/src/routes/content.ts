@@ -19,7 +19,9 @@ import {
   listThemes,
   updateTheme,
   deleteDashboard,
+  deleteFolder,
   deleteQuestion,
+  folderContents,
   deleteSnippet,
   duplicateDashboard,
   duplicateQuestion,
@@ -164,6 +166,15 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'patch', path: '/api/v1/folders/:id', tags: ftags, summary: 'Modifier, déplacer ou archiver un dossier', body: FolderPatch }, async (c) =>
     ok(c, await updateFolder(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, FolderPatch) as never)),
   )
+  route(app, { method: 'get', path: '/api/v1/folders/:id/contents', tags: ftags, summary: 'Ce que contient un dossier, sous-dossiers compris' }, async (c) =>
+    ok(c, await folderContents(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'delete', path: '/api/v1/folders/:id', tags: ftags, summary: 'Supprimer un dossier : son contenu passe au dossier parent (mode=move) ou part avec lui (mode=delete)' }, async (c) => {
+    const mode = c.req.query('mode')
+    if (mode !== 'move' && mode !== 'delete') throw new AppError('INVALID_INPUT', 'Précisez mode=move ou mode=delete.')
+    await deleteFolder(c.get('core'), actorOf(c), param(c, 'id'), mode)
+    return ok(c)
+  })
   // ── Thèmes ──
   const ttags = ['Thèmes']
   const ThemePatch = ThemeInputSchema.partial()

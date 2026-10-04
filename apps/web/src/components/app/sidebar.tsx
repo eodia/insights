@@ -20,6 +20,7 @@ import { Orb } from '@/components/app/assistant/orb'
 import { api } from '@/lib/api'
 import { $t, LOCALES, LOCALE_NAMES, chooseLocale, rememberedLocale } from '@/lib/i18n'
 import { draggable, useDropFolder } from '@/lib/dnd'
+import { FolderMenu } from '@/components/app/folder-menu'
 import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
@@ -95,7 +96,7 @@ function NavItem({
 
 /**
  * A folder of the tree: its sub-folders unfold under it, and an item or folder dragged onto it
- * is filed there.
+ * is filed there. A right click opens its menu — its theme, its deletion.
  */
 function FolderNode({ folder, folders, depth, path, me }: { folder: Folder; folders: readonly Folder[]; depth: number; path: string; me: string | undefined }) {
   const children = folders.filter((f) => f.parent === folder.id)
@@ -110,42 +111,44 @@ function FolderNode({ folder, folders, depth, path, me }: { folder: Folder; fold
   const drop = useDropFolder(folder.id, label)
   return (
     <>
-      <Link
-        href={href}
-        {...(folder.personal ? {} : draggable({ kind: 'folder', id: folder.id, name: label, folder: folder.parent }))}
-        {...drop.props}
-        style={{ paddingLeft: 16 + depth * 14 }}
-        className={cn(
-          'group flex h-9 items-center gap-2 rounded-lg pr-2 text-sm text-muted-foreground transition-colors',
-          active ? 'bg-sidebar-accent font-medium text-foreground' : 'hover:bg-sidebar-accent/70',
-          drop.over && 'bg-primary/10 text-foreground ring-2 ring-primary/40',
-        )}
-      >
-        {children.length ? (
-          <button
-            type="button"
-            aria-label={unfolded ? $t('Replier') : $t('Déplier')}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setOpen(!unfolded)
-            }}
-            className="-ml-1 rounded p-0.5 hover:bg-sidebar-accent"
-          >
-            <ChevronRight className={cn('size-3.5 transition-transform', unfolded && 'rotate-90')} />
-          </button>
-        ) : (
-          <span className="w-[18px] shrink-0" />
-        )}
-        {folder.icon ? (
-          <LookIcon name={folder.icon} color={folder.color} className="size-4 shrink-0" />
-        ) : folder.personal ? (
-          <FolderLock className="size-4 shrink-0 text-muted-foreground" />
-        ) : (
-          <FolderClosed className="size-4 shrink-0 text-muted-foreground" />
-        )}
-        <span className="truncate">{label}</span>
-      </Link>
+      <FolderMenu folder={folder} as="context">
+        <Link
+          href={href}
+          {...(folder.personal ? {} : draggable({ kind: 'folder', id: folder.id, name: label, folder: folder.parent }))}
+          {...drop.props}
+          style={{ paddingLeft: 16 + depth * 14 }}
+          className={cn(
+            'group flex h-9 items-center gap-2 rounded-lg pr-2 text-sm text-muted-foreground transition-colors',
+            active ? 'bg-sidebar-accent font-medium text-foreground' : 'hover:bg-sidebar-accent/70',
+            drop.over && 'bg-primary/10 text-foreground ring-2 ring-primary/40',
+          )}
+        >
+          {children.length ? (
+            <button
+              type="button"
+              aria-label={unfolded ? $t('Replier') : $t('Déplier')}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setOpen(!unfolded)
+              }}
+              className="-ml-1 rounded p-0.5 hover:bg-sidebar-accent"
+            >
+              <ChevronRight className={cn('size-3.5 transition-transform', unfolded && 'rotate-90')} />
+            </button>
+          ) : (
+            <span className="w-[18px] shrink-0" />
+          )}
+          {folder.icon ? (
+            <LookIcon name={folder.icon} color={folder.color} className="size-4 shrink-0" />
+          ) : folder.personal ? (
+            <FolderLock className="size-4 shrink-0 text-muted-foreground" />
+          ) : (
+            <FolderClosed className="size-4 shrink-0 text-muted-foreground" />
+          )}
+          <span className="truncate">{label}</span>
+        </Link>
+      </FolderMenu>
       {unfolded
         ? children.map((c) => <FolderNode key={c.id} folder={c} folders={folders} depth={depth + 1} path={path} me={me} />)
         : null}

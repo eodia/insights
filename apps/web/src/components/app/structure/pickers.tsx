@@ -2,7 +2,7 @@
 
 import { LOOK_COLORS, type LookColor } from '@eodia/contracts'
 import { LookIcon } from '@/components/app/look'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,11 +10,12 @@ import { Hint } from '@/components/ui/tooltip'
 import { LOOK_HEX } from '@/lib/format'
 import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { Ban, ImagePlus, Palette, Shapes, Smile } from 'lucide-react'
+import { Ban, ImagePlus, Palette, Shapes, Smile, Upload } from 'lucide-react'
 import { iconNames } from 'lucide-react/dynamic'
 import { Segmented } from '@/components/ui/segmented'
 import { EMOJI_GROUPS, ICON_GROUPS } from '@/lib/icon-library'
-import { useEffect, useRef, useState } from 'react'
+import { type ReactElement, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 export const COLOR_NAMES: Record<LookColor, string> = {
   gray: msg('Gris'),
@@ -89,6 +90,28 @@ export function ColorPicker({ value, onChange, disabled, size = 'sm' }: { value:
   )
 }
 
+/**
+ * An image sent as a pictogram, made small: 96 pixels at most on its longer side, in WebP (PNG
+ * where the browser cannot), as a `data:` address the pictogram carries itself.
+ */
+async function shrinkImage(file: File, max = 96): Promise<string> {
+  const src = URL.createObjectURL(file)
+  try {
+    const img = new Image()
+    img.src = src
+    await img.decode()
+    const scale = Math.min(1, max / Math.max(img.naturalWidth || max, img.naturalHeight || max))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round((img.naturalWidth || max) * scale))
+    canvas.height = Math.max(1, Math.round((img.naturalHeight || max) * scale))
+    canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height)
+    const webp = canvas.toDataURL('image/webp', 0.9)
+    return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/png')
+  } finally {
+    URL.revokeObjectURL(src)
+  }
+}
+
 /** Common pictograms, by their lucide name — the first of the library's themes. */
 export const COMMON_ICONS = ICON_GROUPS.flatMap((g) => g.icons)
 
@@ -99,9 +122,11 @@ const kindOf = (v: string | null | undefined) => (v?.startsWith('emoji:') ? 'emo
 
 /**
  * A pictogram to choose: one of lucide's (by theme, or searched among all of them), an emoji,
- * or an image by its address. Stored as the lucide name, `emoji:…` or `img:…`.
+ * or an image by its address. Stored as the lucide name, `emoji:…` or `img:…`. With
+ * `onColorChange`, its colour is chosen in the same place, above; with `trigger`, it opens from
+ * that element rather than its own button.
  */
-export function IconPicker({ value, onChange, disabled, color, size = 'sm' }: { value: string | null | undefined; onChange: (icon: string | null) => void; disabled?: boolean; color?: LookColor | null; size?: 'sm' | 'xs' }) {
+export function IconPicker({ value, onChange, disabled, color, onColorChange, trigger, size = 'sm' }: { value: string | null | undefined; onChange: (icon: string | null) => void; disabled?: boolean; color?: LookColor | null; onColorChange?: (c: LookColor | null) => void; trigger?: ReactElement; size?: 'sm' | 'xs' }) {
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'icon' | 'emoji' | 'image'>(kindOf(value))
   const [search, setSearch] = useState('')
@@ -110,7 +135,7 @@ export function IconPicker({ value, onChange, disabled, color, size = 'sm' }: { 
     if (open) {
       setSearch('')
       setTab(kindOf(value))
-      setUrl(value?.startsWith('img:') ? value.slice(4) : '')
+      setUrl(value?.startsWith('img:https') || value?.startsWith('img:http:') ? value.slice(4) : '')
     }
   }, [open, value])
   const choose = (icon: string | null) => {
@@ -136,12 +161,20 @@ export function IconPicker({ value, onChange, disabled, color, size = 'sm' }: { 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild disabled={disabled}>
-        <Button type="button" variant="outline" size={size === 'xs' ? 'icon-sm' : 'sm'} className={cn(size === 'xs' && 'size-7')} aria-label={$t('Picto')}>
-          {value ? <LookIcon name={value} color={color ?? null} /> : <Smile className="text-muted-foreground" />}
-          {size === 'sm' ? <span className="max-w-28 truncate">{label || $t('Picto')}</span> : null}
-        </Button>
+        {trigger ?? (
+          <Button type="button" variant="outline" size={size === 'xs' ? 'icon-sm' : 'sm'} className={cn(size === 'xs' && 'size-7')} aria-label={$t('Picto')}>
+            {value ? <LookIcon name={value} color={color ?? null} /> : <Smile className="text-muted-foreground" />}
+            {size === 'sm' ? <span className="max-w-28 truncate">{label || $t('Picto')}</span> : null}
+          </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-[22rem] p-3">
+        {onColorChange ? (
+          <div className="mb-3 border-b pb-3">
+            <div className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Couleur')}</div>
+            <ColorSwatches value={color} onChange={onColorChange} />
+          </div>
+        ) : null}
         <Segmented
           value={tab}
           onValueChange={setTab}
@@ -218,9 +251,38 @@ export function IconPicker({ value, onChange, disabled, color, size = 'sm' }: { 
           >
             <div className="flex items-center gap-3">
               <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/40">
-                {/^https?:\/\//i.test(url.trim()) ? <img src={url.trim()} alt="" className="size-full object-contain" /> : <ImagePlus className="size-5 text-muted-foreground" />}
+                {/^https?:\/\//i.test(url.trim()) ? (
+                  <img src={url.trim()} alt="" className="size-full object-contain" />
+                ) : value?.startsWith('img:data:') ? (
+                  <img src={value.slice(4)} alt="" className="size-full object-contain" />
+                ) : (
+                  <ImagePlus className="size-5 text-muted-foreground" />
+                )}
               </span>
-              <p className="text-xs text-muted-foreground">{$t('Un logo, une photo, un drapeau… par son adresse (https). Il s’affiche petit et carré, partout où le picto apparaît.')}</p>
+              <p className="text-xs text-muted-foreground">{$t('Un logo, une photo, un drapeau… envoyé depuis votre ordinateur, ou par son adresse (https). Il s’affiche petit et carré, partout où le picto apparaît.')}</p>
+            </div>
+            <label className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full cursor-pointer')}>
+              <Upload /> {$t('Envoyer une image…')}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                className="sr-only"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  e.target.value = ''
+                  if (!file) return
+                  try {
+                    choose(`img:${await shrinkImage(file)}`)
+                  } catch {
+                    toast.error($t('Cette image n’a pas pu être lue.'))
+                  }
+                }}
+              />
+            </label>
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              {$t('ou par son adresse')}
+              <span className="h-px flex-1 bg-border" />
             </div>
             <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…/logo.png" className="h-8 font-mono text-xs" autoFocus />
             <div className="flex justify-end">
