@@ -78,9 +78,9 @@ function verify(all, frozen) {
 
 /** What the catalog database recorded, or null when it cannot be reached. */
 async function applied() {
-  const url = process.env.EODIA_DATABASE_URL || 'postgres://eodia:eodia@localhost:55435/eodia'
-  const schema = process.env.EODIA_DATABASE_SCHEMA || 'eodia'
-  if (!/^[a-z_][a-z0-9_]*$/i.test(schema)) fail(`EODIA_DATABASE_SCHEMA invalide : ${schema}`)
+  const url = process.env.DATABASE_URL || 'postgres://eodia:eodia@localhost:55435/eodia'
+  const schema = process.env.DATABASE_SCHEMA || 'eodia'
+  if (!/^[a-z_][a-z0-9_]*$/i.test(schema)) fail(`DATABASE_SCHEMA invalide : ${schema}`)
   // `pg` is a dependency of the catalog-schema package, not of the repository root.
   const pg = createRequire(join(PACKAGE, 'package.json'))('pg')
   const client = new pg.Client({ connectionString: url, connectionTimeoutMillis: 3000 })

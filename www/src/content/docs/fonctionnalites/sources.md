@@ -50,7 +50,7 @@ du SQL Trino. Resserrez ces droits dans [Permissions](/insights/fonctionnalites/
 Le test de connexion part de l’API, les requêtes partent de Trino : en production, les deux
 doivent joindre la base. En développement, un hôte `localhost` est traduit en
 `host.docker.internal` pour Trino, qui tourne dans Docker
-(`EODIA_TRINO_LOCALHOST_ALIAS`).
+(`TRINO_LOCALHOST_ALIAS`).
 :::
 
 ### Options

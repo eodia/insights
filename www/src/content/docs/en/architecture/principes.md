@@ -96,8 +96,8 @@ interface all query in the same way.
 - **A partitioned cache.** A result's key includes a fingerprint of the groups and attributes:
   two people with different permissions never share an entry.
 - **Encrypted secrets.** Source credentials and embedding secrets are encrypted with AES-256-GCM
-  using `EODIA_SECRET_KEY`; Trino keeps nothing on disk.
-- **A private OPA endpoint.** Its path carries a secret (`EODIA_OPA_SECRET`), and Caddy does not
+  using `SECRET_KEY`; Trino keeps nothing on disk.
+- **A private OPA endpoint.** Its path carries a secret (`OPA_SECRET`), and Caddy does not
   expose it: only Trino calls it, over the Docker network.
 - **Sessions and tokens.** `httpOnly` `SameSite=Lax` cookie; any write through a cookie requires
   the `X-Eodia-Csrf: 1` header. `eoi_…` tokens are stored hashed, limited to their surfaces,
@@ -112,7 +112,7 @@ Trino (`start()`) to recreate the catalogs.
 
 ## The catalog and its migrations
 
-The catalog is a PostgreSQL database, in the `EODIA_DATABASE_SCHEMA` schema (`eodia` by
+The catalog is a PostgreSQL database, in the `DATABASE_SCHEMA` schema (`eodia` by
 default). It changes through **numbered migrations**, in
 `packages/catalog-schema/migrations/`: `0001_catalogue.sql`, then the following ones.
 

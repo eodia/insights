@@ -2,7 +2,7 @@
   // eodia insights — débogage local. Ports libres : web 3300, API 4300, MCP 4400.
   // Terminal forcé en Windows PowerShell (.vscode/settings.json) ; binaires appelés par `node`
   // directement, sans pnpm ni npx : moins de processus intermédiaires, démarrage plus rapide.
-  // Trino joint l'endpoint OPA de l'API : EODIA_OPA_URL (fichier .env à la racine) pointe sur 4300.
+  // Trino joint l'endpoint OPA de l'API : OPA_URL (fichier .env à la racine) pointe sur 4300.
   "version": "0.2.0",
   "configurations": [
     {
@@ -12,8 +12,8 @@
       "cwd": "${workspaceFolder}/apps/api",
       "command": "node node_modules/tsx/dist/cli.mjs watch --clear-screen=false src/server.ts",
       "env": {
-        "EODIA_API_PORT": "4300",
-        "EODIA_PUBLIC_URL": "http://localhost:3300"
+        "API_PORT": "4300",
+        "PUBLIC_URL": "http://localhost:3300"
       },
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
     },
@@ -24,7 +24,7 @@
       "cwd": "${workspaceFolder}/apps/web",
       "command": "node node_modules/next/dist/bin/next dev --port 3300",
       "env": {
-        "EODIA_API_URL": "http://localhost:4300"
+        "API_URL": "http://localhost:4300"
       },
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "serverReadyAction": {
@@ -40,7 +40,7 @@
       "cwd": "${workspaceFolder}/apps/mcp",
       "command": "node node_modules/tsx/dist/cli.mjs watch --clear-screen=false src/server.ts",
       "env": {
-        "EODIA_MCP_PORT": "4400",
+        "MCP_PORT": "4400",
         "EODIA_URL": "http://localhost:4300"
       },
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"]

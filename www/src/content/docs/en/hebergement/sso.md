@@ -16,23 +16,23 @@ On the provider side, register a web application with this redirect address:
 https://bi.example.com/api/auth/oidc/callback
 ```
 
-It is derived from `EODIA_PUBLIC_URL`: check that this variable does give the instance's public
+It is derived from `PUBLIC_URL`: check that this variable does give the instance's public
 address. Then, on the eodia insights side:
 
 ```bash
-EODIA_OIDC_ISSUER=https://sso.example.com/realms/company
-EODIA_OIDC_CLIENT_ID=eodia-insights
-EODIA_OIDC_CLIENT_SECRET=…
-EODIA_OIDC_LABEL="Sign in with the company account"
+OIDC_ISSUER=https://sso.example.com/realms/company
+OIDC_CLIENT_ID=eodia-insights
+OIDC_CLIENT_SECRET=…
+OIDC_LABEL="Sign in with the company account"
 ```
 
 | Variable | Default | Role |
 |---|---|---|
-| `EODIA_OIDC_ISSUER` | — | the issuer; its configuration is read at `<issuer>/.well-known/openid-configuration` |
-| `EODIA_OIDC_CLIENT_ID` | — | the client identifier |
-| `EODIA_OIDC_CLIENT_SECRET` | — | the client secret, if the client is confidential |
-| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | the label of the button on the sign-in screen, not translated: set it for your readers, e.g. `Sign in with SSO` |
-| `EODIA_OIDC_SCOPES` | `openid email profile` | the requested scopes |
+| `OIDC_ISSUER` | — | the issuer; its configuration is read at `<issuer>/.well-known/openid-configuration` |
+| `OIDC_CLIENT_ID` | — | the client identifier |
+| `OIDC_CLIENT_SECRET` | — | the client secret, if the client is confidential |
+| `OIDC_LABEL` | `Se connecter avec SSO` | the label of the button on the sign-in screen, not translated: set it for your readers, e.g. `Sign in with SSO` |
+| `OIDC_SCOPES` | `openid email profile` | the requested scopes |
 
 Sign-in follows the *authorization code* flow with **PKCE**. The ID token is verified with the
 keys published by the provider (issuer, audience, `nonce`).
@@ -57,7 +57,7 @@ SSO, and their account will be linked by their address.
 reading, such as `{{user.region}}`. They can come from the provider:
 
 ```bash
-EODIA_OIDC_ATTRIBUTE_CLAIMS=region,departement
+OIDC_ATTRIBUTE_CLAIMS=region,departement
 ```
 
 Each named claim is copied into an attribute of the same name, and **updated at every
@@ -67,7 +67,7 @@ row rules read as several values. A claim missing from the token leaves the attr
 ## Groups
 
 ```bash
-EODIA_OIDC_GROUPS_CLAIM=groups
+OIDC_GROUPS_CLAIM=groups
 ```
 
 With this variable, the provider's groups are **mirrored** at every sign-in: the person is
@@ -84,7 +84,7 @@ control of the group names your provider sends.
 ## SSO only
 
 ```bash
-EODIA_PASSWORD_LOGIN=0
+PASSWORD_LOGIN=0
 ```
 
 The sign-in screen then offers only the provider's button, and the API refuses any password

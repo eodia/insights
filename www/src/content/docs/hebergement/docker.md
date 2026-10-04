@@ -30,15 +30,15 @@ compilée (`next build`), au moment du build.
 En mode `all`, un petit superviseur lance les trois processus, préfixe leurs journaux
 (`[api]`, `[web]`, `[worker]`), relaie l’arrêt, et **arrête tout le conteneur dès que l’un d’eux
 meurt** : l’orchestrateur le relance alors entier plutôt que de laisser tourner une instance à
-moitié vivante. `EODIA_WITH_MCP=1` y ajoute le serveur MCP.
+moitié vivante. `WITH_MCP=1` y ajoute le serveur MCP.
 
-:::note[`EODIA_API_URL` est figé au build]
-L’interface relaie `/api/*` vers l’API, à l’adresse `EODIA_API_URL` lue **au build** (défaut :
+:::note[`API_URL` est figé au build]
+L’interface relaie `/api/*` vers l’API, à l’adresse `API_URL` lue **au build** (défaut :
 `http://127.0.0.1:4100`, ce qui convient au mode `all`). Derrière Caddy, `/api/*` va directement
 à l’API et ce relais ne sert pas.
 
 ```bash
-docker build --build-arg EODIA_API_URL=http://api:4100 -t eodia-insights .
+docker build --build-arg API_URL=http://api:4100 -t eodia-insights .
 ```
 :::
 
@@ -51,7 +51,7 @@ docker build --build-arg EODIA_API_URL=http://api:4100 -t eodia-insights .
 | `catalog` | `postgres:17-alpine` | le catalogue de l’application (volume `catalog-data`) |
 | `trino` | `trinodb/trino:483` | le moteur ; ses autorisations sont demandées à l’API |
 | `api` | `eodia-insights` | l’API ; applique les migrations au démarrage |
-| `worker` | `eodia-insights` | les jobs (`EODIA_INPROCESS_WORKER=0` pour l’API) |
+| `worker` | `eodia-insights` | les jobs (`INPROCESS_WORKER=0` pour l’API) |
 | `web` | `eodia-insights` | l’interface |
 | `mcp` | `eodia-insights` | le serveur MCP ; ne reçoit que l’adresse de l’API, aucun secret |
 | `caddy` | `caddy:2-alpine` | HTTPS automatique, ports 80 et 443 (volumes `caddy-data`, `caddy-config`) |
@@ -67,7 +67,7 @@ docker compose -f docker-compose.prod.yml ps              # état et santé des 
 docker compose -f docker-compose.prod.yml down            # arrêter (les volumes restent)
 ```
 
-`EODIA_IMAGE` choisit l’image utilisée (défaut `eodia-insights:latest`).
+`IMAGE` choisit l’image utilisée (défaut `eodia-insights:latest`).
 
 ### Trino
 
@@ -84,12 +84,12 @@ catalogues de toutes les sources à son démarrage, lors des tâches périodique
 s’il en manque, et dès qu’une requête trouve un catalogue absent. Un redémarrage de Trino se
 répare donc seul.
 
-L’adresse de l’endpoint OPA vient de `EODIA_OPA_URL`, que le compose construit :
-`http://api:4100/internal/opa/${EODIA_OPA_SECRET}`.
+L’adresse de l’endpoint OPA vient de `OPA_URL`, que le compose construit :
+`http://api:4100/internal/opa/${OPA_SECRET}`.
 
 ### Caddy
 
-`docker/Caddyfile` sert `EODIA_DOMAIN` en HTTPS (Let’s Encrypt ; `EODIA_ACME_EMAIL` en contact),
+`docker/Caddyfile` sert `DOMAIN` en HTTPS (Let’s Encrypt ; `ACME_EMAIL` en contact),
 compresse les réponses, pose HSTS et quelques en-têtes de sécurité, puis répartit :
 
 | Chemin | Vers |
@@ -111,7 +111,7 @@ worker, sous un verrou.
 Deux choses suffisent à reconstruire une instance :
 
 - la base du **catalogue** (`catalog`), par exemple avec `pg_dump` ;
-- la clé **`EODIA_SECRET_KEY`** : sans elle, les mots de passe des sources et les secrets
+- la clé **`SECRET_KEY`** : sans elle, les mots de passe des sources et les secrets
   d’intégration de la sauvegarde sont illisibles.
 
 Trino n’a rien à sauvegarder.

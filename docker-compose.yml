@@ -22,7 +22,7 @@ services:
     image: trinodb/trino:483
     environment:
       CATALOG_MANAGEMENT: dynamic
-      EODIA_OPA_URL: ${EODIA_OPA_URL:-http://host.docker.internal:4100/internal/opa/dev-opa-secret}
+      OPA_URL: ${OPA_URL:-http://host.docker.internal:4100/internal/opa/dev-opa-secret}
     ports: ['127.0.0.1:58080:8080']
     extra_hosts: ['host.docker.internal:host-gateway']
     volumes:

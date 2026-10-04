@@ -48,8 +48,8 @@ const SERVICES = ['catalog', 'trino', 'api', 'worker', 'web', 'mcp', 'caddy'];
 				<span>~/eodia-insights</span>
 			</div>
 			<pre><span class="line l1"><span class="p">$</span> cat &gt; .env &lt;&lt;'EOF'</span>
-<span class="line l2"><span class="v">EODIA_DOMAIN</span>=bi.exemple.fr</span>
-<span class="line l3"><span class="v">EODIA_SECRET_KEY</span>=<span class="m">$(openssl rand -hex 32)</span></span>
+<span class="line l2"><span class="v">DOMAIN</span>=bi.exemple.fr</span>
+<span class="line l3"><span class="v">SECRET_KEY</span>=<span class="m">$(openssl rand -hex 32)</span></span>
 <span class="line l4">EOF</span>
 <span class="line l5"><span class="p">$</span> docker compose -f docker-compose.prod.yml up -d</span>
 {SERVICES.map((name, i) => (

@@ -115,7 +115,7 @@ au plus.
 le graphique **dans la conversation**, dans un cadre isolé. Il est construit comme dans
 l’application : mêmes formes (radar compris), mêmes palettes, mêmes formats, mêmes couleurs de
 valeurs ; il suit le thème clair ou sombre du client, et **Ouvrir ↗** mène à la question dans
-eodia insights (`EODIA_PUBLIC_URL`).
+eodia insights (`PUBLIC_URL`).
 
 Un client sans MCP Apps reçoit le même résultat en tableau Markdown. La page est un seul fichier
 HTML, sans ressource externe : la politique de sécurité par défaut des clients suffit.

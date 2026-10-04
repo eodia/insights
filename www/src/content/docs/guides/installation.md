@@ -62,24 +62,24 @@ la configuration fournie).
 obligatoires :
 
 ```bash
-EODIA_DOMAIN=bi.exemple.fr
-EODIA_SECRET_KEY=<openssl rand -hex 32>
-EODIA_OPA_SECRET=<openssl rand -hex 24>
-EODIA_DB_PASSWORD=<un mot de passe fort>
+DOMAIN=bi.exemple.fr
+SECRET_KEY=<openssl rand -hex 32>
+OPA_SECRET=<openssl rand -hex 24>
+DB_PASSWORD=<un mot de passe fort>
 ```
 
 | Variable | Rôle |
 |---|---|
-| `EODIA_DOMAIN` | le domaine public ; Caddy obtient son certificat Let’s Encrypt |
-| `EODIA_SECRET_KEY` | 64 caractères hexadécimaux : chiffre les mots de passe des sources |
-| `EODIA_OPA_SECRET` | le secret placé dans le chemin de l’endpoint OPA, que seul Trino appelle |
-| `EODIA_DB_PASSWORD` | le mot de passe du PostgreSQL du catalogue |
+| `DOMAIN` | le domaine public ; Caddy obtient son certificat Let’s Encrypt |
+| `SECRET_KEY` | 64 caractères hexadécimaux : chiffre les mots de passe des sources |
+| `OPA_SECRET` | le secret placé dans le chemin de l’endpoint OPA, que seul Trino appelle |
+| `DB_PASSWORD` | le mot de passe du PostgreSQL du catalogue |
 
 Les variables facultatives — SSO, e-mails, copilot, cache… — sont listées en tête de
 `docker-compose.prod.yml` et dans [Variables d’environnement](/insights/hebergement/variables/).
 
 :::caution[La clé d’instance]
-Gardez `EODIA_SECRET_KEY` en lieu sûr, avec les sauvegardes du catalogue : sans elle, les mots de
+Gardez `SECRET_KEY` en lieu sûr, avec les sauvegardes du catalogue : sans elle, les mots de
 passe des sources et les secrets d’intégration ne sont plus lisibles.
 :::
 

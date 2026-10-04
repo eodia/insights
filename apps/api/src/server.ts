@@ -118,9 +118,9 @@ export async function createApp() {
   return { app, core, config }
 }
 
-const port = Number(process.env.EODIA_API_PORT ?? 4100)
+const port = Number(process.env.API_PORT ?? 4100)
 const { app, core } = await createApp()
-const server = serve({ fetch: app.fetch, port, hostname: process.env.EODIA_API_HOST ?? '0.0.0.0' }, (info) => {
+const server = serve({ fetch: app.fetch, port, hostname: process.env.API_HOST ?? '0.0.0.0' }, (info) => {
   console.log(`[eodia] API prête sur http://localhost:${info.port}`)
 })
 // Trino asks the OPA endpoint before any statement, ours included: listen first, then start.

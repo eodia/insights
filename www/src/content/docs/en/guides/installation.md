@@ -60,24 +60,24 @@ configuration).
 Next to `docker-compose.prod.yml`, create a `.env` file with the four required values:
 
 ```bash
-EODIA_DOMAIN=bi.example.com
-EODIA_SECRET_KEY=<openssl rand -hex 32>
-EODIA_OPA_SECRET=<openssl rand -hex 24>
-EODIA_DB_PASSWORD=<a strong password>
+DOMAIN=bi.example.com
+SECRET_KEY=<openssl rand -hex 32>
+OPA_SECRET=<openssl rand -hex 24>
+DB_PASSWORD=<a strong password>
 ```
 
 | Variable | Role |
 |---|---|
-| `EODIA_DOMAIN` | the public domain; Caddy obtains its Let’s Encrypt certificate |
-| `EODIA_SECRET_KEY` | 64 hexadecimal characters: encrypts the source passwords |
-| `EODIA_OPA_SECRET` | the secret placed in the path of the OPA endpoint, which only Trino calls |
-| `EODIA_DB_PASSWORD` | the password of the catalog's PostgreSQL |
+| `DOMAIN` | the public domain; Caddy obtains its Let’s Encrypt certificate |
+| `SECRET_KEY` | 64 hexadecimal characters: encrypts the source passwords |
+| `OPA_SECRET` | the secret placed in the path of the OPA endpoint, which only Trino calls |
+| `DB_PASSWORD` | the password of the catalog's PostgreSQL |
 
 Optional variables — SSO, e-mail, copilot, cache… — are listed at the top of
 `docker-compose.prod.yml` and in [Environment variables](/insights/en/hebergement/variables/).
 
 :::caution[The instance key]
-Keep `EODIA_SECRET_KEY` somewhere safe, together with the catalog backups: without it, the
+Keep `SECRET_KEY` somewhere safe, together with the catalog backups: without it, the
 source passwords and the embedding secrets can no longer be read.
 :::
 

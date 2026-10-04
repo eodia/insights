@@ -155,7 +155,7 @@ est interdite affiche « Accès aux données refusé ».
 ## Sessions et jetons
 
 - La session est un cookie `httpOnly`, `SameSite=Lax`, valable 14 jours par défaut
-  (`EODIA_SESSION_DAYS`) ; il devient `Secure` quand l’adresse publique est en `https://`.
+  (`SESSION_DAYS`) ; il devient `Secure` quand l’adresse publique est en `https://`.
 - Toute écriture faite avec ce cookie exige l’en-tête `X-Eodia-Csrf: 1`, qu’un autre site ne peut
   pas poser.
 - Un [jeton d’intégration](/insights/integrations/api-rest/#les-jetons) `eoi_…` porte les droits

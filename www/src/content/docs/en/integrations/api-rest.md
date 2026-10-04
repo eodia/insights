@@ -122,7 +122,7 @@ caller’s language: the one chosen in the interface (`eodia-locale` cookie), ot
 | `INVALID_INPUT` | 400 | invalid body or parameters |
 | `CONFLICT` | 409 | conflict: address or catalog already taken |
 | `QUERY_FAILED` | 400 | Trino rejected the query; `details.location` pinpoints the error |
-| `QUERY_TIMEOUT` | 408 | timeout exceeded (`EODIA_QUERY_TIMEOUT_MS`) |
+| `QUERY_TIMEOUT` | 408 | timeout exceeded (`QUERY_TIMEOUT_MS`) |
 | `QUERY_CANCELLED` | 499 | query cancelled |
 | `CONNECTION_FAILED` | 400 | a source's connection test failed |
 | `ENGINE_UNAVAILABLE` | 503 | Trino or the identity provider unreachable |

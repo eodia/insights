@@ -52,66 +52,66 @@ const env = (key: string, fallback?: string) => {
 
 export function loadConfig(): Config {
   loadEnvFiles()
-  const rawKey = env('EODIA_SECRET_KEY')
+  const rawKey = env('SECRET_KEY')
   const dev = env('NODE_ENV', 'development') !== 'production'
-  if (!rawKey && !dev) throw new Error('EODIA_SECRET_KEY est obligatoire en production (64 caractères hexadécimaux).')
+  if (!rawKey && !dev) throw new Error('SECRET_KEY est obligatoire en production (64 caractères hexadécimaux).')
   const secretKey = rawKey
     ? /^[0-9a-f]{64}$/i.test(rawKey)
       ? Buffer.from(rawKey, 'hex')
       : createHash('sha256').update(rawKey).digest()
     : createHash('sha256').update('eodia-insights-dev-key').digest()
 
-  const provider = (env('EODIA_AI_PROVIDER') ??
+  const provider = (env('AI_PROVIDER') ??
     (env('ANTHROPIC_API_KEY') ? 'anthropic' : env('OPENAI_API_KEY') ? 'openai' : 'none')) as Config['ai']['provider']
-  const issuer = env('EODIA_OIDC_ISSUER')
-  const publicUrl = env('EODIA_PUBLIC_URL', 'http://localhost:3100') as string
+  const issuer = env('OIDC_ISSUER')
+  const publicUrl = env('PUBLIC_URL', 'http://localhost:3100') as string
 
   return {
-    databaseUrl: env('EODIA_DATABASE_URL', 'postgres://eodia:eodia@localhost:55435/eodia') as string,
-    databaseSchema: env('EODIA_DATABASE_SCHEMA', 'eodia') as string,
+    databaseUrl: env('DATABASE_URL', 'postgres://eodia:eodia@localhost:55435/eodia') as string,
+    databaseSchema: env('DATABASE_SCHEMA', 'eodia') as string,
     secretKey,
-    trinoUrl: env('EODIA_TRINO_URL', 'http://localhost:58080') as string,
-    trinoServiceUser: env('EODIA_TRINO_SERVICE_USER', 'eodia-service') as string,
-    ...(env('EODIA_TRINO_PASSWORD') ? { trinoPassword: env('EODIA_TRINO_PASSWORD') } : {}),
-    ...(env('EODIA_TRINO_LOCALHOST_ALIAS', dev ? 'host.docker.internal' : undefined)
-      ? { trinoLocalhostAlias: env('EODIA_TRINO_LOCALHOST_ALIAS', 'host.docker.internal') }
+    trinoUrl: env('TRINO_URL', 'http://localhost:58080') as string,
+    trinoServiceUser: env('TRINO_SERVICE_USER', 'eodia-service') as string,
+    ...(env('TRINO_PASSWORD') ? { trinoPassword: env('TRINO_PASSWORD') } : {}),
+    ...(env('TRINO_LOCALHOST_ALIAS', dev ? 'host.docker.internal' : undefined)
+      ? { trinoLocalhostAlias: env('TRINO_LOCALHOST_ALIAS', 'host.docker.internal') }
       : {}),
-    opaSecret: env('EODIA_OPA_SECRET', 'dev-opa-secret') as string,
+    opaSecret: env('OPA_SECRET', 'dev-opa-secret') as string,
     publicUrl,
     cookieSecure: publicUrl.startsWith('https://'),
-    sessionDays: Number(env('EODIA_SESSION_DAYS', '14')),
-    maxRows: Number(env('EODIA_MAX_ROWS', '2000')),
-    queryTimeoutMs: Number(env('EODIA_QUERY_TIMEOUT_MS', '120000')),
-    defaultCacheTtl: Number(env('EODIA_CACHE_TTL', '300')),
+    sessionDays: Number(env('SESSION_DAYS', '14')),
+    maxRows: Number(env('MAX_ROWS', '2000')),
+    queryTimeoutMs: Number(env('QUERY_TIMEOUT_MS', '120000')),
+    defaultCacheTtl: Number(env('CACHE_TTL', '300')),
     ...(issuer
       ? {
           oidc: {
             issuer,
-            clientId: env('EODIA_OIDC_CLIENT_ID', '') as string,
-            ...(env('EODIA_OIDC_CLIENT_SECRET') ? { clientSecret: env('EODIA_OIDC_CLIENT_SECRET') } : {}),
-            label: env('EODIA_OIDC_LABEL', 'Se connecter avec SSO') as string,
-            scopes: env('EODIA_OIDC_SCOPES', 'openid email profile') as string,
-            attributeClaims: (env('EODIA_OIDC_ATTRIBUTE_CLAIMS', '') as string).split(',').map((s) => s.trim()).filter(Boolean),
-            ...(env('EODIA_OIDC_GROUPS_CLAIM') ? { groupsClaim: env('EODIA_OIDC_GROUPS_CLAIM') } : {}),
+            clientId: env('OIDC_CLIENT_ID', '') as string,
+            ...(env('OIDC_CLIENT_SECRET') ? { clientSecret: env('OIDC_CLIENT_SECRET') } : {}),
+            label: env('OIDC_LABEL', 'Se connecter avec SSO') as string,
+            scopes: env('OIDC_SCOPES', 'openid email profile') as string,
+            attributeClaims: (env('OIDC_ATTRIBUTE_CLAIMS', '') as string).split(',').map((s) => s.trim()).filter(Boolean),
+            ...(env('OIDC_GROUPS_CLAIM') ? { groupsClaim: env('OIDC_GROUPS_CLAIM') } : {}),
           },
         }
       : {}),
-    passwordLogin: env('EODIA_PASSWORD_LOGIN', '1') !== '0',
-    ...(env('EODIA_SMTP_URL')
-      ? { smtp: { url: env('EODIA_SMTP_URL') as string, from: env('EODIA_SMTP_FROM', 'eodia insights <noreply@localhost>') as string } }
+    passwordLogin: env('PASSWORD_LOGIN', '1') !== '0',
+    ...(env('SMTP_URL')
+      ? { smtp: { url: env('SMTP_URL') as string, from: env('SMTP_FROM', 'eodia insights <noreply@localhost>') as string } }
       : {}),
     ai: {
       provider,
-      ...(env('EODIA_AI_API_KEY') ?? env('ANTHROPIC_API_KEY') ?? env('OPENAI_API_KEY')
-        ? { apiKey: (env('EODIA_AI_API_KEY') ?? env('ANTHROPIC_API_KEY') ?? env('OPENAI_API_KEY')) as string }
+      ...(env('AI_API_KEY') ?? env('ANTHROPIC_API_KEY') ?? env('OPENAI_API_KEY')
+        ? { apiKey: (env('AI_API_KEY') ?? env('ANTHROPIC_API_KEY') ?? env('OPENAI_API_KEY')) as string }
         : {}),
       model:
-        env('EODIA_AI_MODEL') ??
+        env('AI_MODEL') ??
         (provider === 'anthropic' ? 'claude-sonnet-5-5' : provider === 'mistral' ? 'mistral-large-latest' : 'gpt-4.1'),
-      ...(env('EODIA_AI_BASE_URL') ? { baseUrl: env('EODIA_AI_BASE_URL') } : {}),
-      hourlyQuota: Number(env('EODIA_AI_HOURLY_QUOTA', '60')),
+      ...(env('AI_BASE_URL') ? { baseUrl: env('AI_BASE_URL') } : {}),
+      hourlyQuota: Number(env('AI_HOURLY_QUOTA', '60')),
     },
-    demo: env('EODIA_DEMO', dev ? '1' : '0') === '1',
-    inProcessWorker: env('EODIA_INPROCESS_WORKER', dev ? '1' : '0') === '1',
+    demo: env('DEMO', dev ? '1' : '0') === '1',
+    inProcessWorker: env('INPROCESS_WORKER', dev ? '1' : '0') === '1',
   }
 }

@@ -1,15 +1,15 @@
 /**
  * Superviseur minimal du mode `all` : lance l'API, le web et le worker (et le serveur MCP si
- * EODIA_WITH_MCP=1) dans un seul conteneur, préfixe leurs journaux, relaie SIGTERM, et
+ * WITH_MCP=1) dans un seul conteneur, préfixe leurs journaux, relaie SIGTERM, et
  * s'arrête dès que l'un d'eux meurt — l'orchestrateur redémarre alors le conteneur entier,
  * plutôt que de laisser tourner une instance à moitié vivante.
  */
 import { spawn } from 'node:child_process'
 
-const roles = ['api', 'web', 'worker', ...(process.env.EODIA_WITH_MCP === '1' ? ['mcp'] : [])]
+const roles = ['api', 'web', 'worker', ...(process.env.WITH_MCP === '1' ? ['mcp'] : [])]
 
 // The worker runs on its own here: the API must not run the jobs a second time.
-const env = { ...process.env, EODIA_INPROCESS_WORKER: '0' }
+const env = { ...process.env, INPROCESS_WORKER: '0' }
 
 const children = new Map()
 let stopping = false

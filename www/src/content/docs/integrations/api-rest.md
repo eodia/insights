@@ -121,7 +121,7 @@ Le `code` est stable et lisible par une machine ; le `message` est en français,
 | `INVALID_INPUT` | 400 | corps ou paramètres invalides |
 | `CONFLICT` | 409 | conflit : adresse ou catalogue déjà pris |
 | `QUERY_FAILED` | 400 | Trino a rejeté la requête ; `details.location` situe l’erreur |
-| `QUERY_TIMEOUT` | 408 | délai dépassé (`EODIA_QUERY_TIMEOUT_MS`) |
+| `QUERY_TIMEOUT` | 408 | délai dépassé (`QUERY_TIMEOUT_MS`) |
 | `QUERY_CANCELLED` | 499 | requête annulée |
 | `CONNECTION_FAILED` | 400 | test de connexion d’une source en échec |
 | `ENGINE_UNAVAILABLE` | 503 | Trino ou le fournisseur d’identité injoignable |

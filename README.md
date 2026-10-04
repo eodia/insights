@@ -113,45 +113,45 @@ développement.
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `NODE_ENV` | `development` | `production` rend `EODIA_SECRET_KEY` obligatoire et coupe la démo et le worker intégré par défaut |
-| `EODIA_DATABASE_URL` | `postgres://eodia:eodia@localhost:55435/eodia` | Base PostgreSQL du catalogue |
-| `EODIA_DATABASE_SCHEMA` | `eodia` | Schéma du catalogue |
-| `EODIA_SECRET_KEY` | clé de développement | 64 caractères hexadécimaux : chiffre les secrets des sources (`openssl rand -hex 32`) |
-| `EODIA_TRINO_URL` | `http://localhost:58080` | Adresse de Trino |
-| `EODIA_TRINO_SERVICE_USER` | `eodia-service` | Utilisateur Trino du service (catalogues, synchro) |
-| `EODIA_TRINO_PASSWORD` | — | Mot de passe Trino, s'il en exige un |
-| `EODIA_TRINO_LOCALHOST_ALIAS` | `host.docker.internal` en dev | Nom par lequel Trino (en conteneur) joint `localhost` |
-| `EODIA_OPA_SECRET` | `dev-opa-secret` | Secret du chemin de l'endpoint OPA appelé par Trino |
-| `EODIA_PUBLIC_URL` | `http://localhost:3100` | Adresse publique ; `https://` rend le cookie de session `Secure` |
-| `EODIA_SESSION_DAYS` | `14` | Durée d'une session |
-| `EODIA_MAX_ROWS` | `2000` | Lignes lues au plus par requête de l'interface |
-| `EODIA_QUERY_TIMEOUT_MS` | `120000` | Délai maximal d'une requête |
-| `EODIA_CACHE_TTL` | `300` | Durée du cache de résultats (secondes) |
-| `EODIA_PASSWORD_LOGIN` | `1` | `0` coupe la connexion par mot de passe (SSO seul) |
-| `EODIA_OIDC_ISSUER` | — | Active le SSO OpenID Connect |
-| `EODIA_OIDC_CLIENT_ID` / `EODIA_OIDC_CLIENT_SECRET` | — | Client OIDC |
-| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | Libellé du bouton |
-| `EODIA_OIDC_SCOPES` | `openid email profile` | Portées demandées |
-| `EODIA_OIDC_ATTRIBUTE_CLAIMS` | — | Claims copiés en attributs (`region,departement`), utilisables dans les règles de ligne |
-| `EODIA_OIDC_GROUPS_CLAIM` | — | Claim portant les groupes à refléter |
-| `EODIA_SMTP_URL` / `EODIA_SMTP_FROM` | — | Envoi des invitations par e-mail |
-| `EODIA_AI_PROVIDER` | selon la clé présente | `anthropic`, `openai`, `mistral`, `openai-compatible` ou `none` |
-| `EODIA_AI_API_KEY` (ou `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) | — | Clé du fournisseur du copilot |
-| `EODIA_AI_MODEL` | `claude-sonnet-5-5` (Anthropic) | Modèle du copilot |
-| `EODIA_AI_BASE_URL` | — | Point d'accès d'un fournisseur compatible OpenAI |
-| `EODIA_AI_HOURLY_QUOTA` | `60` | Messages du copilot par personne et par heure |
-| `EODIA_DEMO` | `1` en dev, `0` en prod | Crée l'instance de démonstration |
-| `EODIA_INPROCESS_WORKER` | `1` en dev, `0` en prod | Fait tourner le worker dans l'API |
-| `EODIA_API_PORT` / `EODIA_API_HOST` | `4100` / `0.0.0.0` | Écoute de l'API |
-| `EODIA_API_URL` | `http://localhost:4100` | Web (au build : relais `/api/*`) et serveur MCP : adresse de l'API |
-| `EODIA_MCP_PORT` / `EODIA_MCP_HOST` | `4200` / `0.0.0.0` | Écoute du serveur MCP |
+| `NODE_ENV` | `development` | `production` rend `SECRET_KEY` obligatoire et coupe la démo et le worker intégré par défaut |
+| `DATABASE_URL` | `postgres://eodia:eodia@localhost:55435/eodia` | Base PostgreSQL du catalogue |
+| `DATABASE_SCHEMA` | `eodia` | Schéma du catalogue |
+| `SECRET_KEY` | clé de développement | 64 caractères hexadécimaux : chiffre les secrets des sources (`openssl rand -hex 32`) |
+| `TRINO_URL` | `http://localhost:58080` | Adresse de Trino |
+| `TRINO_SERVICE_USER` | `eodia-service` | Utilisateur Trino du service (catalogues, synchro) |
+| `TRINO_PASSWORD` | — | Mot de passe Trino, s'il en exige un |
+| `TRINO_LOCALHOST_ALIAS` | `host.docker.internal` en dev | Nom par lequel Trino (en conteneur) joint `localhost` |
+| `OPA_SECRET` | `dev-opa-secret` | Secret du chemin de l'endpoint OPA appelé par Trino |
+| `PUBLIC_URL` | `http://localhost:3100` | Adresse publique ; `https://` rend le cookie de session `Secure` |
+| `SESSION_DAYS` | `14` | Durée d'une session |
+| `MAX_ROWS` | `2000` | Lignes lues au plus par requête de l'interface |
+| `QUERY_TIMEOUT_MS` | `120000` | Délai maximal d'une requête |
+| `CACHE_TTL` | `300` | Durée du cache de résultats (secondes) |
+| `PASSWORD_LOGIN` | `1` | `0` coupe la connexion par mot de passe (SSO seul) |
+| `OIDC_ISSUER` | — | Active le SSO OpenID Connect |
+| `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` | — | Client OIDC |
+| `OIDC_LABEL` | `Se connecter avec SSO` | Libellé du bouton |
+| `OIDC_SCOPES` | `openid email profile` | Portées demandées |
+| `OIDC_ATTRIBUTE_CLAIMS` | — | Claims copiés en attributs (`region,departement`), utilisables dans les règles de ligne |
+| `OIDC_GROUPS_CLAIM` | — | Claim portant les groupes à refléter |
+| `SMTP_URL` / `SMTP_FROM` | — | Envoi des invitations par e-mail |
+| `AI_PROVIDER` | selon la clé présente | `anthropic`, `openai`, `mistral`, `openai-compatible` ou `none` |
+| `AI_API_KEY` (ou `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) | — | Clé du fournisseur du copilot |
+| `AI_MODEL` | `claude-sonnet-5-5` (Anthropic) | Modèle du copilot |
+| `AI_BASE_URL` | — | Point d'accès d'un fournisseur compatible OpenAI |
+| `AI_HOURLY_QUOTA` | `60` | Messages du copilot par personne et par heure |
+| `DEMO` | `1` en dev, `0` en prod | Crée l'instance de démonstration |
+| `INPROCESS_WORKER` | `1` en dev, `0` en prod | Fait tourner le worker dans l'API |
+| `API_PORT` / `API_HOST` | `4100` / `0.0.0.0` | Écoute de l'API |
+| `API_URL` | `http://localhost:4100` | Web (au build : relais `/api/*`) et serveur MCP : adresse de l'API |
+| `MCP_PORT` / `MCP_HOST` | `4200` / `0.0.0.0` | Écoute du serveur MCP |
 | `EODIA_URL` / `EODIA_TOKEN` | — | Serveur MCP en stdio : adresse de l'application et jeton |
 
 ## Production
 
 Une image unique (`Dockerfile`) contient l'API, le web, le worker et le serveur MCP ; l'argument
 du conteneur choisit le rôle : `api`, `web`, `worker`, `mcp`, ou `all` (API + web + worker dans
-un seul conteneur, sous un petit superviseur ; `EODIA_WITH_MCP=1` y ajoute le MCP).
+un seul conteneur, sous un petit superviseur ; `WITH_MCP=1` y ajoute le MCP).
 
 `docker-compose.prod.yml` assemble l'ensemble : PostgreSQL du catalogue, Trino (configuration de
 `docker/trino/etc`, OPA pointé sur `http://api:4100/internal/opa/<secret>`), api, worker, web,
@@ -159,17 +159,17 @@ mcp et Caddy en frontal (HTTPS automatique, `docker/Caddyfile`).
 
 ```bash
 cat > .env <<'EOF'
-EODIA_DOMAIN=bi.exemple.fr
-EODIA_SECRET_KEY=<openssl rand -hex 32>
-EODIA_OPA_SECRET=<openssl rand -hex 24>
-EODIA_DB_PASSWORD=<mot de passe fort>
+DOMAIN=bi.exemple.fr
+SECRET_KEY=<openssl rand -hex 32>
+OPA_SECRET=<openssl rand -hex 24>
+DB_PASSWORD=<mot de passe fort>
 EOF
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 Puis ouvrez `https://bi.exemple.fr` : le premier écran crée le compte administrateur. Toutes les
 variables facultatives sont listées en tête de `docker-compose.prod.yml`. L'endpoint OPA n'est
-pas exposé par Caddy : seul Trino l'appelle, sur le réseau Docker. Gardez `EODIA_SECRET_KEY` en
+pas exposé par Caddy : seul Trino l'appelle, sur le réseau Docker. Gardez `SECRET_KEY` en
 lieu sûr : sans elle, les mots de passe des sources ne sont plus lisibles.
 
 ## Organisation du dépôt
@@ -199,7 +199,7 @@ tournent avec `tsx` : pas d'étape de compilation, sauf `next build` pour le web
 
 ```bash
 pnpm catalog new ajout_des_rappels   # crée packages/catalog-schema/migrations/NNNN_ajout_des_rappels.sql
-pnpm catalog status                  # scellée ou non, appliquée ou non (lit EODIA_DATABASE_URL)
+pnpm catalog status                  # scellée ou non, appliquée ou non (lit DATABASE_URL)
 pnpm catalog seal 0.2.0              # à la publication : fige les migrations non scellées
 pnpm catalog check [--release]       # échoue si une migration scellée a changé
 ```
@@ -224,7 +224,7 @@ et refusent de démarrer si elle change. La correction va dans la migration suiv
 - **Sessions et jetons** : cookie `httpOnly` `SameSite=Lax`, toute écriture exige l'en-tête
   `X-Eodia-Csrf: 1`. Les jetons d'intégration `eoi_…` portent les droits de leur propriétaire,
   sont limités à leurs surfaces (`rest`, `mcp`), révocables et éventuellement datés.
-- **Secrets** : les identifiants des sources sont chiffrés en AES-256-GCM avec `EODIA_SECRET_KEY` ;
+- **Secrets** : les identifiants des sources sont chiffrés en AES-256-GCM avec `SECRET_KEY` ;
   Trino ne garde rien sur disque (`catalog.store=memory`).
 - **Audit** : échecs de connexion, changements de droits, sources, jetons, partages, liens et
   secrets d'intégration sont journalisés.

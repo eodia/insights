@@ -75,7 +75,7 @@ source.
   the **history** of your queries.
 
 Editor queries never go through the result cache: you always see the
-current state of the data. A preview reads at most 2,000 rows (`EODIA_MAX_ROWS`).
+current state of the data. A preview reads at most 2,000 rows (`MAX_ROWS`).
 
 **Save as question** stores the query in a folder; it becomes a SQL question.
 

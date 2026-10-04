@@ -17,7 +17,7 @@ for (const name of ['.env', '.env.local']) {
  * Le front ne parle qu'HTTP : `/api/*` est relayé vers l'API (même origine pour les cookies).
  * Il ne dépend jamais de `@eodia/core` — aucune action serveur n'ouvre de connexion aux données.
  */
-const API = process.env.EODIA_API_URL ?? 'http://localhost:4100'
+const API = process.env.API_URL ?? 'http://localhost:4100'
 
 const config: NextConfig = {
   transpilePackages: ['@eodia/contracts'],

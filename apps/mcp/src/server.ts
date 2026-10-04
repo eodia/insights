@@ -126,9 +126,9 @@ async function handleMcp(req: IncomingMessage, res: ServerResponse, apiUrl: stri
 }
 
 function runHttp(): void {
-  const port = Number(process.env.EODIA_MCP_PORT ?? 4200)
-  const host = process.env.EODIA_MCP_HOST ?? '0.0.0.0'
-  const apiUrl = process.env.EODIA_API_URL ?? process.env.EODIA_URL ?? 'http://localhost:4100'
+  const port = Number(process.env.MCP_PORT ?? 4200)
+  const host = process.env.MCP_HOST ?? '0.0.0.0'
+  const apiUrl = process.env.API_URL ?? process.env.EODIA_URL ?? 'http://localhost:4100'
   const http = createServer((req, res) => {
     for (const [k, v] of Object.entries(CORS)) res.setHeader(k, v)
     const path = (req.url ?? '/').split('?')[0]

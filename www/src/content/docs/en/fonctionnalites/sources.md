@@ -51,7 +51,7 @@ against it. Tighten these permissions in [Permissions](/insights/en/fonctionnali
 The connection test runs from the API, queries run from Trino: in production, both
 must be able to reach the database. In development, a `localhost` host is translated to
 `host.docker.internal` for Trino, which runs in Docker
-(`EODIA_TRINO_LOCALHOST_ALIAS`).
+(`TRINO_LOCALHOST_ALIAS`).
 :::
 
 ### Options

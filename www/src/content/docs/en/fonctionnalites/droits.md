@@ -155,7 +155,7 @@ displays “Data access denied”.
 ## Sessions and tokens
 
 - The session is an `httpOnly`, `SameSite=Lax` cookie, valid for 14 days by default
-  (`EODIA_SESSION_DAYS`); it becomes `Secure` when the public URL uses `https://`.
+  (`SESSION_DAYS`); it becomes `Secure` when the public URL uses `https://`.
 - Any write made with this cookie requires the `X-Eodia-Csrf: 1` header, which another site
   cannot set.
 - An [integration token](/insights/en/integrations/api-rest/#tokens) `eoi_…` carries its owner’s

@@ -1,4 +1,4 @@
-# Caddy devant eodia insights : HTTPS automatique (Let's Encrypt) pour EODIA_DOMAIN, puis
+# Caddy devant eodia insights : HTTPS automatique (Let's Encrypt) pour DOMAIN, puis
 #   /api/*  → API (REST, auth, copilot en SSE)
 #   /mcp    → serveur MCP (Streamable HTTP)
 #   le reste → interface web
@@ -8,10 +8,10 @@
 
 {
 	# Adresse de contact pour les certificats ; vide : pas de compte ACME nommé.
-	email {$EODIA_ACME_EMAIL:}
+	email {$ACME_EMAIL:}
 }
 
-{$EODIA_DOMAIN:localhost} {
+{$DOMAIN:localhost} {
 	encode zstd gzip
 
 	header {

@@ -74,7 +74,7 @@ source.
   l’**historique** de vos requêtes.
 
 Les requêtes de l’éditeur ne passent jamais par le cache de résultats : vous voyez toujours
-l’état présent des données. Un aperçu lit au plus 2 000 lignes (`EODIA_MAX_ROWS`).
+l’état présent des données. Un aperçu lit au plus 2 000 lignes (`MAX_ROWS`).
 
 **Enregistrer comme question** range la requête dans un dossier ; elle devient une question SQL.
 

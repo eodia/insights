@@ -1,7 +1,7 @@
 /**
  * Worker d'eodia insights, pour la production : il vide la file de jobs du catalogue
  * (synchronisations, préchauffage des tableaux de bord, contenu de démonstration) pendant que
- * l'API tourne avec `EODIA_INPROCESS_WORKER=0`. Plusieurs workers peuvent tourner ensemble :
+ * l'API tourne avec `INPROCESS_WORKER=0`. Plusieurs workers peuvent tourner ensemble :
  * chacun prend ses jobs par `FOR UPDATE SKIP LOCKED`.
  */
 import { loadConfig, prepare, start } from '@eodia/core'

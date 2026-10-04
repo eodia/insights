@@ -115,7 +115,7 @@ at most.
 the chart **in the conversation**, in a sandboxed frame. It is built as in
 the application: same chart types (radar included), same palettes, same formats, same value
 colors; it follows the client's light or dark theme, and **Open ↗** leads to the question in
-eodia insights (`EODIA_PUBLIC_URL`).
+eodia insights (`PUBLIC_URL`).
 
 A client without MCP Apps receives the same result as a Markdown table. The page is a single HTML
 file, with no external resource: the clients' default security policy is enough.

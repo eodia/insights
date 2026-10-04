@@ -75,33 +75,33 @@ Le copilot se configure par les variables d’environnement de l’API et du wor
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `EODIA_AI_PROVIDER` | `anthropic` si `ANTHROPIC_API_KEY` est définie, sinon `openai` si `OPENAI_API_KEY` l’est, sinon `none` | `anthropic`, `openai`, `mistral`, `openai-compatible` ou `none` |
-| `EODIA_AI_API_KEY` | `ANTHROPIC_API_KEY`, sinon `OPENAI_API_KEY` | la clé du fournisseur |
-| `EODIA_AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (les autres) | le modèle |
-| `EODIA_AI_BASE_URL` | l’adresse du fournisseur | obligatoire pour `openai-compatible` |
-| `EODIA_AI_HOURLY_QUOTA` | `60` | messages par personne et par heure |
+| `AI_PROVIDER` | `anthropic` si `ANTHROPIC_API_KEY` est définie, sinon `openai` si `OPENAI_API_KEY` l’est, sinon `none` | `anthropic`, `openai`, `mistral`, `openai-compatible` ou `none` |
+| `AI_API_KEY` | `ANTHROPIC_API_KEY`, sinon `OPENAI_API_KEY` | la clé du fournisseur |
+| `AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (les autres) | le modèle |
+| `AI_BASE_URL` | l’adresse du fournisseur | obligatoire pour `openai-compatible` |
+| `AI_HOURLY_QUOTA` | `60` | messages par personne et par heure |
 
 Quelques exemples :
 
 ```bash
 # Anthropic
-EODIA_AI_PROVIDER=anthropic
-EODIA_AI_API_KEY=sk-ant-…
+AI_PROVIDER=anthropic
+AI_API_KEY=sk-ant-…
 
 # Mistral
-EODIA_AI_PROVIDER=mistral
-EODIA_AI_API_KEY=…
+AI_PROVIDER=mistral
+AI_API_KEY=…
 
 # Un serveur compatible OpenAI (passerelle, modèle local…)
-EODIA_AI_PROVIDER=openai-compatible
-EODIA_AI_BASE_URL=https://llm.exemple.fr/v1
-EODIA_AI_API_KEY=…
-EODIA_AI_MODEL=mon-modele
+AI_PROVIDER=openai-compatible
+AI_BASE_URL=https://llm.exemple.fr/v1
+AI_API_KEY=…
+AI_MODEL=mon-modele
 ```
 
 :::note[Une clé est toujours nécessaire]
 Sans clé, le copilot reste désactivé, y compris pour `openai-compatible` : donnez une valeur à
-`EODIA_AI_API_KEY` même si votre serveur n’en vérifie pas.
+`AI_API_KEY` même si votre serveur n’en vérifie pas.
 :::
 
 **Administration › Réglages** montre le fournisseur, le modèle, le quota et si la configuration

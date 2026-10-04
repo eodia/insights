@@ -5,9 +5,9 @@
 # depuis leurs sources TypeScript avec tsx ; seul le web est compilé (next build).
 #
 #   docker build -t eodia-insights .
-#   docker build --build-arg EODIA_API_URL=http://api:4100 -t eodia-insights .
+#   docker build --build-arg API_URL=http://api:4100 -t eodia-insights .
 #
-# EODIA_API_URL est lu par next.config.ts AU BUILD : les rewrites `/api/*` de Next y sont
+# API_URL est lu par next.config.ts AU BUILD : les rewrites `/api/*` de Next y sont
 # figés. Derrière Caddy (docker-compose.prod.yml), `/api/*` va directement à l'API et ce
 # relais ne sert pas ; en mode `all`, l'API est sur 127.0.0.1:4100 (la valeur par défaut).
 
@@ -42,10 +42,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 # ── Build : sources + next build ─────────────────────────────────────────────
 FROM deps AS build
 COPY . .
-ARG EODIA_API_URL=http://127.0.0.1:4100
-ARG EODIA_PUBLIC_URL=http://localhost:3100
-ENV EODIA_API_URL=${EODIA_API_URL}
-ENV EODIA_PUBLIC_URL=${EODIA_PUBLIC_URL}
+ARG API_URL=http://127.0.0.1:4100
+ARG PUBLIC_URL=http://localhost:3100
+ENV API_URL=${API_URL}
+ENV PUBLIC_URL=${PUBLIC_URL}
 RUN pnpm --filter @eodia/web build \
  && rm -rf apps/web/.next/cache \
  && sed -i 's/\r$//' docker/entrypoint.sh \
@@ -55,9 +55,9 @@ RUN pnpm --filter @eodia/web build \
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    EODIA_API_PORT=4100 \
-    EODIA_MCP_PORT=4200 \
-    EODIA_WEB_PORT=3100
+    API_PORT=4100 \
+    MCP_PORT=4200 \
+    WEB_PORT=3100
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates tini \
  && rm -rf /var/lib/apt/lists/*

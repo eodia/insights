@@ -75,33 +75,33 @@ The copilot is configured through the API and worker environment variables:
 
 | Variable | Default | Role |
 |---|---|---|
-| `EODIA_AI_PROVIDER` | `anthropic` if `ANTHROPIC_API_KEY` is set, otherwise `openai` if `OPENAI_API_KEY` is, otherwise `none` | `anthropic`, `openai`, `mistral`, `openai-compatible` or `none` |
-| `EODIA_AI_API_KEY` | `ANTHROPIC_API_KEY`, otherwise `OPENAI_API_KEY` | the provider’s key |
-| `EODIA_AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (the others) | the model |
-| `EODIA_AI_BASE_URL` | the provider’s URL | required for `openai-compatible` |
-| `EODIA_AI_HOURLY_QUOTA` | `60` | messages per person per hour |
+| `AI_PROVIDER` | `anthropic` if `ANTHROPIC_API_KEY` is set, otherwise `openai` if `OPENAI_API_KEY` is, otherwise `none` | `anthropic`, `openai`, `mistral`, `openai-compatible` or `none` |
+| `AI_API_KEY` | `ANTHROPIC_API_KEY`, otherwise `OPENAI_API_KEY` | the provider’s key |
+| `AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (the others) | the model |
+| `AI_BASE_URL` | the provider’s URL | required for `openai-compatible` |
+| `AI_HOURLY_QUOTA` | `60` | messages per person per hour |
 
 A few examples:
 
 ```bash
 # Anthropic
-EODIA_AI_PROVIDER=anthropic
-EODIA_AI_API_KEY=sk-ant-…
+AI_PROVIDER=anthropic
+AI_API_KEY=sk-ant-…
 
 # Mistral
-EODIA_AI_PROVIDER=mistral
-EODIA_AI_API_KEY=…
+AI_PROVIDER=mistral
+AI_API_KEY=…
 
 # An OpenAI-compatible server (gateway, local model…)
-EODIA_AI_PROVIDER=openai-compatible
-EODIA_AI_BASE_URL=https://llm.example.com/v1
-EODIA_AI_API_KEY=…
-EODIA_AI_MODEL=my-model
+AI_PROVIDER=openai-compatible
+AI_BASE_URL=https://llm.example.com/v1
+AI_API_KEY=…
+AI_MODEL=my-model
 ```
 
 :::note[A key is always required]
 Without a key, the copilot stays disabled, including for `openai-compatible`: give
-`EODIA_AI_API_KEY` a value even if your server does not check it.
+`AI_API_KEY` a value even if your server does not check it.
 :::
 
 **Administration › Settings** shows the provider, the model, the

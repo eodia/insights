@@ -173,7 +173,7 @@ La durée de conservation se décide, du plus précis au plus général :
 4. celle de l’**instance**, dans **Administration › Réglages** : une durée fixe, ou une **durée
    adaptative**, proportionnelle au temps que la requête a coûté (une requête de 10 secondes
    reste environ 17 minutes, entre 1 minute et 24 heures) ;
-5. à défaut, `EODIA_CACHE_TTL` (300 secondes).
+5. à défaut, `CACHE_TTL` (300 secondes).
 
 Les résultats sont gardés dans le catalogue PostgreSQL, partagé par toutes les répliques, avec
 un petit cache en mémoire devant. **Vider le cache**, dans **Administration › Réglages**, oblige

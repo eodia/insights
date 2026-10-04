@@ -5,7 +5,7 @@
 #   web     interface Next.js (port 3100)
 #   worker  file de jobs : synchronisations, préchauffage, démo
 #   mcp     serveur MCP Streamable HTTP (port 4200)
-#   all     api + web + worker dans un seul conteneur (EODIA_WITH_MCP=1 ajoute mcp)
+#   all     api + web + worker dans un seul conteneur (WITH_MCP=1 ajoute mcp)
 #
 # Les applications tournent depuis leurs sources TypeScript avec tsx, comme en développement :
 # `node --import tsx` garde un seul processus, qui reçoit SIGTERM directement.
@@ -29,7 +29,7 @@ case "$role" in
     ;;
   web)
     cd apps/web
-    exec node node_modules/next/dist/bin/next start --port "${EODIA_WEB_PORT:-3100}" --hostname 0.0.0.0
+    exec node node_modules/next/dist/bin/next start --port "${WEB_PORT:-3100}" --hostname 0.0.0.0
     ;;
   all)
     exec node docker/supervisor.mjs

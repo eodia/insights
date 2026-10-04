@@ -16,23 +16,23 @@ Chez le fournisseur, enregistrez une application web avec cette adresse de retou
 https://bi.exemple.fr/api/auth/oidc/callback
 ```
 
-Elle se déduit de `EODIA_PUBLIC_URL` : vérifiez que cette variable donne bien l’adresse publique
+Elle se déduit de `PUBLIC_URL` : vérifiez que cette variable donne bien l’adresse publique
 de l’instance. Puis, côté eodia insights :
 
 ```bash
-EODIA_OIDC_ISSUER=https://sso.exemple.fr/realms/entreprise
-EODIA_OIDC_CLIENT_ID=eodia-insights
-EODIA_OIDC_CLIENT_SECRET=…
-EODIA_OIDC_LABEL="Se connecter avec le compte de l’entreprise"
+OIDC_ISSUER=https://sso.exemple.fr/realms/entreprise
+OIDC_CLIENT_ID=eodia-insights
+OIDC_CLIENT_SECRET=…
+OIDC_LABEL="Se connecter avec le compte de l’entreprise"
 ```
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `EODIA_OIDC_ISSUER` | — | l’émetteur ; sa configuration est lue à `<émetteur>/.well-known/openid-configuration` |
-| `EODIA_OIDC_CLIENT_ID` | — | l’identifiant du client |
-| `EODIA_OIDC_CLIENT_SECRET` | — | le secret du client, s’il est confidentiel |
-| `EODIA_OIDC_LABEL` | `Se connecter avec SSO` | le libellé du bouton sur l’écran de connexion |
-| `EODIA_OIDC_SCOPES` | `openid email profile` | les portées demandées |
+| `OIDC_ISSUER` | — | l’émetteur ; sa configuration est lue à `<émetteur>/.well-known/openid-configuration` |
+| `OIDC_CLIENT_ID` | — | l’identifiant du client |
+| `OIDC_CLIENT_SECRET` | — | le secret du client, s’il est confidentiel |
+| `OIDC_LABEL` | `Se connecter avec SSO` | le libellé du bouton sur l’écran de connexion |
+| `OIDC_SCOPES` | `openid email profile` | les portées demandées |
 
 La connexion suit le flux *authorization code* avec **PKCE**. Le jeton d’identité est vérifié
 avec les clés publiées par le fournisseur (émetteur, audience, `nonce`).
@@ -57,7 +57,7 @@ Les [règles de lignes](/insights/fonctionnalites/droits/#les-lignes) citent les
 personne qui lit, comme `{{user.region}}`. Ils peuvent venir du fournisseur :
 
 ```bash
-EODIA_OIDC_ATTRIBUTE_CLAIMS=region,departement
+OIDC_ATTRIBUTE_CLAIMS=region,departement
 ```
 
 Chaque claim nommé est copié en attribut du même nom, et **mis à jour à chaque connexion**. Un
@@ -67,7 +67,7 @@ lignes lisent comme plusieurs valeurs. Un claim absent du jeton laisse l’attri
 ## Les groupes
 
 ```bash
-EODIA_OIDC_GROUPS_CLAIM=groups
+OIDC_GROUPS_CLAIM=groups
 ```
 
 Avec cette variable, les groupes du fournisseur sont **reflétés** à chaque connexion : la
@@ -85,7 +85,7 @@ donc les noms de groupes que votre fournisseur envoie.
 ## SSO seul
 
 ```bash
-EODIA_PASSWORD_LOGIN=0
+PASSWORD_LOGIN=0
 ```
 
 L’écran de connexion n’offre plus que le bouton du fournisseur, et l’API refuse toute connexion

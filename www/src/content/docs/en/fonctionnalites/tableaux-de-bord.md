@@ -169,7 +169,7 @@ The retention time is decided from the most specific to the most general:
 4. the **instance**’s, in **Administration › Settings**: a fixed
    duration, or an **adaptive duration**, proportional to the time the query took (a 10-second
    query is kept about 17 minutes, between 1 minute and 24 hours);
-5. failing that, `EODIA_CACHE_TTL` (300 seconds).
+5. failing that, `CACHE_TTL` (300 seconds).
 
 Results are kept in the PostgreSQL catalog, shared by all replicas, with a small in-memory cache
 in front. **Clear cache**, in **Administration › Settings**, forces the

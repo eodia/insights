@@ -171,7 +171,7 @@ const CHART_ROWS = 1000
 const CHART_TYPES = VISUALIZATIONS.filter((v) => v !== 'map' && v !== 'pivot')
 
 /** The web application, for « Ouvrir » links. */
-const webUrl = () => (process.env.EODIA_PUBLIC_URL ?? process.env.EODIA_URL ?? '').replace(/\/+$/, '')
+const webUrl = () => (process.env.PUBLIC_URL ?? process.env.EODIA_URL ?? '').replace(/\/+$/, '')
 
 export function registerTools(server: McpServer, api: EodiaApi): void {
   registerChartApp(server)

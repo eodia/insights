@@ -17,8 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = (french: string) => translate(messages, french)
   return {
     metadataBase: new URL(
-      process.env.EODIA_PUBLIC_URL ||
-        (process.env.EODIA_DOMAIN ? `https://${process.env.EODIA_DOMAIN}` : 'http://localhost:3100'),
+      process.env.PUBLIC_URL ||
+        (process.env.DOMAIN ? `https://${process.env.DOMAIN}` : 'http://localhost:3100'),
     ),
     title: { default: 'eodia insights', template: '%s · eodia insights' },
     description: t(msg('Tableaux de bord, questions et exploration de données, open source.')),
