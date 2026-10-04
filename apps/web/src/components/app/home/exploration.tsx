@@ -200,7 +200,8 @@ export function Exploration({ ai }: { ai: boolean }) {
 
 function Figure({ insight: i }: { insight: HomeInsight }) {
   const max = Math.max(...i.points.map((p) => Math.abs(p.value)), 1)
-  const month = new Intl.DateTimeFormat(intlLocale(), { month: 'narrow', timeZone: 'UTC' })
+  // parseDate reads the day in local time: so is it said.
+  const month = new Intl.DateTimeFormat(intlLocale(), { month: 'narrow' })
   const span = (p: unknown) => formatValue(p, i.period_column)
   const first = i.points[0]
   const last = i.points[i.points.length - 1]
