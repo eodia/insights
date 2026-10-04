@@ -42,6 +42,13 @@ export interface Config {
     readonly hourlyQuota: number
   }
   readonly demo: boolean
+  /** A demo open to anyone: one click to come in; accounts, rights and connections locked. */
+  readonly demoPublic: boolean
+  /** Where the demo's two sample databases answer (`docker compose` services, or localhost). */
+  readonly demoSources: {
+    readonly postgres: { readonly host: string; readonly port: number }
+    readonly mongoUrl: string
+  }
   readonly inProcessWorker: boolean
 }
 
@@ -112,6 +119,11 @@ export function loadConfig(): Config {
       hourlyQuota: Number(env('AI_HOURLY_QUOTA', '60')),
     },
     demo: env('DEMO', dev ? '1' : '0') === '1',
+    demoPublic: env('DEMO_PUBLIC', '0') === '1',
+    demoSources: {
+      postgres: { host: env('DEMO_PG_HOST', 'localhost') as string, port: Number(env('DEMO_PG_PORT', '55434')) },
+      mongoUrl: env('DEMO_MONGO_URL', 'mongodb://localhost:57017/') as string,
+    },
     inProcessWorker: env('INPROCESS_WORKER', dev ? '1' : '0') === '1',
   }
 }

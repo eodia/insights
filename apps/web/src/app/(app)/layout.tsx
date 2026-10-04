@@ -1,6 +1,7 @@
 'use client'
 
 import { CopilotPanel } from '@/components/app/copilot'
+import { DemoBanner } from '@/components/app/demo-banner'
 import { SaveDialog } from '@/components/app/dialogs'
 import { Palette } from '@/components/app/palette'
 import { Sidebar } from '@/components/app/sidebar'
@@ -39,6 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden bg-background">
       {sidebar ? <Sidebar /> : null}
       <div className="flex min-w-0 flex-1 flex-col">
+        <DemoBanner />
         <Topbar onNewFolder={() => setNewFolder(true)} onNewDashboard={() => setNewDashboard(true)} />
         <div className="flex min-h-0 flex-1">
           <main className="min-w-0 flex-1 overflow-auto">{children}</main>

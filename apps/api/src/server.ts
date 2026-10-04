@@ -5,6 +5,7 @@
 import { serve } from '@hono/node-server'
 import { requestLocaleOf } from '@eodia/contracts'
 import { AppError, type OpaInput, OpaDecider, loadConfig, localizeMessage, prepare, start } from '@eodia/core'
+import { demoGuard } from './demo-guard'
 import { identify, newApp } from './http'
 import { adminRoutes } from './routes/admin'
 import { authRoutes } from './routes/auth'
@@ -82,6 +83,7 @@ export async function createApp() {
   })
 
   app.use('/api/*', identify(core))
+  if (config.demoPublic) app.use('/api/*', demoGuard(core))
 
   app.onError((err, c) => {
     if (err instanceof AppError) {

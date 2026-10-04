@@ -1,0 +1,177 @@
+# Démo publique d'eodia insights : Maison Arvor, une boutique en ligne fictive.
+#
+#   cp .env.demo.example .env     # puis renseignez DOMAIN, SECRET_KEY, OPA_SECRET
+#   docker compose -f docker-compose.demo.yml up -d
+#
+# Tout est jetable : le catalogue et les deux bases d'exemple (PostgreSQL « boutique »,
+# MongoDB « support ») vivent dans des volumes anonymes, recréés à chaque remise à zéro
+# (scripts/demo-reset.sh, à lancer chaque nuit). Les données sont générées au démarrage,
+# datées par rapport au jour même : trois ans d'historique jusqu'à aujourd'hui, toujours frais.
+# Seuls les certificats de Caddy sont gardés (volumes nommés), pour ne pas en redemander un
+# à Let's Encrypt chaque nuit.
+#
+# DEMO_PUBLIC=1 : la page de connexion fait entrer en un clic (Direction ou analyste) ; les
+# connexions aux bases, les personnes, les droits et le contenu de démonstration sont
+# verrouillés (apps/api/src/demo-guard.ts).
+#
+# ── Variables (fichier .env à côté de ce fichier) ───────────────────────────────
+# Obligatoires
+#   DOMAIN               nom de domaine public — ex. demo.insights.eodia.fr
+#   SECRET_KEY           openssl rand -hex 32
+#   OPA_SECRET           openssl rand -hex 24
+# Facultatives
+#   PUBLIC_URL           adresse publique (https://$DOMAIN)
+#   ACME_EMAIL           contact Let's Encrypt
+#   HTTP_PORT, HTTPS_PORT  ports publiés par Caddy (80, 443) — derrière un autre proxy, voir docs/demo.md
+#   AI_PROVIDER, AI_API_KEY, AI_MODEL   l'assistant IA (sans clé : désactivé)
+#   AI_HOURLY_QUOTA      messages par heure et par compte (30) : les visiteurs partagent deux comptes
+#   IMAGE                image à utiliser (eodia/insights:latest)
+
+name: eodia-insights-demo
+
+x-app: &app
+  image: ${IMAGE:-eodia/insights:latest}
+  build:
+    context: .
+    args:
+      API_URL: http://api:4100
+      PUBLIC_URL: ${PUBLIC_URL:-https://${DOMAIN:?DOMAIN manquant}}
+  restart: unless-stopped
+  environment: &app-env
+    NODE_ENV: production
+    DATABASE_URL: postgres://eodia:eodia-demo@catalog:5432/eodia
+    SECRET_KEY: ${SECRET_KEY:?SECRET_KEY manquant (openssl rand -hex 32)}
+    OPA_SECRET: ${OPA_SECRET:?OPA_SECRET manquant (openssl rand -hex 24)}
+    TRINO_URL: http://trino:8080
+    PUBLIC_URL: ${PUBLIC_URL:-https://${DOMAIN:?DOMAIN manquant}}
+    SESSION_DAYS: '2'
+    MAX_ROWS: '5000'
+    # Une requête de visiteur ne monopolise pas le moteur.
+    QUERY_TIMEOUT_MS: '30000'
+    CACHE_TTL: '3600'
+    AI_PROVIDER: ${AI_PROVIDER:-}
+    AI_API_KEY: ${AI_API_KEY:-}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    AI_MODEL: ${AI_MODEL:-}
+    AI_BASE_URL: ${AI_BASE_URL:-}
+    AI_HOURLY_QUOTA: ${AI_HOURLY_QUOTA:-30}
+    DEMO: '1'
+    DEMO_PUBLIC: '1'
+    DEMO_PG_HOST: demo-pg
+    DEMO_PG_PORT: '5432'
+    DEMO_MONGO_URL: mongodb://demo-mongo:27017/
+    INPROCESS_WORKER: '0'
+  depends_on: &demo-data
+    catalog: { condition: service_healthy }
+    demo-pg: { condition: service_healthy }
+    demo-mongo: { condition: service_healthy }
+
+services:
+  catalog:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eodia
+      POSTGRES_PASSWORD: eodia-demo
+      POSTGRES_DB: eodia
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U eodia -h 127.0.0.1']
+      interval: 5s
+      retries: 30
+
+  # Les deux bases d'exemple : générées au premier démarrage du conteneur (≈ 30 s).
+  demo-pg:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: boutique
+    volumes: ['./docker/demo/boutique.sql:/docker-entrypoint-initdb.d/01-boutique.sql:ro']
+    healthcheck:
+      # Pendant l'initialisation, PostgreSQL n'écoute pas en TCP : prêt = données chargées.
+      test: ['CMD-SHELL', 'pg_isready -U demo -d boutique -h 127.0.0.1']
+      interval: 5s
+      retries: 60
+
+  demo-mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes: ['./docker/demo/mongo-init.js:/docker-entrypoint-initdb.d/01-init.js:ro']
+    healthcheck:
+      # Prêt quand le dernier index du script d'initialisation existe.
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "quit(db.getSiblingDB('support').evenements_web.getIndexes().length > 1 ? 0 : 1)"]
+      interval: 5s
+      start_period: 20s
+      retries: 60
+
+  trino:
+    image: trinodb/trino:483
+    restart: unless-stopped
+    environment:
+      CATALOG_MANAGEMENT: dynamic
+      OPA_URL: http://api:4100/internal/opa/${OPA_SECRET:?OPA_SECRET manquant}
+    volumes:
+      - ./docker/trino/etc/config.properties:/etc/trino/config.properties:ro
+      - ./docker/trino/etc/access-control.properties:/etc/trino/access-control.properties:ro
+      - ./docker/trino/etc/jvm.config:/etc/trino/jvm.config:ro
+    healthcheck:
+      test: ['CMD', 'curl', '-fs', 'http://localhost:8080/v1/info']
+      interval: 5s
+      retries: 60
+
+  api:
+    <<: *app
+    command: ['api']
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:4100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      start_period: 30s
+      retries: 6
+
+  # Le worker crée la démo : il attend Trino, l'API (dont Trino interroge l'OPA) et les données.
+  worker:
+    <<: *app
+    command: ['worker']
+    depends_on:
+      <<: *demo-data
+      api: { condition: service_healthy }
+      trino: { condition: service_healthy }
+
+  web:
+    <<: *app
+    command: ['web']
+    environment:
+      <<: *app-env
+      API_URL: http://api:4100
+    depends_on:
+      api: { condition: service_healthy }
+
+  mcp:
+    <<: *app
+    command: ['mcp']
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:4100
+      MCP_PORT: '4200'
+    depends_on:
+      api: { condition: service_healthy }
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['${HTTP_PORT:-80}:80', '${HTTPS_PORT:-443}:443', '${HTTPS_PORT:-443}:443/udp']
+    environment:
+      DOMAIN: ${CADDY_SITE:-${DOMAIN:?DOMAIN manquant}}
+      # Caddy refuse une directive « email » vide : à défaut, admin@ le domaine.
+      ACME_EMAIL: ${ACME_EMAIL:-admin@${DOMAIN}}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [web, api, mcp]
+
+volumes:
+  caddy-data:
+  caddy-config:

@@ -7,7 +7,7 @@
 # l'appelle, sur le réseau Docker.
 
 {
-	# Adresse de contact pour les certificats ; vide : pas de compte ACME nommé.
+	# Adresse de contact pour les certificats (les fichiers compose donnent admin@DOMAIN par défaut).
 	email {$ACME_EMAIL:}
 }
 

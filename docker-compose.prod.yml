@@ -157,7 +157,8 @@ services:
     ports: ['80:80', '443:443', '443:443/udp']
     environment:
       DOMAIN: ${DOMAIN:?DOMAIN manquant}
-      ACME_EMAIL: ${ACME_EMAIL:-}
+      # Caddy refuse une directive « email » vide : à défaut, admin@ le domaine.
+      ACME_EMAIL: ${ACME_EMAIL:-admin@${DOMAIN}}
     volumes:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

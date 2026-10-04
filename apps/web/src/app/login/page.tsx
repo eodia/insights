@@ -9,7 +9,7 @@ import { ApiError, api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, KeyRound, Loader2 } from 'lucide-react'
+import { ArrowRight, KeyRound, Loader2, MapPin, ShieldCheck } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
@@ -17,7 +17,7 @@ interface AuthState {
   setup_required: boolean
   password: boolean
   oidc: { label: string } | null
-  demo: { email: string; password: string } | null
+  demo: { email: string; password: string; analyst: string; public: boolean } | null
   signed_in: boolean
 }
 
@@ -87,13 +87,12 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(params.get('error'))
   const [shake, setShake] = useState(0)
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const signIn = async (credentials: { email: string; password: string; name?: string }) => {
     setBusy(true)
     setError(null)
     try {
-      if (state?.setup_required) await api.post('/auth/setup', { email, name, password })
-      else await api.post('/auth/login', { email, password })
+      if (state?.setup_required) await api.post('/auth/setup', credentials)
+      else await api.post('/auth/login', { email: credentials.email, password: credentials.password })
       window.location.href = back.startsWith('/') && !back.startsWith('//') ? back : '/'
     } catch (err) {
       setError(err instanceof ApiError ? err.message : $t('Connexion impossible.'))
@@ -101,6 +100,10 @@ function LoginForm() {
     } finally {
       setBusy(false)
     }
+  }
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    void signIn({ email, password, name })
   }
 
   if (isLoading || !state) {
@@ -115,11 +118,53 @@ function LoginForm() {
     <div className="mx-auto flex h-full w-full max-w-[380px] flex-col justify-center gap-8 py-10">
       <Brand />
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{setup ? $t('Bienvenue') : $t('Connexion')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{setup ? $t('Bienvenue') : state.demo?.public ? $t('Essayez eodia insights') : $t('Connexion')}</h1>
         <p className="text-sm text-muted-foreground">
-          {setup ? $t('Créez le compte administrateur de cette instance.') : $t('Retrouvez vos tableaux de bord et vos questions.')}
+          {setup
+            ? $t('Créez le compte administrateur de cette instance.')
+            : state.demo?.public
+              ? $t('Une boutique en ligne, ses bases PostgreSQL et MongoDB, trois ans d’historique — et tout ce qu’on en tire.')
+              : $t('Retrouvez vos tableaux de bord et vos questions.')}
         </p>
       </div>
+      {state.demo?.public && !setup ? (
+        <div className="space-y-3">
+          <p className="text-sm font-medium">{$t('Entrez dans la démo sous l’un de ces deux profils :')}</p>
+          {[
+            {
+              email: state.demo.email,
+              icon: ShieldCheck,
+              title: $t('Direction'),
+              text: $t('Tous les chiffres, l’administration et les droits, en lecture.'),
+            },
+            {
+              email: state.demo.analyst,
+              icon: MapPin,
+              title: $t('Analyste en Bretagne'),
+              text: $t('Les mêmes tableaux, filtrés sur sa région ; les e-mails masqués.'),
+            },
+          ].map((p) => (
+            <button
+              key={p.email}
+              type="button"
+              disabled={busy}
+              onClick={() => void signIn({ email: p.email, password: state.demo?.password ?? '' })}
+              className="group flex w-full items-center gap-3.5 rounded-xl border bg-card p-3.5 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-60"
+            >
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <p.icon className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium">{p.title}</span>
+                <span className="block text-xs text-muted-foreground">{p.text}</span>
+              </span>
+              <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+            </button>
+          ))}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <p className="text-xs text-muted-foreground">{$t('Maison Arvor est une boutique fictive. Tout ce que vous modifiez est remis à zéro chaque nuit.')}</p>
+        </div>
+      ) : null}
       {state.oidc && !setup ? (
         <>
           <Button asChild variant="outline" size="lg" className="w-full">
@@ -134,7 +179,7 @@ function LoginForm() {
           ) : null}
         </>
       ) : null}
-      {state.password || setup ? (
+      {state.demo?.public && !setup ? null : state.password || setup ? (
         <form onSubmit={submit} key={shake} className={cn('space-y-4', shake > 0 && 'animate-shake')}>
           {setup ? (
             <div className="space-y-1.5">
@@ -157,12 +202,12 @@ function LoginForm() {
           </Button>
         </form>
       ) : null}
-      {state.demo && !setup ? (
+      {state.demo && !state.demo.public && !setup ? (
         <div className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
           <div className="mb-1.5 font-medium text-foreground">{$t('Instance de démonstration')}</div>
           {[
             [state.demo.email, $t('administrateur')],
-            ['analyste@eodia.local', $t('équipe régionale — lignes filtrées, e-mails masqués')],
+            [state.demo.analyst, $t('équipe régionale — lignes filtrées, e-mails masqués')],
           ].map(([mail, role]) => (
             <button
               key={mail}

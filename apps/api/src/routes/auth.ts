@@ -2,6 +2,7 @@ import { z } from '@hono/zod-openapi'
 import {
   AppError,
   DEMO_ADMIN,
+  DEMO_ANALYST,
   OIDC_COOKIE,
   SESSION_COOKIE,
   acceptInvitation,
@@ -62,7 +63,15 @@ export function authRoutes(app: ReturnType<typeof newApp>) {
       setup_required: await needsSetup(core),
       password: core.config.passwordLogin,
       oidc: core.config.oidc ? { label: core.config.oidc.label } : null,
-      demo: core.config.demo ? { email: DEMO_ADMIN.email, password: DEMO_ADMIN.password } : null,
+      demo: core.config.demo
+        ? {
+            email: DEMO_ADMIN.email,
+            password: DEMO_ADMIN.password,
+            analyst: DEMO_ANALYST.email,
+            // A public demo: one click to come in, the instance locked (demo-guard.ts).
+            public: core.config.demoPublic,
+          }
+        : null,
       signed_in: c.get('actor') !== null,
     })
   })

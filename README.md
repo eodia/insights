@@ -141,6 +141,8 @@ développement.
 | `AI_BASE_URL` | — | Point d'accès d'un fournisseur compatible OpenAI |
 | `AI_HOURLY_QUOTA` | `60` | Messages du copilot par personne et par heure |
 | `DEMO` | `1` en dev, `0` en prod | Crée l'instance de démonstration |
+| `DEMO_PUBLIC` | `0` | Démo ouverte à tous : entrée en un clic, connexions, droits et contenu de démo verrouillés ([docs/demo.md](docs/demo.md)) |
+| `DEMO_PG_HOST` / `DEMO_PG_PORT` / `DEMO_MONGO_URL` | `localhost` / `55434` / `mongodb://localhost:57017/` | Où répondent les deux bases d'exemple de la démo |
 | `INPROCESS_WORKER` | `1` en dev, `0` en prod | Fait tourner le worker dans l'API |
 | `API_PORT` / `API_HOST` | `4100` / `0.0.0.0` | Écoute de l'API |
 | `API_URL` | `http://localhost:4100` | Web (au build : relais `/api/*`) et serveur MCP : adresse de l'API |
@@ -171,6 +173,12 @@ Puis ouvrez `https://bi.exemple.fr` : le premier écran crée le compte administ
 variables facultatives sont listées en tête de `docker-compose.prod.yml`. L'endpoint OPA n'est
 pas exposé par Caddy : seul Trino l'appelle, sur le réseau Docker. Gardez `SECRET_KEY` en
 lieu sûr : sans elle, les mots de passe des sources ne sont plus lisibles.
+
+### Démo publique
+
+`docker-compose.demo.yml` monte une démo ouverte à tous — Maison Arvor, une boutique en ligne
+fictive, trois ans d'historique sur PostgreSQL et MongoDB, six tableaux de bord —, remise à zéro
+chaque nuit par `scripts/demo-reset.sh`. Voir [docs/demo.md](docs/demo.md).
 
 ## Organisation du dépôt
 
