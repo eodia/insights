@@ -5,6 +5,15 @@ import { ColorPicker, IconPicker } from '@/components/app/structure/pickers'
 import { Avatar, Chip, ItemTile, KIND_LABELS, LookIcon } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
+import { BrowseIllustration } from '@/components/app/browse-illustration'
+import {
+  ItemMenu,
+  SelectionBar,
+  TickBox,
+  outsideFields,
+  useDeleteItems,
+  useTicks,
+} from '@/components/app/item-selection'
 import { ShareDialog } from '@/components/app/share-dialog'
 import { Hint } from '@/components/ui/tooltip'
 import { ResultFooter, Visualization } from '@/components/app/visualization'
@@ -84,8 +93,21 @@ function when(iso: string): string {
 function Row({
   item,
   active,
+  ticked,
+  ticking,
   onSelect,
-}: { item: ItemSummary; active: boolean; onSelect: () => void }) {
+  onTick,
+  onDelete,
+}: {
+  item: ItemSummary
+  active: boolean
+  ticked: boolean
+  /** Some row is ticked: every box shows. */
+  ticking: boolean
+  onSelect: () => void
+  onTick: (range: boolean) => void
+  onDelete: () => void
+}) {
   return (
     // A div, not a button: Firefox does not drag a button.
     <div
@@ -93,24 +115,41 @@ function Row({
       // biome-ignore lint/a11y/useSemanticElements: a button cannot be dragged everywhere
       role="button"
       tabIndex={0}
+      aria-selected={ticked}
       onKeyDown={(e) => {
         if (e.key === 'Enter') window.location.href = itemHref(item)
         else if (e.key === ' ') {
           e.preventDefault()
           onSelect()
+        } else if (e.key === 'Delete' && !ticking) {
+          e.preventDefault()
+          onDelete()
         }
       }}
-      onClick={onSelect}
+      onClick={(e) => {
+        // Shift: a range; Ctrl or ⌘: one more — the preview stays where it is.
+        if (e.shiftKey) onTick(true)
+        else if (e.ctrlKey || e.metaKey) onTick(false)
+        else onSelect()
+      }}
+      // Shift ticks a range: no text selected on the way.
+      onMouseDown={(e) => e.shiftKey && e.preventDefault()}
       onDoubleClick={() => (window.location.href = itemHref(item))}
       className={cn(
         'relative flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors',
-        active ? 'bg-muted' : 'hover:bg-muted/60',
+        active ? 'bg-muted' : ticked ? 'bg-primary/5' : 'hover:bg-muted/60',
       )}
     >
       {active ? (
         <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-primary" />
       ) : null}
-      <ItemTile kind={item.kind} />
+      <ItemTile
+        kind={item.kind}
+        className={cn(
+          'transition-opacity',
+          ticked || ticking ? 'opacity-0' : 'group-hover/row:opacity-0',
+        )}
+      />
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2">
           <span className="flex-1 truncate font-semibold">{item.name}</span>
@@ -382,9 +421,9 @@ function Details({
   item,
   folder,
   onShare,
-}: { item: ItemSummary; folder?: Folder; onShare: () => void }) {
+  onBookmark,
+}: { item: ItemSummary; folder?: Folder; onShare: () => void; onBookmark: () => void }) {
   const { data: me } = useMe()
-  const qc = useQueryClient()
   const { data: q } = useQuestion(item.kind !== 'dashboard' ? item.id : null)
   return (
     <Pane
@@ -450,18 +489,7 @@ function Details({
           ))}
         </dl>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              await api.post('/v1/bookmarks', {
-                kind: item.kind,
-                id: item.id,
-                on: !item.bookmarked,
-              })
-              await qc.invalidateQueries({ queryKey: ['folder-items'] })
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={onBookmark}>
             <Star className={cn(item.bookmarked && 'fill-amber-400 text-amber-400')} />{' '}
             {item.bookmarked ? $t('Retirer des favoris') : $t('Favori')}
           </Button>
@@ -484,7 +512,8 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
-  const [share, setShare] = useState(false)
+  const [share, setShare] = useState<ItemSummary | null>(null)
+  const qc = useQueryClient()
   const [details, toggleDetails] = useDetailsShown()
   const folder = folders.find((f) => f.id === folderId)
   const byId = new Map(folders.map((f) => [f.id, f]))
@@ -513,6 +542,31 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
     groups.set(g, [...(groups.get(g) ?? []), i])
   }
   const current = visible.find((i) => i.id === selected) ?? visible[0]
+  // The items ticked, to act on at once — among those listed, in their order.
+  const ticks = useTicks(visible, `${folderId}|${tab}`)
+  const ticking = ticks.rows.length > 0
+  const removal = useDeleteItems((ids) => {
+    ticks.drop(ids)
+    if (selected && ids.includes(selected)) setSelected(null)
+  })
+  const bookmark = async (item: ItemSummary) => {
+    await api.post('/v1/bookmarks', { kind: item.kind, id: item.id, on: !item.bookmarked })
+    await qc.invalidateQueries({ queryKey: ['folder-items'] })
+  }
+  // Outside a field, a dialog or a menu: Escape unticks them all, Delete deletes them.
+  useEffect(() => {
+    if (!ticking) return
+    const onKey = (e: KeyboardEvent) => {
+      if (!outsideFields(e.target)) return
+      if (e.key === 'Escape') ticks.clear()
+      else if (e.key === 'Delete') {
+        e.preventDefault()
+        removal.ask(ticks.rows)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
   // Where the folder sits: its parent, or the root for a shared folder at the top (personal ones stay put).
   const parent: Folder | null | undefined = !folder
     ? undefined
@@ -552,33 +606,57 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
             />
           </div>
         </div>
-        <TabRow className="gap-5 border-b px-4 text-sm">
-          {(['all', 'dashboard', 'question', 'model', 'metric'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={cn(
-                'relative py-2.5 whitespace-nowrap',
-                tab === t
-                  ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {t === 'all'
-                ? $t('Tout')
-                : t === 'dashboard'
-                  ? $t('Tableaux')
-                  : t === 'question'
-                    ? $t('Questions')
-                    : t === 'model'
-                      ? $t('Modèles')
-                      : $t('Métriques')}{' '}
-              <span className="text-xs text-muted-foreground">{counts[t] ?? 0}</span>
-            </button>
-          ))}
-        </TabRow>
-        <div className="flex-1 overflow-y-auto px-2 pb-4">
+        {ticking ? (
+          <SelectionBar
+            count={ticks.rows.length}
+            all={ticks.rows.length === visible.length ? true : 'some'}
+            onAll={ticks.all}
+            onClear={ticks.clear}
+            onDelete={() => removal.ask(ticks.rows)}
+          />
+        ) : (
+          <TabRow className="gap-5 border-b px-4 text-sm">
+            {(['all', 'dashboard', 'question', 'model', 'metric'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className={cn(
+                  'relative py-2.5 whitespace-nowrap',
+                  tab === t
+                    ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {t === 'all'
+                  ? $t('Tout')
+                  : t === 'dashboard'
+                    ? $t('Tableaux')
+                    : t === 'question'
+                      ? $t('Questions')
+                      : t === 'model'
+                        ? $t('Modèles')
+                        : $t('Métriques')}{' '}
+                <span className="text-xs text-muted-foreground">{counts[t] ?? 0}</span>
+              </button>
+            ))}
+          </TabRow>
+        )}
+        <div
+          className="flex-1 overflow-y-auto px-2 pb-4"
+          // Ctrl or ⌘ + A, on the list: every item listed ticked.
+          onKeyDown={(e) => {
+            if (
+              e.key.toLowerCase() === 'a' &&
+              (e.ctrlKey || e.metaKey) &&
+              outsideFields(e.target) &&
+              visible.length
+            ) {
+              e.preventDefault()
+              ticks.all()
+            }
+          }}
+        >
           {(subfolders.length > 0 || canCreate || parent !== undefined) &&
           tab === 'all' &&
           !search ? (
@@ -628,20 +706,52 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
               <div className="mb-1 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 {g} <span className="ml-1 font-normal">{list.length}</span>
               </div>
-              {list.map((i) => (
-                <Row
-                  key={i.id}
-                  item={i}
-                  active={current?.id === i.id}
-                  onSelect={() => setSelected(i.id)}
-                />
-              ))}
+              {list.map((i) => {
+                const on = ticks.ticked.has(i.id)
+                return (
+                  <ItemMenu
+                    key={i.id}
+                    item={i}
+                    selection={ticks.rows}
+                    ticked={on}
+                    onTick={() => ticks.tick(i.id, false)}
+                    onShare={() => setShare(i)}
+                    onBookmark={() => void bookmark(i)}
+                    onDelete={removal.ask}
+                    onClear={ticks.clear}
+                  >
+                    <div className="group/row relative">
+                      <Row
+                        item={i}
+                        active={current?.id === i.id}
+                        ticked={on}
+                        ticking={ticking}
+                        onSelect={() => setSelected(i.id)}
+                        onTick={(range) => ticks.tick(i.id, range)}
+                        onDelete={() => removal.ask([i])}
+                      />
+                      <TickBox
+                        state={on}
+                        label={$t('Sélectionner « {name} »', { name: i.name })}
+                        onToggle={(e) => ticks.tick(i.id, e.shiftKey)}
+                        className={cn(
+                          'absolute top-[22px] left-[22px] focus-visible:opacity-100',
+                          on || ticking ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100',
+                        )}
+                      />
+                    </div>
+                  </ItemMenu>
+                )
+              })}
             </div>
           ))}
           {!isLoading && visible.length === 0 ? (
-            <div className="px-6 py-12 text-center text-sm text-muted-foreground">
-              {folderId === 'root' ? $t('Choisissez un dossier.') : $t('Ce dossier est vide.')}
-              <div className="mt-3">
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              <BrowseIllustration variant="folder" className="mx-auto mb-5 w-44" />
+              <p>
+                {folderId === 'root' ? $t('Choisissez un dossier.') : $t('Ce dossier est vide.')}
+              </p>
+              <div className="mt-4">
                 <Button size="sm" variant="outline" onClick={() => router.push('/question/new')}>
                   {$t('Nouvelle question')}
                 </Button>
@@ -665,9 +775,9 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
             />
           )
         ) : (
-          <div className="m-auto max-w-sm space-y-2 text-center">
-            <FolderOpen className="mx-auto size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
+          <div className="m-auto w-full max-w-sm px-6 py-10 text-center">
+            <BrowseIllustration variant="preview" className="mx-auto mb-6 w-64" />
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {folder
                 ? folder.description || $t('Sélectionnez un élément pour le prévisualiser.')
                 : $t(
@@ -679,17 +789,23 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
       </section>
 
       {current && current.kind !== 'dashboard' && details ? (
-        <Details item={current} {...(folder ? { folder } : {})} onShare={() => setShare(true)} />
-      ) : null}
-      {current ? (
-        <ShareDialog
-          open={share}
-          onOpenChange={setShare}
-          kind={current.kind}
-          id={current.id}
-          name={current.name}
+        <Details
+          item={current}
+          {...(folder ? { folder } : {})}
+          onShare={() => setShare(current)}
+          onBookmark={() => bookmark(current)}
         />
       ) : null}
+      {share ? (
+        <ShareDialog
+          open
+          onOpenChange={(open) => !open && setShare(null)}
+          kind={share.kind}
+          id={share.id}
+          name={share.name}
+        />
+      ) : null}
+      {removal.dialog}
     </div>
   )
 }

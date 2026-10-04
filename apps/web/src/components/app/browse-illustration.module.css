@@ -1,0 +1,189 @@
+.scene {
+  --illustration-line: color-mix(in oklab, var(--muted-foreground) 32%, var(--border));
+  --illustration-accent: color-mix(in oklab, var(--primary) 55%, var(--border));
+
+  display: block;
+  height: auto;
+  max-width: 100%;
+  overflow: visible;
+  pointer-events: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.25;
+}
+
+.haloCenter {
+  stop-color: var(--primary);
+  stop-opacity: 0.08;
+}
+
+.haloEdge {
+  stop-color: var(--primary);
+  stop-opacity: 0;
+}
+
+.frontTop {
+  stop-color: color-mix(in oklab, var(--primary) 9%, var(--card));
+}
+
+.frontBottom {
+  stop-color: color-mix(in oklab, var(--primary) 4%, var(--card));
+}
+
+.orbit {
+  stroke: var(--illustration-line);
+  opacity: 0.45;
+}
+
+.shadow,
+.faintFill {
+  fill: var(--muted-foreground);
+  opacity: 0.08;
+}
+
+.folderBack {
+  fill: color-mix(in oklab, var(--primary) 12%, var(--muted));
+  stroke: var(--illustration-accent);
+}
+
+.paper,
+.cursorShape {
+  fill: var(--card);
+  stroke: var(--illustration-line);
+}
+
+.fold {
+  fill: var(--muted);
+  stroke: var(--illustration-line);
+}
+
+.paperLines {
+  stroke: var(--illustration-line);
+  stroke-width: 2.5;
+  opacity: 0.55;
+}
+
+.folderFront {
+  stroke: var(--illustration-accent);
+}
+
+.folderSeam {
+  stroke: var(--illustration-accent);
+  opacity: 0.3;
+}
+
+.folderLabel,
+.accentFill {
+  fill: var(--primary);
+  opacity: 0.45;
+}
+
+.backCard {
+  fill: var(--muted);
+  stroke: var(--border);
+}
+
+.softFill {
+  fill: var(--muted-foreground);
+  opacity: 0.22;
+}
+
+.divider {
+  stroke: var(--border);
+}
+
+.chartTile {
+  fill: color-mix(in oklab, var(--primary) 8%, var(--card));
+  stroke: color-mix(in oklab, var(--primary) 18%, var(--border));
+}
+
+.miniChart,
+.sparkLines {
+  stroke: var(--illustration-accent);
+  stroke-width: 1.75;
+}
+
+.barSoft {
+  fill: color-mix(in oklab, var(--primary) 18%, var(--muted));
+}
+
+.barMedium {
+  fill: color-mix(in oklab, var(--primary) 38%, var(--muted));
+}
+
+.cursorStem {
+  stroke: var(--illustration-line);
+}
+
+.quietSpark {
+  stroke: var(--illustration-line);
+  opacity: 0.6;
+}
+
+.float {
+  animation: float 7s ease-in-out infinite;
+}
+
+.sheet {
+  animation: float 6s ease-in-out -2s infinite;
+}
+
+.bars {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: breathe 7s ease-in-out -1s infinite;
+}
+
+.cursor {
+  animation: cursor 8s ease-in-out -2s infinite;
+}
+
+.spark {
+  animation: glimmer 5s ease-in-out -1s infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.92);
+  }
+}
+
+@keyframes cursor {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-4px, -3px);
+  }
+}
+
+@keyframes glimmer {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene * {
+    animation: none;
+  }
+}
