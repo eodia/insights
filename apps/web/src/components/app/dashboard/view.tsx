@@ -16,6 +16,7 @@ import type {
   Visualization as Viz,
 } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, cardSize, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
+import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
@@ -74,7 +75,7 @@ import Link from 'next/link'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
-import { ParameterBar, type Values } from './parameters'
+import { FILTER_ICONS, FILTER_TYPES, ParameterBar, type Values, filterName, filterType } from './parameters'
 import { RefreshTimer } from './refresh-timer'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { TabRow } from '@/components/ui/tab-row'
@@ -92,8 +93,9 @@ function relevantValues(card: DashboardCard, values: Values): Values {
 }
 
 export function substitute(text: string, parameters: readonly DashboardParameter[], values: Values): string {
-  return text.replace(/\{\{\s*([a-z0-9_-]+)\s*\}\}/gi, (whole, name: string) => {
-    const p = parameters.find((x) => x.id === name || x.label.toLowerCase() === name.toLowerCase())
+  const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
+  return text.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (whole, name: string) => {
+    const p = parameters.find((x) => x.id === name || fold(filterName(x)) === fold(name))
     if (!p) return whole
     return valueLabelFor(p, values[p.id]) || $t('(tout)')
   })
@@ -178,7 +180,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-background/85 p-4 backdrop-blur-[1px]">
       <div className="w-full max-w-60 space-y-2 text-center">
-        <div className="text-xs text-muted-foreground">{$t('Relier « {label} » à', { label: parameter.label })}</div>
+        <div className="text-xs text-muted-foreground">{$t('Relier « {label} » à', { label: filterName(parameter) })}</div>
         <Choice
           value={value}
           onValueChange={(v) => {
@@ -351,7 +353,7 @@ function CardFrame(props: CardProps) {
       <div className={cn('card-still relative min-h-0 flex-1', isQuestion ? 'px-3 pb-3' : 'p-4')}>
         {card.kind === 'text' ? (
           editing ? (
-            <Textarea value={card.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} className="h-full resize-none text-sm" placeholder={$t('Texte en Markdown ; citez un filtre avec {{id_du_filtre}}')} />
+            <Textarea value={card.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} className="h-full resize-none text-sm" placeholder={$t('Texte en Markdown ; citez un filtre par son nom, entre doubles accolades : {{Région}}')} />
           ) : (
             <div className="prose-sm h-full overflow-auto text-sm leading-relaxed text-muted-foreground [&_a]:text-primary [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_li]:ml-4 [&_ul]:list-disc [&_strong]:text-foreground">
               <Markdown remarkPlugins={[remarkGfm]}>{substitute(card.text ?? '', parameters, values)}</Markdown>
@@ -467,97 +469,126 @@ function FilterSettings({
   const list = candidates(parameter, questions, results)
   const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
   const suggested = list.find((c) => fold(c.label) === fold(parameter.label))?.key ?? list[0]?.key
-  const typeLabel = PARAM_TYPES.find((t) => t.type === parameter.type)?.label ?? parameter.type
+  const kind = filterType(parameter.type)
+  const Icon = FILTER_ICONS[parameter.type]
+  const name = filterName(parameter)
   const share = questions.length ? tied.length / questions.length : 0
   const defaultLabel = valueLabelFor(parameter, parameter.default ?? null)
   return (
-    <div className="space-y-3 border-b bg-primary/5 px-6 py-3 text-sm">
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{$t(typeLabel)}</span>
-        <Input value={parameter.label} onChange={(e) => onPatch({ label: e.target.value })} aria-label={$t('Nom du filtre')} className="h-8 w-52 bg-background" />
-        <span className="font-mono text-xs text-muted-foreground">{`{{${parameter.id}}}`}</span>
-        {parameter.type === 'category' ? (
-          <label className="flex items-center gap-2 text-xs">
-            <Switch checked={parameter.multiple !== false} onCheckedChange={(v) => onPatch({ multiple: v })} />
-            {$t('Plusieurs valeurs')}
-          </label>
-        ) : null}
-        <span className="flex items-center gap-1.5 text-xs">
-          <span className="text-muted-foreground">{$t('Par défaut')}</span>
-          <span className="font-medium">{defaultLabel || $t('aucune valeur')}</span>
-          <button type="button" className="text-primary hover:underline disabled:opacity-40 disabled:no-underline" disabled={!parameterHasValue(current)} onClick={() => onPatch({ default: current })}>
-            {$t('prendre la valeur actuelle')}
-          </button>
-          {defaultLabel ? (
-            <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => onPatch({ default: null })} aria-label={$t('Retirer la valeur par défaut')}>
-              <X className="size-3.5" />
-            </button>
-          ) : null}
+    <div className="border-b bg-muted/40 px-6 py-4 text-sm">
+      <div className="mb-3 flex items-center gap-3">
+        <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', kind.tone)}>
+          <Icon className="size-4" />
         </span>
-        <span className="flex-1" />
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-semibold">{$t('Filtre « {name} »', { name })}</div>
+          <div className="truncate text-xs text-muted-foreground">{$t(kind.description)}</div>
+        </div>
         <Button size="sm" variant="ghost" className="text-destructive" onClick={onRemove}>
-          <Trash2 /> {$t('Supprimer le filtre')}
+          <Trash2 /> {$t('Supprimer')}
         </Button>
         <Button size="sm" onClick={onClose}>
           {$t('Terminé')}
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${share * 100}%` }} />
+      <div className="grid gap-3 md:grid-cols-3">
+        <section className="space-y-2 rounded-xl border bg-background p-3">
+          <StepTitle n={1} title={$t('Son nom')} />
+          <Input
+            value={parameter.label}
+            onChange={(e) => onPatch({ label: e.target.value })}
+            placeholder={$t('Ex. {example}', { example: $t(kind.example) })}
+            aria-label={$t('Nom du filtre')}
+            autoFocus={!parameter.label}
+            className="h-8"
+          />
+          <p className="text-xs text-muted-foreground">{$t('Ce que lit la personne dans la barre des filtres.')}</p>
+          {parameter.type === 'category' ? (
+            <label htmlFor={`multiple-${parameter.id}`} className="flex items-center gap-2 text-xs">
+              <Switch id={`multiple-${parameter.id}`} checked={parameter.multiple !== false} onCheckedChange={(v) => onPatch({ multiple: v })} />
+              {$t('Plusieurs valeurs à la fois')}
+            </label>
+          ) : null}
+        </section>
+
+        <section className="space-y-2 rounded-xl border bg-background p-3">
+          <StepTitle n={2} title={$t('Les cartes qu’il filtre')} />
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${share * 100}%` }} />
+            </div>
+            <span className="shrink-0 text-xs tabular-nums">{$t('{count} sur {total}', { count: tied.length, total: questions.length })}</span>
           </div>
-          <span className="text-xs">
-            {$tp(tied.length, 'Relié à {count} carte sur {total}', 'Relié à {count} cartes sur {total}', { total: questions.length })}
-          </span>
-        </div>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button size="sm" variant="outline" className="h-7 bg-background" disabled={list.length === 0}>
-              <Link2 /> {$t('Relier toutes les cartes')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-80 p-1">
-            <div className="px-2 pt-1.5 pb-2 text-xs text-muted-foreground">{$t('À quelle colonne relier « {label} » sur chaque carte qui l’a ?', { label: parameter.label })}</div>
-            {list.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                onClick={() => {
-                  onMap(new Map(c.cards))
-                  setOpen(false)
-                  toast.success($tp(c.cards.size, '« {label} » relié à {count} carte.', '« {label} » relié à {count} cartes.', { label: parameter.label }))
-                }}
-                className={cn('flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent', c.key === suggested && 'bg-primary/5')}
-              >
-                <span className="flex-1 truncate">{c.label}</span>
-                {c.key === suggested ? <span className="text-[10px] font-semibold tracking-wide text-primary uppercase">{$t('suggérée')}</span> : null}
-                <span className="text-xs text-muted-foreground tabular-nums">{$tp(c.cards.size, '{count} carte', '{count} cartes')}</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline" className="h-7" disabled={list.length === 0}>
+                  <Link2 /> {$t('Relier toutes les cartes')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-80 p-1">
+                <div className="px-2 pt-1.5 pb-2 text-xs text-muted-foreground">{$t('À quelle colonne relier « {label} » sur chaque carte qui l’a ?', { label: name })}</div>
+                {list.map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => {
+                      onMap(new Map(c.cards))
+                      setOpen(false)
+                      toast.success($tp(c.cards.size, '« {label} » relié à {count} carte.', '« {label} » relié à {count} cartes.', { label: name }))
+                    }}
+                    className={cn('flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent', c.key === suggested && 'bg-primary/5')}
+                  >
+                    <span className="flex-1 truncate">{c.label}</span>
+                    {c.key === suggested ? <span className="text-[10px] font-semibold tracking-wide text-primary uppercase">{$t('suggérée')}</span> : null}
+                    <span className="text-xs text-muted-foreground tabular-nums">{$tp(c.cards.size, '{count} carte', '{count} cartes')}</span>
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+            {tied.length ? (
+              <Button size="sm" variant="ghost" className="h-7" onClick={() => onMap(new Map(tied.map((c) => [c.id, null])))}>
+                {$t('Délier toutes')}
+              </Button>
+            ) : null}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {list.length === 0 && questions.length ? $t('Aucune colonne commune : choisissez-la sur chaque carte, ci-dessous.') : $t('Ou choisissez la colonne sur chaque carte, ci-dessous.')}
+            {unloaded ? ` ${$tp(unloaded, '{count} carte d’un autre onglet : ouvrez-le pour la relier.', '{count} cartes d’autres onglets : ouvrez-les pour les relier.')}` : ''}
+          </p>
+        </section>
+
+        <section className="space-y-2 rounded-xl border bg-background p-3">
+          <StepTitle n={3} title={$t('Sa valeur à l’ouverture')} optional />
+          <div className="flex h-8 items-center gap-2 rounded-md border bg-muted/40 px-2.5">
+            <span className={cn('flex-1 truncate', defaultLabel ? 'font-medium' : 'text-muted-foreground')}>{defaultLabel || $t('Aucune : tout est affiché')}</span>
+            {defaultLabel ? (
+              <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => onPatch({ default: null })} aria-label={$t('Retirer la valeur par défaut')}>
+                <X className="size-3.5" />
               </button>
-            ))}
-          </PopoverContent>
-        </Popover>
-        {tied.length ? (
-          <Button size="sm" variant="ghost" className="h-7" onClick={() => onMap(new Map(tied.map((c) => [c.id, null])))}>
-            {$t('Délier toutes')}
+            ) : null}
+          </div>
+          <Button size="sm" variant="outline" className="h-7" disabled={!parameterHasValue(current)} onClick={() => onPatch({ default: current })}>
+            {$t('Prendre la valeur choisie')}
           </Button>
-        ) : null}
-        <span className="text-xs text-muted-foreground">
-          {$t('Ou choisissez la colonne sur chaque carte.')}
-          {unloaded ? ` ${$tp(unloaded, '{count} carte d’un autre onglet : ouvrez-le pour la relier.', '{count} cartes d’autres onglets : ouvrez-les pour les relier.')}` : ''}
-        </span>
+          <p className="text-xs text-muted-foreground">{$t('Choisissez une valeur dans le filtre, en haut, puis gardez-la ici.')}</p>
+        </section>
       </div>
     </div>
   )
 }
 
-const PARAM_TYPES: { type: ParameterType; label: string }[] = [
-  { type: 'date', label: msg('Période') },
-  { type: 'category', label: msg('Catégorie') },
-  { type: 'text', label: msg('Texte') },
-  { type: 'number', label: msg('Nombre') },
-  { type: 'temporal_unit', label: msg('Granularité de date') },
-]
+/** A numbered step of the filter's settings. */
+function StepTitle({ n, title, optional }: { n: number; title: string; optional?: boolean }) {
+  return (
+    <div className="flex items-center gap-2 text-xs font-semibold">
+      <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] text-primary tabular-nums">{n}</span>
+      {title}
+      {optional ? <span className="font-normal text-muted-foreground">{$t('facultatif')}</span> : null}
+    </div>
+  )
+}
+
 
 export interface DashboardViewProps {
   dashboard: Dashboard
@@ -598,6 +629,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const [tick, setTick] = useState(0)
   const [fresh, setFresh] = useState(false)
   const [selectedParam, setSelectedParam] = useState<string | null>(null)
+  const [addingFilter, setAddingFilter] = useState(false)
   // Which card each click-made selection came from, by filter.
   const [origins, setOrigins] = useState<Record<string, string>>({})
   const [picker, setPicker] = useState(false)
@@ -689,9 +721,9 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       const { [param.id]: _, ...rest } = o
       return param.type === 'category' && value !== null ? { ...rest, [param.id]: card.id } : rest
     })
-    if (value === null) toast.message($t('Filtre « {label} » retiré.', { label: param.label }))
+    if (value === null) toast.message($t('Filtre « {label} » retiré.', { label: filterName(param) }))
     else
-      toast.success($t('Filtré : {label} = {value}', { label: param.label, value: valueLabelFor(param, value) }), {
+      toast.success($t('Filtré : {label} = {value}', { label: filterName(param), value: valueLabelFor(param, value) }), {
         ...(param.type === 'category' && param.multiple !== false && !p.additive ? { description: $t('Maj + clic pour ajouter d’autres catégories.') } : {}),
       })
   }
@@ -709,11 +741,14 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     return { selection: { params, values: chosen } }
   }
 
+  // A filter left without a name keeps that of its kind.
+  const named = (d: typeof draft): typeof draft => ({ ...d, parameters: d.parameters.map((p) => (p.label.trim() ? p : { ...p, label: filterName(p) })) })
+
   const save = async () => {
     if (!onSave) return
     setSaving(true)
     try {
-      await onSave(draft)
+      await onSave(named(draft))
       setEditing(false)
       setSelectedParam(null)
     } catch (err) {
@@ -730,7 +765,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     if (changed && onSave) {
       setSaving(true)
       try {
-        await onSave(draft)
+        await onSave(named(draft))
       } catch (err) {
         toast.error(err instanceof Error ? err.message : String(err))
         return
@@ -762,7 +797,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   }
   // To another dashboard: the edit in progress is saved first.
   const moveElsewhere = async (card: DashboardCard, to: string, toTab: string | null) => {
-    if (editing && onSave && draftChanged()) await onSave(draft)
+    if (editing && onSave && draftChanged()) await onSave(named(draft))
     await onMoveCard?.(card.id, to, toTab)
   }
 
@@ -783,6 +818,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           editing={editing}
           selected={selectedParam}
           onSelect={(id) => setSelectedParam((s) => (s === id ? null : id))}
+          onReorder={(order) => setDraft((d) => ({ ...d, parameters: order.map((id) => d.parameters.find((p) => p.id === id)).filter((p) => p !== undefined) }))}
         />
         {!editing && activeFilters > 0 ? (
           <button
@@ -796,27 +832,41 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           </button>
         ) : null}
         {editing ? (
-          <Popover>
+          <Popover open={addingFilter} onOpenChange={setAddingFilter}>
             <PopoverTrigger asChild>
               <Button size="sm" variant="outline" className="border-dashed">
                 <ListFilter /> {$t('Filtre')}
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-56 p-1">
-              {PARAM_TYPES.map((t) => (
-                <button
-                  key={t.type}
-                  type="button"
-                  onClick={() => {
-                    const id = newId('f')
-                    setDraft((d) => ({ ...d, parameters: [...d.parameters, { id, label: $t(t.label), type: t.type, ...(t.type === 'category' ? { multiple: true } : {}), ...(t.type === 'number' ? { operator: 'between' as const } : {}) }] }))
-                    setSelectedParam(id)
-                  }}
-                  className="flex w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
-                >
-                  {$t(t.label)}
-                </button>
-              ))}
+            <PopoverContent align="start" className="w-[23rem] p-1.5">
+              <div className="px-2 pt-1 pb-2">
+                <div className="text-sm font-semibold">{$t('Ajouter un filtre')}</div>
+                <div className="text-xs text-muted-foreground">{$t('Il s’affiche en haut du tableau de bord et restreint, d’un coup, toutes les cartes que vous lui reliez.')}</div>
+              </div>
+              {FILTER_TYPES.map((t) => {
+                const Icon = FILTER_ICONS[t.type]
+                return (
+                  <button
+                    key={t.type}
+                    type="button"
+                    onClick={() => {
+                      const id = newId('f')
+                      setDraft((d) => ({ ...d, parameters: [...d.parameters, { id, label: '', type: t.type, ...(t.type === 'category' ? { multiple: true } : {}), ...(t.type === 'number' ? { operator: 'between' as const } : {}) }] }))
+                      setSelectedParam(id)
+                      setAddingFilter(false)
+                    }}
+                    className="flex w-full items-start gap-3 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                  >
+                    <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', t.tone)}>
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium">{$t(t.label)}</span>
+                      <span className="block text-xs leading-snug text-muted-foreground">{$t(t.description)}</span>
+                    </span>
+                  </button>
+                )
+              })}
             </PopoverContent>
           </Popover>
         ) : null}
@@ -956,8 +1006,10 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       {/* Grid */}
       <div ref={containerRef} className="theme-surface min-h-0 flex-1 overflow-y-auto bg-surface px-6 py-5">
         {cards.length === 0 ? (
-          <div className="flex h-60 flex-col items-center justify-center gap-3 rounded-xl border border-dashed text-sm text-muted-foreground">
-            {$t('Ce tableau de bord est vide.')}
+          <div className="flex min-h-72 flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-8 text-center text-sm text-muted-foreground">
+            <EmptyScene variant="dashboard" className="mb-1 w-56" />
+            <p className="font-medium text-foreground">{$t('Ce tableau de bord est vide.')}</p>
+            {editable ? <p className="-mt-1.5 max-w-sm">{$t('Ajoutez-y des questions : chacune devient une carte, que vous placez et redimensionnez sur la grille.')}</p> : null}
             {editable && !editing ? (
               <Button size="sm" onClick={() => setEditing(true)}>
                 {$t('Ajouter des cartes')}

@@ -1,6 +1,6 @@
 'use client'
 
-import type { DashboardParameter, ParameterValue, TemporalTruncation } from '@eodia/contracts'
+import type { DashboardParameter, ParameterType, ParameterValue, TemporalTruncation } from '@eodia/contracts'
 import { TEMPORAL_UNITS, parameterHasValue } from '@eodia/contracts'
 import { ValueList } from './value-list'
 import { Button } from '@/components/ui/button'
@@ -9,9 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { PeriodPicker } from '@/components/app/period-picker'
 import { UNIT_LABELS } from '@/lib/builder'
 import { periodLabel } from '@/lib/periods'
-import { $t, intlLocale } from '@/lib/i18n'
+import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { Calendar, ChevronDown, Hash, ListFilter, Type, X, Clock } from 'lucide-react'
+import { Calendar, ChevronDown, GripVertical, Hash, ListFilter, Type, X, Clock } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 export type Values = Record<string, ParameterValue | null>
@@ -27,7 +27,54 @@ export function valueLabel(p: DashboardParameter, v: ParameterValue | null | und
   return String(v)
 }
 
-const ICONS = { date: Calendar, category: ListFilter, text: Type, number: Hash, temporal_unit: Clock } as const
+export const FILTER_ICONS = { date: Calendar, category: ListFilter, text: Type, number: Hash, temporal_unit: Clock } as const
+const ICONS = FILTER_ICONS
+
+/** The kinds of filter, as the menu offers them: what each does, its colour, a name to start from. */
+export const FILTER_TYPES: readonly { type: ParameterType; label: string; description: string; example: string; tone: string }[] = [
+  {
+    type: 'date',
+    label: msg('Période'),
+    description: msg('Garde les lignes d’une période : ce mois-ci, les 30 derniers jours, une plage de dates…'),
+    example: msg('Période de commande'),
+    tone: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+  },
+  {
+    type: 'category',
+    label: msg('Catégorie'),
+    description: msg('Une liste de valeurs à cocher : une région, un canal, un statut…'),
+    example: msg('Région'),
+    tone: 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+  },
+  {
+    type: 'text',
+    label: msg('Texte'),
+    description: msg('Un mot cherché dans une colonne de texte : un nom, une référence…'),
+    example: msg('Nom du client'),
+    tone: 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+  },
+  {
+    type: 'number',
+    label: msg('Nombre'),
+    description: msg('Un seuil ou une fourchette : un montant, une quantité, une note…'),
+    example: msg('Montant'),
+    tone: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+  },
+  {
+    type: 'temporal_unit',
+    label: msg('Granularité de date'),
+    description: msg('Change le pas des courbes — jour, semaine, mois… — sans retirer de ligne.'),
+    example: msg('Afficher par'),
+    tone: 'bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300',
+  },
+]
+
+export const filterType = (type: ParameterType) => FILTER_TYPES.find((t) => t.type === type) ?? (FILTER_TYPES[0] as (typeof FILTER_TYPES)[number])
+
+/** A filter's name, as shown: the one given, or that of its kind while it has none. */
+export function filterName(p: Pick<DashboardParameter, 'label' | 'type'>): string {
+  return p.label.trim() || $t(filterType(p.type).label)
+}
 
 function Editor({
   p,
@@ -121,7 +168,17 @@ function NumberEditor({ initial, between, onChange }: { initial: (number | null)
   )
 }
 
-/** The filters of a dashboard, in one row above its cards. */
+/** Where a filter moves: before or after another one. */
+function moved(ids: readonly string[], id: string, target: string, after: boolean): string[] {
+  const rest = ids.filter((x) => x !== id)
+  const at = rest.indexOf(target) + (after ? 1 : 0)
+  return [...rest.slice(0, at), id, ...rest.slice(at)]
+}
+
+/**
+ * The filters of a dashboard, in one row above its cards. While the dashboard is edited, they
+ * are put in order by dragging them — or with Alt and the arrows, from the keyboard.
+ */
 export function ParameterBar({
   parameters,
   values,
@@ -130,6 +187,7 @@ export function ParameterBar({
   editing,
   selected,
   onSelect,
+  onReorder,
 }: {
   parameters: readonly DashboardParameter[]
   values: Values
@@ -139,8 +197,14 @@ export function ParameterBar({
   editing?: boolean
   selected?: string | null
   onSelect?: (id: string) => void
+  /** The filters' new order, by id. */
+  onReorder?: (ids: string[]) => void
 }) {
   const [open, setOpen] = useState<string | null>(null)
+  const [dragged, setDragged] = useState<string | null>(null)
+  const [drop, setDrop] = useState<{ id: string; after: boolean } | null>(null)
+  const ids = parameters.map((p) => p.id)
+  const sortable = !!editing && !!onReorder && parameters.length > 1
   // The share of the rows each category filter keeps, as its list last said.
   const [shares, setShares] = useState<Record<string, number | null>>({})
   const setShare = useCallback((id: string, share: number | null) => setShares((s) => (s[id] === share ? s : { ...s, [id]: share })), [])
@@ -151,20 +215,68 @@ export function ParameterBar({
         const Icon = ICONS[p.type]
         const v = values[p.id]
         const has = parameterHasValue(v)
+        const marker = drop?.id === p.id && dragged !== p.id ? (drop.after ? 'after' : 'before') : null
         return (
-          <Popover key={p.id} open={!editing && open === p.id} onOpenChange={(o) => setOpen(o ? p.id : null)}>
+          <div
+            key={p.id}
+            className={cn('relative', dragged === p.id && 'opacity-40')}
+            {...(sortable
+              ? {
+                  draggable: true,
+                  onDragStart: (e: React.DragEvent) => {
+                    e.dataTransfer.setData('text/plain', p.id)
+                    e.dataTransfer.effectAllowed = 'move'
+                    setDragged(p.id)
+                  },
+                  onDragOver: (e: React.DragEvent) => {
+                    if (!dragged) return
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = 'move'
+                    const box = e.currentTarget.getBoundingClientRect()
+                    const after = e.clientX > box.left + box.width / 2
+                    if (drop?.id !== p.id || drop.after !== after) setDrop({ id: p.id, after })
+                  },
+                  onDrop: (e: React.DragEvent) => {
+                    e.preventDefault()
+                    if (dragged && drop && dragged !== drop.id) {
+                      const next = moved(ids, dragged, drop.id, drop.after)
+                      if (next.join() !== ids.join()) onReorder?.(next)
+                    }
+                    setDragged(null)
+                    setDrop(null)
+                  },
+                  onDragEnd: () => {
+                    setDragged(null)
+                    setDrop(null)
+                  },
+                }
+              : {})}
+          >
+            {marker ? <span className={cn('pointer-events-none absolute inset-y-0.5 w-0.5 rounded-full bg-primary', marker === 'before' ? '-left-[5px]' : '-right-[5px]')} /> : null}
+          <Popover open={!editing && open === p.id} onOpenChange={(o) => setOpen(o ? p.id : null)}>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 onClick={() => (editing ? onSelect?.(p.id) : undefined)}
+                onKeyDown={(e) => {
+                  if (!sortable || !e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+                  e.preventDefault()
+                  const i = ids.indexOf(p.id)
+                  const j = e.key === 'ArrowLeft' ? i - 1 : i + 1
+                  const target = ids[j]
+                  if (target) onReorder?.(moved(ids, p.id, target, j > i))
+                }}
+                title={sortable ? $t('Glissez pour déplacer (ou Alt + flèches)') : undefined}
                 className={cn(
                   'inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3 text-sm shadow-xs transition-colors hover:bg-accent',
                   has && 'border-primary/50 bg-primary/5',
                   editing && selected === p.id && 'ring-2 ring-primary',
+                  sortable && 'cursor-grab pl-1.5 active:cursor-grabbing',
                 )}
               >
+                {sortable ? <GripVertical className="-mr-1 size-3.5 text-muted-foreground/70" /> : null}
                 <Icon className="size-4 text-muted-foreground" />
-                <span className={cn(has ? 'text-muted-foreground' : '')}>{p.label}</span>
+                <span className={cn(has ? 'text-muted-foreground' : '')}>{filterName(p)}</span>
                 {has ? <span className="font-medium">{valueLabel(p, v)}</span> : null}
                 {has && p.type === 'category' && typeof shares[p.id] === 'number' ? (
                   <span className="rounded bg-emerald-500/15 px-1.5 text-[11px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
@@ -208,6 +320,7 @@ export function ParameterBar({
               />
             </PopoverContent>
           </Popover>
+          </div>
         )
       })}
     </div>
