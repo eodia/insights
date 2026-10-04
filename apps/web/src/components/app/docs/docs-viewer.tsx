@@ -34,6 +34,7 @@ const fold = (s: string) =>
 
 function Overview({ doc, endpoints, onSelect, onToken }: { doc: OpenApiDoc; endpoints: number; onSelect: (s: Selection) => void; onToken: () => void }) {
   const origin = typeof window === 'undefined' ? '' : window.location.origin
+  const { data: me } = useMe()
   const cards = [
     { label: $t('Adresse de base'), value: `${origin}/api/v1` },
     { label: $t('Authentification'), value: 'Authorization: Bearer eoi_…' },
@@ -57,13 +58,22 @@ function Overview({ doc, endpoints, onSelect, onToken }: { doc: OpenApiDoc; endp
             <CopyButton text={c.value} className="text-muted-foreground hover:bg-muted hover:text-foreground" />
           </div>
         ))}
+        {me ? (
+          <div className="flex items-center gap-3 rounded-xl border px-4 py-3">
+            <div className="w-36 shrink-0 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Espace')}</div>
+            <div className="min-w-0 flex-1 text-sm">
+              <span className="font-medium">{me.workspace.name}</span>
+              <span className="text-muted-foreground"> — {$t('les jetons créés ici agissent dans cet espace.')}</span>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <Section title={$t('Premiers pas')}>
         <div className="grid gap-3 sm:grid-cols-3">
           <button type="button" onClick={onToken} className="rounded-xl border p-4 text-left transition-colors hover:bg-muted/60">
             <div className="text-sm font-semibold">{$t('1. Créer un jeton')}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{$t('REST, MCP ou les deux. Il agit avec vos droits et s’affiche une seule fois.')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{$t('REST, MCP ou les deux. Il agit avec vos droits, dans l’espace courant, et s’affiche une seule fois.')}</p>
           </button>
           <button
             type="button"
@@ -84,6 +94,12 @@ function Overview({ doc, endpoints, onSelect, onToken }: { doc: OpenApiDoc; endp
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
           <li>{$t('Toute lecture de données passe par Trino sous votre identité : vos règles de ligne et vos colonnes masquées s’appliquent aussi par l’API.')}</li>
           <li>{$t('Un jeton ne vaut que pour les surfaces qu’il déclare : un jeton MCP seul est refusé sur l’API REST.')}</li>
+          <li>
+            {$t(
+              'Un jeton agit dans l’espace où il a été créé : il en voit les sources (et celles qui lui sont partagées), les dossiers, les questions et les tableaux de bord, avec vos droits dans cet espace. Pour travailler dans un autre espace, passez-y puis créez-y un jeton.',
+            )}
+          </li>
+          <li>{$t('GET /api/v1/me dit dans quel espace agit le jeton (workspace) et les espaces où vous pouvez entrer (workspaces).')}</li>
           <li>{$t('Les erreurs portent un code stable et un message dans la langue de l’appelant, prêt à afficher.')}</li>
           <li>
             {$tp(

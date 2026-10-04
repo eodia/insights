@@ -24,10 +24,21 @@ export interface McpTool {
 
 export const MCP_TOOLS: readonly McpTool[] = [
   {
+    name: 'whoami',
+    title: msg('Qui suis-je'),
+    description: msg(
+      'Le propriétaire du jeton, son rôle et l’espace où il agit — tout ce que les autres outils voient vient de lui —, et les autres espaces où il peut entrer, chacun avec son propre jeton.',
+    ),
+    params: [],
+    example: {},
+    calls: ['GET /api/v1/me'],
+  },
+  {
     name: 'list_datasources',
     title: msg('Sources de données'),
-    description:
-      msg('Liste les sources de données lisibles par le propriétaire du jeton, avec leur moteur et leur catalogue Trino : en SQL, une table se cite catalogue.schéma.table.'),
+    description: msg(
+      'Liste les sources de données lisibles par le propriétaire du jeton dans son espace — les siennes et celles qu’un autre espace lui partage —, avec leur moteur et leur catalogue Trino : en SQL, une table se cite catalogue.schéma.table.',
+    ),
     params: [],
     example: {},
     calls: ['GET /api/v1/datasources'],

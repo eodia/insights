@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
+import { useMe } from '@/lib/queries'
 import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -24,6 +25,8 @@ interface TokenRow {
   readonly created_at: string
   readonly last_used_at: string | null
   readonly expires_at: string | null
+  /** The space it acts in. */
+  readonly workspace: { readonly id: string; readonly name: string }
 }
 
 const EXPIRIES = [
@@ -63,7 +66,7 @@ function Existing() {
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium">{t.name}</div>
             <div className="truncate text-xs text-muted-foreground">
-              <code className="font-mono">{t.prefix}…</code> · {t.surfaces.map((s) => (s === 'rest' ? 'REST' : 'MCP')).join(' + ')} ·{' '}
+              <code className="font-mono">{t.prefix}…</code> · {t.surfaces.map((s) => (s === 'rest' ? 'REST' : 'MCP')).join(' + ')} · {t.workspace.name} ·{' '}
               {t.last_used_at ? $t('utilisé le {date}', { date: day(t.last_used_at) }) : $t('jamais utilisé')}
               {t.expires_at ? ` · ${$t('expire le {date}', { date: day(t.expires_at) })}` : ''}
             </div>
@@ -79,6 +82,7 @@ function Existing() {
 
 /** Creates an integration token and shows it once; lists and revokes the existing ones. */
 export function TokenDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { data: me } = useMe()
   const qc = useQueryClient()
   const [name, setName] = useState('')
   const [surfaces, setSurfaces] = useState<Surface[]>(['rest', 'mcp'])
@@ -115,7 +119,9 @@ export function TokenDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           <DialogDescription>
             {created
               ? $t('Copiez-le maintenant : il ne sera plus jamais affiché.')
-              : $t('Un jeton agit avec vos droits, ni plus ni moins : vos permissions de données, de colonnes et de lignes s’appliquent à tout ce qu’il lit.')}
+              : $t('Un jeton agit avec vos droits, ni plus ni moins, dans l’espace « {name} » : vos permissions de données, de colonnes et de lignes s’appliquent à tout ce qu’il lit.', {
+                  name: me?.workspace.name ?? '',
+                })}
           </DialogDescription>
         </DialogHeader>
 

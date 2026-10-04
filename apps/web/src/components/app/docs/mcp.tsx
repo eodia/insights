@@ -76,6 +76,10 @@ export function McpSetup({ onSelect, onToken }: { onSelect: (s: Selection) => vo
           </li>
           <li className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+            {$t('L’assistant voit l’espace du jeton, et lui seul : ses sources et celles qui lui sont partagées, ses métriques, ses questions et ses tableaux de bord. L’outil whoami le lui dit.')}
+          </li>
+          <li className="flex gap-2">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
             {$t('run_sql est en lecture seule et s’exécute dans Trino : permissions de tables, colonnes masquées et règles de ligne s’appliquent.')}
           </li>
           <li className="flex gap-2">

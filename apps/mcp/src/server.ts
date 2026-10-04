@@ -32,7 +32,7 @@ loadEnvFiles()
 
 const VERSION = '0.1.0'
 const INSTRUCTIONS =
-  "eodia insights est un outil de BI : ses données viennent de plusieurs bases, toutes interrogées par Trino sous les droits du propriétaire du jeton. Pour répondre à une question chiffrée, préférez une métrique existante (list_metrics, query_metric) ou une question enregistrée (list_questions, run_question) ; sinon repérez les tables (search_schema, describe_table) puis écrivez du SQL Trino (run_sql)."
+  "eodia insights est un outil de BI : ses données viennent de plusieurs bases, toutes interrogées par Trino sous les droits du propriétaire du jeton. Le jeton agit dans un seul espace (une équipe, une filiale) : vous n'en voyez que les sources (et celles qui lui sont partagées), les métriques, les questions et les tableaux de bord — whoami dit lequel. Pour répondre à une question chiffrée, préférez une métrique existante (list_metrics, query_metric) ou une question enregistrée (list_questions, run_question) ; sinon repérez les tables (search_schema, describe_table) puis écrivez du SQL Trino (run_sql)."
 
 function newServer(api: EodiaApi): McpServer {
   const server = new McpServer({ name: 'eodia-insights', version: VERSION }, { instructions: INSTRUCTIONS })

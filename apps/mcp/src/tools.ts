@@ -14,6 +14,7 @@ import type {
   Filter,
   ItemSummary,
   Join,
+  Me,
   QueryResult,
   Question,
   TableMeta,
@@ -177,21 +178,56 @@ export function registerTools(server: McpServer, api: EodiaApi): void {
   registerChartApp(server)
 
   server.registerTool(
+    'whoami',
+    {
+      title: 'Qui suis-je',
+      description:
+        "Dit pour qui et dans quel espace agit le jeton : son propriétaire, son espace (une équipe, une filiale : tout ce que les autres outils voient vient de lui) et son rôle, et les autres espaces où il peut entrer — chacun demande son propre jeton.",
+      inputSchema: {},
+      annotations: READ_ONLY,
+    },
+    () =>
+      guarded(async () => {
+        const me = await api.get<Me>('/v1/me')
+        const role = me.is_admin ? 'administrateur' : me.can.manage_metadata ? 'curateur' : 'analyste'
+        const others = me.workspaces.filter((w) => w.id !== me.workspace.id).map((w) => w.name)
+        return [
+          `**${me.name}** (${me.email}), ${role}.`,
+          `Espace : **${me.workspace.name}**${me.workspace.description ? ` — ${me.workspace.description}` : ''}.`,
+          `Groupes dans cet espace : ${me.groups.map((g) => g.name).join(', ') || 'aucun'}.`,
+          `SQL : ${me.can.use_sql ? 'autorisé' : 'non'}.`,
+          others.length
+            ? `Autres espaces de la personne : ${others.join(', ')} — leurs données ne sont pas visibles avec ce jeton : il en faut un créé dans chacun.`
+            : 'La personne n’a pas d’autre espace.',
+        ].join('\n')
+      }),
+  )
+
+  server.registerTool(
     'list_datasources',
     {
       title: 'Sources de données',
       description:
-        "Liste les sources de données connectées (bases PostgreSQL, MySQL, MongoDB…) que le propriétaire du jeton peut lire, avec leur catalogue Trino : en SQL, une table se cite catalogue.schéma.table.",
+        "Liste les sources de données connectées (bases PostgreSQL, MySQL, MongoDB…) que le propriétaire du jeton peut lire dans son espace — les siennes et celles qu'un autre espace lui partage —, avec leur catalogue Trino : en SQL, une table se cite catalogue.schéma.table.",
       inputSchema: {},
       annotations: READ_ONLY,
     },
     () =>
       guarded(async () => {
         const list = await api.get<Datasource[]>('/v1/datasources')
-        if (!list.length) return 'Aucune source de données accessible.'
+        if (!list.length) return 'Aucune source de données accessible dans cet espace.'
         return table(
-          ['Nom', 'Moteur', 'Catalogue Trino', 'Tables', 'Synchro', 'Description', 'id'],
-          list.map((d) => [d.name, d.engine, d.catalog, d.stats.tables, d.sync.status, d.description ?? '', d.id]),
+          ['Nom', 'Moteur', 'Catalogue Trino', 'Tables', 'Synchro', 'Provenance', 'Description', 'id'],
+          list.map((d) => [
+            d.name,
+            d.engine,
+            d.catalog,
+            d.stats.tables,
+            d.sync.status,
+            d.shared ? `partagée par « ${d.workspace.name} »` : 'cet espace',
+            d.description ?? '',
+            d.id,
+          ]),
         )
       }),
   )
