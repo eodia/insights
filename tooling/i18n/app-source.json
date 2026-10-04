@@ -104,11 +104,24 @@
       "components/app/dashboard/view.tsx:547"
     ]
   },
+  "{count} chiffres clés": {
+    "one": "{count} chiffre clé",
+    "other": "{count} chiffres clés",
+    "where": [
+      "components/app/home/exploration.tsx:74"
+    ]
+  },
+  "{count} col.": {
+    "one": "{count} col.",
+    "other": "{count} col.",
+    "where": [
+      "components/app/data/sources-overview.tsx:157"
+    ]
+  },
   "{count} colonnes": {
     "one": "{count} colonne",
     "other": "{count} colonnes",
     "where": [
-      "app/(app)/data/page.tsx:47",
       "components/app/admin/permission-matrix.tsx:162",
       "components/app/structure/table-editor.tsx:59"
     ]
@@ -259,7 +272,7 @@
     "one": "{count} ligne",
     "other": "{count} lignes",
     "where": [
-      "app/(app)/history/page.tsx:80",
+      "app/(app)/history/page.tsx:81",
       "components/app/assistant/parts.tsx:333",
       "components/app/dashboard/value-list.tsx:261"
     ]
@@ -361,7 +374,7 @@
     "one": "{count} requête",
     "other": "{count} requêtes",
     "where": [
-      "app/(app)/history/page.tsx:151"
+      "app/(app)/history/page.tsx:152"
     ]
   },
   "{count} restreintes": {
@@ -382,7 +395,7 @@
     "one": "{count} schéma",
     "other": "{count} schémas",
     "where": [
-      "app/(app)/data/page.tsx:47"
+      "components/app/data/sources-overview.tsx:155"
     ]
   },
   "{count} secondes": {
@@ -424,9 +437,9 @@
     "one": "{count} table",
     "other": "{count} tables",
     "where": [
-      "app/(app)/data/page.tsx:47",
       "components/app/admin/permission-matrix.tsx:232",
-      "components/app/admin/permission-matrix.tsx:278"
+      "components/app/admin/permission-matrix.tsx:278",
+      "components/app/data/sources-overview.tsx:156"
     ]
   },
   "{count} types changés": {
@@ -450,7 +463,7 @@
   },
   "{count}+ requêtes": {
     "where": [
-      "app/(app)/history/page.tsx:151"
+      "app/(app)/history/page.tsx:152"
     ]
   },
   "{duration} ms": {
@@ -474,13 +487,6 @@
       "components/app/docs/openapi.ts:167"
     ]
   },
-  "{n} lignes": {
-    "one": "{n} ligne",
-    "other": "{n} lignes",
-    "where": [
-      "app/(app)/data/[id]/page.tsx:66"
-    ]
-  },
   "{n} ms": {
     "where": [
       "app/(app)/sql/page.tsx:189"
@@ -488,7 +494,7 @@
   },
   "{n} s": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:142"
+      "components/app/data/source-settings.tsx:79"
     ]
   },
   "{name} (groupe)": {
@@ -542,7 +548,7 @@
     "one": "≈ {n} ligne",
     "other": "≈ {n} lignes",
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:151"
+      "app/(app)/data/[[...path]]/page.tsx:176"
     ]
   },
   "≤ {max} car.": {
@@ -613,7 +619,7 @@
   },
   "12 derniers mois": {
     "where": [
-      "components/app/login-stage.tsx:492",
+      "components/app/login-stage.tsx:491",
       "lib/periods.ts:55"
     ]
   },
@@ -654,7 +660,7 @@
   },
   "3 lignes": {
     "where": [
-      "components/app/login-stage.tsx:454"
+      "components/app/login-stage.tsx:453"
     ]
   },
   "3. Brancher un assistant": {
@@ -701,7 +707,7 @@
   },
   "6 lignes · 412 ms": {
     "where": [
-      "components/app/login-stage.tsx:381"
+      "components/app/login-stage.tsx:380"
     ]
   },
   "7 derniers jours": {
@@ -816,9 +822,9 @@
   },
   "Accueil": {
     "where": [
-      "app/(app)/page.tsx:45",
-      "components/app/login-stage.tsx:209",
-      "components/app/palette.tsx:58"
+      "app/(app)/history/page.tsx:31",
+      "app/(app)/page.tsx:13",
+      "components/app/login-stage.tsx:209"
     ]
   },
   "Actif": {
@@ -872,13 +878,13 @@
   },
   "administrateur": {
     "where": [
-      "app/login/page.tsx:163"
+      "app/login/page.tsx:209"
     ]
   },
   "Administrateur": {
     "where": [
       "app/(app)/account/page.tsx:52",
-      "components/app/sidebar.tsx:175"
+      "components/app/sidebar.tsx:174"
     ]
   },
   "Administrateurs": {
@@ -895,7 +901,7 @@
   },
   "Administratrice": {
     "where": [
-      "components/app/login-stage.tsx:264"
+      "components/app/login-stage.tsx:263"
     ]
   },
   "Adresse": {
@@ -917,7 +923,7 @@
   },
   "Adresse e-mail": {
     "where": [
-      "app/login/page.tsx:145"
+      "app/login/page.tsx:191"
     ]
   },
   "Aérée": {
@@ -932,7 +938,7 @@
   },
   "Afficher l’historique": {
     "where": [
-      "components/app/assistant/assistant.tsx:567"
+      "components/app/assistant/assistant.tsx:578"
     ]
   },
   "Afficher ou masquer le détail": {
@@ -1071,9 +1077,8 @@
   },
   "Ajouter une source": {
     "where": [
-      "app/(app)/data/page.tsx:101",
-      "app/(app)/data/page.tsx:142",
-      "app/(app)/structure/[[...path]]/page.tsx:164"
+      "app/(app)/data/[[...path]]/page.tsx:190",
+      "components/app/structure/tree.tsx:77"
     ]
   },
   "Ajouter une source de données": {
@@ -1093,7 +1098,7 @@
   },
   "Aller en bas": {
     "where": [
-      "components/app/assistant/assistant.tsx:629"
+      "components/app/assistant/assistant.tsx:640"
     ]
   },
   "Ambre": {
@@ -1101,10 +1106,25 @@
       "components/app/structure/pickers.tsx:24"
     ]
   },
+  "Analyse l’évolution de « {title} » ({table}) mois par mois": {
+    "where": [
+      "components/app/home/exploration.tsx:29"
+    ]
+  },
+  "Analyse…": {
+    "where": [
+      "components/app/home/exploration.tsx:71"
+    ]
+  },
   "Analyste": {
     "where": [
       "app/(app)/account/page.tsx:52",
-      "components/app/sidebar.tsx:175"
+      "components/app/sidebar.tsx:174"
+    ]
+  },
+  "Analyste en Bretagne": {
+    "where": [
+      "app/login/page.tsx:143"
     ]
   },
   "Anneau": {
@@ -1183,7 +1203,7 @@
     "where": [
       "app/(app)/docs/page.tsx:8",
       "components/app/docs/docs-viewer.tsx:48",
-      "components/app/login-stage.tsx:254"
+      "components/app/login-stage.tsx:253"
     ]
   },
   "API REST": {
@@ -1266,7 +1286,12 @@
     "where": [
       "app/login/page.tsx:34",
       "components/app/assistant/assistant.tsx:408",
-      "components/app/assistant/assistant.tsx:579"
+      "components/app/assistant/assistant.tsx:590"
+    ]
+  },
+  "Assistant IA · interrogez vos données en français": {
+    "where": [
+      "components/app/home/hero.tsx:39"
     ]
   },
   "Attendu un objet JSON.": {
@@ -1452,12 +1477,12 @@
   },
   "Aucune description": {
     "where": [
-      "app/(app)/data/page.tsx:34"
+      "components/app/data/sources-overview.tsx:90"
     ]
   },
   "Aucune erreur : tout s’est bien passé.": {
     "where": [
-      "app/(app)/history/page.tsx:161"
+      "app/(app)/history/page.tsx:162"
     ]
   },
   "Aucune invitation en attente.": {
@@ -1483,17 +1508,17 @@
   },
   "Aucune requête.": {
     "where": [
-      "app/(app)/history/page.tsx:160"
+      "app/(app)/history/page.tsx:161"
     ]
   },
   "Aucune source connectée : ajoutez-en une pour décrire ses tables.": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:162"
+      "app/(app)/data/[[...path]]/page.tsx:187"
     ]
   },
   "Aucune source connectée pour l’instant.": {
     "where": [
-      "app/(app)/data/page.tsx:138"
+      "components/app/data/sources-overview.tsx:241"
     ]
   },
   "Aucune source de données connectée.": {
@@ -1508,33 +1533,29 @@
   },
   "Aucune source ne correspond à la recherche.": {
     "where": [
-      "app/(app)/data/page.tsx:138"
+      "components/app/data/sources-overview.tsx:236"
     ]
   },
   "Aucune source.": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:93"
-    ]
-  },
-  "Aucune table : lancez une synchronisation.": {
-    "where": [
-      "app/(app)/data/[id]/page.tsx:76"
+      "app/(app)/data/[[...path]]/page.tsx:105",
+      "app/(app)/data/[[...path]]/page.tsx:112"
     ]
   },
   "Aucune table accessible pour l’instant.": {
     "where": [
-      "app/(app)/page.tsx:141"
+      "components/app/home/sections.tsx:260"
     ]
   },
-  "Aucune table ne correspond.": {
+  "Aucune table avec une date et une mesure à suivre pour l’instant.": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:76"
+      "components/app/home/exploration.tsx:134"
     ]
   },
   "Aucune table synchronisée.": {
     "where": [
       "components/app/admin/permission-matrix.tsx:220",
-      "components/app/structure/tree.tsx:130"
+      "components/app/structure/tree.tsx:144"
     ]
   },
   "aucune valeur": {
@@ -1577,7 +1598,7 @@
   "Aujourd’hui": {
     "where": [
       "components/app/assistant/history.tsx:27",
-      "components/app/login-stage.tsx:396",
+      "components/app/login-stage.tsx:395",
       "components/app/period-picker.tsx:165"
     ]
   },
@@ -1612,7 +1633,7 @@
   "Auto": {
     "where": [
       "components/app/dashboard/refresh-timer.tsx:105",
-      "components/app/login-stage.tsx:628",
+      "components/app/login-stage.tsx:627",
       "components/app/question/viz-settings.tsx:665"
     ]
   },
@@ -1628,7 +1649,7 @@
   },
   "Autorisé": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:141"
+      "components/app/data/source-settings.tsx:78"
     ]
   },
   "Autoriser l’exécution de requêtes (sous vos droits)": {
@@ -1781,9 +1802,14 @@
       "packages/contracts/src/domain.ts:90"
     ]
   },
+  "Base de données, entrepôt ou fichier": {
+    "where": [
+      "components/app/data/sources-overview.tsx:228"
+    ]
+  },
   "Bienvenue": {
     "where": [
-      "app/login/page.tsx:117"
+      "app/login/page.tsx:121"
     ]
   },
   "Bleu": {
@@ -1798,14 +1824,22 @@
   },
   "Bonjour {name}": {
     "where": [
-      "app/(app)/page.tsx:56",
       "components/app/assistant/assistant.tsx:260"
+    ]
+  },
+  "Bonjour {name}.": {
+    "where": [
+      "components/app/home/hero.tsx:23"
     ]
   },
   "Bonsoir {name}": {
     "where": [
-      "app/(app)/page.tsx:56",
       "components/app/assistant/assistant.tsx:260"
+    ]
+  },
+  "Bonsoir {name}.": {
+    "where": [
+      "components/app/home/hero.tsx:23"
     ]
   },
   "Booléen métier": {
@@ -1848,13 +1882,13 @@
   "Cache": {
     "where": [
       "app/(app)/dashboard/[id]/page.tsx:128",
-      "app/(app)/history/page.tsx:76"
+      "app/(app)/history/page.tsx:77"
     ]
   },
   "Cache des résultats": {
     "where": [
       "app/(app)/admin/settings/page.tsx:80",
-      "app/(app)/data/[id]/page.tsx:142"
+      "components/app/data/source-settings.tsx:79"
     ]
   },
   "Cache des résultats (secondes)": {
@@ -1866,6 +1900,11 @@
     "where": [
       "components/app/admin/common.tsx:60",
       "packages/contracts/src/permissions.ts:41"
+    ]
+  },
+  "Calcul des chiffres clés": {
+    "where": [
+      "components/app/home/exploration.tsx:53"
     ]
   },
   "Calcule une métrique, regroupée par une colonne et/ou par période, avec des filtres en plus des siens. Une colonne d'une autre table est rejointe par clé étrangère.": {
@@ -1887,8 +1926,8 @@
   },
   "Canal": {
     "where": [
-      "components/app/login-stage.tsx:327",
-      "components/app/login-stage.tsx:493"
+      "components/app/login-stage.tsx:326",
+      "components/app/login-stage.tsx:492"
     ]
   },
   "Capitales": {
@@ -1951,12 +1990,7 @@
   },
   "Catalogue Trino": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:139"
-    ]
-  },
-  "catalogue.schéma.table": {
-    "where": [
-      "app/(app)/data/page.tsx:96"
+      "components/app/data/source-settings.tsx:76"
     ]
   },
   "Catalogues": {
@@ -2050,7 +2084,7 @@
   },
   "Ce trimestre · commandes livrées": {
     "where": [
-      "components/app/login-stage.tsx:428"
+      "components/app/login-stage.tsx:427"
     ]
   },
   "Celle de l’application": {
@@ -2176,17 +2210,12 @@
   },
   "Chaque requête envoyée à Trino, avec le SQL réellement exécuté : depuis l’éditeur, une question, un tableau de bord, l’API, le serveur MCP ou le copilot.": {
     "where": [
-      "app/(app)/history/page.tsx:121"
+      "app/(app)/history/page.tsx:122"
     ]
   },
   "Chaque résultat est gardé en proportion du temps qu’il a coûté : une requête de 10 secondes reste en cache environ 17 minutes (entre 1 minute et 24 heures).": {
     "where": [
       "app/(app)/admin/settings/page.tsx:127"
-    ]
-  },
-  "Chaque source devient un catalogue Trino : le SQL cite ses tables en {path}.": {
-    "where": [
-      "app/(app)/data/page.tsx:96"
     ]
   },
   "Chargement…": {
@@ -2198,7 +2227,7 @@
   "Charger plus": {
     "where": [
       "app/(app)/admin/audit/page.tsx:185",
-      "app/(app)/history/page.tsx:169"
+      "app/(app)/history/page.tsx:170"
     ]
   },
   "Charte de l’entreprise": {
@@ -2235,27 +2264,27 @@
   "Chiffre d’affaires": {
     "where": [
       "app/(app)/admin/themes/page.tsx:222",
-      "components/app/login-stage.tsx:513",
-      "components/app/login-stage.tsx:565"
+      "components/app/login-stage.tsx:512",
+      "components/app/login-stage.tsx:564"
     ]
   },
   "Chiffre d’affaires par canal": {
     "where": [
       "components/app/login-stage.tsx:171",
-      "components/app/login-stage.tsx:306",
-      "components/app/login-stage.tsx:333"
+      "components/app/login-stage.tsx:305",
+      "components/app/login-stage.tsx:332"
     ]
   },
   "Chiffre d’affaires par mois": {
     "where": [
       "components/app/login-stage.tsx:175",
-      "components/app/login-stage.tsx:533",
-      "components/app/login-stage.tsx:562"
+      "components/app/login-stage.tsx:532",
+      "components/app/login-stage.tsx:561"
     ]
   },
   "Chiffre d’affaires, commandes et clients — filtrable par période et canal.": {
     "where": [
-      "components/app/login-stage.tsx:482"
+      "components/app/login-stage.tsx:481"
     ]
   },
   "Chiffrer la connexion": {
@@ -2266,6 +2295,7 @@
   },
   "Chiffres clés": {
     "where": [
+      "components/app/home/exploration.tsx:150",
       "components/app/question/viz-settings.tsx:208"
     ]
   },
@@ -2386,12 +2416,12 @@
   },
   "Clients fidèles en 2026": {
     "where": [
-      "components/app/login-stage.tsx:397"
+      "components/app/login-stage.tsx:396"
     ]
   },
   "Cliquez une colonne pour sa description, son format et ses valeurs.": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:111"
+      "app/(app)/data/[[...path]]/page.tsx:130"
     ]
   },
   "Code postal": {
@@ -2477,9 +2507,9 @@
   },
   "Colonnes": {
     "where": [
-      "app/(app)/data/page.tsx:110",
-      "app/(app)/data/[id]/page.tsx:236",
-      "app/(app)/structure/[[...path]]/page.tsx:108"
+      "app/(app)/data/[[...path]]/page.tsx:127",
+      "components/app/admin/permission-matrix.tsx:196",
+      "components/app/data/source-settings.tsx:133"
     ]
   },
   "Colonnes personnalisées": {
@@ -2510,19 +2540,19 @@
   },
   "Commandes": {
     "where": [
-      "components/app/login-stage.tsx:315",
-      "components/app/login-stage.tsx:505",
-      "components/app/login-stage.tsx:514"
+      "components/app/login-stage.tsx:314",
+      "components/app/login-stage.tsx:504",
+      "components/app/login-stage.tsx:513"
     ]
   },
   "Commandes par canal": {
     "where": [
-      "components/app/login-stage.tsx:549"
+      "components/app/login-stage.tsx:548"
     ]
   },
   "Commandes par semaine": {
     "where": [
-      "components/app/login-stage.tsx:516"
+      "components/app/login-stage.tsx:515"
     ]
   },
   "commence par": {
@@ -2627,6 +2657,11 @@
       "app/(app)/account/page.tsx:139"
     ]
   },
+  "Connectée": {
+    "where": [
+      "components/app/home/sections.tsx:290"
+    ]
+  },
   "Connecter {engine}": {
     "where": [
       "components/app/data/new-source-dialog.tsx:46"
@@ -2635,6 +2670,11 @@
   "Connecter des bases, modifier leurs réglages, lancer une synchronisation.": {
     "where": [
       "app/(app)/admin/groups/page.tsx:40"
+    ]
+  },
+  "Connecter une source": {
+    "where": [
+      "components/app/data/sources-overview.tsx:226"
     ]
   },
   "Connecteur": {
@@ -2652,8 +2692,8 @@
   "Connexion": {
     "where": [
       "app/(app)/admin/people/page.tsx:212",
-      "app/(app)/data/[id]/page.tsx:215",
-      "app/login/page.tsx:117"
+      "app/(app)/data/[[...path]]/page.tsx:92",
+      "app/(app)/data/[[...path]]/page.tsx:157"
     ]
   },
   "Connexion {engine}": {
@@ -2663,7 +2703,7 @@
   },
   "Connexion enregistrée.": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:101"
+      "components/app/data/source-settings.tsx:38"
     ]
   },
   "Connexion impossible": {
@@ -2703,7 +2743,7 @@
   },
   "Consultés récemment": {
     "where": [
-      "app/(app)/page.tsx:103"
+      "components/app/home/sections.tsx:179"
     ]
   },
   "contient": {
@@ -2916,7 +2956,7 @@
     "where": [
       "app/(app)/admin/groups/page.tsx:321",
       "app/(app)/admin/people/page.tsx:333",
-      "app/(app)/layout.tsx:55"
+      "app/(app)/layout.tsx:57"
     ]
   },
   "Créer le jeton": {
@@ -2938,7 +2978,7 @@
   "Créer mon compte": {
     "where": [
       "app/invitation/[token]/page.tsx:65",
-      "app/login/page.tsx:155"
+      "app/login/page.tsx:201"
     ]
   },
   "Créer un jeton": {
@@ -2976,7 +3016,7 @@
   },
   "Créez le compte administrateur de cette instance.": {
     "where": [
-      "app/login/page.tsx:119"
+      "app/login/page.tsx:124"
     ]
   },
   "Croissant": {
@@ -2992,7 +3032,7 @@
   "Curateur": {
     "where": [
       "app/(app)/account/page.tsx:52",
-      "components/app/sidebar.tsx:175"
+      "components/app/sidebar.tsx:174"
     ]
   },
   "Cyan": {
@@ -3099,6 +3139,11 @@
       "components/app/structure/table-editor.tsx:79"
     ]
   },
+  "Décrire les colonnes des sources de données": {
+    "where": [
+      "components/app/home/exploration.tsx:141"
+    ]
+  },
   "Décrire une table": {
     "where": [
       "components/app/docs/mcp-tools.ts:45"
@@ -3131,9 +3176,13 @@
       "components/app/dashboard/view.tsx:542"
     ]
   },
+  "Demander à l’assistant": {
+    "where": [
+      "components/app/home/exploration.tsx:192"
+    ]
+  },
   "Demander au copilote": {
     "where": [
-      "app/(app)/page.tsx:74",
       "components/app/question/editor.tsx:351",
       "components/app/topbar.tsx:100"
     ]
@@ -3146,7 +3195,8 @@
   "Demandez n’importe quoi sur vos données…": {
     "where": [
       "components/app/assistant/assistant.tsx:194",
-      "components/app/login-stage.tsx:462"
+      "components/app/home/hero.tsx:64",
+      "components/app/login-stage.tsx:461"
     ]
   },
   "Demandez. Il répond, graphique à l’appui.": {
@@ -3168,6 +3218,11 @@
   "Demi-cercle": {
     "where": [
       "components/app/question/viz-settings.tsx:884"
+    ]
+  },
+  "Démo publique : Maison Arvor est une boutique fictive, remise à zéro chaque nuit.": {
+    "where": [
+      "components/app/demo-banner.tsx:19"
     ]
   },
   "Densité": {
@@ -3198,9 +3253,9 @@
   },
   "Déplier": {
     "where": [
-      "app/(app)/history/page.tsx:45",
+      "app/(app)/history/page.tsx:46",
       "components/app/docs/schema-tree.tsx:39",
-      "components/app/sidebar.tsx:129"
+      "components/app/sidebar.tsx:128"
     ]
   },
   "Déplier la ligne": {
@@ -3349,6 +3404,11 @@
       "components/app/question/viz-settings.tsx:546"
     ]
   },
+  "Direction": {
+    "where": [
+      "app/login/page.tsx:137"
+    ]
+  },
   "Disparues de la base à la dernière synchro ; leurs métadonnées sont conservées au cas où elles reviendraient.": {
     "where": [
       "components/app/structure/column-list.tsx:165"
@@ -3374,8 +3434,8 @@
   "Données": {
     "where": [
       "app/(app)/admin/permissions/page.tsx:120",
-      "components/app/login-stage.tsx:312",
-      "components/app/question/editor.tsx:460"
+      "components/app/home/sections.tsx:63",
+      "components/app/login-stage.tsx:311"
     ]
   },
   "Donnez-lui un nom qui dit où il sert : vous saurez lequel révoquer.": {
@@ -3424,7 +3484,7 @@
   },
   "Droite": {
     "where": [
-      "components/app/login-stage.tsx:629",
+      "components/app/login-stage.tsx:628",
       "components/app/question/viz-settings.tsx:666"
     ]
   },
@@ -3547,6 +3607,11 @@
       "components/app/question/viz-settings.tsx:791"
     ]
   },
+  "Écriture du SQL": {
+    "where": [
+      "components/app/home/exploration.tsx:53"
+    ]
+  },
   "Écrivez une requête puis Ctrl+Entrée.": {
     "where": [
       "components/app/question/editor.tsx:494"
@@ -3584,7 +3649,7 @@
   },
   "Éléments": {
     "where": [
-      "components/app/palette.tsx:70"
+      "components/app/palette.tsx:69"
     ]
   },
   "Elle appartiendra au tableau de bord choisi et n’apparaîtra dans aucun dossier ; ses liens aux filtres de l’ancien tableau ne suivent pas.": {
@@ -3669,6 +3734,11 @@
   "En développement, Trino tourne dans Docker : « localhost » est traduit automatiquement en « host.docker.internal » pour que Trino joigne votre base.": {
     "where": [
       "components/app/data/source-form.tsx:275"
+    ]
+  },
+  "En erreur": {
+    "where": [
+      "components/app/home/sections.tsx:290"
     ]
   },
   "En file d’attente": {
@@ -3822,7 +3892,7 @@
   },
   "entre {low} et {high}": {
     "where": [
-      "components/app/login-stage.tsx:603"
+      "components/app/login-stage.tsx:602"
     ]
   },
   "Entrée": {
@@ -3832,7 +3902,8 @@
   },
   "Entrée pour envoyer": {
     "where": [
-      "components/app/login-stage.tsx:468"
+      "components/app/home/hero.tsx:72",
+      "components/app/login-stage.tsx:467"
     ]
   },
   "Entrée pour envoyer · Maj+Entrée pour aller à la ligne": {
@@ -3851,6 +3922,11 @@
       "components/app/data/new-source-dialog.tsx:20"
     ]
   },
+  "Entrez dans la démo sous l’un de ces deux profils :": {
+    "where": [
+      "app/login/page.tsx:132"
+    ]
+  },
   "Envoyé le {date}": {
     "where": [
       "app/(app)/admin/people/page.tsx:250"
@@ -3864,7 +3940,8 @@
   "Envoyer": {
     "where": [
       "components/app/assistant/assistant.tsx:241",
-      "components/app/copilot.tsx:336"
+      "components/app/copilot.tsx:336",
+      "components/app/home/hero.tsx:75"
     ]
   },
   "Envoyer une image…": {
@@ -3879,7 +3956,7 @@
   },
   "équipe régionale — lignes filtrées, e-mails masqués": {
     "where": [
-      "app/login/page.tsx:164"
+      "app/login/page.tsx:210"
     ]
   },
   "Erreur": {
@@ -3899,8 +3976,13 @@
   },
   "Erreurs seulement": {
     "where": [
-      "app/(app)/history/page.tsx:141",
-      "app/(app)/history/page.tsx:142"
+      "app/(app)/history/page.tsx:142",
+      "app/(app)/history/page.tsx:143"
+    ]
+  },
+  "Essayez eodia insights": {
+    "where": [
+      "app/login/page.tsx:121"
     ]
   },
   "est": {
@@ -3986,6 +4068,11 @@
       "components/app/question/viz-settings.tsx:210"
     ]
   },
+  "Évolution de « {title} »": {
+    "where": [
+      "components/app/home/hero.tsx:26"
+    ]
+  },
   "Évolution par région": {
     "where": [
       "app/(app)/admin/themes/page.tsx:266"
@@ -4014,7 +4101,7 @@
   "Exécuter": {
     "where": [
       "app/(app)/sql/page.tsx:337",
-      "components/app/login-stage.tsx:351",
+      "components/app/login-stage.tsx:350",
       "components/app/question/editor.tsx:330"
     ]
   },
@@ -4037,7 +4124,7 @@
     "where": [
       "components/app/assistant/parts.tsx:67",
       "components/app/copilot.tsx:37",
-      "components/app/login-stage.tsx:410"
+      "components/app/login-stage.tsx:409"
     ]
   },
   "Exécution sous vos droits…": {
@@ -4082,14 +4169,19 @@
       "components/app/docs/token-dialog.tsx:68"
     ]
   },
+  "Exploration automatique": {
+    "where": [
+      "components/app/home/exploration.tsx:86"
+    ]
+  },
   "Explorer une table": {
     "where": [
-      "app/(app)/page.tsx:129"
+      "components/app/home/sections.tsx:233"
     ]
   },
   "Explorer une table sans écrire de SQL": {
     "where": [
-      "app/(app)/page.tsx:71"
+      "components/app/home/sections.tsx:60"
     ]
   },
   "Explorez vos données, posez vos questions et partagez vos tableaux de bord. Open source, avec un copilot IA.": {
@@ -4171,11 +4263,6 @@
       "components/app/favorite-icon.tsx:36"
     ]
   },
-  "Favoris": {
-    "where": [
-      "app/(app)/page.tsx:112"
-    ]
-  },
   "fermer": {
     "where": [
       "components/app/sql-editor.tsx:133"
@@ -4212,7 +4299,8 @@
   },
   "Filtrer": {
     "where": [
-      "components/app/login-stage.tsx:319",
+      "components/app/home/sections.tsx:64",
+      "components/app/login-stage.tsx:318",
       "components/app/question/notebook.tsx:327"
     ]
   },
@@ -4530,14 +4618,14 @@
   },
   "Historique": {
     "where": [
-      "app/(app)/history/page.tsx:100",
+      "app/(app)/history/page.tsx:101",
       "app/(app)/sql/page.tsx:272",
-      "components/app/assistant/assistant.tsx:572"
+      "components/app/assistant/assistant.tsx:583"
     ]
   },
   "Historique des requêtes": {
     "where": [
-      "app/(app)/history/page.tsx:120"
+      "app/(app)/history/page.tsx:121"
     ]
   },
   "horodatage": {
@@ -4719,6 +4807,11 @@
       "components/app/structure/pickers.tsx:33"
     ]
   },
+  "Indisponible": {
+    "where": [
+      "components/app/home/exploration.tsx:73"
+    ]
+  },
   "Injoignable": {
     "where": [
       "app/(app)/admin/settings/page.tsx:343"
@@ -4740,9 +4833,14 @@
       "components/app/admin/row-rule-editor.tsx:60"
     ]
   },
+  "Installer eodia insights": {
+    "where": [
+      "components/app/demo-banner.tsx:21"
+    ]
+  },
   "Instance de démonstration": {
     "where": [
-      "app/login/page.tsx:161"
+      "app/login/page.tsx:207"
     ]
   },
   "Intégrable (iframe)": {
@@ -4768,7 +4866,7 @@
   },
   "Interdit": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:141"
+      "components/app/data/source-settings.tsx:78"
     ]
   },
   "Interroger une métrique": {
@@ -4778,7 +4876,7 @@
   },
   "Intervalle de confiance (80 %)": {
     "where": [
-      "components/app/login-stage.tsx:644",
+      "components/app/login-stage.tsx:643",
       "components/app/question/viz-settings.tsx:673"
     ]
   },
@@ -4965,7 +5063,7 @@
     "where": [
       "app/(app)/admin/audit/page.tsx:84",
       "app/(app)/admin/audit/page.tsx:194",
-      "components/app/sidebar.tsx:227"
+      "components/app/sidebar.tsx:225"
     ]
   },
   "jours": {
@@ -5041,7 +5139,7 @@
   },
   "L’assistant lit vos données sous vos droits. Vérifiez les chiffres importants.": {
     "where": [
-      "components/app/assistant/assistant.tsx:637"
+      "components/app/assistant/assistant.tsx:648"
     ]
   },
   "L’assistant n’est pas configuré sur cette instance.": {
@@ -5062,6 +5160,11 @@
   "L’état du moteur de requêtes, le cache des résultats, le copilot et l’intégration signée.": {
     "where": [
       "app/(app)/admin/settings/page.tsx:330"
+    ]
+  },
+  "L’exploration n’a pas pu aboutir.": {
+    "where": [
+      "components/app/home/exploration.tsx:133"
     ]
   },
   "L’habillage par défaut": {
@@ -5121,7 +5224,7 @@
   },
   "La partie prévue est dessinée en pointillés verts : tendance et saison, prolongées par Holt-Winters.": {
     "where": [
-      "components/app/login-stage.tsx:646"
+      "components/app/login-stage.tsx:645"
     ]
   },
   "La partie prévue est dessinée en pointillés verts. Automatique choisit la saison quand la série en couvre deux (12 mois, 4 trimestres, 7 jours), sinon une tendance lissée.": {
@@ -5198,12 +5301,12 @@
   },
   "Langue": {
     "where": [
-      "components/app/sidebar.tsx:273"
+      "components/app/sidebar.tsx:271"
     ]
   },
   "Langue du navigateur": {
     "where": [
-      "components/app/sidebar.tsx:280"
+      "components/app/sidebar.tsx:278"
     ]
   },
   "Large": {
@@ -5234,12 +5337,12 @@
   },
   "Le canal Mobile a le panier moyen le plus élevé ce trimestre : {mobile}, devant le Web ({web}) et la Marketplace ({market}).": {
     "where": [
-      "components/app/login-stage.tsx:418"
+      "components/app/login-stage.tsx:417"
     ]
   },
   "Le catalogue « {catalog} » sera retiré de Trino. Cette action est définitive.": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:264"
+      "components/app/data/source-settings.tsx:160"
     ]
   },
   "Le catalogue ne change pas : le SQL le cite.": {
@@ -5357,7 +5460,7 @@
     "where": [
       "components/app/assistant/parts.tsx:65",
       "components/app/copilot.tsx:35",
-      "components/app/login-stage.tsx:410"
+      "components/app/login-stage.tsx:409"
     ]
   },
   "Lecture des métriques": {
@@ -5366,9 +5469,14 @@
       "components/app/copilot.tsx:36"
     ]
   },
+  "Lecture des tables": {
+    "where": [
+      "components/app/home/exploration.tsx:53"
+    ]
+  },
   "Lecture seule": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:76"
+      "app/(app)/data/[[...path]]/page.tsx:98"
     ]
   },
   "Légende": {
@@ -5460,7 +5568,7 @@
   },
   "Les étapes de la démonstration": {
     "where": [
-      "app/login/page.tsx:59"
+      "app/login/page.tsx:60"
     ]
   },
   "Les exemples lisent le jeton dans la variable EODIA_TOKEN. Il porte vos droits : gardez-le secret.": {
@@ -5486,6 +5594,11 @@
   "Les membres lisent les lignes qui remplissent": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:192"
+    ]
+  },
+  "Les mêmes tableaux, filtrés sur sa région ; les e-mails masqués.": {
+    "where": [
+      "app/login/page.tsx:144"
     ]
   },
   "Les N derniers ou prochains jours, mois… ou il y a N périodes": {
@@ -5531,7 +5644,7 @@
   },
   "Les requêtes apparaîtront ici dès leur exécution.": {
     "where": [
-      "app/(app)/history/page.tsx:161"
+      "app/(app)/history/page.tsx:162"
     ]
   },
   "Les requêtes passent par Trino : citez les tables comme catalogue.schéma.table, joignez des sources différentes.": {
@@ -5647,6 +5760,11 @@
       "components/app/question/viz-settings.tsx:624"
     ]
   },
+  "lignes": {
+    "where": [
+      "components/app/home/sections.tsx:235"
+    ]
+  },
   "Lignes": {
     "where": [
       "components/app/admin/permission-matrix.tsx:204",
@@ -5691,7 +5809,7 @@
   },
   "Lissée": {
     "where": [
-      "components/app/login-stage.tsx:630",
+      "components/app/login-stage.tsx:629",
       "components/app/question/viz-settings.tsx:667"
     ]
   },
@@ -5734,6 +5852,11 @@
   "Longueur moyenne": {
     "where": [
       "components/app/structure/column-bits.tsx:180"
+    ]
+  },
+  "Maison Arvor est une boutique fictive. Tout ce que vous modifiez est remis à zéro chaque nuit.": {
+    "where": [
+      "app/login/page.tsx:165"
     ]
   },
   "Maj + clic : une plage · Ctrl + clic : seulement celle-ci · ↑ ↓ Espace · Ctrl + A : tout": {
@@ -5796,7 +5919,7 @@
   },
   "Masquer l’historique": {
     "where": [
-      "components/app/assistant/assistant.tsx:567"
+      "components/app/assistant/assistant.tsx:578"
     ]
   },
   "Masquer le SQL": {
@@ -5873,7 +5996,7 @@
   },
   "Méthode": {
     "where": [
-      "components/app/login-stage.tsx:624",
+      "components/app/login-stage.tsx:623",
       "components/app/question/viz-settings.tsx:660",
       "components/app/question/viz-settings.tsx:670"
     ]
@@ -5982,9 +6105,9 @@
   },
   "Modifier": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:132",
       "components/app/admin/row-rule-editor.tsx:152",
-      "components/app/dashboard/view.tsx:860"
+      "components/app/dashboard/view.tsx:860",
+      "components/app/data/source-settings.tsx:69"
     ]
   },
   "mois": {
@@ -6035,7 +6158,7 @@
   },
   "Mon profil": {
     "where": [
-      "components/app/sidebar.tsx:256"
+      "components/app/sidebar.tsx:254"
     ]
   },
   "MongoDB": {
@@ -6069,7 +6192,7 @@
   },
   "Mot de passe :": {
     "where": [
-      "app/login/page.tsx:179"
+      "app/login/page.tsx:225"
     ]
   },
   "Mot de passe (10 caractères au moins)": {
@@ -6094,7 +6217,7 @@
   },
   "Moteur": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:138"
+      "components/app/data/source-settings.tsx:75"
     ]
   },
   "Moteur Trino": {
@@ -6119,9 +6242,9 @@
   },
   "Moyenne": {
     "where": [
+      "components/app/home/exploration.tsx:208",
       "components/app/structure/column-bits.tsx:179",
-      "lib/builder.ts:118",
-      "lib/viz.ts:1657"
+      "lib/builder.ts:118"
     ]
   },
   "MySQL / MariaDB": {
@@ -6295,6 +6418,7 @@
   },
   "Nombre de lignes": {
     "where": [
+      "components/app/home/exploration.tsx:208",
       "lib/builder.ts:115"
     ]
   },
@@ -6305,7 +6429,7 @@
   },
   "Non": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:118",
+      "components/app/data/source-settings.tsx:55",
       "lib/format.ts:193"
     ]
   },
@@ -6361,15 +6485,15 @@
   },
   "Nouveau": {
     "where": [
+      "components/app/home/sections.tsx:217",
       "components/app/login-stage.tsx:214",
-      "components/app/login-stage.tsx:290",
-      "components/app/sidebar.tsx:197"
+      "components/app/login-stage.tsx:289"
     ]
   },
   "Nouveau dossier": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:342",
-      "app/(app)/layout.tsx:52"
+      "app/(app)/layout.tsx:54"
     ]
   },
   "Nouveau groupe": {
@@ -6401,7 +6525,7 @@
   },
   "Nouveau tableau de bord": {
     "where": [
-      "app/(app)/layout.tsx:66"
+      "app/(app)/layout.tsx:68"
     ]
   },
   "Nouveau thème": {
@@ -6411,7 +6535,7 @@
   },
   "Nouveautés": {
     "where": [
-      "app/(app)/page.tsx:120"
+      "components/app/home/sections.tsx:202"
     ]
   },
   "Nouvel onglet": {
@@ -6423,12 +6547,12 @@
   },
   "Nouvelle": {
     "where": [
-      "components/app/assistant/assistant.tsx:592"
+      "components/app/assistant/assistant.tsx:603"
     ]
   },
   "Nouvelle conversation": {
     "where": [
-      "components/app/assistant/assistant.tsx:586",
+      "components/app/assistant/assistant.tsx:597",
       "components/app/assistant/history.tsx:160",
       "components/app/copilot.tsx:230"
     ]
@@ -6437,7 +6561,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:784",
       "app/(app)/dashboard/[id]/page.tsx:339",
-      "app/(app)/page.tsx:71"
+      "components/app/dashboard/view.tsx:413"
     ]
   },
   "Nouvelle section": {
@@ -6562,12 +6686,12 @@
   },
   "Origine": {
     "where": [
-      "app/(app)/history/page.tsx:135"
+      "app/(app)/history/page.tsx:136"
     ]
   },
   "ou": {
     "where": [
-      "app/login/page.tsx:131",
+      "app/login/page.tsx:177",
       "components/app/admin/row-rule-editor.tsx:143",
       "components/app/admin/row-rule-editor.tsx:207"
     ]
@@ -6609,7 +6733,7 @@
   },
   "Oui": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:117",
+      "components/app/data/source-settings.tsx:54",
       "lib/format.ts:193"
     ]
   },
@@ -6657,17 +6781,17 @@
   },
   "Ouvrir dans l'éditeur": {
     "where": [
-      "app/(app)/history/page.tsx:86"
+      "app/(app)/history/page.tsx:87"
+    ]
+  },
+  "Ouvrir en question": {
+    "where": [
+      "components/app/home/exploration.tsx:185"
     ]
   },
   "Ouvrir la question": {
     "where": [
       "components/app/dashboard/view.tsx:299"
-    ]
-  },
-  "Ouvrir la structure": {
-    "where": [
-      "app/(app)/data/[id]/page.tsx:205"
     ]
   },
   "Page de garde": {
@@ -6687,24 +6811,24 @@
   },
   "Panier moyen": {
     "where": [
-      "components/app/login-stage.tsx:364",
-      "components/app/login-stage.tsx:515"
+      "components/app/login-stage.tsx:363",
+      "components/app/login-stage.tsx:514"
     ]
   },
   "Panier moyen par canal": {
     "where": [
-      "components/app/login-stage.tsx:397",
-      "components/app/login-stage.tsx:427"
+      "components/app/login-stage.tsx:396",
+      "components/app/login-stage.tsx:426"
     ]
   },
   "Paniers et tickets": {
     "where": [
-      "components/app/login-stage.tsx:350"
+      "components/app/login-stage.tsx:349"
     ]
   },
   "par": {
     "where": [
-      "components/app/login-stage.tsx:326",
+      "components/app/login-stage.tsx:325",
       "components/app/question/notebook.tsx:390"
     ]
   },
@@ -6735,7 +6859,7 @@
   },
   "Paramètres de connexion": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:129"
+      "components/app/data/source-settings.tsx:66"
     ]
   },
   "Paramètres de requête": {
@@ -6750,7 +6874,7 @@
   },
   "Parcourir les dossiers partagés": {
     "where": [
-      "app/(app)/page.tsx:73"
+      "components/app/home/sections.tsx:88"
     ]
   },
   "Part": {
@@ -6845,7 +6969,7 @@
   "Période": {
     "where": [
       "components/app/dashboard/view.tsx:555",
-      "components/app/login-stage.tsx:492"
+      "components/app/login-stage.tsx:491"
     ]
   },
   "Période incomplète": {
@@ -6855,7 +6979,7 @@
   },
   "périodes": {
     "where": [
-      "components/app/login-stage.tsx:616",
+      "components/app/login-stage.tsx:615",
       "components/app/question/viz-settings.tsx:649"
     ]
   },
@@ -7042,6 +7166,11 @@
       "components/app/copilot.tsx:254"
     ]
   },
+  "Posez votre question. L’assistant trouve les bonnes tables, écrit le SQL et vous répond en chiffres et en graphiques.": {
+    "where": [
+      "components/app/home/hero.tsx:48"
+    ]
+  },
   "Position": {
     "where": [
       "app/(app)/admin/themes/page.tsx:603",
@@ -7119,7 +7248,7 @@
   "Préparation du graphique": {
     "where": [
       "components/app/assistant/parts.tsx:68",
-      "components/app/login-stage.tsx:410"
+      "components/app/login-stage.tsx:409"
     ]
   },
   "Présentation": {
@@ -7134,9 +7263,9 @@
   },
   "Prévision": {
     "where": [
-      "components/app/login-stage.tsx:567",
-      "components/app/login-stage.tsx:580",
-      "components/app/login-stage.tsx:600"
+      "components/app/login-stage.tsx:566",
+      "components/app/login-stage.tsx:579",
+      "components/app/login-stage.tsx:599"
     ]
   },
   "Prévisions": {
@@ -7179,7 +7308,7 @@
   },
   "Prolonger la tendance de": {
     "where": [
-      "components/app/login-stage.tsx:613",
+      "components/app/login-stage.tsx:612",
       "components/app/question/viz-settings.tsx:646"
     ]
   },
@@ -7219,8 +7348,8 @@
   },
   "Propriétés du catalogue Trino": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:153",
-      "components/app/data/source-form.tsx:321"
+      "components/app/data/source-form.tsx:321",
+      "components/app/data/source-settings.tsx:90"
     ]
   },
   "Propulsé par {product}": {
@@ -7249,19 +7378,29 @@
       "components/app/folder-delete.tsx:154"
     ]
   },
+  "Que puis-je analyser ?": {
+    "where": [
+      "components/app/home/hero.tsx:25"
+    ]
+  },
   "Que puis-je analyser avec mes données ?": {
     "where": [
       "components/app/assistant/assistant.tsx:263"
     ]
   },
-  "Que voulez-vous savoir aujourd’hui ?": {
+  "Que puis-je analyser dans mes données ?": {
     "where": [
-      "app/(app)/page.tsx:66"
+      "components/app/home/hero.tsx:25"
+    ]
+  },
+  "Que voulez-vous savoir ?": {
+    "where": [
+      "components/app/home/hero.tsx:44"
     ]
   },
   "Quel canal a le meilleur panier moyen ce trimestre ?": {
     "where": [
-      "components/app/login-stage.tsx:405"
+      "components/app/login-stage.tsx:404"
     ]
   },
   "Quel est le chiffre d’affaires par région sur les 6 derniers mois ?": {
@@ -7376,7 +7515,7 @@
   },
   "Rangez questions et tableaux de bord ; les droits du dossier s’appliquent à son contenu.": {
     "where": [
-      "app/(app)/layout.tsx:53"
+      "app/(app)/layout.tsx:55"
     ]
   },
   "Rangez-le comme un mot de passe (gestionnaire de secrets, variable d’environnement). En cas de fuite, révoquez-le ici.": {
@@ -7398,7 +7537,7 @@
     "where": [
       "components/app/assistant/parts.tsx:64",
       "components/app/copilot.tsx:34",
-      "components/app/login-stage.tsx:410"
+      "components/app/login-stage.tsx:409"
     ]
   },
   "Recherche les questions, modèles, métriques et tableaux de bord enregistrés.": {
@@ -7440,7 +7579,7 @@
   "Rechercher une conversation": {
     "where": [
       "components/app/assistant/history.tsx:167",
-      "components/app/login-stage.tsx:394"
+      "components/app/login-stage.tsx:393"
     ]
   },
   "Rechercher une personne…": {
@@ -7454,20 +7593,19 @@
       "components/app/dashboard/view.tsx:404"
     ]
   },
-  "Rechercher une source…": {
+  "Rechercher une source ou une table…": {
     "where": [
-      "app/(app)/data/page.tsx:127"
+      "components/app/data/sources-overview.tsx:201"
     ]
   },
   "Rechercher une table…": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:39",
-      "components/app/structure/tree.tsx:60"
+      "components/app/structure/tree.tsx:67"
     ]
   },
   "Rechercher…": {
     "where": [
-      "components/app/login-stage.tsx:294",
+      "components/app/login-stage.tsx:293",
       "components/app/topbar.tsx:95",
       "components/ui/combobox.tsx:98"
     ]
@@ -7494,15 +7632,15 @@
   },
   "Région": {
     "where": [
-      "components/app/login-stage.tsx:364",
-      "components/app/login-stage.tsx:494",
+      "components/app/login-stage.tsx:363",
+      "components/app/login-stage.tsx:493",
       "components/app/structure/column-bits.tsx:47"
     ]
   },
   "Réglage de l’instance": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:142",
-      "components/app/data/source-form.tsx:300"
+      "components/app/data/source-form.tsx:300",
+      "components/app/data/source-settings.tsx:79"
     ]
   },
   "Réglages": {
@@ -7580,7 +7718,7 @@
   },
   "Relations": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:70"
+      "app/(app)/data/[[...path]]/page.tsx:92"
     ]
   },
   "Relative ({example})": {
@@ -7652,9 +7790,9 @@
   },
   "Replier": {
     "where": [
-      "app/(app)/history/page.tsx:45",
+      "app/(app)/history/page.tsx:46",
       "components/app/docs/schema-tree.tsx:39",
-      "components/app/sidebar.tsx:129"
+      "components/app/sidebar.tsx:128"
     ]
   },
   "Replier la ligne": {
@@ -7695,7 +7833,7 @@
   },
   "Requête SQL": {
     "where": [
-      "app/(app)/page.tsx:72",
+      "components/app/home/sections.tsx:73",
       "components/app/topbar.tsx:72"
     ]
   },
@@ -7765,7 +7903,8 @@
   },
   "Résumer": {
     "where": [
-      "components/app/login-stage.tsx:323",
+      "components/app/home/sections.tsx:67",
+      "components/app/login-stage.tsx:322",
       "components/app/question/notebook.tsx:354"
     ]
   },
@@ -7838,12 +7977,12 @@
   },
   "Retours par région": {
     "where": [
-      "components/app/login-stage.tsx:397"
+      "components/app/login-stage.tsx:396"
     ]
   },
   "Retrouvez vos tableaux de bord et vos questions.": {
     "where": [
-      "app/login/page.tsx:119"
+      "app/login/page.tsx:127"
     ]
   },
   "Revenir à la couleur de la palette": {
@@ -7903,7 +8042,7 @@
   },
   "Saison": {
     "where": [
-      "components/app/login-stage.tsx:631",
+      "components/app/login-stage.tsx:630",
       "components/app/question/viz-settings.tsx:668"
     ]
   },
@@ -7914,7 +8053,7 @@
   },
   "Sans description": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:150"
+      "app/(app)/data/[[...path]]/page.tsx:175"
     ]
   },
   "Sans expiration": {
@@ -7949,7 +8088,7 @@
   },
   "Satisfaction": {
     "where": [
-      "components/app/login-stage.tsx:364"
+      "components/app/login-stage.tsx:363"
     ]
   },
   "Schéma": {
@@ -7958,21 +8097,15 @@
       "components/app/data/sync-panel.tsx:18"
     ]
   },
-  "Schéma {name}": {
-    "where": [
-      "app/(app)/data/[id]/page.tsx:45"
-    ]
-  },
   "schéma.table": {
     "where": [
-      "app/(app)/data/page.tsx:32",
-      "app/(app)/data/[id]/page.tsx:193",
-      "app/(app)/structure/[[...path]]/page.tsx:127"
+      "app/(app)/data/[[...path]]/page.tsx:146",
+      "components/app/data/sources-overview.tsx:80"
     ]
   },
   "Schémas": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:234",
+      "components/app/data/source-settings.tsx:131",
       "components/app/data/sync-panel.tsx:69"
     ]
   },
@@ -7999,17 +8132,17 @@
   },
   "Se connecter": {
     "where": [
-      "app/login/page.tsx:155"
+      "app/login/page.tsx:201"
     ]
   },
   "Se connecter avec SSO": {
     "where": [
-      "app/login/page.tsx:126"
+      "app/login/page.tsx:172"
     ]
   },
   "Se déconnecter": {
     "where": [
-      "components/app/sidebar.tsx:296"
+      "components/app/sidebar.tsx:294"
     ]
   },
   "Secondes": {
@@ -8120,13 +8253,13 @@
     "where": [
       "app/(app)/account/page.tsx:40",
       "app/(app)/account/page.tsx:238",
-      "components/app/sidebar.tsx:262"
+      "components/app/sidebar.tsx:260"
     ]
   },
   "Service client": {
     "where": [
       "components/app/login-stage.tsx:223",
-      "components/app/login-stage.tsx:505"
+      "components/app/login-stage.tsx:504"
     ]
   },
   "Ses membres perdent les droits que ce groupe leur donnait. Les personnes, elles, restent.": {
@@ -8191,12 +8324,11 @@
   },
   "Somme de Montant total": {
     "where": [
-      "components/app/login-stage.tsx:325"
+      "components/app/login-stage.tsx:324"
     ]
   },
   "Source": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:82",
       "components/app/admin/permission-matrix.tsx:318",
       "components/app/data/source-form.tsx:224"
     ]
@@ -8213,26 +8345,26 @@
   },
   "Source supprimée.": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:274"
+      "components/app/data/source-settings.tsx:170"
     ]
   },
   "Sources": {
     "where": [
-      "app/(app)/data/page.tsx:108",
-      "app/(app)/page.tsx:144",
-      "components/app/docs/openapi.ts:97"
+      "components/app/docs/openapi.ts:97",
+      "components/app/home/sections.tsx:270",
+      "components/app/structure/tree.tsx:73"
     ]
   },
   "Sources connectées": {
     "where": [
-      "app/(app)/data/page.tsx:122"
+      "components/app/data/sources-overview.tsx:191"
     ]
   },
   "Sources de données": {
     "where": [
       "app/(app)/admin/audit/page.tsx:40",
-      "app/(app)/data/page.tsx:67",
-      "app/(app)/data/page.tsx:94"
+      "app/(app)/data/[[...path]]/page.tsx:65",
+      "components/app/copilot.tsx:220"
     ]
   },
   "Sous le jeton de l’appelant : le résultat est celui que son propriétaire verrait, en tableau markdown de 50 lignes au plus.": {
@@ -8254,8 +8386,8 @@
   "SQL natif": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:492",
-      "app/(app)/data/page.tsx:38",
-      "app/(app)/data/[id]/page.tsx:141"
+      "components/app/admin/common.tsx:56",
+      "components/app/data/source-settings.tsx:78"
     ]
   },
   "SQL natif : envoyé tel quel à la source via system.query, réservé aux personnes sans restriction.": {
@@ -8293,7 +8425,7 @@
   },
   "Statut est livrée": {
     "where": [
-      "components/app/login-stage.tsx:320"
+      "components/app/login-stage.tsx:319"
     ]
   },
   "Statuts": {
@@ -8310,9 +8442,7 @@
   },
   "Structure": {
     "where": [
-      "app/(app)/data/page.tsx:53",
-      "app/(app)/structure/[[...path]]/page.tsx:48",
-      "components/app/copilot.tsx:220"
+      "components/app/docs/openapi.ts:98"
     ]
   },
   "Style": {
@@ -8404,12 +8534,12 @@
   },
   "Supprimer la source": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:253"
+      "components/app/data/source-settings.tsx:150"
     ]
   },
   "Supprimer la source retire son catalogue de Trino, ses métadonnées et ses permissions. Les questions qui l’utilisent ne fonctionneront plus.": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:251"
+      "components/app/data/source-settings.tsx:148"
     ]
   },
   "Supprimer le dossier": {
@@ -8461,7 +8591,7 @@
   },
   "Synchronisation": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:245"
+      "components/app/data/source-settings.tsx:142"
     ]
   },
   "Synchronisation du schéma": {
@@ -8483,6 +8613,11 @@
   "Synchronisation terminée": {
     "where": [
       "components/app/data/sync-panel.tsx:188"
+    ]
+  },
+  "Synchronisation…": {
+    "where": [
+      "components/app/home/sections.tsx:290"
     ]
   },
   "synchronisée {when}": {
@@ -8519,7 +8654,7 @@
   },
   "Table et colonnes": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:70"
+      "app/(app)/data/[[...path]]/page.tsx:92"
     ]
   },
   "Tableau": {
@@ -8553,7 +8688,7 @@
     "where": [
       "app/(app)/admin/audit/page.tsx:43",
       "app/(app)/dashboard/[id]/page.tsx:183",
-      "app/(app)/page.tsx:73"
+      "components/app/docs/openapi.ts:99"
     ]
   },
   "Tableaux de bord, questions et exploration de données, open source.": {
@@ -8568,9 +8703,9 @@
   },
   "Tables": {
     "where": [
-      "app/(app)/data/page.tsx:109",
-      "app/(app)/data/[id]/page.tsx:213",
-      "app/(app)/data/[id]/page.tsx:235"
+      "app/(app)/data/[[...path]]/page.tsx:92",
+      "app/(app)/data/[[...path]]/page.tsx:161",
+      "components/app/data/source-settings.tsx:132"
     ]
   },
   "Taille": {
@@ -8682,7 +8817,7 @@
   },
   "Thème clair": {
     "where": [
-      "components/app/sidebar.tsx:266"
+      "components/app/sidebar.tsx:264"
     ]
   },
   "Thème enregistré.": {
@@ -8697,7 +8832,7 @@
   },
   "Thème sombre": {
     "where": [
-      "components/app/sidebar.tsx:269"
+      "components/app/sidebar.tsx:267"
     ]
   },
   "Thèmes": {
@@ -8709,12 +8844,12 @@
   },
   "Tickets": {
     "where": [
-      "components/app/login-stage.tsx:364"
+      "components/app/login-stage.tsx:363"
     ]
   },
   "Tickets ouverts cette semaine": {
     "where": [
-      "components/app/login-stage.tsx:397"
+      "components/app/login-stage.tsx:396"
     ]
   },
   "Tirez d’une colonne vers la clé d’une autre table pour déclarer une relation ; sélectionnez une relation déclarée et appuyez sur Suppr pour la retirer.": {
@@ -8752,9 +8887,9 @@
   },
   "Total": {
     "where": [
+      "components/app/home/exploration.tsx:208",
       "components/app/visualization.tsx:530",
-      "lib/viz.ts:598",
-      "lib/viz.ts:874"
+      "lib/viz.ts:598"
     ]
   },
   "Total au centre": {
@@ -8775,6 +8910,11 @@
   "Toujours": {
     "where": [
       "components/app/question/viz-settings.tsx:737"
+    ]
+  },
+  "Tous les chiffres, l’administration et les droits, en lecture.": {
+    "where": [
+      "app/login/page.tsx:138"
     ]
   },
   "Tous les droits sur l’instance": {
@@ -8872,7 +9012,7 @@
   },
   "Toutes": {
     "where": [
-      "app/(app)/page.tsx:129",
+      "components/app/home/sections.tsx:239",
       "components/app/question/viz-settings.tsx:698"
     ]
   },
@@ -8926,21 +9066,21 @@
   },
   "Toutes les origines": {
     "where": [
-      "app/(app)/history/page.tsx:134"
+      "app/(app)/history/page.tsx:135"
     ]
   },
   "Toutes les personnes": {
     "where": [
       "app/(app)/admin/audit/page.tsx:110",
-      "app/(app)/history/page.tsx:146",
-      "app/(app)/history/page.tsx:147"
+      "app/(app)/history/page.tsx:147",
+      "app/(app)/history/page.tsx:148"
     ]
   },
   "Toutes les sources": {
     "where": [
       "components/app/assistant/assistant.tsx:85",
       "components/app/assistant/assistant.tsx:112",
-      "components/app/login-stage.tsx:200"
+      "components/app/home/hero.tsx:70"
     ]
   },
   "Toutes les valeurs possibles (Ctrl + A)": {
@@ -8950,7 +9090,7 @@
   },
   "Toutes vos bases.": {
     "where": [
-      "app/login/page.tsx:51"
+      "app/login/page.tsx:52"
     ]
   },
   "tpch, iceberg, hive, clickhouse…": {
@@ -9039,7 +9179,7 @@
   },
   "Trino SQL sur toutes vos sources": {
     "where": [
-      "app/(app)/page.tsx:72"
+      "components/app/home/sections.tsx:73"
     ]
   },
   "Type": {
@@ -9154,6 +9294,11 @@
       "components/app/question/viz-settings.tsx:836"
     ]
   },
+  "Une boutique en ligne, ses bases PostgreSQL et MongoDB, trois ans d’historique — et tout ce qu’on en tire.": {
+    "where": [
+      "app/login/page.tsx:126"
+    ]
+  },
   "Une bulle par catégorie, aussi grosse que sa valeur": {
     "where": [
       "components/app/question/viz-settings.tsx:989"
@@ -9220,11 +9365,6 @@
       "components/app/question/editor.tsx:563"
     ]
   },
-  "Une question en français, une réponse chiffrée": {
-    "where": [
-      "app/(app)/page.tsx:74"
-    ]
-  },
   "Une question, sans une ligne de SQL.": {
     "where": [
       "app/login/page.tsx:32"
@@ -9242,7 +9382,7 @@
   },
   "Une seule vérité.": {
     "where": [
-      "app/login/page.tsx:52"
+      "app/login/page.tsx:53"
     ]
   },
   "Une table virtuelle, réutilisable comme source": {
@@ -9394,7 +9534,7 @@
   "Ventes": {
     "where": [
       "components/app/login-stage.tsx:224",
-      "components/app/login-stage.tsx:505"
+      "components/app/login-stage.tsx:504"
     ]
   },
   "Ventes actives": {
@@ -9405,7 +9545,7 @@
   "Ventes de la boutique": {
     "where": [
       "components/app/login-stage.tsx:174",
-      "components/app/login-stage.tsx:481"
+      "components/app/login-stage.tsx:480"
     ]
   },
   "Ventes du trimestre": {
@@ -9480,7 +9620,8 @@
   },
   "Visualiser": {
     "where": [
-      "components/app/login-stage.tsx:330"
+      "components/app/home/sections.tsx:68",
+      "components/app/login-stage.tsx:329"
     ]
   },
   "Vitesse": {
@@ -9506,9 +9647,9 @@
       "components/app/question/viz-settings.tsx:449"
     ]
   },
-  "Voir les relations": {
+  "Vos chiffres clés sont calculés à chaque visite, sous vos droits, dans les tables que vous pouvez lire.": {
     "where": [
-      "app/(app)/structure/[[...path]]/page.tsx:132"
+      "components/app/home/hero.tsx:49"
     ]
   },
   "Vos conversations s’affichent ici : elles sont gardées pour vous seul.": {
@@ -9519,6 +9660,11 @@
   "Vos données prennent du sens.": {
     "where": [
       "app/layout.tsx:29"
+    ]
+  },
+  "Vos données, explorées pour vous": {
+    "where": [
+      "components/app/home/hero.tsx:39"
     ]
   },
   "Vos groupes": {
@@ -9536,9 +9682,19 @@
       "app/(app)/admin/settings/page.tsx:208"
     ]
   },
+  "Votre favori": {
+    "where": [
+      "components/app/home/sections.tsx:130"
+    ]
+  },
   "Votre profil, votre mot de passe et vos jetons d’accès à l’API et au serveur MCP.": {
     "where": [
       "app/(app)/account/page.tsx:354"
+    ]
+  },
+  "Votre question": {
+    "where": [
+      "components/app/home/hero.tsx:65"
     ]
   },
   "Vous ne pouvez pas vous désactiver vous-même.": {
@@ -9554,6 +9710,11 @@
   "vs {period} · {value}": {
     "where": [
       "components/app/visualization.tsx:267"
+    ]
+  },
+  "vs mois précédent": {
+    "where": [
+      "components/app/home/exploration.tsx:242"
     ]
   },
   "Vue d’ensemble": {
@@ -9574,7 +9735,7 @@
   },
   "Zone sensible": {
     "where": [
-      "app/(app)/data/[id]/page.tsx:250"
+      "components/app/data/source-settings.tsx:147"
     ]
   }
 }

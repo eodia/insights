@@ -135,7 +135,7 @@ export function RelationsDiagram({ datasource, current, readOnly }: { datasource
         id: t.id,
         type: 'table',
         position: { x: col * (NODE_W + 140), y },
-        data: { table: t, columns: cols, keys: linked, href: `/structure/${datasource}/${t.id}`, active: t.id === current },
+        data: { table: t, columns: cols, keys: linked, href: `/data/${datasource}/${t.id}`, active: t.id === current },
       })
       columnY.set(col, y + height(cols.length) + 50)
     }
@@ -150,7 +150,7 @@ export function RelationsDiagram({ datasource, current, readOnly }: { datasource
           id: t.id,
           type: 'table',
           position: { x: j * (NODE_W + 140), y },
-          data: { table: t, columns: cols, keys: linked, href: `/structure/${datasource}/${t.id}`, active: t.id === current },
+          data: { table: t, columns: cols, keys: linked, href: `/data/${datasource}/${t.id}`, active: t.id === current },
         })
       })
       y += tallest + 50

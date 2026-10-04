@@ -28,6 +28,7 @@ const ORIGINS: Record<QueryExecution['origin'], { label: string; color: LookColo
   mcp: { label: msg('MCP'), color: 'violet' },
   copilot: { label: msg('Copilot'), color: 'pink' },
   share: { label: msg('Partage'), color: 'teal' },
+  home: { label: msg('Accueil'), color: 'gray' },
 }
 
 function duration(ms: number): string {

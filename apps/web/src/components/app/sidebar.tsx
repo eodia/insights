@@ -46,7 +46,6 @@ import {
   Shield,
   SlidersHorizontal,
   Sun,
-  TableProperties,
   UserRound,
   Users,
   UsersRound,
@@ -203,7 +202,6 @@ export function Sidebar() {
         ))}
         <NavItem href="/sql" icon={Code2} label={$t('Éditeur SQL')} active={is('/sql')} />
         <NavItem href="/data" icon={Database} label={$t('Sources de données')} active={is('/data')} />
-        <NavItem href="/structure" icon={TableProperties} label={$t('Structure')} active={is('/structure')} />
         <NavItem href="/history" icon={History} label={$t('Historique')} active={is('/history')} />
       </nav>
 

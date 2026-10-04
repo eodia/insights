@@ -39,7 +39,7 @@ import { ensureCatalogs } from '../sources/datasources'
 import { valueLooks } from '../sources/metadata'
 import { cacheGet, cacheKey, cachePut } from './cache'
 
-export type Origin = 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share'
+export type Origin = 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share' | 'home'
 
 export interface RunInput {
   readonly query: QuestionQuery
@@ -302,7 +302,7 @@ export async function runQuery(core: Core, actor: Actor, input: RunInput): Promi
       } else throw err
     }
     const columns = compiled.columns ?? sqlColumns(res.columns)
-    // A model's column metadata dresses its result.
+    // The column metadata of a model, or of a saved question, dresses its result.
     const dressed = input.columnsMeta
       ? columns.map((c) => {
           const m = input.columnsMeta?.[c.name]
@@ -403,7 +403,8 @@ export async function runQuestion(
     ...(opts.executionId ? { executionId: opts.executionId } : {}),
     ...(opts.limit ? { limit: opts.limit } : {}),
     cacheTtl: q.cache_ttl,
-    columnsMeta: q.type === 'model' ? (q.columns_meta as RunInput['columnsMeta']) : null,
+    // A model's column metadata, or a saved question's own (labels and formats of its SQL).
+    columnsMeta: (q.columns_meta as RunInput['columnsMeta']) ?? null,
   })
 }
 
@@ -433,7 +434,7 @@ export async function runCard(
       adhoc: false,
       questionId: q.id,
       cacheTtl: q.cache_ttl ?? d.cache_ttl,
-      columnsMeta: q.type === 'model' ? (q.columns_meta as RunInput['columnsMeta']) : null,
+      columnsMeta: (q.columns_meta as RunInput['columnsMeta']) ?? null,
     })
   }
   if (!card.query) throw new AppError('NOT_FOUND', 'Carte sans question.')

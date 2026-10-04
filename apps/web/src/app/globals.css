@@ -226,6 +226,21 @@
   }
 }
 
+/* The home hero: its two glows drift slowly, a connected source breathes. */
+@keyframes home-drift {
+  50% {
+    transform: translate(60px, 30px) scale(1.15);
+  }
+}
+@keyframes home-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgba(46, 160, 67, 0.5);
+  }
+  to {
+    box-shadow: 0 0 0 8px rgba(46, 160, 67, 0);
+  }
+}
+
 /* The login page's steps: the bar of the moment shown fills until the next one. */
 @keyframes step-fill {
   from {

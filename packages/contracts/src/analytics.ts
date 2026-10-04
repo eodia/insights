@@ -588,6 +588,30 @@ export interface QueryResult {
   readonly cached_at?: string
 }
 
+/**
+ * A key figure the home page found by itself in a table the reader may query: an amount
+ * summed, rows counted or a score averaged, month by month over the twelve complete months
+ * that have data — run under the reader's identity, like any other query.
+ */
+export interface HomeInsight {
+  readonly id: string
+  readonly table: { readonly id: string; readonly label: string; readonly qualified: string }
+  readonly fn: 'sum' | 'count' | 'avg'
+  /** The column summed or averaged; null for a count. */
+  readonly column: { readonly name: string; readonly label: string } | null
+  /** The whole period: a total for a sum or a count, the weighted mean for an average. */
+  readonly value: number
+  /** The last month against the one before it, as a ratio (`0.12` is +12 %); null without one. */
+  readonly delta: number | null
+  /** Month by month, oldest first: `period` as the result gives it. */
+  readonly points: ReadonlyArray<{ readonly period: unknown; readonly value: number }>
+  /** How the figure and the months are written. */
+  readonly value_column: ResultColumn
+  readonly period_column: ResultColumn
+  readonly query: BuilderQuery
+  readonly sql: string
+}
+
 /** The name of a column of the query in its result: `champ`, or `jointure.champ`. */
 export const columnName = (ref: ColumnRef): string =>
   ref.join === undefined || ref.join === '' ? ref.field : `${ref.join}.${ref.field}`

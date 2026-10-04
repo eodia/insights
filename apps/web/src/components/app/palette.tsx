@@ -9,7 +9,7 @@ import { useTables } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { useQuery } from '@tanstack/react-query'
 import { Command } from 'cmdk'
-import { Code2, Database, Home, Search, TableProperties } from 'lucide-react'
+import { Code2, Database, Home, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -58,7 +58,6 @@ export function Palette() {
                   { href: '/', label: $t('Accueil'), icon: Home },
                   { href: '/sql', label: $t('Éditeur SQL'), icon: Code2 },
                   { href: '/data', label: $t('Sources de données'), icon: Database },
-                  { href: '/structure', label: $t('Structure'), icon: TableProperties },
                 ].map((l) => (
                   <Command.Item key={l.href} value={l.href} onSelect={() => go(l.href)} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm text-foreground data-[selected=true]:bg-accent">
                     <l.icon className="size-4 text-muted-foreground" /> {l.label}

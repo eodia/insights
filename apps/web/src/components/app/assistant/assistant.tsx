@@ -526,6 +526,17 @@ export function Assistant() {
     }
   }
 
+  // A question asked from elsewhere — the home page: sent once, then taken out of the address.
+  const asked = useRef(false)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, on arrival
+  useEffect(() => {
+    const q = params.get('q')
+    if (!q || current || asked.current) return
+    asked.current = true
+    router.replace('/assistant', { scroll: false })
+    void send(q)
+  }, [])
+
   const newConversation = () => {
     abort.current?.abort()
     streaming.current = null

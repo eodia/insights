@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { LOOK_CLASSES } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { ChevronRight, EyeOff, FolderTree, Loader2, Search, Table2, Wrench } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { ChevronRight, EyeOff, FolderTree, Loader2, Plus, Search, Table2, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Pane } from '@/components/ui/pane'
@@ -22,33 +23,39 @@ export function TableGlyph({ table, className }: { table: Pick<TableMeta, 'icon'
   )
 }
 
-/** Source → schéma → table, the left pane of « Structure ». */
+/** Source → schéma → table, the left pane of « Sources de données ». Sources arrive folded, but the one whose table is open. */
 export function StructureTree({
   sources,
   tables,
   loading,
   datasource,
   table,
+  onAdd,
 }: {
   sources: readonly Datasource[]
   tables: readonly TableMeta[]
   loading: boolean
   datasource: string | null
   table: string | null
+  /** Offered to who may add a source. */
+  onAdd?: (() => void) | undefined
 }) {
   const [search, setSearch] = useState('')
+  // Sources unfolded (folded by default), schemas folded (unfolded by default).
+  const [opened, setOpened] = useState<Set<string>>(() => new Set(table && datasource ? [datasource] : []))
   const [closed, setClosed] = useState<Set<string>>(new Set())
-  // A source opened through the URL is unfolded.
+  // The source of a table opened through the URL is unfolded, to show it.
   useEffect(() => {
-    if (datasource) setClosed((s) => (s.has(datasource) ? new Set([...s].filter((x) => x !== datasource)) : s))
-  }, [datasource])
-  const toggle = (key: string) =>
-    setClosed((s) => {
+    if (table && datasource) setOpened((s) => (s.has(datasource) ? s : new Set([...s, datasource])))
+  }, [table, datasource])
+  const flip = (set: (f: (s: Set<string>) => Set<string>) => void, key: string) =>
+    set((s) => {
       const next = new Set(s)
       if (next.has(key)) next.delete(key)
       else next.add(key)
       return next
     })
+  const toggle = (key: string) => flip(setClosed, key)
   const q = fold(search)
   const match = (t: TableMeta) => !q || fold(`${t.label} ${t.name} ${t.schema} ${t.entity ?? ''}`).includes(q)
 
@@ -61,23 +68,30 @@ export function StructureTree({
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-2 pb-4">
-        <div className="mb-1 px-3 pt-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          {$t('Sources')} <span className="ml-1 font-normal">{sources.length}</span>
+        <div className="mb-1 flex items-center pr-1 pl-3">
+          <span className="flex-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            {$t('Sources')} <span className="ml-1 font-normal">{sources.length}</span>
+          </span>
+          {onAdd ? (
+            <Button size="sm" variant="ghost" className="h-7 text-primary hover:text-primary" onClick={onAdd}>
+              <Plus /> {$t('Ajouter une source')}
+            </Button>
+          ) : null}
         </div>
         {loading ? <Loader2 className="mx-auto mt-6 size-5 animate-spin text-muted-foreground" /> : null}
         {sources.map((ds) => {
           const own = tables.filter((t) => t.datasource === ds.id && match(t))
           if (q && own.length === 0) return null
-          const open = !closed.has(ds.id) || !!q
+          const open = opened.has(ds.id) || !!q
           const schemas = new Map<string, TableMeta[]>()
           for (const t of own) schemas.set(t.schema, [...(schemas.get(t.schema) ?? []), t])
           return (
             <div key={ds.id} className="mb-1">
               <div className={cn('group flex items-center gap-1 rounded-lg pr-2', datasource === ds.id && !table ? 'bg-muted' : 'hover:bg-muted/60')}>
-                <button type="button" onClick={() => toggle(ds.id)} className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground" aria-label={open ? $t('Replier') : $t('Déplier')}>
+                <button type="button" onClick={() => flip(setOpened, ds.id)} className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground" aria-label={open ? $t('Replier') : $t('Déplier')}>
                   <ChevronRight className={cn('size-4 transition-transform', open && 'rotate-90')} />
                 </button>
-                <Link href={`/structure/${ds.id}`} className="flex min-w-0 flex-1 items-center gap-2 py-1.5">
+                <Link href={`/data/${ds.id}`} className="flex min-w-0 flex-1 items-center gap-2 py-1.5">
                   <EngineBadge engine={ds.engine} size="sm" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{ds.name}</span>
@@ -109,7 +123,7 @@ export function StructureTree({
                               return (
                                 <Link
                                   key={t.id}
-                                  href={`/structure/${ds.id}/${t.id}`}
+                                  href={`/data/${ds.id}/${t.id}`}
                                   className={cn('relative ml-4 flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors', active ? 'bg-muted' : 'hover:bg-muted/60')}
                                 >
                                   {active ? <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-primary" /> : null}

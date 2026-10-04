@@ -217,7 +217,7 @@ export function CopilotPanel() {
     sql: $t('Éditeur SQL'),
     question: $t('Question en cours'),
     dashboard: $t('Tableau de bord'),
-    structure: $t('Structure'),
+    structure: $t('Sources de données'),
   }[context.kind]
 
   return (

@@ -441,7 +441,7 @@ export interface Snippet {
 export interface QueryExecution {
   readonly id: string
   readonly user: UserSummary | null
-  readonly origin: 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share'
+  readonly origin: 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share' | 'home'
   readonly question: string | null
   readonly sql: string
   readonly duration_ms: number

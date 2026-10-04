@@ -233,7 +233,6 @@ export function LoginStage({ view, className }: { view: StageView; className?: s
               [
                 ['sql', $t('Éditeur SQL'), 'sql'],
                 ['sources', $t('Sources de données'), ''],
-                ['structure', $t('Structure'), ''],
                 ['history', $t('Historique'), ''],
               ] as const
             ).map(([icon, label, views]) => (

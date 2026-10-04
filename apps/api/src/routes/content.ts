@@ -30,6 +30,7 @@ import {
   getFolder,
   getQuestion,
   history,
+  homeInsights,
   homeItems,
   listByType,
   listFolders,
@@ -148,6 +149,13 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   // ── Dossiers ──
   const ftags = ['Dossiers']
   route(app, { method: 'get', path: '/api/v1/home', tags: ftags, summary: "Récents, favoris et nouveautés de l'accueil" }, async (c) => ok(c, await homeItems(c.get('core'), actorOf(c))))
+  route(app, {
+    method: 'get',
+    path: '/api/v1/home/insights',
+    tags: ftags,
+    summary: "Les chiffres clés que l'accueil trouve seul",
+    description: "Dans les tables que l'appelant peut interroger : un montant, un nombre de lignes ou une note, mois par mois, sur les douze derniers mois complets. Exécuté sous son identité.",
+  }, async (c) => ok(c, await homeInsights(c.get('core'), actorOf(c))))
   route(app, { method: 'get', path: '/api/v1/search', tags: ftags, summary: 'Rechercher', query: z.object({ q: z.string().max(200), kind: z.enum(['question', 'model', 'metric', 'dashboard']).optional() }) }, async (c) => {
     const kind = c.req.query('kind') as 'question' | 'model' | 'metric' | 'dashboard' | undefined
     return ok(c, await search(c.get('core'), actorOf(c), c.req.query('q') ?? '', kind ? 200 : 30, kind))

@@ -32,7 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
       ),
     },
     twitter: { card: 'summary_large_image' },
-    icons: { icon: '/favicon.svg' },
   }
 }
 
