@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { useDirectory } from '@/lib/queries'
@@ -137,7 +138,7 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
                       <Copy className="size-4" />
                     </Button>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center gap-3 text-sm">
                     <Segmented
                       value={l.audience}
                       onValueChange={async (v) => {
@@ -149,9 +150,9 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
                         { value: 'members', label: $t('Membres'), icon: Users, hint: $t('Membres connectés uniquement') },
                       ]}
                       aria-label={$t('Audience')}
-                      className="w-56"
+                      className="w-56 shrink-0"
                     />
-                    <label className="flex items-center gap-2">
+                    <label className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                       <Switch
                         checked={l.can_embed}
                         onCheckedChange={async (v) => {
@@ -161,22 +162,24 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
                       />
                       {$t('Intégrable (iframe)')}
                     </label>
-                    <span className="flex-1" />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive"
-                      onClick={async () => {
-                        await api.delete(`/v1/share-links/${l.id}`)
-                        await refresh()
-                      }}
-                    >
-                      {$t('Désactiver')}
-                    </Button>
+                    <Hint label={$t('Désactiver le lien')}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="shrink-0 text-destructive"
+                        aria-label={$t('Désactiver le lien')}
+                        onClick={async () => {
+                          await api.delete(`/v1/share-links/${l.id}`)
+                          await refresh()
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </Hint>
                   </div>
                   {l.can_embed ? (
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 truncate rounded bg-muted px-2 py-1 font-mono text-xs">{iframe(l.url)}</code>
+                      <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 font-mono text-xs">{iframe(l.url)}</code>
                       <Button variant="outline" size="icon-sm" onClick={() => copy(iframe(l.url))}>
                         <Copy className="size-4" />
                       </Button>
