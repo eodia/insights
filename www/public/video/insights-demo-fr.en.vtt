@@ -1,0 +1,160 @@
+WEBVTT
+
+00:00:02.938 --> 00:00:04.345
+This is eodia insights:
+
+00:00:04.345 --> 00:00:08.077
+the open-source BI tool where
+every query goes through Trino,
+
+00:00:08.077 --> 00:00:11.258
+and everyone sees only what
+they are allowed to see.
+
+00:00:12.686 --> 00:00:17.251
+Meet Maison Arvor, an online shop:
+three years of orders in PostgreSQL,
+
+00:00:17.251 --> 00:00:19.566
+and its customer service in MongoDB.
+
+00:00:20.366 --> 00:00:21.692
+Right from the home page,
+
+00:00:21.692 --> 00:00:25.406
+automatic exploration reads your
+tables and pulls out the key figures.
+
+00:00:26.365 --> 00:00:31.086
+PostgreSQL, MySQL, SQL Server,
+Oracle, Snowflake or MongoDB:
+
+00:00:31.086 --> 00:00:35.885
+every connected database becomes
+a Trino catalog, on the fly.
+
+00:00:39.416 --> 00:00:45.656
+A question is built with the mouse: a
+table, a filter, a measure, a grouping.
+
+00:00:49.470 --> 00:00:53.630
+The chart draws itself as you go,
+and changes shape in one click.
+
+00:00:55.237 --> 00:01:00.357
+Another table? Join it — here the
+customers, to see revenue by region.
+
+00:01:06.902 --> 00:01:10.182
+The question is saved in a
+folder, for the whole team.
+
+00:01:14.184 --> 00:01:19.624
+Calendars, market shares, bar
+races: every story finds its chart.
+
+00:01:23.481 --> 00:01:29.801
+And a line extends in one click: the trend,
+the season, and a margin of uncertainty.
+
+00:01:32.783 --> 00:01:37.857
+For those who prefer it, the SQL editor
+speaks a single language, Trino's,
+
+00:01:37.857 --> 00:01:39.023
+for every source.
+
+00:01:40.319 --> 00:01:45.599
+MongoDB tickets join PostgreSQL customers,
+like two tables of the same database.
+
+00:01:53.414 --> 00:01:56.134
+Or simply ask, in plain language.
+
+00:01:58.832 --> 00:02:03.859
+The assistant searches the schema, writes
+the SQL, runs it under your permissions,
+
+00:02:03.859 --> 00:02:05.392
+and answers with a chart.
+
+00:02:06.192 --> 00:02:10.192
+The answer is kept as a
+question, ready for a dashboard.
+
+00:02:10.984 --> 00:02:14.584
+Dashboards bring questions
+together, always up to date.
+
+00:02:15.384 --> 00:02:20.504
+Filters drive the whole page, and a
+click on a chart filters all the others.
+
+00:02:23.023 --> 00:02:27.903
+Tabs, automatic refresh, and
+full screen for the meeting room.
+
+00:02:31.881 --> 00:02:36.338
+A dashboard is shared with a person
+or a group, through a public link,
+
+00:02:36.338 --> 00:02:38.121
+or embedded in another site.
+
+00:02:40.176 --> 00:02:45.104
+A theme set on a folder dresses
+everything in it: fonts, colors, logo,
+
+00:02:45.104 --> 00:02:47.216
+all the way to the PDF export.
+
+00:02:53.283 --> 00:02:59.410
+But the real difference is permissions.
+They are set per group: a source, a table,
+
+00:02:59.410 --> 00:03:00.083
+a column.
+
+00:03:01.254 --> 00:03:05.841
+A row rule relies on the person's
+attributes, here their region.
+
+00:03:05.841 --> 00:03:08.134
+And customer e-mails are masked.
+
+00:03:09.448 --> 00:03:15.441
+Before every query, Trino itself asks
+eodia insights what the person may read.
+
+00:03:15.441 --> 00:03:17.208
+No path gets around it.
+
+00:03:18.684 --> 00:03:24.364
+Camille, an analyst in Brittany, opens the
+same dashboard: only her data shows up.
+
+00:03:25.909 --> 00:03:31.189
+Even in free SQL, the other regions
+don't exist, and e-mails stay masked.
+
+00:03:34.013 --> 00:03:38.363
+An instance splits into spaces,
+one per team or subsidiary;
+
+00:03:38.363 --> 00:03:41.533
+a source can be shared
+from one to another.
+
+00:03:47.669 --> 00:03:51.783
+And for your programs and agents,
+a documented API and an MCP server,
+
+00:03:51.783 --> 00:03:53.989
+always under the token's permissions.
+
+00:03:56.332 --> 00:04:02.391
+Open source under the AGPL, eodia insights
+installs in one command with Docker.
+
+00:04:02.391 --> 00:04:03.772
+Try the live demo.

@@ -188,7 +188,40 @@ export default {
 		announce: { tag: 'New', text: 'Forecasts: extend your curves, seasons included', href: '#previsions' },
 		primary: 'Install eodia insights',
 		secondary: 'Read the docs',
+		watch: 'Watch the video',
 		facts: ['Open source, AGPL-3.0', 'AI assistant and forecasts', 'Permissions enforced by Trino'],
+	},
+
+	film: {
+		eyebrow: 'The demo',
+		title: 'eodia insights,',
+		tabs: { label: 'Choose the film', short: 'In one minute', full: 'The full tour' },
+		short: {
+			titleAccent: 'in one minute.',
+			text: 'Questions, charts, SQL, the AI assistant, dashboards and permissions: the essentials, narrated and set to music.',
+			duration: '1:00',
+		},
+		full: {
+			titleAccent: 'in four minutes.',
+			text: 'From the first question to the shared dashboard, and the same data seen by two people: the full guided tour.',
+			duration: '4:06',
+		},
+		play: 'Play the video',
+		chapters: 'Chapters',
+		captions: 'English',
+		inFrench: 'The films are narrated in French, with English subtitles.',
+		list: [
+			{ time: '0:12', title: 'All your databases' },
+			{ time: '0:39', title: 'A question, without SQL' },
+			{ time: '1:13', title: 'Charts that tell a story' },
+			{ time: '1:32', title: 'SQL, for those who want it' },
+			{ time: '1:53', title: 'The AI assistant' },
+			{ time: '2:10', title: 'Dashboards' },
+			{ time: '2:31', title: 'Sharing, in your colors' },
+			{ time: '2:52', title: 'Permissions enforced by Trino' },
+			{ time: '3:18', title: 'Same dashboard, each their own data' },
+			{ time: '3:33', title: 'Spaces, API and MCP' },
+		],
 	},
 
 	story: {

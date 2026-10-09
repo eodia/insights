@@ -13,6 +13,7 @@ import Themes from '../components/home/Themes.astro';
 import Dashboards from '../components/home/Dashboards.astro';
 import Engine from '../components/home/Engine.astro';
 import Features from '../components/home/Features.astro';
+import Film from '../components/home/Film.astro';
 import Forecast from '../components/home/Forecast.astro';
 import News from '../components/home/News.astro';
 import Rights from '../components/home/Rights.astro';
@@ -32,6 +33,7 @@ const { t, href } = i18n(locale);
 <Landing locale={locale} path="/" title={t.meta.title} description={t.meta.description}>
 	<main class="tm">
 		<Story locale={locale} />
+		<Film locale={locale} />
 		{/* What is new first — the assistant, the forecasts —, the light and dark sections in turn. */}
 		<Assistant locale={locale} />
 		<Dashboards locale={locale} />

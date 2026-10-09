@@ -1,0 +1,392 @@
+---
+/**
+ * The demonstration, after the story: two films, and a switch between them. First the
+ * short one — a minute of titles, the real screens, a voice and music —, then the full
+ * tour, four minutes around eodia insights with its subtitles and its chapters: a chapter
+ * plays the film from where it starts, and lights up while it plays. « Regarder la vidéo »,
+ * in the first screen, brings the reader here and starts the film shown (`data-play-demo`).
+ *
+ * The films are in French (the demo, Maison Arvor, is French): every other page shows them
+ * with subtitles in its language, on by default. They are made in `insights-video/`: the
+ * tour is `public/video/insights-demo-fr.{mp4,vtt,en.vtt}` and `insights-demo-poster.jpg`
+ * (`node scripts/web.mjs`), the short film `insights-60s-fr.{mp4,vtt,en.vtt}` and
+ * `insights-60s-poster.jpg` (`node promo/site.mjs`). The chapters' times follow the tour.
+ */
+import { type Locale, i18n } from '../../i18n';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { t } = i18n(locale);
+const f = t.film;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const seconds = (time: string) => {
+	const [m = 0, s = 0] = time.split(':').map(Number);
+	return m * 60 + s;
+};
+const chapters = f.list.map((c) => ({ ...c, at: seconds(c.time) }));
+// The subtitles of the page: French on the French page, English on every other one.
+const subs = locale === 'fr' ? 'fr' : 'en';
+const track = (name: string) => `${base}/video/${name}${subs === 'fr' ? '.vtt' : '.en.vtt'}`;
+---
+
+
+<section class="tm-section mist film" id="demo" data-film data-current="short">
+	<div class="tm-head tm-rise">
+		<p class="tm-kicker">{f.eyebrow}</p>
+		<h2 class="tm-display">
+			<span>{f.title}</span>
+			<span class="tm-grad" data-for="short">{f.short.titleAccent}</span>
+			<span class="tm-grad" data-for="full">{f.full.titleAccent}</span>
+		</h2>
+		<p class="tm-lede" data-for="short">{f.short.text}</p>
+		<p class="tm-lede" data-for="full">{f.full.text}</p>
+		{locale !== 'fr' && <p class="note">{f.inFrench}</p>}
+	</div>
+
+	<div class="switch tm-rise" role="group" aria-label={f.tabs.label}>
+		<button type="button" data-show="short" aria-pressed="true">{f.tabs.short}</button>
+		<button type="button" data-show="full" aria-pressed="false">{f.tabs.full}<span class="length">{f.full.duration}</span></button>
+	</div>
+
+	<div class="films tm-rise">
+		<div class="player" data-player="short" data-for="short">
+			<video preload="metadata" playsinline poster={`${base}/video/insights-60s-poster.jpg`}>
+				<source src={`${base}/video/insights-60s-fr.mp4`} type="video/mp4" />
+				<track kind="captions" src={track('insights-60s-fr')} srclang={subs} label={f.captions} default={subs !== 'fr'} />
+			</video>
+			<button type="button" class="play" data-play>
+				<span class="cta">
+					<span class="disc">
+						<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"></path></svg>
+					</span>
+					<span class="words">
+						<b>{f.play}</b>
+						<span>{f.short.duration}</span>
+					</span>
+				</span>
+			</button>
+		</div>
+
+		<div class="player" data-player="full" data-for="full">
+			<video preload="none" playsinline poster={`${base}/video/insights-demo-poster.jpg`}>
+				<source src={`${base}/video/insights-demo-fr.mp4`} type="video/mp4" />
+				<track kind="captions" src={track('insights-demo-fr')} srclang={subs} label={f.captions} default={subs !== 'fr'} />
+			</video>
+			<button type="button" class="play" data-play>
+				<span class="cta">
+					<span class="disc">
+						<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"></path></svg>
+					</span>
+					<span class="words">
+						<b>{f.play}</b>
+						<span>{f.full.duration}</span>
+					</span>
+				</span>
+			</button>
+		</div>
+
+		<div class="chapters" data-for="full">
+			<p class="label">{f.chapters}</p>
+			<ol>
+				{
+					chapters.map((c) => (
+						<li>
+							<button type="button" data-at={c.at}>
+								<time>{c.time}</time>
+								<span>{c.title}</span>
+							</button>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+	</div>
+</section>
+
+<script>
+	import { reducedMotion } from '../../lib/motion';
+
+	const section = document.querySelector<HTMLElement>('[data-film]');
+	if (section) {
+		const players = [...section.querySelectorAll<HTMLElement>('[data-player]')];
+		const video = (player: HTMLElement) => player.querySelector('video') as HTMLVideoElement;
+		const shown = () => players.find((p) => p.dataset.player === section.dataset.current) ?? players[0];
+		const start = (player: HTMLElement, at?: number) => {
+			const v = video(player);
+			// The tour is not loaded before it is asked for: its time is set once it knows its length.
+			if (at !== undefined) {
+				if (v.readyState >= HTMLMediaElement.HAVE_METADATA) v.currentTime = at;
+				else v.addEventListener('loadedmetadata', () => (v.currentTime = at), { once: true });
+			}
+			v.controls = true;
+			player.classList.add('playing');
+			void v.play();
+		};
+		for (const player of players) {
+			player.querySelector('[data-play]')?.addEventListener('click', () => start(player));
+		}
+		// The switch: one film at a time; the other stops where it was.
+		const buttons = [...section.querySelectorAll<HTMLButtonElement>('[data-show]')];
+		for (const button of buttons) {
+			button.addEventListener('click', () => {
+				const which = button.dataset.show ?? 'short';
+				if (section.dataset.current === which) return;
+				for (const player of players) if (player.dataset.player !== which) video(player).pause();
+				section.dataset.current = which;
+				for (const b of buttons) b.setAttribute('aria-pressed', String(b === button));
+			});
+		}
+		// The chapters play the tour.
+		const tour = players.find((p) => p.dataset.player === 'full');
+		const chapters = [...section.querySelectorAll<HTMLButtonElement>('[data-at]')];
+		if (tour) {
+			for (const chapter of chapters) {
+				chapter.addEventListener('click', () => {
+					start(tour, Number(chapter.dataset.at));
+					tour.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
+				});
+			}
+			// The chapter playing, lit.
+			const marks = chapters.map((c) => Number(c.dataset.at));
+			video(tour).addEventListener('timeupdate', () => {
+				let current = -1;
+				marks.forEach((at, i) => {
+					if (video(tour).currentTime >= at) current = i;
+				});
+				chapters.forEach((c, i) => c.toggleAttribute('data-current', i === current));
+			});
+		}
+		// « Regarder la démo », elsewhere on the page: here, and the film shown playing — the
+		// click is the reader's, so it may start with its sound.
+		for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-play-demo]')) {
+			link.addEventListener('click', (event) => {
+				event.preventDefault();
+				const player = shown();
+				player.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
+				start(player);
+			});
+		}
+	}
+</script>
+
+<style>
+	/* One film shown at a time: the other, its words and its chapters wait. */
+	.film[data-current='short'] [data-for='full'],
+	.film[data-current='full'] [data-for='short'] {
+		display: none;
+	}
+	/* The switch between the two films, drawn as the one of the forms. */
+	.switch {
+		display: flex;
+		width: max-content;
+		max-width: 100%;
+		margin: 56px auto 0;
+		padding: 4px;
+		border-radius: 999px;
+		background: #e6e6eb;
+	}
+	.switch button {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 8px;
+		padding: 9px 22px;
+		border: 0;
+		border-radius: 999px;
+		font: inherit;
+		font-size: 15px;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--tm-slate);
+		background: transparent;
+		white-space: nowrap;
+		cursor: pointer;
+		transition:
+			background-color 0.25s ease,
+			color 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.switch button:hover {
+		color: var(--tm-ink);
+	}
+	.switch button[aria-pressed='true'] {
+		color: var(--tm-ink);
+		background: #fff;
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.08),
+			0 6px 16px -8px rgba(0, 0, 0, 0.2);
+	}
+	.switch button:focus-visible {
+		outline: 2px solid var(--bd-primary);
+		outline-offset: 2px;
+	}
+	.length {
+		font-size: 13px;
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		color: var(--tm-slate);
+	}
+	.note {
+		margin: 16px 0 0;
+		font-size: 14px;
+		color: var(--tm-slate);
+	}
+	.player {
+		position: relative;
+		max-width: 1120px;
+		margin: 32px auto 0;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		border-radius: 28px;
+		background: #0b2016;
+		box-shadow:
+			0 0 0 1px rgba(16, 24, 16, 0.08),
+			0 60px 120px -50px rgba(16, 40, 16, 0.55);
+	}
+	video {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	/* The whole picture plays the film; what says so sits in its corner. */
+	.play {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: flex-end;
+		justify-content: flex-start;
+		padding: clamp(18px, 3vw, 34px);
+		color: #fff;
+		background: linear-gradient(transparent 60%, rgba(0, 0, 0, 0.35));
+		transition: opacity 0.35s ease;
+	}
+	.cta {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
+	.disc {
+		display: grid;
+		place-items: center;
+		width: 60px;
+		height: 60px;
+		padding-left: 4px;
+		border-radius: 50%;
+		color: #0b2016;
+		background: #fff;
+		box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+		transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+	}
+	.play:hover .disc,
+	.play:focus-visible .disc {
+		transform: scale(1.08);
+	}
+	.words {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+		text-align: left;
+	}
+	.words b {
+		font-size: 19px;
+		letter-spacing: -0.01em;
+	}
+	.words span {
+		font-size: 14px;
+		color: rgba(255, 255, 255, 0.75);
+	}
+	.playing .play {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.chapters {
+		max-width: 1120px;
+		margin: 32px auto 0;
+	}
+	.label {
+		margin: 0 0 12px 4px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--tm-slate);
+	}
+	ol {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	ol button {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+		width: 100%;
+		height: 100%;
+		padding: 12px 14px;
+		border-radius: 14px;
+		text-align: left;
+		transition:
+			background-color 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+	ol button:hover,
+	ol button[data-current] {
+		background: #fff;
+		box-shadow: 0 8px 20px -14px rgba(16, 24, 16, 0.35);
+	}
+	time {
+		font-size: 12.5px;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		color: #1f9d4a;
+	}
+	ol span {
+		font-size: 14.5px;
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--tm-ink);
+	}
+
+	@media (max-width: 540px) {
+		.switch button {
+			padding: 9px 16px;
+		}
+		.length {
+			display: none;
+		}
+	}
+	@media (max-width: 900px) {
+		ol {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.player {
+			border-radius: 18px;
+		}
+		.disc {
+			width: 48px;
+			height: 48px;
+		}
+		.words b {
+			font-size: 16px;
+		}
+	}
+	/* A phone's picture is too short for the words beside the disc: they would cover the
+	   poster's tagline. The disc alone says it; the words stay for screen readers. */
+	@media (max-width: 540px) {
+		.words {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+	}
+</style>

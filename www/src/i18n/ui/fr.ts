@@ -204,9 +204,51 @@ const fr = {
 		lead: 'Posez une question à PostgreSQL, MongoDB et Snowflake dans la même requête. Chacun ne voit que ce qu’il a le droit de voir — même en SQL libre.',
 		primary: 'Installer eodia insights',
 		secondary: 'Lire la documentation',
+		/** A link to the films of « La démo », which starts the one shown. */
+		watch: 'Regarder la vidéo',
 		facts: ['Open source, AGPL-3.0', 'Assistant IA et prévisions', 'Droits appliqués par Trino'],
 		/** The ribbon above the title: what is new. */
 		announce: { tag: 'Nouveau', text: 'Les prévisions : prolongez vos courbes, saison comprise', href: '#previsions' },
+	},
+
+	/**
+	 * The films, after the story: the short one (a minute, titles, the real screens, a voice and
+	 * music) and the full tour with its chapters — `time`, in minutes and seconds, is where each
+	 * chapter starts in the tour. Both films are in French; every other page shows them with
+	 * subtitles in its language.
+	 */
+	film: {
+		eyebrow: 'La démo',
+		title: 'eodia insights,',
+		tabs: { label: 'Choisir le film', short: 'En une minute', full: 'La visite complète' },
+		short: {
+			titleAccent: 'en une minute.',
+			text: 'Questions, graphiques, SQL, assistant IA, tableaux de bord et droits : l’essentiel, commenté et en musique.',
+			duration: '1 min',
+		},
+		full: {
+			titleAccent: 'en quatre minutes.',
+			text: 'De la première question au tableau de bord partagé, et les mêmes données vues par deux personnes : la visite complète, commentée.',
+			duration: '4 min 06',
+		},
+		play: 'Lire la vidéo',
+		chapters: 'Chapitres',
+		/** The label of the subtitles, in the player. */
+		captions: 'Français',
+		/** Said on every page but the French one: the films are in French. */
+		inFrench: '',
+		list: [
+			{ time: '0:12', title: 'Toutes vos bases' },
+			{ time: '0:39', title: 'Une question, sans SQL' },
+			{ time: '1:13', title: 'Des graphiques qui racontent' },
+			{ time: '1:32', title: 'Le SQL, pour qui le veut' },
+			{ time: '1:53', title: 'L’assistant IA' },
+			{ time: '2:10', title: 'Tableaux de bord' },
+			{ time: '2:31', title: 'Partager, à vos couleurs' },
+			{ time: '2:52', title: 'Des droits appliqués par Trino' },
+			{ time: '3:18', title: 'Même tableau, chacun ses données' },
+			{ time: '3:33', title: 'Espaces, API et MCP' },
+		],
 	},
 
 	story: {

@@ -1,0 +1,31 @@
+WEBVTT
+
+00:04.200 --> 00:08.461
+This is eodia insights, open-source BI.
+
+00:08.900 --> 00:13.094
+A question is built with the mouse, without a line of SQL.
+
+00:14.450 --> 00:19.216
+Calendars, bar races, forecasts: every story has its chart.
+
+00:20.400 --> 00:24.974
+And in SQL, PostgreSQL and MongoDB join in the same query.
+
+00:26.450 --> 00:31.069
+Or just ask: the AI writes the query and answers with a chart.
+
+00:32.450 --> 00:36.647
+Living dashboards: one click, and the whole page filters.
+
+00:38.350 --> 00:40.602
+In your colors, all the way to the PDF.
+
+00:42.450 --> 00:46.701
+And everyone sees only their own data: Trino itself enforces the permissions.
+
+00:48.450 --> 00:53.209
+An API, an MCP server, and a space for each team.
+
+00:54.450 --> 00:58.550
+Free and open source, eodia insights keeps your data at home.

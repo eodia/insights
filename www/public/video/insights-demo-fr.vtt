@@ -1,0 +1,240 @@
+WEBVTT
+
+1
+00:00:02.938 --> 00:00:07.866
+Voici eodia insights : l'outil de BI
+libre où chaque requête passe par Trino,
+
+2
+00:00:07.866 --> 00:00:11.258
+et où chacun ne voit que ce
+qu'il a le droit de voir.
+
+3
+00:00:12.686 --> 00:00:17.525
+Voici Maison Arvor, une boutique en ligne
+: trois ans de commandes dans PostgreSQL,
+
+4
+00:00:17.525 --> 00:00:19.566
+et son service client dans MongoDB.
+
+5
+00:00:20.366 --> 00:00:21.158
+Dès l'accueil,
+
+6
+00:00:21.158 --> 00:00:25.406
+l'exploration automatique parcourt vos
+tables et en tire les chiffres clés.
+
+7
+00:00:26.365 --> 00:00:31.245
+PostgreSQL, MySQL, SQL Server,
+Oracle, Snowflake ou MongoDB :
+
+8
+00:00:31.245 --> 00:00:35.885
+chaque base connectée devient
+un catalogue Trino, à chaud.
+
+9
+00:00:39.416 --> 00:00:44.534
+Une question se construit à la souris
+: une table, un filtre, une mesure,
+
+10
+00:00:44.534 --> 00:00:45.656
+un regroupement.
+
+11
+00:00:49.470 --> 00:00:53.630
+Le graphique se dessine à mesure,
+et change de forme d'un clic.
+
+12
+00:00:55.237 --> 00:00:57.911
+Une autre table ? On la
+joint, ici les clients,
+
+13
+00:00:57.911 --> 00:01:00.357
+pour voir le chiffre
+d'affaires par région.
+
+14
+00:01:06.902 --> 00:01:10.182
+La question s'enregistre dans
+un dossier, pour toute l'équipe.
+
+15
+00:01:14.184 --> 00:01:17.256
+Calendrier, parts de
+marché, courses de barres :
+
+16
+00:01:17.256 --> 00:01:19.624
+chaque histoire trouve son graphique.
+
+17
+00:01:23.481 --> 00:01:27.862
+Et une courbe se prolonge d'un
+clic : la tendance, la saison,
+
+18
+00:01:27.862 --> 00:01:29.801
+et une marge d'incertitude.
+
+19
+00:01:32.783 --> 00:01:37.495
+Pour qui le préfère, l'éditeur SQL
+parle une seule langue, celle de Trino,
+
+20
+00:01:37.495 --> 00:01:39.023
+pour toutes les sources.
+
+21
+00:01:40.319 --> 00:01:43.709
+Les tickets de MongoDB se joignent
+aux clients de PostgreSQL,
+
+22
+00:01:43.709 --> 00:01:45.599
+comme deux tables d'une même base.
+
+23
+00:01:53.414 --> 00:01:56.134
+Ou demandez, tout simplement, en français.
+
+24
+00:01:58.832 --> 00:02:03.518
+L'assistant cherche dans le schéma,
+écrit le SQL, le lance sous vos droits,
+
+25
+00:02:03.518 --> 00:02:05.392
+et répond graphique à l'appui.
+
+26
+00:02:06.192 --> 00:02:10.192
+La réponse se garde comme une question,
+prête pour un tableau de bord.
+
+27
+00:02:10.984 --> 00:02:14.584
+Les tableaux de bord rassemblent
+les questions, toujours à jour.
+
+28
+00:02:15.384 --> 00:02:17.467
+Les filtres pilotent toute la page,
+
+29
+00:02:17.467 --> 00:02:20.504
+et un clic sur un graphique
+filtre tous les autres.
+
+30
+00:02:23.023 --> 00:02:25.518
+Des onglets, un
+rafraîchissement automatique,
+
+31
+00:02:25.518 --> 00:02:27.903
+et le plein écran pour
+la salle de réunion.
+
+32
+00:02:31.881 --> 00:02:36.219
+Un tableau se partage avec une personne
+ou un groupe, par un lien public,
+
+33
+00:02:36.219 --> 00:02:38.121
+ou s'intègre dans un autre site.
+
+34
+00:02:40.176 --> 00:02:45.439
+Un thème posé sur un dossier habille tout
+ce qu'il contient : polices, couleurs,
+
+35
+00:02:45.439 --> 00:02:47.216
+logo, jusqu'à l'export PDF.
+
+36
+00:02:53.283 --> 00:02:57.879
+Mais la vraie différence, ce sont les
+droits. Ils se règlent par groupe :
+
+37
+00:02:57.879 --> 00:03:00.083
+une source, une table, une colonne.
+
+38
+00:03:01.254 --> 00:03:05.964
+Une règle de ligne s'appuie sur les
+attributs de la personne, ici sa région.
+
+39
+00:03:05.964 --> 00:03:08.134
+Et l'e-mail des clients est masqué.
+
+40
+00:03:09.448 --> 00:03:10.711
+Avant chaque requête,
+
+41
+00:03:10.711 --> 00:03:15.463
+c'est Trino lui-même qui demande à eodia
+insights ce que la personne peut lire.
+
+42
+00:03:15.463 --> 00:03:17.208
+Aucun chemin ne le contourne.
+
+43
+00:03:18.684 --> 00:03:22.430
+Camille, analyste en Bretagne,
+ouvre le même tableau de bord :
+
+44
+00:03:22.430 --> 00:03:24.364
+seules ses données apparaissent.
+
+45
+00:03:25.909 --> 00:03:29.240
+Même en SQL libre, les autres
+régions n'existent pas,
+
+46
+00:03:29.240 --> 00:03:31.189
+et les e-mails restent masqués.
+
+47
+00:03:34.013 --> 00:03:38.798
+Une instance se découpe en espaces,
+une équipe ou une filiale chacun ;
+
+48
+00:03:38.798 --> 00:03:41.533
+une source se partage de l'un à l'autre.
+
+49
+00:03:47.669 --> 00:03:52.018
+Et pour vos programmes et vos agents,
+une API documentée et un serveur MCP,
+
+50
+00:03:52.018 --> 00:03:53.989
+toujours sous les droits du jeton.
+
+51
+00:03:56.332 --> 00:04:02.001
+Libre, sous licence AGPL, eodia insights
+s'installe en une commande avec Docker.
+
+52
+00:04:02.001 --> 00:04:03.772
+Essayez la démo en ligne.
