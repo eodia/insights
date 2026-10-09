@@ -3,6 +3,7 @@
 import type { ResultColumn, Visualization as Viz, VisualizationSettings } from '@eodia/contracts'
 import { ruleColor } from '@eodia/contracts'
 import { EChart } from '@/components/app/echart'
+import type { ECElementEvent } from 'echarts'
 import { EmptyScene } from '@/components/app/empty-scene'
 import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
@@ -19,6 +20,8 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 export interface PointClick {
   readonly column: ResultColumn
   readonly value: unknown
+  /** The point's other values: the series of a chart split in two, the other groupings of a row. */
+  readonly also?: readonly { readonly column: ResultColumn; readonly value: unknown }[]
   readonly at: { x: number; y: number }
   /** Shift, Ctrl or ⌘ held: the value adds to (or leaves) the selection rather than replace it. */
   readonly additive: boolean
@@ -68,12 +71,15 @@ export function Visualization({
   result: given,
   viz,
   onPointClick,
+  onPointMenu,
   compact = false,
   selected,
 }: {
   result: RunResult | Result
   viz: Viz
   onPointClick?: (p: PointClick) => void
+  /** A right click on a point, or on a row of a grouped table. */
+  onPointMenu?: (p: PointClick) => void
   compact?: boolean
   /** Categories chosen by clicks on this chart: the others fade, still there to be added. */
   selected?: readonly string[]
@@ -106,7 +112,7 @@ export function Visualization({
   }
   switch (viz.type) {
     case 'table':
-      return <DataTable result={result} settings={settings} looks={'looks' in result ? (result as RunResult).looks : undefined} />
+      return <DataTable result={result} settings={settings} looks={'looks' in result ? (result as RunResult).looks : undefined} onRowMenu={onPointMenu} />
     case 'scalar':
       return <Scalar result={result} settings={settings} compact={compact} />
     case 'trend':
@@ -122,29 +128,49 @@ export function Visualization({
     return <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">{$t('Ce résultat ne se prête pas à cette visualisation : il faut au moins une dimension et une mesure.')}</div>
   }
   if (viz.type === 'line_race') return <Replay option={model.option} label={$t(VIZ_LABELS.line_race)} />
+  // The values a mark stands for; none for « Autres » or a forecast period, which have no rows.
+  const pointOf = (e: ECElementEvent): PointClick | null => {
+    const col = model.clickColumn
+    if (!col) return null
+    const index = e.dataIndex
+    const raw = model.categories ? model.categories[index] : (e.data as { raw?: unknown })?.raw
+    if (raw === OTHER_CATEGORY || (e.data as { key?: string })?.key === '__other__') return null
+    if (model.forecastFrom !== undefined && index >= model.forecastFrom) return null
+    const series = model.split && e.seriesIndex !== undefined ? model.split.values[e.seriesIndex] : undefined
+    const native = e.event?.event as unknown as MouseEvent | undefined
+    return {
+      column: col,
+      value: raw,
+      ...(model.split && series !== undefined && series !== OTHER_CATEGORY ? { also: [{ column: model.split.column, value: series }] } : {}),
+      at: { x: native?.clientX ?? 0, y: native?.clientY ?? 0 },
+      additive: !!(native?.shiftKey || native?.ctrlKey || native?.metaKey),
+    }
+  }
+  const handle = (to: ((p: PointClick) => void) | undefined) =>
+    to && model.clickColumn
+      ? (e: ECElementEvent) => {
+          const p = pointOf(e)
+          if (p) to(p)
+        }
+      : undefined
+  const onClick = handle(onPointClick)
+  const onContextMenu = handle(onPointMenu)
+  // Beside the marks of an axis, the period under the pointer: its every series at once.
+  const onAxisContextMenu =
+    onPointMenu && model.clickColumn && model.categories
+      ? (index: number, at: { x: number; y: number }) => {
+          const value = model.categories?.[index]
+          if (value === undefined || value === OTHER_CATEGORY || (model.forecastFrom !== undefined && index >= model.forecastFrom)) return
+          onPointMenu({ column: model.clickColumn as ResultColumn, value, at, additive: false })
+        }
+      : undefined
   return (
     <EChart
       option={model.option}
       label={VIZ_LABELS[viz.type] ? $t(VIZ_LABELS[viz.type]) : viz.type}
-      {...(onPointClick && model.clickColumn
-        ? {
-            onClick: (e) => {
-              const col = model.clickColumn as ResultColumn
-              const index = e.dataIndex
-              const raw = model.categories ? model.categories[index] : (e.data as { raw?: unknown })?.raw
-              if (raw === OTHER_CATEGORY || (e.data as { key?: string })?.key === '__other__') return
-              // A forecast period has no rows to filter by.
-              if (model.forecastFrom !== undefined && index >= model.forecastFrom) return
-              const native = e.event?.event as unknown as MouseEvent | undefined
-              onPointClick({
-                column: col,
-                value: raw,
-                at: { x: native?.clientX ?? 0, y: native?.clientY ?? 0 },
-                additive: !!(native?.shiftKey || native?.ctrlKey || native?.metaKey),
-              })
-            },
-          }
-        : {})}
+      {...(onClick ? { onClick } : {})}
+      {...(onContextMenu ? { onContextMenu } : {})}
+      {...(onAxisContextMenu ? { onAxisContextMenu } : {})}
     />
   )
 }
@@ -381,12 +407,15 @@ export function DataTable({
   looks,
   className,
   onCellClick,
+  onRowMenu,
 }: {
   result: Result
   settings?: VisualizationSettings
   looks?: Looks
   className?: string
   onCellClick?: (col: ResultColumn, value: unknown, at: { x: number; y: number }) => void
+  /** A right click on a row of a grouped result: its groupings, the one clicked first. */
+  onRowMenu?: (p: PointClick) => void
 }) {
   const parent = useRef<HTMLDivElement>(null)
   const [sort, setSort] = useState<{ index: number; desc: boolean } | null>(null)
@@ -418,6 +447,7 @@ export function DataTable({
     }
     return out
   }, [result, settings.cell_bars])
+  const groupings = useMemo(() => result.columns.map((c, i) => ({ c, i })).filter(({ c }) => c.role === 'dimension'), [result.columns])
   const density = settings.density ?? 'normal'
   const rowHeight = density === 'compact' ? 30 : density === 'comfortable' ? 44 : 36
   const virtualizer = useVirtualizer({ count: rows.length, getScrollElement: () => parent.current, estimateSize: () => rowHeight, overscan: 12 })
@@ -464,6 +494,21 @@ export function DataTable({
                     <td
                       key={c.name}
                       onClick={onCellClick ? (e) => onCellClick(c, value, { x: e.clientX, y: e.clientY }) : undefined}
+                      onContextMenu={
+                        onRowMenu && groupings.length
+                          ? (e) => {
+                              e.preventDefault()
+                              const first = groupings.find((g) => g.c === c) ?? (groupings[0] as { c: ResultColumn; i: number })
+                              onRowMenu({
+                                column: first.c,
+                                value: row[first.i],
+                                also: groupings.filter((g) => g !== first).map((g) => ({ column: g.c, value: row[g.i] })),
+                                at: { x: e.clientX, y: e.clientY },
+                                additive: false,
+                              })
+                            }
+                          : undefined
+                      }
                       className={cn('max-w-[420px] truncate border-b px-3 whitespace-nowrap', numeric && 'text-right tabular-nums', onCellClick && 'cursor-pointer')}
                       style={color ? { color, fontWeight: 600 } : undefined}
                     >

@@ -1,7 +1,9 @@
 'use client'
 
-import type { BuilderQuery, Dashboard, ItemSummary, Question, QuestionQuery, SqlVariable, Visualization as Viz, VisualizationType } from '@eodia/contracts'
-import { DASHBOARD_COLUMNS, SQL_VARIABLE_TYPES, cardSize, placedAfter, sqlVariableNames } from '@eodia/contracts'
+import type { BuilderQuery, Dashboard, Filter, ItemSummary, Question, QuestionQuery, ResultColumn, SqlVariable, Visualization as Viz, VisualizationType } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, SQL_VARIABLE_TYPES, cardSize, finerUnit, periodExpression, placedAfter, resultNames, sqlVariableNames } from '@eodia/contracts'
+import { copy } from '@/components/app/admin/common'
+import { PointMenu, openRecords, recordPicks, valueText } from '@/components/app/point-menu'
 import { ConfirmDialog, SaveDialog } from '@/components/app/dialogs'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { ShareDialog } from '@/components/app/share-dialog'
@@ -24,8 +26,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { ApiError, type RunResult, api, download } from '@/lib/api'
-import { columnOptions } from '@/lib/builder'
-import { $t } from '@/lib/i18n'
+import { type ColumnOption, UNIT_LABELS, columnOptions, withJoinFor } from '@/lib/builder'
+import { $t, intlLocale } from '@/lib/i18n'
 import { keys, useMe, useMetrics, useModels, useQuestion, useSchemaTree, useTables } from '@/lib/queries'
 import { ThemeScope } from '@/lib/theme'
 import { useCrumbs, useUi } from '@/lib/store'
@@ -33,9 +35,14 @@ import { autoVisualization } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Ban,
   Code2,
   Copy,
   Download,
+  Filter as FilterIcon,
+  Rows3,
+  Split,
+  ZoomIn,
   Ellipsis,
   LayoutDashboard,
   Loader2,
@@ -135,7 +142,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const [shareOpen, setShareOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
-  const [drill, setDrill] = useState<PointClick | null>(null)
+  const [point, setPoint] = useState<PointClick | null>(null)
   const execution = useRef<string | null>(null)
 
   const update = (patch: Partial<Draft>) => {
@@ -282,24 +289,58 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
     }
   }
 
-  const onPoint = (p: PointClick) => {
-    if (!builder || !p.column.source) return
-    setDrill(p)
+  // A point of the chart, as conditions of the question: its period, its bin, or its value.
+  const pointFilters = (column: ResultColumn, value: unknown, op: 'is' | 'is_not'): Filter[] | null => {
+    if (!column.source) return null
+    const ref = { ...(column.source.join ? { join: column.source.join } : {}), field: column.source.field }
+    if (value === null || value === undefined) return [{ column: ref, op: op === 'is' ? 'empty' : 'not_empty', values: [] }]
+    if (column.unit) {
+      const period = op === 'is' ? periodExpression(String(value), column.unit) : null
+      return period ? [{ column: ref, op: 'date', values: [period] }] : null
+    }
+    if (column.bin && typeof value === 'number') {
+      return op === 'is' ? [{ column: ref, op: 'gte', values: [value] }, { column: ref, op: 'lt', values: [value + column.bin] }] : null
+    }
+    return [{ column: ref, op, values: [String(value)] }]
   }
-  const drillFilter = (op: 'is' | 'is_not') => {
-    if (!builder || !drill?.column.source) return
-    const ref = { ...(drill.column.source.join ? { join: drill.column.source.join } : {}), field: drill.column.source.field }
-    const unit = drill.column.unit
-    const filter = unit
-      ? { column: ref, op: 'date' as const, values: [String(drill.value).slice(0, unit === 'year' ? 4 : unit === 'month' ? 7 : 10)] }
-      : { column: ref, op, values: [String(drill.value)] }
-    update({ query: { ...builder, filters: [...(builder.filters ?? []), filter] } })
-    setDrill(null)
+  const filterOn = (p: PointClick, op: 'is' | 'is_not') => {
+    const filters = builder ? pointFilters(p.column, p.value, op) : null
+    if (!builder || !filters) return
+    update({ query: { ...builder, filters: [...(builder.filters ?? []), ...filters] } })
   }
+  // The grouping a point's column stands for, to cut it finer or by another column.
+  const breakoutOf = (column: ResultColumn) => (builder ? resultNames(builder).breakouts.indexOf(column.name) : -1)
+  const drillInto = (p: PointClick, to: { unit: NonNullable<ReturnType<typeof finerUnit>> } | { option: ColumnOption }) => {
+    const i = breakoutOf(p.column)
+    const filters = builder ? pointFilters(p.column, p.value, 'is') : null
+    if (!builder || i < 0 || !filters) return
+    const next = (builder.breakouts ?? []).map((b, j) => {
+      if (j !== i) return b
+      if ('unit' in to) return { ...b, unit: to.unit }
+      const dated = to.option.kind === 'date' || to.option.kind === 'datetime'
+      return { ...to.option.ref, ...(dated ? { unit: 'month' as const } : {}) }
+    })
+    const query = { ...builder, filters: [...(builder.filters ?? []), ...filters], breakouts: next }
+    if (!('option' in to)) return update({ query })
+    // Categories after periods: a line through them would draw a trend that is not there.
+    const categorical = to.option.kind !== 'date' && to.option.kind !== 'datetime'
+    const lined = draft.visualization.type === 'line' || draft.visualization.type === 'area'
+    update({ query: withJoinFor(query, to.option), ...(categorical && lined ? { visualization: { ...draft.visualization, type: 'bar' } } : {}) })
+  }
+  const readRecords = (p: PointClick) => {
+    const query = draft.query
+    openRecords(p, draft.name || undefined, () => query)
+  }
+  // Another column to cut a point by: those a grouping reads well, not the one cut already.
+  const splitOptions = (p: PointClick) =>
+    options.filter(
+      (o) =>
+        (o.kind === 'text' || o.kind === 'boolean' || o.kind === 'date' || o.kind === 'datetime') &&
+        !(p.column.source && o.ref.field === p.column.source.field && (o.ref.join ?? '') === (p.column.source.join ?? '')),
+    )
 
   const canEdit = !draft.id || draft.access !== 'view'
-  // One sentence, cut around the value the bold element shows.
-  const drillLabel = drill ? $t('{column} : {value}', { column: drill.column.label }).split('{value}') : []
+  const finer = point?.column.unit ? finerUnit(point.column.unit) : null
   const allowSql = !!me?.can.use_sql
   const sqlError: SqlError | null = error && draft.query.kind !== 'builder' ? { message: error.message, ...((error.details as { location?: { line: number; column: number } })?.location ?? {}) } : null
 
@@ -483,35 +524,58 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
             ) : result ? (
               view === 'viz' ? (
                 <ThemeScope theme={saved?.resolved_theme} className="h-full">
-                  <Visualization result={result} viz={draft.visualization} onPointClick={builder ? onPoint : undefined} />
+                  <Visualization result={result} viz={draft.visualization} onPointClick={builder ? setPoint : undefined} onPointMenu={setPoint} />
                 </ThemeScope>
               ) : view === 'table' ? (
-                <DataTable result={result} looks={result.looks} />
+                <DataTable result={result} looks={result.looks} onRowMenu={setPoint} />
               ) : (
                 <pre className="h-full overflow-auto rounded-xl bg-code p-4 font-mono text-xs text-code-foreground">{result.sql}</pre>
               )
             ) : !running ? (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{builder ? $t('Choisissez une source de données.') : $t('Écrivez une requête puis Ctrl+Entrée.')}</div>
             ) : null}
-            {drill ? (
-              <div className="fixed z-50 w-56 rounded-xl border bg-popover p-1 shadow-lg" style={{ left: drill.at.x + 8, top: drill.at.y + 8 }}>
-                <div className="truncate px-2 py-1.5 text-xs text-muted-foreground">
-                  {drillLabel[0]}
-                  <b className="text-foreground">{String(drill.value)}</b>
-                  {drillLabel[1]}
-                </div>
-                <button type="button" className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent" onClick={() => drillFilter('is')}>
-                  {$t('Filtrer sur cette valeur')}
-                </button>
-                {!drill.column.unit ? (
-                  <button type="button" className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent" onClick={() => drillFilter('is_not')}>
-                    {$t('Exclure cette valeur')}
-                  </button>
+            {point ? (
+              <PointMenu point={point} onClose={() => setPoint(null)}>
+                {builder && recordPicks(point) ? (
+                  <DropdownMenuItem onSelect={() => readRecords(point)}>
+                    <Rows3 /> {$t('Voir les enregistrements')}
+                  </DropdownMenuItem>
                 ) : null}
-                <button type="button" className="w-full rounded-md px-2 py-1.5 text-left text-sm text-muted-foreground hover:bg-accent" onClick={() => setDrill(null)}>
-                  {$t('Fermer')}
-                </button>
-              </div>
+                {builder && pointFilters(point.column, point.value, 'is') ? (
+                  <DropdownMenuItem onSelect={() => filterOn(point, 'is')}>
+                    <FilterIcon /> {$t('Filtrer sur cette valeur')}
+                  </DropdownMenuItem>
+                ) : null}
+                {builder && pointFilters(point.column, point.value, 'is_not') ? (
+                  <DropdownMenuItem onSelect={() => filterOn(point, 'is_not')}>
+                    <Ban /> {$t('Exclure cette valeur')}
+                  </DropdownMenuItem>
+                ) : null}
+                {builder && finer && breakoutOf(point.column) >= 0 && pointFilters(point.column, point.value, 'is') ? (
+                  <DropdownMenuItem onSelect={() => drillInto(point, { unit: finer })}>
+                    <ZoomIn /> {$t('Détailler par {unit}', { unit: $t(UNIT_LABELS[finer]).toLocaleLowerCase(intlLocale()) })}
+                  </DropdownMenuItem>
+                ) : null}
+                {builder && breakoutOf(point.column) >= 0 && pointFilters(point.column, point.value, 'is') && splitOptions(point).length ? (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Split /> {$t('Ventiler par…')}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
+                      {splitOptions(point).map((o) => (
+                        <DropdownMenuItem key={`${o.ref.join ?? ''}.${o.ref.field}`} onSelect={() => drillInto(point, { option: o })}>
+                          <span className="truncate">{o.label}</span>
+                          <span className="ml-auto max-w-24 truncate text-xs text-muted-foreground">{o.group}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ) : null}
+                {builder ? <DropdownMenuSeparator /> : null}
+                <DropdownMenuItem onSelect={() => void copy(valueText(point.value, point.column))}>
+                  <Copy /> {$t('Copier la valeur')}
+                </DropdownMenuItem>
+              </PointMenu>
             ) : null}
           </div>
         </div>

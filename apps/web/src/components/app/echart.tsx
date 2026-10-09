@@ -42,7 +42,7 @@ import { useEffect, useRef } from 'react'
  * One chart, drawn by echarts — only the pieces the dashboards use, rendered in SVG: crisp
  * text at any zoom, and light enough for a dashboard of twenty cards. The options come
  * whole from `lib/analytics/charts.ts`; this only draws them, follows its box's size, and
- * hands a click back.
+ * hands a click — or a right click — back.
  */
 
 echarts.use([
@@ -102,12 +102,21 @@ export function registerMap(name: string, geo: unknown): void {
 export function EChart({
   option,
   onClick,
+  onContextMenu,
+  onAxisContextMenu,
   onBandClick,
   className,
   label,
 }: {
   readonly option: EChartsOption
   readonly onClick?: (event: ECElementEvent) => void
+  /** A right click on a mark: the browser's own menu gives way to the one this opens. */
+  readonly onContextMenu?: (event: ECElementEvent) => void
+  /**
+   * A right click beside the marks, on the period the axis tooltip shows: a point of a line is
+   * a small target; the period under the pointer is not.
+   */
+  readonly onAxisContextMenu?: (dataIndex: number, at: { x: number; y: number }) => void
   /**
    * A click beside the marks, in the band of a category: its rank on the axis — `y` for
    * horizontal bars. A thin bar is a small target; its whole band is not.
@@ -124,6 +133,10 @@ export function EChart({
   const chart = useRef<echarts.ECharts | null>(null)
   const click = useRef(onClick)
   click.current = onClick
+  const menu = useRef(onContextMenu)
+  menu.current = onContextMenu
+  const axisMenu = useRef(onAxisContextMenu)
+  axisMenu.current = onAxisContextMenu
   const band = useRef(onBandClick)
   band.current = onBandClick
 
@@ -133,6 +146,39 @@ export function EChart({
     const instance = echarts.init(element, undefined, { renderer: 'svg' })
     chart.current = instance
     instance.on('click', (event) => click.current?.(event as ECElementEvent))
+    // The mouse event a mark answered, so that the axis does not answer it a second time.
+    let answered: unknown = null
+    instance.on('contextmenu', (event) => {
+      const open = menu.current
+      if (open === undefined) return
+      answered = event.event
+      ;(event.event?.event as unknown as MouseEvent | undefined)?.preventDefault()
+      // The tooltip would cover the menu.
+      instance.dispatchAction({ type: 'hideTip' })
+      open(event as ECElementEvent)
+    })
+    // The period the axis tooltip shows, as long as it shows one.
+    let tip: number | null = null
+    instance.on('showTip', (event) => {
+      const index = (event as { dataIndex?: number }).dataIndex
+      tip = typeof index === 'number' ? index : null
+    })
+    instance.on('hideTip', () => {
+      tip = null
+    })
+    instance.getZr().on('contextmenu', (event) => {
+      const open = axisMenu.current
+      const index = tip
+      if (open === undefined || index === null || !instance.containPixel({ gridIndex: 0 }, [event.offsetX, event.offsetY])) return
+      const native = event.event as unknown as MouseEvent
+      native.preventDefault()
+      // After the marks: one that was right-clicked has opened its own menu.
+      queueMicrotask(() => {
+        if (answered === event) return
+        instance.dispatchAction({ type: 'hideTip' })
+        open(index, { x: native.clientX, y: native.clientY })
+      })
+    })
     instance.getZr().on('click', (event) => {
       const current = band.current
       // A mark answers through `click`; only the empty band is read here.

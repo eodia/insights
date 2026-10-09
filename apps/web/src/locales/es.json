@@ -2205,5 +2205,16 @@
   "Un mot cherché dans une colonne de texte : un nom, une référence…": "Una palabra buscada en una columna de texto: un nombre, una referencia…",
   "Un seuil ou une fourchette : un montant, une quantité, une note…": "Un umbral o un intervalo: un importe, una cantidad, una nota…",
   "Une liste de valeurs à cocher : une région, un canal, un statut…": "Una lista de valores para marcar: una región, un canal, un estado…",
-  "Glissez pour déplacer (ou Alt + flèches)": "Arrastre para mover (o Alt + flechas)"
+  "Glissez pour déplacer (ou Alt + flèches)": "Arrastre para mover (o Alt + flechas)",
+  "Voir les enregistrements": "Ver los registros",
+  "Copier la valeur": "Copiar el valor",
+  "Enregistrements · {title}": "Registros · {title}",
+  "Détailler par {unit}": "Detallar por {unit}",
+  "Ventiler par…": "Desglosar por…",
+  "Filtrer le tableau de bord sur cette valeur": "Filtrar el panel por este valor",
+  "{column} = {value}": "{column} = {value}",
+  "Les enregistrements ne se lisent que pour une question construite avec l’éditeur visuel.": "Los registros solo se pueden leer para una pregunta creada con el editor visual.",
+  "Les enregistrements de ce point ne se lisent pas.": "Los registros de este punto no se pueden leer.",
+  "Les lignes derrière un point de « {title} ».": "Las filas detrás de un punto de «{title}».",
+  "Carte sans question.": "Tarjeta sin pregunta."
 }

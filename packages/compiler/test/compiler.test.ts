@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   type CompileContext,
-  applyConstraints,
   compileBuilder,
   nativeSql,
   renderSql,
   rowPolicySql,
 } from '../src'
-import { resolveDateExpression } from '@eodia/contracts'
+import { applyConstraints, resolveDateExpression } from '@eodia/contracts'
 
 const orders = {
   id: 't-orders',

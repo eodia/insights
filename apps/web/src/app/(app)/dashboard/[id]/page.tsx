@@ -252,6 +252,7 @@ function DashboardScreen({ id }: { id: string }) {
             key={dashboard.updated_at}
             dashboard={dashboard}
             runner={runner}
+            records
             editable={editable}
             startEditing={params.get('edit') === '1'}
             autoRefresh={refresh}

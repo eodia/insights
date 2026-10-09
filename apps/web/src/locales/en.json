@@ -2130,5 +2130,16 @@
   "Un mot cherché dans une colonne de texte : un nom, une référence…": "A word searched in a text column: a name, a reference…",
   "Un seuil ou une fourchette : un montant, une quantité, une note…": "A threshold or a range: an amount, a quantity, a rating…",
   "Une liste de valeurs à cocher : une région, un canal, un statut…": "A list of values to tick: a region, a channel, a status…",
-  "Glissez pour déplacer (ou Alt + flèches)": "Drag to move (or Alt + arrows)"
+  "Glissez pour déplacer (ou Alt + flèches)": "Drag to move (or Alt + arrows)",
+  "Voir les enregistrements": "View records",
+  "Copier la valeur": "Copy value",
+  "Enregistrements · {title}": "Records · {title}",
+  "Détailler par {unit}": "Zoom in by {unit}",
+  "Ventiler par…": "Break out by…",
+  "Filtrer le tableau de bord sur cette valeur": "Filter the dashboard by this value",
+  "{column} = {value}": "{column} = {value}",
+  "Les enregistrements ne se lisent que pour une question construite avec l’éditeur visuel.": "Records can only be read for a question built with the visual editor.",
+  "Les enregistrements de ce point ne se lisent pas.": "The records of this point cannot be read.",
+  "Les lignes derrière un point de « {title} ».": "The rows behind a point of “{title}”.",
+  "Carte sans question.": "Card without a question."
 }

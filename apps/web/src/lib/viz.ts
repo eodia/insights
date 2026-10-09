@@ -241,7 +241,7 @@ function cartesian(result: Result, settings: VisualizationSettings) {
     }
   }
   const index = new Map(categories.map((c, i) => [keyOf(c), i]))
-  type S = { name: string; key: string; metric: ResultColumn; values: (number | null)[]; look?: string }
+  type S = { name: string; key: string; metric: ResultColumn; values: (number | null)[]; look?: string; raw?: unknown }
   const series: S[] = []
   if (split && metrics[0]) {
     const si = result.columns.indexOf(split)
@@ -258,7 +258,7 @@ function cartesian(result: Result, settings: VisualizationSettings) {
       let s = bySplit.get(k)
       if (!s) {
         const look = k === '__other__' ? undefined : valueColor(result, split, row[si])
-        s = { name: k === '__other__' ? $t('Autres') : formatValue(row[si], split) || '∅', key: k, metric: metrics[0], values: categories.map(() => null), ...(look ? { look } : {}) }
+        s = { name: k === '__other__' ? $t('Autres') : formatValue(row[si], split) || '∅', key: k, metric: metrics[0], values: categories.map(() => null), ...(look ? { look } : {}), raw: k === '__other__' ? OTHER_CATEGORY : row[si] }
         bySplit.set(k, s)
       }
       const at = index.get(keyOf(row[xi])) as number
@@ -296,7 +296,7 @@ function cartesian(result: Result, settings: VisualizationSettings) {
     if (rest.length) next.push(OTHER_CATEGORY)
     categories.splice(0, categories.length, ...next)
   }
-  return { x, dims, metrics, categories, series }
+  return { x, dims, metrics, categories, series, split: split && metrics[0] ? split : undefined }
 }
 
 interface RaceEntry {
@@ -540,6 +540,8 @@ export interface ChartModel {
   readonly targets?: readonly ColorTarget[]
   /** The first forecast category: from it on, nothing is clicked to filter. */
   readonly forecastFrom?: number
+  /** A chart split by a second dimension: its column, and the value each series stands for. */
+  readonly split?: { readonly column: ResultColumn; readonly values: readonly unknown[] }
 }
 
 /** The green of insights, for what is forecast rather than measured. */
@@ -1371,7 +1373,7 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
   }
 
   // Cartesian: bar, row, line, area, combo.
-  const { x, series, categories } = cartesian(result, settings)
+  const { x, series, categories, split } = cartesian(result, settings)
   if (!x || series.length === 0) return null
   // A forecast prolongs a series in time: its periods join the axis, drawn in dashes.
   const unit = x.unit as TemporalUnit | undefined
@@ -1683,6 +1685,8 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
     categories,
     targets,
     ...(forecastFrom !== undefined ? { forecastFrom } : {}),
+    // The first series are the measured ones, in order: a forecast's come after them.
+    ...(split ? { split: { column: split, values: series.map((s) => s.raw) } } : {}),
     option: {
       ...base,
       color: colors,

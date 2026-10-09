@@ -11,16 +11,19 @@ import type {
   ItemSummary,
   ParameterType,
   ParameterValue,
+  Question,
   ResultColumn,
   VisualizationType,
   Visualization as Viz,
 } from '@eodia/contracts'
-import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, cardSize, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, applyConstraints, cardConstraints, cardSize, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
 import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
 import { ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
+import { copy } from '@/components/app/admin/common'
+import { PointMenu, openRecords, recordPicks, valueText } from '@/components/app/point-menu'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -59,10 +62,12 @@ import {
   GripVertical,
   Heading,
   Link2,
+  Filter as FilterIcon,
   ListFilter,
   Loader2,
   Maximize2,
   Plus,
+  Rows3,
   RefreshCw,
   Search,
   Trash2,
@@ -114,6 +119,8 @@ interface CardProps {
   selectedParameter: DashboardParameter | null
   onResult: (cardId: string, r: RunResult, viz: Viz) => void
   onPoint: (card: DashboardCard, p: PointClick) => void
+  /** A right click on a point: with the values the card was run with, to read its rows by. */
+  onPointMenu: (card: DashboardCard, p: PointClick, values: Values, title: string) => void
   onChange: (patch: Partial<DashboardCard>) => void
   onRemove: () => void
   onDuplicate: () => void
@@ -203,7 +210,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, selection } = props
+  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, selection } = props
   const isQuestion = card.kind === 'question'
   // The card a selection was clicked on keeps all its categories: one can add to it.
   const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
@@ -370,7 +377,14 @@ function CardFrame(props: CardProps) {
             <AlertTriangle className="size-4 shrink-0" /> {(run.error as Error).message}
           </div>
         ) : run.data ? (
-          <Visualization result={run.data} viz={viz} compact onPointClick={(p) => onPoint(card, p)} {...(selection?.values.length ? { selected: selection.values } : {})} />
+          <Visualization
+            result={run.data}
+            viz={viz}
+            compact
+            onPointClick={(p) => onPoint(card, p)}
+            {...(editing ? {} : { onPointMenu: (p: PointClick) => onPointMenu(card, p, values, title) })}
+            {...(selection?.values.length ? { selected: selection.values } : {})}
+          />
         ) : (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="size-5 animate-spin text-muted-foreground/60" />
@@ -610,9 +624,11 @@ export interface DashboardViewProps {
   onMoveCard?: (cardId: string, dashboard: string, tab: string | null) => Promise<void>
   /** Told the filters' values as they change — what a print of the dashboard shows. */
   onValuesChange?: (values: Readonly<Record<string, ParameterValue | null>>) => void
+  /** A point's rows open as a new question: for whoever is signed in, not on a shared page. */
+  records?: boolean
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, records: readsRecords = false }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   const [draft, setDraft] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
   const initialValues = useMemo(() => Object.fromEntries(dashboard.parameters.map((p) => [p.id, p.default ?? null])) as Values, [dashboard.parameters])
@@ -685,12 +701,18 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const addCards = (items: Omit<DashboardCard, 'x' | 'y' | 'tab'>[]) =>
     setDraft((d) => ({ ...d, cards: [...d.cards, ...placedAfter(d.cards, currentTab, items.map((i) => ({ ...i, tab: currentTab })))] as DashboardCard[] }))
 
+  // The filter of the dashboard a point's column is tied to, on that card.
+  const parameterFor = (card: DashboardCard, p: PointClick) => {
+    const src = p.column.source
+    if (!src) return undefined
+    const mapping = (card.mappings ?? []).find((m) => 'column' in m.target && m.target.column.field === src.field && (m.target.column.join ?? '') === (src.join ?? ''))
+    return mapping ? draft.parameters.find((x) => x.id === mapping.parameter && x.type !== 'temporal_unit') : undefined
+  }
+
   // A click on a point filters the dashboard by it, through the filter tied to that column.
   const onPoint = (card: DashboardCard, p: PointClick) => {
     if (editing || !p.column.source) return
-    const src = p.column.source
-    const mapping = (card.mappings ?? []).find((m) => 'column' in m.target && m.target.column.field === src.field && (m.target.column.join ?? '') === (src.join ?? ''))
-    const param = mapping ? draft.parameters.find((x) => x.id === mapping.parameter && x.type !== 'temporal_unit') : undefined
+    const param = parameterFor(card, p)
     if (!param) {
       toast.message($t('Aucun filtre du tableau n’est relié à « {col} ».', { col: p.column.label }))
       return
@@ -727,6 +749,16 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
         ...(param.type === 'category' && param.multiple !== false && !p.additive ? { description: $t('Maj + clic pour ajouter d’autres catégories.') } : {}),
       })
   }
+
+  // A right click on a point: its menu, then perhaps its rows.
+  const [menu, setMenu] = useState<{ card: DashboardCard; point: PointClick; values: Values; title: string } | null>(null)
+  // The card's question as it was drawn: the filters it is tied to applied, as the kernel does.
+  const readRecords = (card: DashboardCard, point: PointClick, values: Values, title: string) =>
+    openRecords(point, title || undefined, async () => {
+      const query = card.query ?? (card.question ? (await api.get<Question>(`/v1/questions/${card.question}`)).query : null)
+      if (!query) throw new Error($t('Carte sans question.'))
+      return query.kind === 'builder' ? applyConstraints(query, cardConstraints(card.mappings, draft.parameters, values)) : query
+    })
 
   // The filters a card's clicks chose, and the categories they hold.
   const selectionOf = (cardId: string) => {
@@ -1055,6 +1087,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   selectedParameter={selectedParameter}
                   onResult={onResult}
                   onPoint={onPoint}
+                  onPointMenu={(c, point, v, title) => setMenu({ card: c, point, values: v, title })}
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
                   onDuplicate={() => addCards([{ ...card, id: newId('c') }])}
@@ -1099,6 +1132,24 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
             setMoving(null)
           }}
         />
+      ) : null}
+      {menu ? (
+        <PointMenu point={menu.point} onClose={() => setMenu(null)}>
+          {readsRecords && recordPicks(menu.point) ? (
+            <DropdownMenuItem onSelect={() => readRecords(menu.card, menu.point, menu.values, menu.title)}>
+              <Rows3 /> {$t('Voir les enregistrements')}
+            </DropdownMenuItem>
+          ) : null}
+          {parameterFor(menu.card, menu.point) ? (
+            <DropdownMenuItem onSelect={() => onPoint(menu.card, { ...menu.point, additive: false })}>
+              <FilterIcon /> {$t('Filtrer le tableau de bord sur cette valeur')}
+            </DropdownMenuItem>
+          ) : null}
+          {(readsRecords && recordPicks(menu.point)) || parameterFor(menu.card, menu.point) ? <DropdownMenuSeparator /> : null}
+          <DropdownMenuItem onSelect={() => void copy(valueText(menu.point.value, menu.point.column))}>
+            <Copy /> {$t('Copier la valeur')}
+          </DropdownMenuItem>
+        </PointMenu>
       ) : null}
       <Dialog open={!!fullscreenCard} onOpenChange={(o) => !o && setFullscreenCard(null)}>
         <DialogContent className="h-[85vh] max-w-[90vw] sm:max-w-[90vw]">

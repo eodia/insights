@@ -10,6 +10,7 @@ import {
   type QuestionQuery,
   type ResultColumn,
   type SourceRef,
+  applyConstraints,
   cardConstraints,
   kindOfTrinoType,
 } from '@eodia/contracts'
@@ -20,7 +21,6 @@ import {
   CompileError,
   type MetricInfo,
   type TableInfo,
-  applyConstraints,
   cleanStatement,
   compileBuilder,
   expandSnippets,

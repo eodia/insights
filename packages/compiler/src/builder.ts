@@ -11,7 +11,6 @@ import {
   type ColumnFormat,
   type ColumnKind,
   type ColumnRef,
-  type Constraint,
   type Filter,
   type OrderBy,
   type ResultColumn,
@@ -558,44 +557,3 @@ export function compileBuilder(query: BuilderQuery, ctx: CompileContext): Compil
   return new Compilation(query, ctx).compile()
 }
 
-/**
- * The dashboard filters of a card, as filters of its builder query — and, for a period filter,
- * as the unit of its grouping.
- */
-export function applyConstraints(query: BuilderQuery, constraints: readonly Constraint[]): BuilderQuery {
-  let filters = [...(query.filters ?? [])]
-  let breakouts = [...(query.breakouts ?? [])]
-  for (const c of constraints) {
-    if (!('column' in c.target)) continue
-    const column = c.target.column
-    const v = c.value
-    switch (c.type) {
-      case 'date':
-        filters.push({ column, op: 'date', values: [String(v)] })
-        break
-      case 'category':
-        filters.push({ column, op: 'is', values: (Array.isArray(v) ? v : [v]).map(String) })
-        break
-      case 'text':
-        filters.push({ column, op: 'contains', values: [String(Array.isArray(v) ? v[0] : v)] })
-        break
-      case 'number': {
-        const [lo, hi] = (Array.isArray(v) ? v : [v]) as (number | null)[]
-        if (c.operator === 'between') filters.push({ column, op: 'between', values: [lo ?? '', hi ?? ''] })
-        else if (c.operator === 'gte' && lo !== null && lo !== undefined) filters.push({ column, op: 'gte', values: [lo] })
-        else if (c.operator === 'lte' && lo !== null && lo !== undefined) filters.push({ column, op: 'lte', values: [lo] })
-        else if (lo !== null && lo !== undefined) filters.push({ column, op: 'eq', values: [lo] })
-        break
-      }
-      case 'temporal_unit': {
-        const unit = String(Array.isArray(v) ? v[0] : v) as TemporalUnit
-        breakouts = breakouts.map((b) =>
-          b.field === column.field && (b.join ?? '') === (column.join ?? '') && b.unit !== undefined ? { ...b, unit } : b,
-        )
-        break
-      }
-    }
-  }
-  filters = filters.filter((f) => !('values' in f) || f.values.length > 0 || ['empty', 'not_empty', 'true', 'false'].includes(f.op))
-  return { ...query, filters, breakouts }
-}
