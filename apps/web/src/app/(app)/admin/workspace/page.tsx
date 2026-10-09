@@ -131,7 +131,7 @@ function Members({ workspace, me }: { workspace: Workspace; me: string }) {
             }
           }}
         >
-          <div className="min-w-56 flex-1 space-y-1.5">
+          <div className="flex min-w-56 flex-1 flex-col gap-1.5">
             <Label>{$t('Ajouter une personne de l’instance')}</Label>
             <Select value={adding} onValueChange={setAdding}>
               <SelectTrigger className="w-full">
