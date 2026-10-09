@@ -61,7 +61,7 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{$t('Partager « {name} »', { name })}</DialogTitle>
           <DialogDescription>{$t('Le partage s’ajoute aux droits du dossier. Les personnes ne voient jamais que les données auxquelles elles ont droit.')}</DialogDescription>
@@ -78,8 +78,9 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
             ) : null}
           </TabsList>
           <TabsContent value="people" className="space-y-4 pt-3">
-            <div className="flex gap-2">
-              <Choice value={principal} onValueChange={setPrincipal} options={options} aria-label={$t('Personne ou groupe')} placeholder={$t('Ajouter une personne ou un groupe…')} className="flex-1" size="default" searchable />
+            {/* One row in a dialog's width; on a phone, the person or group on a line of its own. */}
+            <div className="flex flex-wrap gap-2">
+              <Choice value={principal} onValueChange={setPrincipal} options={options} aria-label={$t('Personne ou groupe')} placeholder={$t('Ajouter une personne ou un groupe…')} className="w-full min-w-0 sm:w-auto sm:flex-1" size="default" searchable />
               <Segmented
                 value={access}
                 onValueChange={(v) => setAccess(v)}
@@ -88,9 +89,11 @@ export function ShareDialog({ open, onOpenChange, kind, id, name }: { open: bool
                   { value: 'edit', label: $t('Modification'), icon: Pencil },
                 ]}
                 aria-label={$t('Accès')}
-                className="w-48 shrink-0"
+                className="min-w-0 flex-1 sm:w-auto sm:flex-none"
+                inline
               />
               <Button
+                className="shrink-0"
                 disabled={!principal}
                 onClick={async () => {
                   if (!principal) return

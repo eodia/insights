@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 export interface SegmentedOption<T extends string> {
   readonly value: T
   readonly label: string
-  /** A pictogram above the label. */
+  /** A pictogram above the label — or beside it, `inline`. */
   readonly icon?: React.ComponentType<{ className?: string }>
   /** A longer explanation, in a tooltip. */
   readonly hint?: string
@@ -22,12 +22,15 @@ export function Segmented<T extends string>({
   options,
   'aria-label': ariaLabel,
   className,
+  inline = false,
 }: {
   value: T
   onValueChange: (v: T) => void
   options: readonly SegmentedOption<T>[]
   'aria-label': string
   className?: string
+  /** The pictogram beside the label, as high as a field (`h-9`): in a row of controls. */
+  inline?: boolean
 }) {
   const index = options.findIndex((o) => o.value === value)
   const move = (delta: number) => {
@@ -47,7 +50,7 @@ export function Segmented<T extends string>({
           move(-1)
         }
       }}
-      className={cn('grid gap-0.5 rounded-lg bg-muted p-0.5', className)}
+      className={cn('grid gap-0.5 rounded-lg bg-muted p-0.5', inline && 'h-9', className)}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       {options.map((o) => {
@@ -63,14 +66,15 @@ export function Segmented<T extends string>({
             tabIndex={on || (index < 0 && o === options[0]) ? 0 : -1}
             onClick={() => onValueChange(o.value)}
             className={cn(
-              'flex min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 py-1.5 text-[11px] leading-tight transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+              'flex min-w-0 items-center justify-center rounded-md leading-tight transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+              inline ? 'gap-1.5 px-2.5 text-xs' : 'flex-col gap-1 px-1 py-1.5 text-[11px]',
               on
                 ? 'bg-background font-semibold text-foreground shadow-sm ring-1 ring-primary/40'
                 : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
             )}
           >
-            {Icon ? <Icon className={cn('size-4', on ? 'text-primary' : '')} /> : null}
-            <span className="w-full truncate text-center">{o.label}</span>
+            {Icon ? <Icon className={cn('size-4 shrink-0', on ? 'text-primary' : '')} /> : null}
+            <span className={cn('truncate', inline ? 'min-w-0' : 'w-full text-center')}>{o.label}</span>
           </button>
         )
         return o.hint ? (
