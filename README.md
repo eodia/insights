@@ -140,6 +140,7 @@ développement.
 | `AI_MODEL` | `claude-sonnet-5-5` (Anthropic) | Modèle du copilot |
 | `AI_BASE_URL` | — | Point d'accès d'un fournisseur compatible OpenAI |
 | `AI_HOURLY_QUOTA` | `60` | Messages du copilot par personne et par heure |
+| `AI_PROVIDER_SSL_VERIFY` | `true` | `false` : le certificat du fournisseur n'est pas vérifié (proxy qui re-signe, autorité interne) — ses appels seulement |
 | `DEMO` | `1` en dev, `0` en prod | Crée l'instance de démonstration |
 | `DEMO_PUBLIC` | `0` | Démo ouverte à tous : entrée en un clic, connexions, droits et contenu de démo verrouillés ([docs/demo.md](docs/demo.md)) |
 | `DEMO_PG_HOST` / `DEMO_PG_PORT` / `DEMO_MONGO_URL` | `localhost` / `55434` / `mongodb://localhost:57017/` | Où répondent les deux bases d'exemple de la démo |

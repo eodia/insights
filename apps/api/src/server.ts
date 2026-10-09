@@ -127,6 +127,9 @@ const { app, core } = await createApp()
 const server = serve({ fetch: app.fetch, port, hostname: process.env.API_HOST ?? '0.0.0.0' }, (info) => {
   console.log(`[eodia] API prête sur http://localhost:${info.port}`)
 })
+if (core.config.ai.provider !== 'none' && !core.config.ai.sslVerify) {
+  console.warn(`[eodia] IA : le certificat du fournisseur ${core.config.ai.provider} n'est pas vérifié (AI_PROVIDER_SSL_VERIFY=false).`)
+}
 // Trino asks the OPA endpoint before any statement, ours included: listen first, then start.
 const { worker } = await start(core)
 

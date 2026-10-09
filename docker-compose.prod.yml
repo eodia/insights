@@ -32,6 +32,7 @@
 #   AI_PROVIDER          anthropic | openai | mistral | openai-compatible | none
 #   AI_API_KEY (ou ANTHROPIC_API_KEY / OPENAI_API_KEY), AI_MODEL, AI_BASE_URL,
 #   AI_HOURLY_QUOTA (60) copilot
+#   AI_PROVIDER_SSL_VERIFY  false : certificat du fournisseur d'IA non vérifié (true)
 #   DEMO                 1 : crée l'instance de démonstration (0)
 #   IMAGE                image à utiliser (eodia-insights:latest)
 
@@ -78,6 +79,7 @@ x-app: &app
     AI_MODEL: ${AI_MODEL:-}
     AI_BASE_URL: ${AI_BASE_URL:-}
     AI_HOURLY_QUOTA: ${AI_HOURLY_QUOTA:-60}
+    AI_PROVIDER_SSL_VERIFY: ${AI_PROVIDER_SSL_VERIFY:-true}
     DEMO: ${DEMO:-0}
     # Les jobs tournent dans le service worker, pas dans l'API.
     INPROCESS_WORKER: '0'

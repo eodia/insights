@@ -88,6 +88,7 @@ Without SMTP, no e-mail is sent: an invitation's link is displayed so it can be 
 | `AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (the others) | the model |
 | `AI_BASE_URL` | the provider's address | required for `openai-compatible` |
 | `AI_HOURLY_QUOTA` | `60` | copilot messages per person per hour |
+| `AI_PROVIDER_SSL_VERIFY` | `true` | `false`: the provider’s certificate is not checked — its calls only |
 
 See [Copilot](/insights/en/fonctionnalites/copilot/).
 

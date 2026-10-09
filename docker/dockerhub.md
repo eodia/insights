@@ -204,6 +204,7 @@ version rather than following `latest`.
 | `AI_PROVIDER` | `anthropic`, `openai`, `mistral`, `openai-compatible` or `none`; guessed from `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` |
 | `AI_API_KEY`, `AI_MODEL`, `AI_BASE_URL` | the copilot's provider; `AI_API_KEY` needs `AI_PROVIDER` |
 | `AI_HOURLY_QUOTA` | copilot messages per person and per hour (`60`) |
+| `AI_PROVIDER_SSL_VERIFY` | `false`: the provider's certificate is not checked — a proxy that re-signs, an internal authority; its calls only (`true`) |
 | `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_LABEL` | sign-in through an identity provider |
 | `OIDC_ATTRIBUTE_CLAIMS`, `OIDC_GROUPS_CLAIM` | claims copied into user attributes (for row rules) and groups |
 | `PASSWORD_LOGIN` | `0` turns password sign-in off (SSO only) |

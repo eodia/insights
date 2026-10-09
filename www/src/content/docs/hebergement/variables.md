@@ -90,6 +90,7 @@ Sans SMTP, aucun e-mail ne part : le lien d’une invitation s’affiche pour ê
 | `AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (les autres) | le modèle |
 | `AI_BASE_URL` | l’adresse du fournisseur | obligatoire pour `openai-compatible` |
 | `AI_HOURLY_QUOTA` | `60` | messages du copilot par personne et par heure |
+| `AI_PROVIDER_SSL_VERIFY` | `true` | `false` : le certificat du fournisseur n’est pas vérifié — ses appels seulement |
 
 Voir [Copilot](/insights/fonctionnalites/copilot/).
 

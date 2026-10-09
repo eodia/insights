@@ -4,7 +4,24 @@
  * compatibles) le traduit à l'aller et au retour.
  */
 import Anthropic from '@anthropic-ai/sdk'
+import { Agent, fetch as undiciFetch } from 'undici'
 import type { Config } from '../config'
+
+/** One pool of connections that accepts any certificate, made the first time it is needed. */
+let unverified: Agent | undefined
+
+/**
+ * How the provider is reached: Node's own fetch, or — `AI_PROVIDER_SSL_VERIFY=false` — one that
+ * accepts any certificate. Only the provider's calls: Trino, the identity provider and the mail
+ * server keep checking theirs.
+ */
+function fetchFor(config: Config['ai']): typeof fetch {
+  if (config.sslVerify) return fetch
+  unverified ??= new Agent({ connect: { rejectUnauthorized: false } })
+  const dispatcher = unverified
+  return ((input: Parameters<typeof fetch>[0], init?: RequestInit) =>
+    undiciFetch(input as Parameters<typeof undiciFetch>[0], { ...(init as Parameters<typeof undiciFetch>[1]), dispatcher })) as unknown as typeof fetch
+}
 
 export type MessageParam = Anthropic.Beta.BetaMessageParam
 export type ContentBlock = Anthropic.Beta.BetaContentBlockParam
@@ -45,9 +62,10 @@ class AnthropicProvider implements Provider {
   constructor(
     readonly model: string,
     apiKey: string,
-    baseURL?: string,
+    baseURL: string | undefined,
+    fetcher: typeof fetch,
   ) {
-    this.client = new Anthropic({ apiKey, ...(baseURL ? { baseURL } : {}) })
+    this.client = new Anthropic({ apiKey, fetch: fetcher, ...(baseURL ? { baseURL } : {}) })
   }
 
   async turn(opts: Parameters<Provider['turn']>[0]): Promise<TurnResult> {
@@ -113,10 +131,11 @@ class OpenAiCompatibleProvider implements Provider {
     readonly model: string,
     private readonly apiKey: string,
     private readonly baseUrl: string,
+    private readonly fetcher: typeof fetch,
   ) {}
 
   async turn(opts: Parameters<Provider['turn']>[0]): Promise<TurnResult> {
-    const res = await fetch(`${this.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+    const res = await this.fetcher(`${this.baseUrl.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
       body: JSON.stringify({
@@ -182,15 +201,16 @@ class OpenAiCompatibleProvider implements Provider {
 
 export function providerFor(config: Config['ai']): Provider | null {
   if (config.provider === 'none' || !config.apiKey) return null
+  const fetcher = fetchFor(config)
   switch (config.provider) {
     case 'anthropic':
-      return new AnthropicProvider(config.model, config.apiKey, config.baseUrl)
+      return new AnthropicProvider(config.model, config.apiKey, config.baseUrl, fetcher)
     case 'openai':
-      return new OpenAiCompatibleProvider('openai', config.model, config.apiKey, config.baseUrl ?? 'https://api.openai.com/v1')
+      return new OpenAiCompatibleProvider('openai', config.model, config.apiKey, config.baseUrl ?? 'https://api.openai.com/v1', fetcher)
     case 'mistral':
-      return new OpenAiCompatibleProvider('mistral', config.model, config.apiKey, config.baseUrl ?? 'https://api.mistral.ai/v1')
+      return new OpenAiCompatibleProvider('mistral', config.model, config.apiKey, config.baseUrl ?? 'https://api.mistral.ai/v1', fetcher)
     case 'openai-compatible':
       if (!config.baseUrl) return null
-      return new OpenAiCompatibleProvider('openai-compatible', config.model, config.apiKey, config.baseUrl)
+      return new OpenAiCompatibleProvider('openai-compatible', config.model, config.apiKey, config.baseUrl, fetcher)
   }
 }

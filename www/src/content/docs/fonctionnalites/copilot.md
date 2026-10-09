@@ -80,6 +80,7 @@ Le copilot se configure par les variables d’environnement de l’API et du wor
 | `AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (les autres) | le modèle |
 | `AI_BASE_URL` | l’adresse du fournisseur | obligatoire pour `openai-compatible` |
 | `AI_HOURLY_QUOTA` | `60` | messages par personne et par heure |
+| `AI_PROVIDER_SSL_VERIFY` | `true` | `false` : le certificat du fournisseur n’est pas vérifié |
 
 Quelques exemples :
 
@@ -102,6 +103,14 @@ AI_MODEL=mon-modele
 :::note[Une clé est toujours nécessaire]
 Sans clé, le copilot reste désactivé, y compris pour `openai-compatible` : donnez une valeur à
 `AI_API_KEY` même si votre serveur n’en vérifie pas.
+:::
+
+:::caution[Un certificat que Node.js ne reconnaît pas]
+Derrière un proxy d’entreprise qui re-signe le trafic, ou devant un serveur interne au certificat
+auto-signé, l’appel au fournisseur échoue sur une erreur de certificat. `AI_PROVIDER_SSL_VERIFY=false`
+lève la vérification pour ces appels seulement : Trino, le fournisseur d’identité et le serveur
+d’e-mails gardent la leur. Le trafic reste chiffré, mais l’identité du serveur n’est plus prouvée :
+réservez-le à un réseau que vous maîtrisez. L’API le rappelle au démarrage.
 :::
 
 **Administration › Réglages** montre le fournisseur, le modèle, le quota et si la configuration

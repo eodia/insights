@@ -80,6 +80,7 @@ The copilot is configured through the API and worker environment variables:
 | `AI_MODEL` | `claude-sonnet-5-5` (Anthropic), `mistral-large-latest` (Mistral), `gpt-4.1` (the others) | the model |
 | `AI_BASE_URL` | the provider’s URL | required for `openai-compatible` |
 | `AI_HOURLY_QUOTA` | `60` | messages per person per hour |
+| `AI_PROVIDER_SSL_VERIFY` | `true` | `false`: the provider’s certificate is not checked |
 
 A few examples:
 
@@ -102,6 +103,14 @@ AI_MODEL=my-model
 :::note[A key is always required]
 Without a key, the copilot stays disabled, including for `openai-compatible`: give
 `AI_API_KEY` a value even if your server does not check it.
+:::
+
+:::caution[A certificate Node.js does not recognise]
+Behind a corporate proxy that re-signs traffic, or in front of an internal server with a
+self-signed certificate, calls to the provider fail on a certificate error.
+`AI_PROVIDER_SSL_VERIFY=false` lifts the check for those calls only: Trino, the identity provider
+and the mail server keep theirs. Traffic stays encrypted, but the server's identity is no longer
+proven: keep it to a network you control. The API reminds you of it at startup.
 :::
 
 **Administration › Settings** shows the provider, the model, the

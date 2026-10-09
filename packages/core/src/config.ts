@@ -40,6 +40,11 @@ export interface Config {
     readonly model: string
     readonly baseUrl?: string
     readonly hourlyQuota: number
+    /**
+     * False (`AI_PROVIDER_SSL_VERIFY=false`): the provider's certificate is not checked — a
+     * provider behind a proxy that re-signs, or on a private authority. Its calls only.
+     */
+    readonly sslVerify: boolean
   }
   readonly demo: boolean
   /** A demo open to anyone: one click to come in; accounts, rights and connections locked. */
@@ -117,6 +122,7 @@ export function loadConfig(): Config {
         (provider === 'anthropic' ? 'claude-sonnet-5-5' : provider === 'mistral' ? 'mistral-large-latest' : 'gpt-4.1'),
       ...(env('AI_BASE_URL') ? { baseUrl: env('AI_BASE_URL') } : {}),
       hourlyQuota: Number(env('AI_HOURLY_QUOTA', '60')),
+      sslVerify: !['false', '0', 'no', 'off'].includes((env('AI_PROVIDER_SSL_VERIFY', 'true') as string).trim().toLowerCase()),
     },
     demo: env('DEMO', dev ? '1' : '0') === '1',
     demoPublic: env('DEMO_PUBLIC', '0') === '1',
