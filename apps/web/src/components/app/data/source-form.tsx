@@ -1,6 +1,6 @@
 'use client'
 
-import { CATALOG_NAME_RE, type Datasource, type DatasourceInput, type EngineField, type EngineSpec } from '@eodia/contracts'
+import { CATALOG_NAME_RE, type Datasource, type DatasourceInput, type EngineField, type EngineSpec, fieldApplies } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -50,6 +50,28 @@ export const ENGINE_SPEC_TEXT = [
   msg('Une propriété par ligne, au format clé=valeur : le fichier du catalogue, sans connector.name. Une valeur laissée vide est ignorée.'),
   msg('Iceberg · metastore Hive'),
   msg('Iceberg · catalogue REST'),
+  msg('Apache Iceberg'),
+  msg('Catalogue Iceberg'),
+  msg('Metastore Hive'),
+  msg('Catalogue REST'),
+  msg('URI du metastore'),
+  msg('Plusieurs URI séparées par des virgules.'),
+  msg('URI du catalogue REST'),
+  msg('Entrepôt (warehouse)'),
+  msg('Facultatif'),
+  msg('Jeton OAuth2'),
+  msg('Facultatif : un catalogue ouvert n’en demande pas.'),
+  msg('Accès au stockage fournis par le catalogue'),
+  msg('Le catalogue REST délivre les accès aux fichiers (vended credentials) : les clés S3 deviennent inutiles.'),
+  msg('Région Glue'),
+  msg('Endpoint S3'),
+  msg('Vide pour AWS ; sinon l’adresse de MinIO, Ceph, Scality…'),
+  msg('Région S3'),
+  msg('Exigée même hors AWS : gardez us-east-1 pour MinIO.'),
+  msg('Clé d’accès S3'),
+  msg('Clé secrète S3'),
+  msg('Adresses de type chemin (path-style)'),
+  msg('Nécessaire pour MinIO et la plupart des S3 sur site.'),
 ] as const
 
 /** What a name becomes as a Trino catalog: `Support client` → `support_client`. */
@@ -82,6 +104,21 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 function Field({ field, value, onChange, secretSet }: { field: EngineField; value: ConfigValue; onChange: (v: ConfigValue) => void; secretSet: boolean }) {
   const id = useId()
   const required = field.required && !(field.secret && secretSet)
+  if (field.type === 'choice') {
+    return (
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label>{$t(field.label)}</Label>
+        <Segmented
+          value={String(value)}
+          onValueChange={onChange}
+          aria-label={$t(field.label)}
+          inline
+          options={(field.options ?? []).map((o) => ({ value: o.value, label: $t(o.label) }))}
+        />
+        {field.help ? <p className="text-xs text-muted-foreground">{$t(field.help)}</p> : null}
+      </div>
+    )
+  }
   if (field.type === 'boolean') {
     return (
       <div className="flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5">
@@ -173,13 +210,14 @@ export function SourceForm({
   const ttlId = useId()
 
   const catalogError = catalog && !CATALOG_NAME_RE.test(catalog) ? $t('Minuscules, chiffres, _ et - ; commence par une lettre.') : null
-  const missing = spec.fields.filter((f) => f.required && !(f.secret && source?.secrets.includes(f.key)) && (config[f.key] === '' || config[f.key] === undefined))
+  const fields = spec.fields.filter((f) => fieldApplies(f, config))
+  const missing = fields.filter((f) => f.required && !(f.secret && source?.secrets.includes(f.key)) && (config[f.key] === '' || config[f.key] === undefined))
   const ttlInvalid = cacheTtl !== '' && !(Number.isInteger(Number(cacheTtl)) && Number(cacheTtl) >= 0)
   const valid = name.trim() !== '' && missing.length === 0 && !catalogError && !ttlInvalid
 
   const build = (): DatasourceInput => {
     const cfg: Record<string, ConfigValue> = {}
-    for (const f of spec.fields) {
+    for (const f of fields) {
       const v = config[f.key]
       if (v === undefined) continue
       // A blank secret on an existing source keeps the saved one; a blank optional field is left out.
@@ -296,7 +334,7 @@ export function SourceForm({
           </div>
         ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
-          {spec.fields.map((f) => (
+          {fields.map((f) => (
             <Field
               key={f.key}
               field={f}

@@ -8,6 +8,7 @@ import {
   type DatasourceOptions,
   ENGINE_SPECS,
   type Engine,
+  fieldApplies,
 } from '@eodia/contracts'
 import { type Settings, testConnection } from '@eodia/drivers'
 import { type CatalogDefinition, catalogNameFor, connectorOf } from '@eodia/engine'
@@ -115,7 +116,7 @@ function splitConfig(engine: Engine, config: DatasourceInput['config']) {
   const secrets: Record<string, string> = {}
   for (const field of spec.fields) {
     const v = config[field.key]
-    if (v === undefined || v === '') continue
+    if (v === undefined || v === '' || !fieldApplies(field, config)) continue
     if (field.secret) secrets[field.key] = String(v)
     else plain[field.key] = field.type === 'number' ? Number(v) : field.type === 'boolean' ? v === true || v === 'true' : v
   }
@@ -125,7 +126,7 @@ function splitConfig(engine: Engine, config: DatasourceInput['config']) {
 function checkRequired(engine: Engine, settings: Settings): void {
   for (const field of ENGINE_SPECS[engine].fields) {
     const v = settings[field.key]
-    if (field.required && (v === undefined || v === '')) throw invalid(`Le champ « ${field.label} » est obligatoire.`)
+    if (field.required && fieldApplies(field, settings) && (v === undefined || v === '')) throw invalid(`Le champ « ${field.label} » est obligatoire.`)
   }
 }
 

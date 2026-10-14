@@ -19,8 +19,12 @@ const ENGINE_HINTS: Partial<Record<Engine, string>> = {
   oracle: msg('Oracle Database, par nom de service.'),
   snowflake: msg('Entrepôt Snowflake : relations à déclarer à la main.'),
   mongodb: msg('Collections lues comme des tables ; relations à déclarer.'),
+  iceberg: msg('Tables Iceberg sur S3 ou MinIO : metastore Hive, catalogue REST ou Glue.'),
   trino: msg('N’importe quel connecteur Trino : Iceberg, Hive, ClickHouse…'),
 }
+
+/** The engines without a native driver: Trino's catalog creation is their test. */
+const NO_DRIVER: ReadonlySet<Engine> = new Set(['iceberg', 'trino'])
 
 /** « Ajouter une source » : the engine first, then its connection form. */
 export function NewSourceDialog({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (open: boolean) => void; onCreated: (ds: Datasource) => void }) {
@@ -47,7 +51,9 @@ export function NewSourceDialog({ open, onOpenChange, onCreated }: { open: boole
           </DialogTitle>
           <DialogDescription>
             {spec
-              ? $t('La connexion est testée avec le pilote natif, puis le catalogue est créé dans Trino et la structure synchronisée.')
+              ? NO_DRIVER.has(spec.engine)
+                ? $t('Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.')
+                : $t('La connexion est testée avec le pilote natif, puis le catalogue est créé dans Trino et la structure synchronisée.')
               : $t('Choisissez le moteur de la base à connecter. Toutes les requêtes passeront par Trino.')}
           </DialogDescription>
         </DialogHeader>

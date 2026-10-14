@@ -519,7 +519,7 @@
   },
   "{n} s": {
     "where": [
-      "components/app/data/source-settings.tsx:81"
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "{name} (groupe)": {
@@ -564,7 +564,7 @@
   },
   "••••• (inchangé)": {
     "where": [
-      "components/app/data/source-form.tsx:97"
+      "components/app/data/source-form.tsx:134"
     ]
   },
   "≈ {count} lignes": {
@@ -634,7 +634,7 @@
   },
   "1. Moteur": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:40"
+      "components/app/data/new-source-dialog.tsx:44"
     ]
   },
   "10 caractères au moins": {
@@ -665,7 +665,7 @@
   },
   "2. Connexion": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:42"
+      "components/app/data/new-source-dialog.tsx:46"
     ]
   },
   "2. Interroger les données": {
@@ -771,7 +771,7 @@
   },
   "À jour": {
     "where": [
-      "components/app/data/source-look.tsx:39"
+      "components/app/data/source-look.tsx:41"
     ]
   },
   "À partir de la prochaine période.": {
@@ -824,6 +824,12 @@
   "Accès au schéma {schema}": {
     "where": [
       "components/app/admin/permission-matrix.tsx:238"
+    ]
+  },
+  "Accès au stockage fournis par le catalogue": {
+    "where": [
+      "components/app/data/source-form.tsx:64",
+      "packages/contracts/src/domain.ts:168"
     ]
   },
   "Accès aux données": {
@@ -961,6 +967,12 @@
       "app/login/page.tsx:191"
     ]
   },
+  "Adresses de type chemin (path-style)": {
+    "where": [
+      "components/app/data/source-form.tsx:73",
+      "packages/contracts/src/domain.ts:186"
+    ]
+  },
   "Aérée": {
     "where": [
       "components/app/question/viz-settings.tsx:1028"
@@ -1029,7 +1041,7 @@
   },
   "Ajoutées aux réglages par défaut du connecteur : cache des métadonnées, pushdown, délais…": {
     "where": [
-      "components/app/data/source-form.tsx:363"
+      "components/app/data/source-form.tsx:401"
     ]
   },
   "Ajouter": {
@@ -1056,7 +1068,7 @@
   },
   "Ajouter et synchroniser": {
     "where": [
-      "components/app/data/source-form.tsx:430"
+      "components/app/data/source-form.tsx:468"
     ]
   },
   "Ajouter le filtre": {
@@ -1112,7 +1124,7 @@
   },
   "Ajouter une propriété": {
     "where": [
-      "components/app/data/source-form.tsx:388"
+      "components/app/data/source-form.tsx:426"
     ]
   },
   "Ajouter une question": {
@@ -1134,7 +1146,7 @@
   },
   "Ajouter une source de données": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:46"
+      "components/app/data/new-source-dialog.tsx:50"
     ]
   },
   "Ajoutez-y des personnes, puis donnez-lui des droits dans « Permissions ».": {
@@ -1238,6 +1250,12 @@
   "Annuler la sélection (Échap)": {
     "where": [
       "components/app/item-selection.tsx:291"
+    ]
+  },
+  "Apache Iceberg": {
+    "where": [
+      "components/app/data/source-form.tsx:53",
+      "packages/contracts/src/domain.ts:293"
     ]
   },
   "Aperçu": {
@@ -1726,7 +1744,7 @@
   },
   "Autorisé": {
     "where": [
-      "components/app/data/source-settings.tsx:80"
+      "components/app/data/source-settings.tsx:83"
     ]
   },
   "Autoriser l’exécution de requêtes (sous vos droits)": {
@@ -1736,8 +1754,8 @@
   },
   "Autoriser le SQL natif": {
     "where": [
-      "components/app/data/source-form.tsx:345",
-      "components/app/data/source-form.tsx:352"
+      "components/app/data/source-form.tsx:383",
+      "components/app/data/source-form.tsx:390"
     ]
   },
   "Autre couleur": {
@@ -1754,7 +1772,7 @@
   },
   "Avancé": {
     "where": [
-      "components/app/data/source-form.tsx:358"
+      "components/app/data/source-form.tsx:396"
     ]
   },
   "Avant": {
@@ -1819,6 +1837,11 @@
       "app/(app)/admin/settings/page.tsx:388"
     ]
   },
+  "AWS Glue": {
+    "where": [
+      "packages/contracts/src/domain.ts:137"
+    ]
+  },
   "Axe du temps continu": {
     "where": [
       "components/app/question/viz-settings.tsx:776"
@@ -1875,8 +1898,8 @@
   "Base de données": {
     "where": [
       "components/app/data/source-form.tsx:37",
-      "packages/contracts/src/domain.ts:128",
-      "packages/contracts/src/domain.ts:142"
+      "packages/contracts/src/domain.ts:205",
+      "packages/contracts/src/domain.ts:219"
     ]
   },
   "Base de données, entrepôt ou fichier": {
@@ -1932,7 +1955,7 @@
   },
   "Boutique, Entrepôt…": {
     "where": [
-      "components/app/data/source-form.tsx:249"
+      "components/app/data/source-form.tsx:287"
     ]
   },
   "Brancher un assistant": {
@@ -1965,12 +1988,12 @@
   "Cache des résultats": {
     "where": [
       "app/(app)/admin/settings/page.tsx:80",
-      "components/app/data/source-settings.tsx:81"
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "Cache des résultats (secondes)": {
     "where": [
-      "components/app/data/source-form.tsx:340"
+      "components/app/data/source-form.tsx:378"
     ]
   },
   "Cachée": {
@@ -2080,9 +2103,21 @@
       "app/(app)/admin/themes/page.tsx:376"
     ]
   },
+  "Catalogue Iceberg": {
+    "where": [
+      "components/app/data/source-form.tsx:54",
+      "packages/contracts/src/domain.ts:130"
+    ]
+  },
+  "Catalogue REST": {
+    "where": [
+      "components/app/data/source-form.tsx:56",
+      "packages/contracts/src/domain.ts:136"
+    ]
+  },
   "Catalogue Trino": {
     "where": [
-      "components/app/data/source-settings.tsx:78"
+      "components/app/data/source-settings.tsx:81"
     ]
   },
   "Catalogues": {
@@ -2126,7 +2161,7 @@
   },
   "Ce moteur n’accepte pas de requête native : seul le SQL Trino est possible.": {
     "where": [
-      "components/app/data/source-form.tsx:349"
+      "components/app/data/source-form.tsx:387"
     ]
   },
   "Ce que contient la colonne, pour les analystes et le copilot.": {
@@ -2251,7 +2286,7 @@
   "Chaîne de connexion": {
     "where": [
       "components/app/data/source-form.tsx:45",
-      "packages/contracts/src/domain.ts:206"
+      "packages/contracts/src/domain.ts:283"
     ]
   },
   "Change le pas des courbes — jour, semaine, mois… — sans retirer de ligne.": {
@@ -2306,12 +2341,12 @@
   },
   "Chaque heure": {
     "where": [
-      "components/app/data/source-form.tsx:333"
+      "components/app/data/source-form.tsx:371"
     ]
   },
   "Chaque jour": {
     "where": [
-      "components/app/data/source-form.tsx:334"
+      "components/app/data/source-form.tsx:372"
     ]
   },
   "Chaque jour, dessiner": {
@@ -2423,7 +2458,7 @@
   "Chiffrer la connexion": {
     "where": [
       "components/app/data/source-form.tsx:39",
-      "packages/contracts/src/domain.ts:159"
+      "packages/contracts/src/domain.ts:236"
     ]
   },
   "Chiffres clés": {
@@ -2469,7 +2504,7 @@
   },
   "Choisissez le moteur de la base à connecter. Toutes les requêtes passeront par Trino.": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:51"
+      "components/app/data/new-source-dialog.tsx:57"
     ]
   },
   "Choisissez un dossier.": {
@@ -2538,6 +2573,12 @@
       "components/app/docs/token-dialog.tsx:41"
     ]
   },
+  "Clé d’accès S3": {
+    "where": [
+      "components/app/data/source-form.tsx:71",
+      "packages/contracts/src/domain.ts:182"
+    ]
+  },
   "Clé étrangère": {
     "where": [
       "components/app/structure/column-bits.tsx:32",
@@ -2552,9 +2593,15 @@
       "packages/contracts/src/metadata.ts:65"
     ]
   },
+  "Clé secrète S3": {
+    "where": [
+      "components/app/data/source-form.tsx:72",
+      "packages/contracts/src/domain.ts:183"
+    ]
+  },
   "ClickHouse": {
     "where": [
-      "packages/contracts/src/domain.ts:107"
+      "packages/contracts/src/domain.ts:119"
     ]
   },
   "Clients fidèles en 2026": {
@@ -2652,7 +2699,7 @@
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:129",
       "components/app/admin/permission-matrix.tsx:196",
-      "components/app/data/source-settings.tsx:220"
+      "components/app/data/source-settings.tsx:223"
     ]
   },
   "Colonnes personnalisées": {
@@ -2748,7 +2795,7 @@
     "where": [
       "app/(app)/admin/people/page.tsx:209",
       "components/app/data/source-form.tsx:42",
-      "packages/contracts/src/domain.ts:187"
+      "packages/contracts/src/domain.ts:264"
     ]
   },
   "Compte actif": {
@@ -2811,7 +2858,7 @@
   },
   "Connecter {engine}": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:46"
+      "components/app/data/new-source-dialog.tsx:50"
     ]
   },
   "Connecter des bases, modifier leurs réglages, lancer une synchronisation.": {
@@ -2827,13 +2874,13 @@
   "Connecteur": {
     "where": [
       "components/app/data/source-form.tsx:47",
-      "packages/contracts/src/domain.ts:222"
+      "packages/contracts/src/domain.ts:306"
     ]
   },
   "Connecteur Trino (avancé)": {
     "where": [
       "components/app/data/source-form.tsx:31",
-      "packages/contracts/src/domain.ts:216"
+      "packages/contracts/src/domain.ts:300"
     ]
   },
   "Connectez une source, ou demandez à un administrateur de vous ouvrir ses tables.": {
@@ -2850,7 +2897,7 @@
   },
   "Connexion {engine}": {
     "where": [
-      "components/app/data/source-form.tsx:274"
+      "components/app/data/source-form.tsx:312"
     ]
   },
   "Connexion enregistrée.": {
@@ -2860,7 +2907,7 @@
   },
   "Connexion impossible": {
     "where": [
-      "components/app/data/source-form.tsx:403"
+      "components/app/data/source-form.tsx:441"
     ]
   },
   "Connexion impossible.": {
@@ -2870,7 +2917,7 @@
   },
   "Connexion réussie": {
     "where": [
-      "components/app/data/source-form.tsx:403"
+      "components/app/data/source-form.tsx:441"
     ]
   },
   "Connexions": {
@@ -3268,7 +3315,7 @@
   "db.exemple.fr": {
     "where": [
       "components/app/data/source-form.tsx:33",
-      "packages/contracts/src/domain.ts:74"
+      "packages/contracts/src/domain.ts:86"
     ]
   },
   "de {what}": {
@@ -3346,7 +3393,7 @@
   },
   "Delta Lake": {
     "where": [
-      "packages/contracts/src/domain.ts:105"
+      "packages/contracts/src/domain.ts:117"
     ]
   },
   "Demander à l’assistant": {
@@ -3776,7 +3823,7 @@
   },
   "Échec de la synchronisation": {
     "where": [
-      "components/app/data/source-look.tsx:40"
+      "components/app/data/source-look.tsx:42"
     ]
   },
   "Échelle": {
@@ -3916,7 +3963,7 @@
   },
   "En développement, Trino tourne dans Docker : « localhost » est traduit automatiquement en « host.docker.internal » pour que Trino joigne votre base.": {
     "where": [
-      "components/app/data/source-form.tsx:316"
+      "components/app/data/source-form.tsx:354"
     ]
   },
   "En erreur": {
@@ -3926,7 +3973,7 @@
   },
   "En file d’attente": {
     "where": [
-      "components/app/data/source-look.tsx:37"
+      "components/app/data/source-look.tsx:39"
     ]
   },
   "En file d’attente…": {
@@ -3984,6 +4031,12 @@
       "components/app/docs/endpoint.tsx:38"
     ]
   },
+  "Endpoint S3": {
+    "where": [
+      "components/app/data/source-form.tsx:67",
+      "packages/contracts/src/domain.ts:176"
+    ]
+  },
   "Enregistré.": {
     "where": [
       "components/app/question/editor.tsx:248"
@@ -4031,7 +4084,7 @@
   },
   "Enregistrer les partages": {
     "where": [
-      "components/app/data/source-settings.tsx:171"
+      "components/app/data/source-settings.tsx:174"
     ]
   },
   "Enregistrer les valeurs": {
@@ -4102,7 +4155,13 @@
   "Entrepôt": {
     "where": [
       "components/app/data/source-form.tsx:43",
-      "packages/contracts/src/domain.ts:194"
+      "packages/contracts/src/domain.ts:271"
+    ]
+  },
+  "Entrepôt (warehouse)": {
+    "where": [
+      "components/app/data/source-form.tsx:60",
+      "packages/contracts/src/domain.ts:157"
     ]
   },
   "Entrepôt Snowflake : relations à déclarer à la main.": {
@@ -4274,6 +4333,11 @@
       "components/app/question/viz-settings.tsx:764"
     ]
   },
+  "eu-west-3": {
+    "where": [
+      "packages/contracts/src/domain.ts:173"
+    ]
+  },
   "Évolution": {
     "where": [
       "components/app/question/viz-settings.tsx:210"
@@ -4356,6 +4420,12 @@
   "Exemple de requête": {
     "where": [
       "components/app/docs/docs-viewer.tsx:181"
+    ]
+  },
+  "Exigée même hors AWS : gardez us-east-1 pour MinIO.": {
+    "where": [
+      "components/app/data/source-form.tsx:70",
+      "packages/contracts/src/domain.ts:181"
     ]
   },
   "Expiration": {
@@ -4443,12 +4513,20 @@
   },
   "Facultatif": {
     "where": [
-      "app/(app)/admin/people/page.tsx:409"
+      "app/(app)/admin/people/page.tsx:409",
+      "components/app/data/source-form.tsx:61",
+      "packages/contracts/src/domain.ts:157"
     ]
   },
   "Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.": {
     "where": [
-      "components/app/data/source-form.tsx:262"
+      "components/app/data/source-form.tsx:300"
+    ]
+  },
+  "Facultatif : un catalogue ouvert n’en demande pas.": {
+    "where": [
+      "components/app/data/source-form.tsx:63",
+      "packages/contracts/src/domain.ts:163"
     ]
   },
   "Facultatif, 10 caractères au moins": {
@@ -4458,14 +4536,14 @@
   },
   "Facultative": {
     "where": [
-      "components/app/data/source-form.tsx:267",
+      "components/app/data/source-form.tsx:305",
       "components/app/dialogs.tsx:106"
     ]
   },
   "Faire confiance au certificat du serveur": {
     "where": [
       "components/app/data/source-form.tsx:40",
-      "packages/contracts/src/domain.ts:162"
+      "packages/contracts/src/domain.ts:239"
     ]
   },
   "Faire ressortir": {
@@ -4877,12 +4955,12 @@
   },
   "Hive": {
     "where": [
-      "packages/contracts/src/domain.ts:104"
+      "packages/contracts/src/domain.ts:116"
     ]
   },
   "hive.metastore.uri=thrift://metastore:9083": {
     "where": [
-      "packages/contracts/src/domain.ts:234"
+      "packages/contracts/src/domain.ts:318"
     ]
   },
   "horodatage": {
@@ -4893,29 +4971,39 @@
   "Hôte": {
     "where": [
       "components/app/data/source-form.tsx:32",
-      "packages/contracts/src/domain.ts:74"
+      "packages/contracts/src/domain.ts:86"
+    ]
+  },
+  "https://catalogue.exemple.fr/api/catalog": {
+    "where": [
+      "packages/contracts/src/domain.ts:154"
+    ]
+  },
+  "https://s3.exemple.fr": {
+    "where": [
+      "packages/contracts/src/domain.ts:178"
     ]
   },
   "Iceberg · AWS Glue": {
     "where": [
-      "packages/contracts/src/domain.ts:101"
+      "packages/contracts/src/domain.ts:113"
     ]
   },
   "Iceberg · catalogue REST": {
     "where": [
       "components/app/data/source-form.tsx:52",
-      "packages/contracts/src/domain.ts:94"
+      "packages/contracts/src/domain.ts:106"
     ]
   },
   "Iceberg · metastore Hive": {
     "where": [
       "components/app/data/source-form.tsx:51",
-      "packages/contracts/src/domain.ts:90"
+      "packages/contracts/src/domain.ts:102"
     ]
   },
   "iceberg, hive, delta_lake…": {
     "where": [
-      "packages/contracts/src/domain.ts:225"
+      "packages/contracts/src/domain.ts:309"
     ]
   },
   "Ici": {
@@ -5067,7 +5155,7 @@
   },
   "Ils la lisent avec les droits de leurs propres groupes ; sa connexion, sa synchronisation et ses descriptions restent gérées ici.": {
     "where": [
-      "components/app/data/source-settings.tsx:130"
+      "components/app/data/source-settings.tsx:133"
     ]
   },
   "Image": {
@@ -5166,7 +5254,7 @@
   },
   "Interdit": {
     "where": [
-      "components/app/data/source-settings.tsx:80"
+      "components/app/data/source-settings.tsx:83"
     ]
   },
   "Interne": {
@@ -5266,7 +5354,7 @@
   },
   "Jamais synchronisée": {
     "where": [
-      "components/app/data/source-look.tsx:36"
+      "components/app/data/source-look.tsx:38"
     ]
   },
   "jamais utilisé": {
@@ -5299,6 +5387,12 @@
   "Jeton d'intégration": {
     "where": [
       "components/app/docs/docs-viewer.tsx:203"
+    ]
+  },
+  "Jeton OAuth2": {
+    "where": [
+      "components/app/data/source-form.tsx:62",
+      "packages/contracts/src/domain.ts:160"
     ]
   },
   "Jeton révoqué": {
@@ -5509,7 +5603,7 @@
   },
   "La connexion est testée avec le pilote natif, puis le catalogue est créé dans Trino et la structure synchronisée.": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:50"
+      "components/app/data/new-source-dialog.tsx:56"
     ]
   },
   "La conversation et ses graphiques disparaissent de votre historique.": {
@@ -5612,12 +5706,12 @@
   "La valeur de connector.name dans le fichier du catalogue.": {
     "where": [
       "components/app/data/source-form.tsx:49",
-      "packages/contracts/src/domain.ts:226"
+      "packages/contracts/src/domain.ts:310"
     ]
   },
   "Laissez vide pour conserver la valeur enregistrée.": {
     "where": [
-      "components/app/data/source-form.tsx:134"
+      "components/app/data/source-form.tsx:171"
     ]
   },
   "Lancer la course à l’ouverture": {
@@ -5668,12 +5762,23 @@
   },
   "Le catalogue « {catalog} » sera retiré de Trino. Cette action est définitive.": {
     "where": [
-      "components/app/data/source-settings.tsx:248"
+      "components/app/data/source-settings.tsx:251"
+    ]
+  },
+  "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:55"
     ]
   },
   "Le catalogue ne change pas : le SQL le cite.": {
     "where": [
-      "components/app/data/source-form.tsx:261"
+      "components/app/data/source-form.tsx:299"
+    ]
+  },
+  "Le catalogue REST délivre les accès aux fichiers (vended credentials) : les clés S3 deviennent inutiles.": {
+    "where": [
+      "components/app/data/source-form.tsx:65",
+      "packages/contracts/src/domain.ts:170"
     ]
   },
   "Le copilot se configure par les variables d’environnement de l’API (fournisseur, modèle, clé).": {
@@ -5984,7 +6089,7 @@
   },
   "Les personnes autorisées peuvent écrire des requêtes dans le dialecte de la base, transmises telles quelles.": {
     "where": [
-      "components/app/data/source-form.tsx:348"
+      "components/app/data/source-form.tsx:386"
     ]
   },
   "Les prochaines requêtes interrogeront à nouveau les sources.": {
@@ -6252,13 +6357,13 @@
   },
   "Manuelle": {
     "where": [
-      "components/app/data/source-form.tsx:335",
-      "components/app/data/source-look.tsx:58"
+      "components/app/data/source-form.tsx:373",
+      "components/app/data/source-look.tsx:60"
     ]
   },
   "Manuelle uniquement": {
     "where": [
-      "components/app/data/source-form.tsx:335"
+      "components/app/data/source-form.tsx:373"
     ]
   },
   "Marches": {
@@ -6385,6 +6490,12 @@
       "app/(app)/admin/audit/page.tsx:41"
     ]
   },
+  "Metastore Hive": {
+    "where": [
+      "components/app/data/source-form.tsx:55",
+      "packages/contracts/src/domain.ts:135"
+    ]
+  },
   "Méthode": {
     "where": [
       "components/app/login-stage.tsx:623",
@@ -6435,7 +6546,7 @@
   },
   "Minuscules, chiffres, _ et - ; commence par une lettre.": {
     "where": [
-      "components/app/data/source-form.tsx:175"
+      "components/app/data/source-form.tsx:212"
     ]
   },
   "Minute": {
@@ -6498,7 +6609,7 @@
     "where": [
       "components/app/admin/row-rule-editor.tsx:152",
       "components/app/dashboard/view.tsx:942",
-      "components/app/data/source-settings.tsx:71"
+      "components/app/data/source-settings.tsx:74"
     ]
   },
   "mois": {
@@ -6554,13 +6665,13 @@
   },
   "MongoDB": {
     "where": [
-      "packages/contracts/src/domain.ts:200"
+      "packages/contracts/src/domain.ts:277"
     ]
   },
   "mongodb://utilisateur:motdepasse@hote:27017/": {
     "where": [
       "components/app/data/source-form.tsx:46",
-      "packages/contracts/src/domain.ts:210"
+      "packages/contracts/src/domain.ts:287"
     ]
   },
   "Montant": {
@@ -6609,7 +6720,7 @@
   },
   "Moteur": {
     "where": [
-      "components/app/data/source-settings.tsx:77"
+      "components/app/data/source-settings.tsx:80"
     ]
   },
   "Moteur Trino": {
@@ -6641,7 +6752,7 @@
   },
   "MySQL / MariaDB": {
     "where": [
-      "packages/contracts/src/domain.ts:135"
+      "packages/contracts/src/domain.ts:212"
     ]
   },
   "MySQL et MariaDB.": {
@@ -6671,7 +6782,7 @@
   },
   "N’importe quel connecteur Trino : Iceberg, Hive, ClickHouse…": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:22"
+      "components/app/data/new-source-dialog.tsx:23"
     ]
   },
   "natif {type}": {
@@ -6694,6 +6805,12 @@
   "ne contient pas": {
     "where": [
       "lib/builder.ts:147"
+    ]
+  },
+  "Nécessaire pour MinIO et la plupart des S3 sur site.": {
+    "where": [
+      "components/app/data/source-form.tsx:74",
+      "packages/contracts/src/domain.ts:188"
     ]
   },
   "nom": {
@@ -6737,7 +6854,7 @@
   "Nom de service": {
     "where": [
       "components/app/data/source-form.tsx:41",
-      "packages/contracts/src/domain.ts:175"
+      "packages/contracts/src/domain.ts:252"
     ]
   },
   "Nom des courbes au bout du tracé": {
@@ -6747,7 +6864,7 @@
   },
   "Nom du catalogue": {
     "where": [
-      "components/app/data/source-form.tsx:252"
+      "components/app/data/source-form.tsx:290"
     ]
   },
   "Nom du client": {
@@ -6821,7 +6938,7 @@
   },
   "Non": {
     "where": [
-      "components/app/data/source-settings.tsx:57",
+      "components/app/data/source-settings.tsx:60",
       "lib/format.ts:193"
     ]
   },
@@ -7048,12 +7165,12 @@
   "Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.": {
     "where": [
       "components/app/data/source-form.tsx:38",
-      "packages/contracts/src/domain.ts:144"
+      "packages/contracts/src/domain.ts:221"
     ]
   },
   "Oracle": {
     "where": [
-      "packages/contracts/src/domain.ts:170"
+      "packages/contracts/src/domain.ts:247"
     ]
   },
   "Oracle Database, par nom de service.": {
@@ -7068,7 +7185,7 @@
   },
   "ORCLPDB1": {
     "where": [
-      "packages/contracts/src/domain.ts:175"
+      "packages/contracts/src/domain.ts:252"
     ]
   },
   "Ordre des catégories": {
@@ -7127,7 +7244,7 @@
   },
   "Oui": {
     "where": [
-      "components/app/data/source-settings.tsx:56",
+      "components/app/data/source-settings.tsx:59",
       "lib/format.ts:193"
     ]
   },
@@ -7253,7 +7370,7 @@
   },
   "Paramètres de connexion": {
     "where": [
-      "components/app/data/source-settings.tsx:68"
+      "components/app/data/source-settings.tsx:71"
     ]
   },
   "Paramètres de l’espace": {
@@ -7300,7 +7417,7 @@
   },
   "Partagée par l’espace « {name} » : sa connexion, sa synchronisation et ses descriptions se gèrent là-bas. Ici, vos groupes décident qui la lit, dans Permissions.": {
     "where": [
-      "components/app/data/source-settings.tsx:206"
+      "components/app/data/source-settings.tsx:209"
     ]
   },
   "Partager": {
@@ -7317,7 +7434,7 @@
   },
   "Partager avec d’autres espaces": {
     "where": [
-      "components/app/data/source-settings.tsx:128"
+      "components/app/data/source-settings.tsx:131"
     ]
   },
   "Partages": {
@@ -7327,12 +7444,12 @@
   },
   "Partages enregistrés.": {
     "where": [
-      "components/app/data/source-settings.tsx:163"
+      "components/app/data/source-settings.tsx:166"
     ]
   },
   "Partir d’un modèle :": {
     "where": [
-      "components/app/data/source-form.tsx:278"
+      "components/app/data/source-form.tsx:316"
     ]
   },
   "Parts au plus (le reste devient « Autres »)": {
@@ -7538,6 +7655,12 @@
       "components/app/question/viz-settings.tsx:824"
     ]
   },
+  "Plusieurs URI séparées par des virgules.": {
+    "where": [
+      "components/app/data/source-form.tsx:58",
+      "packages/contracts/src/domain.ts:146"
+    ]
+  },
   "Plusieurs valeurs à la fois": {
     "where": [
       "components/app/dashboard/view.tsx:523"
@@ -7573,7 +7696,7 @@
   "Port": {
     "where": [
       "components/app/data/source-form.tsx:34",
-      "packages/contracts/src/domain.ts:75"
+      "packages/contracts/src/domain.ts:87"
     ]
   },
   "Portail clients": {
@@ -7614,7 +7737,7 @@
   },
   "PostgreSQL": {
     "where": [
-      "packages/contracts/src/domain.ts:123"
+      "packages/contracts/src/domain.ts:200"
     ]
   },
   "Pour des catégories ordonnées (tranches, niveaux) : du plus clair au plus foncé, 5 au plus.": {
@@ -7767,19 +7890,19 @@
   },
   "Propriété": {
     "where": [
-      "components/app/data/source-form.tsx:372"
+      "components/app/data/source-form.tsx:410"
     ]
   },
   "Propriétés": {
     "where": [
       "components/app/data/source-form.tsx:48",
-      "packages/contracts/src/domain.ts:231"
+      "packages/contracts/src/domain.ts:315"
     ]
   },
   "Propriétés du catalogue Trino": {
     "where": [
-      "components/app/data/source-form.tsx:362",
-      "components/app/data/source-settings.tsx:92"
+      "components/app/data/source-form.tsx:400",
+      "components/app/data/source-settings.tsx:95"
     ]
   },
   "Propulsé par {product}": {
@@ -8082,10 +8205,22 @@
       "components/app/login-stage.tsx:493"
     ]
   },
+  "Région Glue": {
+    "where": [
+      "components/app/data/source-form.tsx:66",
+      "packages/contracts/src/domain.ts:173"
+    ]
+  },
+  "Région S3": {
+    "where": [
+      "components/app/data/source-form.tsx:69",
+      "packages/contracts/src/domain.ts:181"
+    ]
+  },
   "Réglage de l’instance": {
     "where": [
-      "components/app/data/source-form.tsx:341",
-      "components/app/data/source-settings.tsx:81"
+      "components/app/data/source-form.tsx:379",
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "Réglages": {
@@ -8199,7 +8334,7 @@
   },
   "Remplacez ensuite les valeurs d’exemple par celles de votre catalogue.": {
     "where": [
-      "components/app/data/source-form.tsx:295"
+      "components/app/data/source-form.tsx:333"
     ]
   },
   "Remplissage des barres": {
@@ -8417,7 +8552,7 @@
   "Retour": {
     "where": [
       "app/not-found.tsx:25",
-      "components/app/data/source-form.tsx:415"
+      "components/app/data/source-form.tsx:453"
     ]
   },
   "Retour au tableau de bord": {
@@ -8467,7 +8602,7 @@
   "Rôle": {
     "where": [
       "components/app/data/source-form.tsx:44",
-      "packages/contracts/src/domain.ts:195"
+      "packages/contracts/src/domain.ts:272"
     ]
   },
   "Rose": {
@@ -8566,7 +8701,7 @@
   },
   "Schémas": {
     "where": [
-      "components/app/data/source-settings.tsx:218",
+      "components/app/data/source-settings.tsx:221",
       "components/app/data/sync-panel.tsx:69"
     ]
   },
@@ -8775,7 +8910,7 @@
   },
   "Snowflake": {
     "where": [
-      "packages/contracts/src/domain.ts:181"
+      "packages/contracts/src/domain.ts:258"
     ]
   },
   "Somme": {
@@ -8801,13 +8936,13 @@
   "Source": {
     "where": [
       "components/app/admin/permission-matrix.tsx:318",
-      "components/app/data/source-form.tsx:242",
+      "components/app/data/source-form.tsx:280",
       "components/app/question/notebook.tsx:143"
     ]
   },
   "Source « {name} » ajoutée : synchronisation lancée.": {
     "where": [
-      "components/app/data/new-source-dialog.tsx:62"
+      "components/app/data/new-source-dialog.tsx:68"
     ]
   },
   "Source de données": {
@@ -8817,7 +8952,7 @@
   },
   "Source supprimée.": {
     "where": [
-      "components/app/data/source-settings.tsx:258"
+      "components/app/data/source-settings.tsx:261"
     ]
   },
   "Sources": {
@@ -8859,7 +8994,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:492",
       "components/app/admin/common.tsx:56",
-      "components/app/data/source-settings.tsx:80"
+      "components/app/data/source-settings.tsx:83"
     ]
   },
   "SQL natif : envoyé tel quel à la source via system.query, réservé aux personnes sans restriction.": {
@@ -8874,7 +9009,7 @@
   },
   "SQL Server": {
     "where": [
-      "packages/contracts/src/domain.ts:152"
+      "packages/contracts/src/domain.ts:229"
     ]
   },
   "SQL Trino": {
@@ -8885,8 +9020,8 @@
   },
   "SSL": {
     "where": [
-      "packages/contracts/src/domain.ts:130",
-      "packages/contracts/src/domain.ts:147"
+      "packages/contracts/src/domain.ts:207",
+      "packages/contracts/src/domain.ts:224"
     ]
   },
   "Statut": {
@@ -9006,12 +9141,12 @@
   },
   "Supprimer la source": {
     "where": [
-      "components/app/data/source-settings.tsx:238"
+      "components/app/data/source-settings.tsx:241"
     ]
   },
   "Supprimer la source retire son catalogue de Trino, ses métadonnées et ses permissions. Les questions qui l’utilisent ne fonctionneront plus.": {
     "where": [
-      "components/app/data/source-settings.tsx:236"
+      "components/app/data/source-settings.tsx:239"
     ]
   },
   "Supprimer le dossier": {
@@ -9058,23 +9193,23 @@
   },
   "Synchronisation": {
     "where": [
-      "components/app/data/source-settings.tsx:229"
+      "components/app/data/source-settings.tsx:232"
     ]
   },
   "Synchronisation du schéma": {
     "where": [
-      "components/app/data/source-form.tsx:327",
-      "components/app/data/source-form.tsx:331"
+      "components/app/data/source-form.tsx:365",
+      "components/app/data/source-form.tsx:369"
     ]
   },
   "Synchronisation en cours": {
     "where": [
-      "components/app/data/source-look.tsx:38"
+      "components/app/data/source-look.tsx:40"
     ]
   },
   "Synchronisation et options": {
     "where": [
-      "components/app/data/source-form.tsx:324"
+      "components/app/data/source-form.tsx:362"
     ]
   },
   "Synchronisation terminée": {
@@ -9094,7 +9229,7 @@
   },
   "Synchronisée {when}": {
     "where": [
-      "components/app/data/source-look.tsx:66"
+      "components/app/data/source-look.tsx:68"
     ]
   },
   "Synchroniser le schéma de la base de données": {
@@ -9172,7 +9307,12 @@
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:94",
       "app/(app)/data/[[...path]]/page.tsx:171",
-      "components/app/data/source-settings.tsx:219"
+      "components/app/data/source-settings.tsx:222"
+    ]
+  },
+  "Tables Iceberg sur S3 ou MinIO : metastore Hive, catalogue REST ou Glue.": {
+    "where": [
+      "components/app/data/new-source-dialog.tsx:22"
     ]
   },
   "Taille": {
@@ -9240,12 +9380,12 @@
   },
   "Test de la connexion et création du catalogue Trino…": {
     "where": [
-      "components/app/data/source-form.tsx:434"
+      "components/app/data/source-form.tsx:472"
     ]
   },
   "Tester la connexion": {
     "where": [
-      "components/app/data/source-form.tsx:420"
+      "components/app/data/source-form.tsx:458"
     ]
   },
   "texte": {
@@ -9307,6 +9447,11 @@
       "app/(app)/admin/themes/page.tsx:685",
       "app/(app)/admin/themes/page.tsx:695",
       "components/app/docs/openapi.ts:100"
+    ]
+  },
+  "thrift://metastore:9083": {
+    "where": [
+      "packages/contracts/src/domain.ts:145"
     ]
   },
   "Tickets": {
@@ -9396,8 +9541,8 @@
   },
   "Tous les jours": {
     "where": [
-      "components/app/data/source-form.tsx:334",
-      "components/app/data/source-look.tsx:57"
+      "components/app/data/source-form.tsx:372",
+      "components/app/data/source-look.tsx:59"
     ]
   },
   "Tous les utilisateurs": {
@@ -9533,8 +9678,8 @@
   "Toutes les heures": {
     "where": [
       "components/app/dashboard/refresh-timer.tsx:23",
-      "components/app/data/source-form.tsx:333",
-      "components/app/data/source-look.tsx:56"
+      "components/app/data/source-form.tsx:371",
+      "components/app/data/source-look.tsx:58"
     ]
   },
   "Toutes les lignes de {source}, complétées par {table} quand elles se correspondent.": {
@@ -9875,7 +10020,7 @@
   "Une propriété par ligne, au format clé=valeur : le fichier du catalogue, sans connector.name. Une valeur laissée vide est ignorée.": {
     "where": [
       "components/app/data/source-form.tsx:50",
-      "packages/contracts/src/domain.ts:235"
+      "packages/contracts/src/domain.ts:319"
     ]
   },
   "Une question : un résultat à lire": {
@@ -9935,6 +10080,18 @@
       "components/app/structure/format-editor.tsx:168"
     ]
   },
+  "URI du catalogue REST": {
+    "where": [
+      "components/app/data/source-form.tsx:59",
+      "packages/contracts/src/domain.ts:151"
+    ]
+  },
+  "URI du metastore": {
+    "where": [
+      "components/app/data/source-form.tsx:57",
+      "packages/contracts/src/domain.ts:142"
+    ]
+  },
   "URL": {
     "where": [
       "components/app/structure/column-bits.tsx:41",
@@ -9955,7 +10112,7 @@
   "Utilisateur": {
     "where": [
       "components/app/data/source-form.tsx:35",
-      "packages/contracts/src/domain.ts:116"
+      "packages/contracts/src/domain.ts:193"
     ]
   },
   "Utilisation": {
@@ -9986,7 +10143,7 @@
   "Valeur": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:218",
-      "components/app/data/source-form.tsx:380",
+      "components/app/data/source-form.tsx:418",
       "components/app/question/viz-settings.tsx:893"
     ]
   },
@@ -10099,6 +10256,12 @@
   "Verticaux": {
     "where": [
       "components/app/question/viz-settings.tsx:809"
+    ]
+  },
+  "Vide pour AWS ; sinon l’adresse de MinIO, Ceph, Scality…": {
+    "where": [
+      "components/app/data/source-form.tsx:68",
+      "packages/contracts/src/domain.ts:179"
     ]
   },
   "Vider": {
@@ -10274,12 +10437,12 @@
   },
   "xy12345.eu-west-1": {
     "where": [
-      "packages/contracts/src/domain.ts:190"
+      "packages/contracts/src/domain.ts:267"
     ]
   },
   "Zone sensible": {
     "where": [
-      "components/app/data/source-settings.tsx:235"
+      "components/app/data/source-settings.tsx:238"
     ]
   }
 }

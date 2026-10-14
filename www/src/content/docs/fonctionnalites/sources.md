@@ -18,6 +18,7 @@ peut joindre plusieurs sources. Ajouter, modifier ou supprimer une source demand
 | **Oracle** | `oracle` | hôte, port (1521), nom de service, utilisateur, mot de passe | oui |
 | **Snowflake** | `snowflake` | compte, utilisateur, mot de passe, base, entrepôt, rôle facultatif | oui |
 | **MongoDB** | `mongodb` | chaîne de connexion `mongodb://…` | non |
+| **Apache Iceberg** | `iceberg` | metastore Hive, catalogue REST ou Glue ; stockage S3 (endpoint, région, clés) | non |
 | **Connecteur Trino (avancé)** | celui que vous nommez | nom du connecteur et propriétés `clé=valeur` | non |
 
 Sans base précisée, une source MySQL expose comme schémas toutes les bases visibles par
@@ -25,7 +26,12 @@ l’utilisateur. Le moteur **Connecteur Trino** ouvre tout connecteur que votre 
 `tpch`, `iceberg`, `hive`, `clickhouse`… — avec ses propriétés, une par ligne, comme dans un
 fichier de catalogue.
 
-Ce moteur ne se branche pas sur un Trino existant : il recrée le catalogue dans le Trino
+Une source **Apache Iceberg** lit des tables Iceberg sur S3 — AWS, MinIO, Ceph, Scality… — sans
+écrire de propriétés : choisissez le catalogue (metastore Hive, catalogue REST, éventuellement
+avec un jeton OAuth2 et des accès fournis par le catalogue, ou AWS Glue), puis l’endpoint, la
+région et les clés du stockage. Pour un S3 sur site, cochez les adresses de type chemin.
+
+Ni l’un ni l’autre ne se branche sur un Trino existant : chacun crée le catalogue dans le Trino
 d’eodia insights, qui seul applique les permissions. Pour reprendre un catalogue d’un autre
 Trino, recopiez son fichier `etc/catalog/<nom>.properties` : `connector.name` dans
 **Connecteur**, le reste dans **Propriétés**. Des modèles (Iceberg avec un metastore Hive, un

@@ -61,6 +61,8 @@ export const SYSTEM_SCHEMAS: Readonly<Record<Engine, readonly string[]>> = {
   oracle: ['sys', 'system', 'outln', 'xdb', 'mdsys', 'ctxsys', 'ordsys', 'wmsys', 'appqossys', 'dbsnmp', 'gsmadmin_internal', 'lbacsys', 'ojvmsys', 'olapsys', 'dvsys', 'audsys'],
   snowflake: ['information_schema'],
   mongodb: ['admin', 'local', 'config', 'information_schema'],
+  // Iceberg's own `system` schema lists the tables of the catalog (`iceberg_tables`).
+  iceberg: ['information_schema', 'system'],
   trino: ['information_schema'],
 }
 
@@ -404,8 +406,9 @@ export function testConnection(engine: Engine, st: Settings): Promise<TestResult
           await c.close()
         }
       }
+      case 'iceberg':
       case 'trino':
-        // A raw Trino connector has no native driver: the catalog creation is the test.
+        // Iceberg or a raw Trino connector has no native driver: the catalog creation is the test.
         return undefined
     }
   })
@@ -426,6 +429,7 @@ export async function introspect(engine: Engine, st: Settings): Promise<NativeIn
       return snowflakeIntrospect(st)
     case 'mongodb':
       return mongoIntrospect(st)
+    case 'iceberg':
     case 'trino':
       return { tables: [], columns: [], foreignKeys: [] }
   }

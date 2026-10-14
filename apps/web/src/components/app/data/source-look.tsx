@@ -13,6 +13,7 @@ const ENGINE_LOOK: Record<Engine, { abbr: string; tone: string }> = {
   oracle: { abbr: 'Or', tone: 'bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:ring-rose-900' },
   snowflake: { abbr: 'Sf', tone: 'bg-cyan-100 text-cyan-700 ring-cyan-200 dark:bg-cyan-950 dark:text-cyan-300 dark:ring-cyan-900' },
   mongodb: { abbr: 'Mg', tone: 'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:ring-emerald-900' },
+  iceberg: { abbr: 'Ic', tone: 'bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:ring-blue-900' },
   trino: { abbr: 'Tr', tone: 'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:ring-violet-900' },
 }
 
@@ -23,6 +24,7 @@ export const ENGINE_NAMES: Record<Engine, string> = {
   oracle: 'Oracle',
   snowflake: 'Snowflake',
   mongodb: 'MongoDB',
+  iceberg: 'Iceberg',
   trino: 'Trino',
 }
 

@@ -103,8 +103,48 @@ export function catalogProperties(def: CatalogDefinition): Record<string, string
       }
       return { 'mongodb.connection-url': url, 'mongodb.case-insensitive-name-matching': 'true' }
     }
+    case 'iceberg':
+      return icebergProperties(def)
     case 'trino':
       return parseProperties(str(s.properties))
+  }
+}
+
+/** `localhost` in the URLs of a list (`thrift://localhost:9083,…`) as Trino reaches it. */
+function aliasUrls(def: CatalogDefinition, urls: string): string {
+  if (!def.localhostAlias) return urls
+  return urls.replace(/(:\/\/)(localhost|127\.0\.0\.1)(?=[:/,]|$)/gi, `$1${def.localhostAlias}`)
+}
+
+/** An Iceberg catalog: its metastore (Hive, REST or Glue), then its files on S3. */
+function icebergProperties(def: CatalogDefinition): Record<string, string> {
+  const s = def.settings
+  const type = str(s.catalog_type) || 'hive_metastore'
+  const props: Record<string, string> = { 'iceberg.catalog.type': type }
+  if (type === 'hive_metastore') props['hive.metastore.uri'] = aliasUrls(def, str(s.metastore_uri).trim())
+  if (type === 'rest') {
+    props['iceberg.rest-catalog.uri'] = aliasUrls(def, str(s.rest_uri).trim())
+    props['iceberg.rest-catalog.warehouse'] = str(s.warehouse).trim()
+    if (str(s.rest_token)) {
+      props['iceberg.rest-catalog.security'] = 'OAUTH2'
+      props['iceberg.rest-catalog.oauth2.token'] = str(s.rest_token)
+    }
+    if (bool(s.vended_credentials)) props['iceberg.rest-catalog.vended-credentials-enabled'] = 'true'
+  }
+  if (type === 'glue') {
+    props['hive.metastore.glue.region'] = str(s.glue_region).trim()
+    // Glue and the bucket usually share the account: the same keys open both.
+    props['hive.metastore.glue.aws-access-key'] = str(s.s3_access_key)
+    props['hive.metastore.glue.aws-secret-key'] = str(s.s3_secret_key)
+  }
+  return {
+    ...props,
+    'fs.s3.enabled': 'true',
+    's3.endpoint': aliasUrls(def, str(s.s3_endpoint).trim()),
+    's3.region': str(s.s3_region).trim() || 'us-east-1',
+    's3.aws-access-key': str(s.s3_access_key),
+    's3.aws-secret-key': str(s.s3_secret_key),
+    ...(bool(s.s3_path_style) ? { 's3.path-style-access': 'true' } : {}),
   }
 }
 

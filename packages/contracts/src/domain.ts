@@ -29,6 +29,7 @@ export const ENGINES = [
   'oracle',
   'snowflake',
   'mongodb',
+  'iceberg',
   'trino',
 ] as const
 export type Engine = (typeof ENGINES)[number]
@@ -42,7 +43,8 @@ export const CATALOG_NAME_RE = /^[a-z][a-z0-9_-]{0,62}$/
 export interface EngineField {
   readonly key: string
   readonly label: string
-  readonly type: 'text' | 'number' | 'password' | 'boolean' | 'textarea'
+  /** `choice`: one of `options`, all in sight. */
+  readonly type: 'text' | 'number' | 'password' | 'boolean' | 'textarea' | 'choice'
   readonly required?: boolean
   readonly placeholder?: string
   readonly default?: string | number | boolean
@@ -51,6 +53,16 @@ export interface EngineField {
   readonly help?: string
   /** Values the field proposes, any other still accepted. */
   readonly suggestions?: readonly string[]
+  readonly options?: readonly { readonly value: string; readonly label: string }[]
+  /** Shown, required and kept only while the field `key` holds one of `is`. */
+  readonly when?: { readonly key: string; readonly is: readonly string[] }
+}
+
+/** Whether a field applies to these settings (its `when`); one that does not is ignored. */
+export function fieldApplies(field: EngineField, settings: Readonly<Record<string, unknown>>): boolean {
+  if (!field.when) return true
+  const v = settings[field.when.key]
+  return field.when.is.includes(String(v ?? ''))
 }
 
 /** A starting point for a source: field values to adjust, example values included. */
@@ -109,6 +121,71 @@ const TRINO_TEMPLATES: EngineTemplate[] = [
       connector: 'clickhouse',
       properties: ['connection-url=jdbc:clickhouse://clickhouse.exemple.fr:8123/', 'connection-user=', 'connection-password='].join('\n'),
     },
+  },
+]
+
+const ICEBERG_FIELDS: EngineField[] = [
+  {
+    key: 'catalog_type',
+    label: 'Catalogue Iceberg',
+    type: 'choice',
+    required: true,
+    default: 'hive_metastore',
+    options: [
+      { value: 'hive_metastore', label: 'Metastore Hive' },
+      { value: 'rest', label: 'Catalogue REST' },
+      { value: 'glue', label: 'AWS Glue' },
+    ],
+  },
+  {
+    key: 'metastore_uri',
+    label: 'URI du metastore',
+    type: 'text',
+    required: true,
+    placeholder: 'thrift://metastore:9083',
+    help: 'Plusieurs URI séparées par des virgules.',
+    when: { key: 'catalog_type', is: ['hive_metastore'] },
+  },
+  {
+    key: 'rest_uri',
+    label: 'URI du catalogue REST',
+    type: 'text',
+    required: true,
+    placeholder: 'https://catalogue.exemple.fr/api/catalog',
+    when: { key: 'catalog_type', is: ['rest'] },
+  },
+  { key: 'warehouse', label: 'Entrepôt (warehouse)', type: 'text', placeholder: 'Facultatif', when: { key: 'catalog_type', is: ['rest'] } },
+  {
+    key: 'rest_token',
+    label: 'Jeton OAuth2',
+    type: 'password',
+    secret: true,
+    help: 'Facultatif : un catalogue ouvert n’en demande pas.',
+    when: { key: 'catalog_type', is: ['rest'] },
+  },
+  {
+    key: 'vended_credentials',
+    label: 'Accès au stockage fournis par le catalogue',
+    type: 'boolean',
+    help: 'Le catalogue REST délivre les accès aux fichiers (vended credentials) : les clés S3 deviennent inutiles.',
+    when: { key: 'catalog_type', is: ['rest'] },
+  },
+  { key: 'glue_region', label: 'Région Glue', type: 'text', required: true, placeholder: 'eu-west-3', when: { key: 'catalog_type', is: ['glue'] } },
+  {
+    key: 's3_endpoint',
+    label: 'Endpoint S3',
+    type: 'text',
+    placeholder: 'https://s3.exemple.fr',
+    help: 'Vide pour AWS ; sinon l’adresse de MinIO, Ceph, Scality…',
+  },
+  { key: 's3_region', label: 'Région S3', type: 'text', required: true, default: 'us-east-1', help: 'Exigée même hors AWS : gardez us-east-1 pour MinIO.' },
+  { key: 's3_access_key', label: 'Clé d’accès S3', type: 'text' },
+  { key: 's3_secret_key', label: 'Clé secrète S3', type: 'password', secret: true },
+  {
+    key: 's3_path_style',
+    label: 'Adresses de type chemin (path-style)',
+    type: 'boolean',
+    help: 'Nécessaire pour MinIO et la plupart des S3 sur site.',
   },
 ]
 
@@ -210,6 +287,13 @@ export const ENGINE_SPECS: Readonly<Record<Engine, EngineSpec>> = {
         placeholder: 'mongodb://utilisateur:motdepasse@hote:27017/',
       },
     ],
+  },
+  iceberg: {
+    engine: 'iceberg',
+    label: 'Apache Iceberg',
+    connector: 'iceberg',
+    nativeQuery: false,
+    fields: ICEBERG_FIELDS,
   },
   trino: {
     engine: 'trino',

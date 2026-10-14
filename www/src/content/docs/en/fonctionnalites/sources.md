@@ -18,6 +18,7 @@ can join several sources. Adding, editing or deleting a source requires the
 | **Oracle** | `oracle` | host, port (1521), service name, user, password | yes |
 | **Snowflake** | `snowflake` | account, user, password, database, warehouse, optional role | yes |
 | **MongoDB** | `mongodb` | `mongodb://…` connection string | no |
+| **Apache Iceberg** | `iceberg` | Hive metastore, REST catalog or Glue; S3 storage (endpoint, region, keys) | no |
 | **Trino connector (advanced)** | the one you name | connector name and `key=value` properties | no |
 
 When no database is specified, a MySQL source exposes every database visible to the user as a
@@ -25,8 +26,13 @@ schema. The **Trino connector** engine opens any connector your Trino knows —
 `tpch`, `iceberg`, `hive`, `clickhouse`… — with its properties, one per line, as in a
 catalog file.
 
-This engine does not plug into an existing Trino: it recreates the catalog in eodia insights'
-own Trino, the only one that applies the permissions. To bring over a catalog from another
+An **Apache Iceberg** source reads Iceberg tables on S3 — AWS, MinIO, Ceph, Scality… — without
+writing properties: pick the catalog (Hive metastore, REST catalog, possibly with an OAuth2
+token and access provided by the catalog, or AWS Glue), then the storage endpoint, region and
+keys. For on-premises S3, tick path-style addresses.
+
+Neither plugs into an existing Trino: each creates the catalog in eodia insights' own Trino,
+the only one that applies the permissions. To bring over a catalog from another
 Trino, copy its `etc/catalog/<name>.properties` file: `connector.name` into **Connector**, the
 rest into **Properties**. Templates (Iceberg with a Hive metastore, a REST catalog or Glue,
 Hive, Delta Lake, ClickHouse) give the usual keys; a value left empty is ignored.

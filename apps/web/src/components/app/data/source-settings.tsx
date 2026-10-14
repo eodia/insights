@@ -1,6 +1,6 @@
 'use client'
 
-import type { Datasource, LookColor } from '@eodia/contracts'
+import { type Datasource, type LookColor, fieldApplies } from '@eodia/contracts'
 import { SourceForm } from '@/components/app/data/source-form'
 import { WorkspaceLogo } from '@/components/app/workspace-menu'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -45,9 +45,12 @@ function ConnectionView({ source, canEdit }: { source: Datasource; canEdit: bool
     )
   }
 
-  const rows: [string, React.ReactNode][] = spec.fields.map((f) => {
+  const rows: [string, React.ReactNode][] = spec.fields.filter((f) => fieldApplies(f, source.config)).map((f) => {
     const v = source.config[f.key]
-    const value = f.secret
+    const option = f.options?.find((o) => o.value === v)
+    const value = option
+      ? $t(option.label)
+      : f.secret
       ? source.secrets.includes(f.key)
         ? '•••••'
         : '—'
@@ -58,7 +61,7 @@ function ConnectionView({ source, canEdit }: { source: Datasource; canEdit: bool
         : v === undefined || v === ''
           ? '—'
           : String(v)
-    return [$t(f.label), <span key={f.key} className={cn(typeof v !== 'boolean' && 'font-mono text-[13px]')}>{value}</span>]
+    return [$t(f.label), <span key={f.key} className={cn(typeof v !== 'boolean' && !option && 'font-mono text-[13px]')}>{value}</span>]
   })
   const trino = Object.entries(source.options.trino_properties ?? {})
   return (
