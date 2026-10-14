@@ -33,6 +33,12 @@ export const ENGINES = [
 ] as const
 export type Engine = (typeof ENGINES)[number]
 
+/**
+ * A source's Trino catalog name. The tiret is allowed, as in Trino's own catalog files
+ * (`iceberg-raw-latest`): such a name is cited between double quotes in SQL.
+ */
+export const CATALOG_NAME_RE = /^[a-z][a-z0-9_-]{0,62}$/
+
 export interface EngineField {
   readonly key: string
   readonly label: string
@@ -43,6 +49,14 @@ export interface EngineField {
   /** Stored encrypted, never sent back to the browser. */
   readonly secret?: boolean
   readonly help?: string
+  /** Values the field proposes, any other still accepted. */
+  readonly suggestions?: readonly string[]
+}
+
+/** A starting point for a source: field values to adjust, example values included. */
+export interface EngineTemplate {
+  readonly label: string
+  readonly values: Readonly<Record<string, string>>
 }
 
 export interface EngineSpec {
@@ -53,11 +67,49 @@ export interface EngineSpec {
   readonly fields: readonly EngineField[]
   /** The engine's native SQL can be sent through `system.query`. */
   readonly nativeQuery: boolean
+  readonly templates?: readonly EngineTemplate[]
 }
 
 const hostPort = (port: number): EngineField[] => [
   { key: 'host', label: 'Hôte', type: 'text', required: true, placeholder: 'db.exemple.fr' },
   { key: 'port', label: 'Port', type: 'number', required: true, default: port },
+]
+
+const S3 = [
+  'fs.s3.enabled=true',
+  's3.endpoint=https://s3.exemple.fr',
+  's3.region=eu-west-3',
+  's3.path-style-access=true',
+  's3.aws-access-key=',
+  's3.aws-secret-key=',
+]
+
+/** Catalog files of the usual lakehouse connectors, checked against Trino 483. */
+const TRINO_TEMPLATES: EngineTemplate[] = [
+  {
+    label: 'Iceberg · metastore Hive',
+    values: { connector: 'iceberg', properties: ['iceberg.catalog.type=hive_metastore', 'hive.metastore.uri=thrift://metastore:9083', ...S3].join('\n') },
+  },
+  {
+    label: 'Iceberg · catalogue REST',
+    values: {
+      connector: 'iceberg',
+      properties: ['iceberg.catalog.type=rest', 'iceberg.rest-catalog.uri=https://catalogue.exemple.fr', 'iceberg.rest-catalog.warehouse=', ...S3].join('\n'),
+    },
+  },
+  {
+    label: 'Iceberg · AWS Glue',
+    values: { connector: 'iceberg', properties: ['iceberg.catalog.type=glue', 'hive.metastore.glue.region=eu-west-3', 'fs.s3.enabled=true', 's3.region=eu-west-3'].join('\n') },
+  },
+  { label: 'Hive', values: { connector: 'hive', properties: ['hive.metastore.uri=thrift://metastore:9083', ...S3].join('\n') } },
+  { label: 'Delta Lake', values: { connector: 'delta_lake', properties: ['hive.metastore.uri=thrift://metastore:9083', ...S3].join('\n') } },
+  {
+    label: 'ClickHouse',
+    values: {
+      connector: 'clickhouse',
+      properties: ['connection-url=jdbc:clickhouse://clickhouse.exemple.fr:8123/', 'connection-user=', 'connection-password='].join('\n'),
+    },
+  },
 ]
 
 const credentials: EngineField[] = [
@@ -170,17 +222,20 @@ export const ENGINE_SPECS: Readonly<Record<Engine, EngineSpec>> = {
         label: 'Connecteur',
         type: 'text',
         required: true,
-        placeholder: 'tpch, iceberg, hive, clickhouse…',
+        placeholder: 'iceberg, hive, delta_lake…',
+        help: 'La valeur de connector.name dans le fichier du catalogue.',
+        suggestions: ['iceberg', 'hive', 'delta_lake', 'hudi', 'clickhouse', 'elasticsearch', 'opensearch', 'kafka', 'cassandra', 'bigquery', 'redshift', 'druid', 'pinot', 'tpch', 'memory'],
       },
       {
         key: 'properties',
         label: 'Propriétés',
         type: 'textarea',
         secret: true,
-        placeholder: 'tpch.splits-per-node=4',
-        help: 'Une propriété par ligne, au format clé=valeur, comme dans un fichier de catalogue.',
+        placeholder: 'hive.metastore.uri=thrift://metastore:9083',
+        help: 'Une propriété par ligne, au format clé=valeur : le fichier du catalogue, sans connector.name. Une valeur laissée vide est ignorée.',
       },
     ],
+    templates: TRINO_TEMPLATES,
   },
 }
 

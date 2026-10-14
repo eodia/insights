@@ -54,6 +54,9 @@ interface Tab {
 const STORE = 'eodia-sql-tabs'
 const newTab = (n: number, sql = ''): Tab => ({ id: Math.random().toString(36).slice(2), name: $t('Requête {n}', { n }), sql, native: null })
 
+/** A name as SQL cites it: bare when it can be, between double quotes otherwise (`"iceberg-raw"`). */
+const sqlName = (name: string) => (/^[a-z_][a-z0-9_]*$/.test(name) ? name : `"${name.replace(/"/g, '""')}"`)
+
 function loadTabs(): Tab[] {
   try {
     const raw = JSON.parse(localStorage.getItem(STORE) ?? 'null') as Tab[] | null
@@ -91,7 +94,7 @@ function SchemaBrowser({ onInsert }: { onInsert: (text: string) => void }) {
                   .filter((t) => !q || fold(`${t.name} ${t.label}`).includes(fold(q)))
                   .map((t) => {
                     const key = `${ds.id}.${t.id}`
-                    const full = `${ds.catalog}.${t.schema}.${t.name}`
+                    const full = [ds.catalog, t.schema, t.name].map(sqlName).join('.')
                     return (
                       <div key={t.id} className="pl-4">
                         <div className="group flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent">

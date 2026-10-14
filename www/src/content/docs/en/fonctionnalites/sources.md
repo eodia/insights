@@ -25,6 +25,12 @@ schema. The **Trino connector** engine opens any connector your Trino knows —
 `tpch`, `iceberg`, `hive`, `clickhouse`… — with its properties, one per line, as in a
 catalog file.
 
+This engine does not plug into an existing Trino: it recreates the catalog in eodia insights'
+own Trino, the only one that applies the permissions. To bring over a catalog from another
+Trino, copy its `etc/catalog/<name>.properties` file: `connector.name` into **Connector**, the
+rest into **Properties**. Templates (Iceberg with a Hive metastore, a REST catalog or Glue,
+Hive, Delta Lake, ClickHouse) give the usual keys; a value left empty is ignored.
+
 Secret fields (passwords, MongoDB connection string, Trino connector properties) are
 **encrypted** with AES-256-GCM using the instance key, and never sent back to the browser:
 left empty in the edit form, they keep their value.
@@ -41,7 +47,8 @@ the connection form.
    that Trino refuses to open is not saved.
 
 The **catalog name** is derived from the source name (`Sales Europe` → `sales_europe`):
-lowercase letters, digits and `_`, starting with a letter. It never changes afterwards, since
+lowercase letters, digits, `_` and `-`, starting with a letter; a name with a hyphen is quoted
+in SQL (`"iceberg-raw".schema.table`). It never changes afterwards, since
 SQL references it.
 
 When created, a source is readable by the **All users** group, which can write Trino SQL

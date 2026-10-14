@@ -10,7 +10,7 @@ import {
   type Engine,
 } from '@eodia/contracts'
 import { type Settings, testConnection } from '@eodia/drivers'
-import { type CatalogDefinition, catalogNameFor } from '@eodia/engine'
+import { type CatalogDefinition, catalogNameFor, connectorOf } from '@eodia/engine'
 import { audit } from '../audit'
 import type { Actor, Core } from '../context'
 import { decrypt, encrypt } from '../crypto'
@@ -149,6 +149,18 @@ export function catalogDefinition(row: Pick<DatasourceRow, 'catalog' | 'engine' 
   }
 }
 
+/** Trino's refusal of a catalog, saying what to fix when its message tells. */
+function catalogRefused(def: CatalogDefinition, err: unknown): AppError {
+  const reason = err instanceof Error ? err.message : String(err)
+  const unused = /Configuration property '([^']+)' was not used/.exec(reason)?.[1]
+  if (unused) {
+    return new AppError('CONNECTION_FAILED', `Le connecteur « ${connectorOf(def)} » ne connaît pas la propriété « ${unused} » : vérifiez le connecteur, ou retirez-la.`)
+  }
+  const missing = /Invalid configuration property ([\w.-]+): must not be null/.exec(reason)?.[1]
+  if (missing) return new AppError('CONNECTION_FAILED', `Le connecteur « ${connectorOf(def)} » exige la propriété « ${missing} ».`)
+  return new AppError('CONNECTION_FAILED', `Trino refuse le catalogue : ${reason}`)
+}
+
 /** Tests the connection with the native driver (and, through Trino, the catalog). */
 export async function testDatasource(core: Core, actor: Actor, input: DatasourceInput, existingId?: string) {
   let settings: Settings = { ...input.config }
@@ -176,10 +188,11 @@ export async function createDatasource(core: Core, actor: Actor, input: Datasour
   const options: DatasourceOptions = { native_sql: true, ...(input.options ?? {}) }
 
   // The catalog first: a source Trino cannot open is not saved.
+  const def = catalogDefinition({ catalog, engine: input.engine, options }, { ...plain, ...secrets })
   try {
-    await core.engine.putCatalog(catalogDefinition({ catalog, engine: input.engine, options }, { ...plain, ...secrets }))
+    await core.engine.putCatalog(def)
   } catch (err) {
-    throw new AppError('CONNECTION_FAILED', `Trino refuse le catalogue : ${err instanceof Error ? err.message : String(err)}`)
+    throw catalogRefused(def, err)
   }
 
   const id = await core.db.tx(async (c) => {
@@ -286,10 +299,13 @@ export async function updateDatasource(core: Core, actor: Actor, id: string, inp
   const native = await testConnection(input.engine, settings)
   if (!native.ok) throw new AppError('CONNECTION_FAILED', `Connexion impossible : ${native.error}`)
   const options: DatasourceOptions = { ...row.options, ...(input.options ?? {}) }
+  const def = catalogDefinition({ catalog: row.catalog, engine: row.engine, options }, settings)
   try {
-    await core.engine.putCatalog(catalogDefinition({ catalog: row.catalog, engine: row.engine, options }, settings))
+    await core.engine.putCatalog(def)
   } catch (err) {
-    throw new AppError('CONNECTION_FAILED', `Trino refuse le catalogue : ${err instanceof Error ? err.message : String(err)}`)
+    // `putCatalog` dropped the catalog before Trino refused the new one: the saved one comes back.
+    await core.engine.putCatalog(catalogDefinition(row, saved)).catch(() => undefined)
+    throw catalogRefused(def, err)
   }
   await core.db.exec(
     `UPDATE datasource SET name = $2, description = $3, config = $4, secret = $5, secret_keys = $6, options = $7,

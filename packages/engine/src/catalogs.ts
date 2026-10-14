@@ -4,7 +4,7 @@
  * l'application est la source de vérité, garde les secrets chiffrés, et recrée les catalogues
  * à chaque démarrage du coordinateur.
  */
-import { ENGINE_SPECS, type Engine } from '@eodia/contracts'
+import { CATALOG_NAME_RE, ENGINE_SPECS, type Engine } from '@eodia/contracts'
 import { quoteTrinoIdent, quoteTrinoString } from './trino'
 
 export interface CatalogDefinition {
@@ -126,11 +126,9 @@ export function connectorOf(def: CatalogDefinition): string {
   return ENGINE_SPECS[def.engine].connector
 }
 
-const CATALOG_NAME = /^[a-z][a-z0-9_]{0,62}$/
-
 /** The statement creating the catalog. Every value is a quoted literal. */
 export function createCatalogSql(def: CatalogDefinition): string {
-  if (!CATALOG_NAME.test(def.catalog)) throw new Error(`Nom de catalogue invalide : ${def.catalog}`)
+  if (!CATALOG_NAME_RE.test(def.catalog)) throw new Error(`Nom de catalogue invalide : ${def.catalog}`)
   const connector = connectorOf(def)
   if (!/^[a-z][a-z0-9_]*$/.test(connector)) throw new Error(`Connecteur invalide : ${connector}`)
   const props = { ...catalogProperties(def), ...(def.extra ?? {}) }

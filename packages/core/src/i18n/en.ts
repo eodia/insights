@@ -105,6 +105,8 @@ export default {
   "La requête a dépassé {1} s.": "The query exceeded {1} s.",
   "Le catalogue « {1} » existe déjà.": "The catalog “{1}” already exists.",
   "Le champ « {1} » est obligatoire.": "The field “{1}” is required.",
+  "Le connecteur « {1} » exige la propriété « {2} ».": "The “{1}” connector requires the property “{2}”.",
+  "Le connecteur « {1} » ne connaît pas la propriété « {2} » : vérifiez le connecteur, ou retirez-la.": "The “{1}” connector does not know the property “{2}”: check the connector, or remove it.",
   "Le copilot n'est pas configuré sur cette instance (clé de fournisseur absente).": "The copilot is not configured on this instance (no provider key).",
   "Le fournisseur a refusé le code ({1}).": "The provider rejected the code ({1}).",
   "Le fournisseur n'a pas renvoyé de jeton d'identité.": "The provider did not return an ID token.",

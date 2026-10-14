@@ -105,6 +105,8 @@ export default {
   "La requête a dépassé {1} s.": "La consulta superó {1} s.",
   "Le catalogue « {1} » existe déjà.": "El catálogo «{1}» ya existe.",
   "Le champ « {1} » est obligatoire.": "El campo «{1}» es obligatorio.",
+  "Le connecteur « {1} » exige la propriété « {2} ».": "El conector «{1}» exige la propiedad «{2}».",
+  "Le connecteur « {1} » ne connaît pas la propriété « {2} » : vérifiez le connecteur, ou retirez-la.": "El conector «{1}» no conoce la propiedad «{2}»: compruebe el conector o quítela.",
   "Le copilot n'est pas configuré sur cette instance (clé de fournisseur absente).": "El copiloto no está configurado en esta instancia (falta la clave del proveedor).",
   "Le fournisseur a refusé le code ({1}).": "El proveedor rechazó el código ({1}).",
   "Le fournisseur n'a pas renvoyé de jeton d'identité.": "El proveedor no devolvió un token de identidad.",

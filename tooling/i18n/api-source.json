@@ -101,6 +101,8 @@
   "La requête a dépassé {1} s.": "packages/core/src/query/run.ts",
   "Le catalogue « {1} » existe déjà.": "packages/core/src/sources/datasources.ts",
   "Le champ « {1} » est obligatoire.": "packages/core/src/sources/datasources.ts",
+  "Le connecteur « {1} » exige la propriété « {2} ».": "packages/core/src/sources/datasources.ts",
+  "Le connecteur « {1} » ne connaît pas la propriété « {2} » : vérifiez le connecteur, ou retirez-la.": "packages/core/src/sources/datasources.ts",
   "Le copilot n'est pas configuré sur cette instance (clé de fournisseur absente).": "packages/core/src/ai/copilot.ts",
   "Le fournisseur a refusé le code ({1}).": "packages/core/src/auth/oidc.ts",
   "Le fournisseur n'a pas renvoyé de jeton d'identité.": "packages/core/src/auth/oidc.ts",

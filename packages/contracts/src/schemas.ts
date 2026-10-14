@@ -15,7 +15,7 @@ import {
   TEMPORAL_UNITS,
   VISUALIZATIONS,
 } from './analytics'
-import { ENGINES } from './domain'
+import { CATALOG_NAME_RE, ENGINES } from './domain'
 import { DATE_STYLES, LOOK_COLORS, NUMBER_STYLES, SEMANTIC_TYPES, VISIBILITIES } from './metadata'
 import { COLUMN_ACCESS, DATA_ACCESS, FOLDER_ACCESS, QUERY_LEVELS, ROW_OPS } from './permissions'
 
@@ -222,7 +222,7 @@ export const DatasourceInputSchema = z.object({
   engine: z.enum(ENGINES),
   catalog: z
     .string()
-    .regex(/^[a-z][a-z0-9_]{0,62}$/, 'minuscules, chiffres et _ ; commence par une lettre')
+    .regex(CATALOG_NAME_RE, 'minuscules, chiffres, _ et - ; commence par une lettre')
     .optional(),
   description: z.string().max(2000).nullable().optional(),
   config: z.record(z.string(), z.union([z.string().max(4000), z.number(), z.boolean()])),

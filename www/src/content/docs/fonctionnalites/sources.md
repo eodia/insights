@@ -25,6 +25,13 @@ l’utilisateur. Le moteur **Connecteur Trino** ouvre tout connecteur que votre 
 `tpch`, `iceberg`, `hive`, `clickhouse`… — avec ses propriétés, une par ligne, comme dans un
 fichier de catalogue.
 
+Ce moteur ne se branche pas sur un Trino existant : il recrée le catalogue dans le Trino
+d’eodia insights, qui seul applique les permissions. Pour reprendre un catalogue d’un autre
+Trino, recopiez son fichier `etc/catalog/<nom>.properties` : `connector.name` dans
+**Connecteur**, le reste dans **Propriétés**. Des modèles (Iceberg avec un metastore Hive, un
+catalogue REST ou Glue, Hive, Delta Lake, ClickHouse) donnent les clés usuelles ; une valeur
+laissée vide est ignorée.
+
 Les champs secrets (mots de passe, chaîne de connexion MongoDB, propriétés d’un connecteur Trino)
 sont **chiffrés** en AES-256-GCM avec la clé de l’instance, et jamais renvoyés au navigateur :
 laissés vides dans le formulaire de modification, ils gardent leur valeur.
@@ -40,7 +47,8 @@ laissés vides dans le formulaire de modification, ils gardent leur valeur.
    que Trino refuse d’ouvrir n’est pas enregistrée.
 
 Le **nom du catalogue** se déduit du nom de la source (`Ventes Europe` → `ventes_europe`) :
-minuscules, chiffres et `_`, en commençant par une lettre. Il ne change plus ensuite, puisque le
+minuscules, chiffres, `_` et `-`, en commençant par une lettre ; un nom à tiret se cite entre
+guillemets en SQL (`"iceberg-raw".schéma.table`). Il ne change plus ensuite, puisque le
 SQL le cite.
 
 À sa création, une source est lisible par le groupe **Tous les utilisateurs**, qui peut y écrire

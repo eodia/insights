@@ -1,6 +1,6 @@
 'use client'
 
-import type { Datasource, DatasourceInput, EngineField, EngineSpec } from '@eodia/contracts'
+import { CATALOG_NAME_RE, type Datasource, type DatasourceInput, type EngineField, type EngineSpec } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,8 +22,6 @@ interface TestResult {
   readonly error?: string
   readonly ms: number
 }
-
-const CATALOG_RE = /^[a-z][a-z0-9_]{0,62}$/
 
 /**
  * The French of `ENGINE_SPECS` (`@eodia/contracts`) — labels, help and example values of the
@@ -48,7 +46,10 @@ export const ENGINE_SPEC_TEXT = [
   msg('mongodb://utilisateur:motdepasse@hote:27017/'),
   msg('Connecteur'),
   msg('Propriétés'),
-  msg('Une propriété par ligne, au format clé=valeur, comme dans un fichier de catalogue.'),
+  msg('La valeur de connector.name dans le fichier du catalogue.'),
+  msg('Une propriété par ligne, au format clé=valeur : le fichier du catalogue, sans connector.name. Une valeur laissée vide est ignorée.'),
+  msg('Iceberg · metastore Hive'),
+  msg('Iceberg · catalogue REST'),
 ] as const
 
 /** What a name becomes as a Trino catalog: `Support client` → `support_client`. */
@@ -92,6 +93,7 @@ function Field({ field, value, onChange, secretSet }: { field: EngineField; valu
       </div>
     )
   }
+  const listId = `${id}-suggestions`
   const placeholder = field.secret && secretSet ? $t('••••• (inchangé)') : field.placeholder ? $t(field.placeholder) : undefined
   return (
     <div className={cn('space-y-1.5', field.type === 'textarea' && 'sm:col-span-2', field.key === 'connection_url' && 'sm:col-span-2')}>
@@ -100,7 +102,15 @@ function Field({ field, value, onChange, secretSet }: { field: EngineField; valu
         {required ? <span className="text-destructive">*</span> : null}
       </Label>
       {field.type === 'textarea' ? (
-        <Textarea id={id} value={String(value)} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={4} className="font-mono text-xs" />
+        <Textarea
+          id={id}
+          value={String(value)}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={Math.min(14, Math.max(4, String(value).split('\n').length + 1))}
+          spellCheck={false}
+          className="font-mono text-xs"
+        />
       ) : (
         <Input
           id={id}
@@ -109,9 +119,17 @@ function Field({ field, value, onChange, secretSet }: { field: EngineField; valu
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete={field.type === 'password' ? 'new-password' : 'off'}
-          className={cn(field.key === 'connection_url' && 'font-mono text-xs')}
+          list={field.suggestions ? listId : undefined}
+          className={cn((field.key === 'connection_url' || field.suggestions) && 'font-mono text-xs')}
         />
       )}
+      {field.suggestions ? (
+        <datalist id={listId}>
+          {field.suggestions.map((v) => (
+            <option key={v} value={v} />
+          ))}
+        </datalist>
+      ) : null}
       {field.help ? <p className="text-xs text-muted-foreground">{$t(field.help)}</p> : null}
       {field.secret && secretSet ? <p className="text-xs text-muted-foreground">{$t('Laissez vide pour conserver la valeur enregistrée.')}</p> : null}
     </div>
@@ -154,7 +172,7 @@ export function SourceForm({
   const catId = useId()
   const ttlId = useId()
 
-  const catalogError = catalog && !CATALOG_RE.test(catalog) ? $t('Minuscules, chiffres et _ ; commence par une lettre.') : null
+  const catalogError = catalog && !CATALOG_NAME_RE.test(catalog) ? $t('Minuscules, chiffres, _ et - ; commence par une lettre.') : null
   const missing = spec.fields.filter((f) => f.required && !(f.secret && source?.secrets.includes(f.key)) && (config[f.key] === '' || config[f.key] === undefined))
   const ttlInvalid = cacheTtl !== '' && !(Number.isInteger(Number(cacheTtl)) && Number(cacheTtl) >= 0)
   const valid = name.trim() !== '' && missing.length === 0 && !catalogError && !ttlInvalid
@@ -254,6 +272,29 @@ export function SourceForm({
       {/* Connexion */}
       <div className="space-y-3">
         <SectionTitle>{$t('Connexion {engine}', { engine: $t(spec.label) })}</SectionTitle>
+        {spec.templates?.length ? (
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">{$t('Partir d’un modèle :')}</span>
+              {spec.templates.map((tpl) => (
+                <Button
+                  key={tpl.label}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2.5 text-xs"
+                  onClick={() => {
+                    setConfig((c) => ({ ...c, ...tpl.values }))
+                    setTest(null)
+                  }}
+                >
+                  {$t(tpl.label)}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{$t('Remplacez ensuite les valeurs d’exemple par celles de votre catalogue.')}</p>
+          </div>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
           {spec.fields.map((f) => (
             <Field
