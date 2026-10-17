@@ -21,8 +21,10 @@ peut joindre plusieurs sources. Ajouter, modifier ou supprimer une source demand
 | **Apache Iceberg** | `iceberg` | metastore Hive, catalogue REST ou Glue ; stockage S3 (endpoint, région, clés) | non |
 | **Connecteur Trino (avancé)** | celui que vous nommez | nom du connecteur et propriétés `clé=valeur` | non |
 
-Sans base précisée, une source MySQL expose comme schémas toutes les bases visibles par
-l’utilisateur. Le moteur **Connecteur Trino** ouvre tout connecteur que votre Trino connaît —
+Une source MySQL expose ses bases comme des schémas : celles que nomme le champ **Base de
+données**, séparées par des virgules (`ventes, crm`), ou, vide, toutes celles que l’utilisateur
+voit. Les autres bases ne sont ni synchronisées ni lisibles, pas même par un administrateur, et
+le SQL natif, qui les atteindrait, est alors indisponible. Le moteur **Connecteur Trino** ouvre tout connecteur que votre Trino connaît —
 `tpch`, `iceberg`, `hive`, `clickhouse`… — avec ses propriétés, une par ligne, comme dans un
 fichier de catalogue.
 

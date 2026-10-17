@@ -115,6 +115,7 @@ export default {
   "Le mot de passe doit faire au moins 10 caractères.": "La contraseña debe tener al menos 10 caracteres.",
   "Le moteur d'une source ne change pas : créez-en une autre.": "El motor de una fuente no se puede cambiar: crea otra.",
   "Le nom du groupe est obligatoire.": "El nombre del grupo es obligatorio.",
+  "Le SQL natif est indisponible sur une source limitée à certaines bases.": "El SQL nativo no está disponible en una fuente limitada a ciertas bases.",
   "Le SQL natif est réservé aux personnes sans restriction de ligne ni de colonne sur cette source.": "El SQL nativo está reservado a personas sin restricciones de filas ni de columnas en esta fuente.",
   "Les administrateurs lisent toujours tout.": "Los administradores siempre pueden leerlo todo.",
   "Les filtres auxquels la carte est reliée sont lus dans le tableau de bord lui-même.": "Los filtros a los que está vinculada la tarjeta se leen en el propio panel.",

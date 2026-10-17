@@ -5,7 +5,7 @@
  *
  * Chaque pilote est importé à la demande : une instance sans Oracle ne charge pas oracledb.
  */
-import type { Engine } from '@eodia/contracts'
+import { type Engine, sourceSchemas } from '@eodia/contracts'
 
 export type Settings = Readonly<Record<string, string | number | boolean | undefined>>
 
@@ -151,7 +151,7 @@ async function mysqlConn(st: Settings) {
     port: n(st.port, 3306),
     user: s(st.user),
     password: s(st.password),
-    ...(s(st.database) ? { database: s(st.database) } : {}),
+    // « Base de données » lists the databases the source keeps to, not one to connect to.
     connectTimeout: TIMEOUT_MS,
     ...(b(st.ssl) ? { ssl: { rejectUnauthorized: false } } : {}),
   })
@@ -372,6 +372,13 @@ export function testConnection(engine: Engine, st: Settings): Promise<TestResult
         const c = await mysqlConn(st)
         try {
           const [rows] = await c.query('SELECT VERSION() AS v')
+          const wanted = sourceSchemas('mysql', st)
+          if (wanted) {
+            const [found] = await c.query('SELECT LOWER(SCHEMA_NAME) AS n FROM information_schema.SCHEMATA')
+            const known = new Set((found as { n: string }[]).map((r) => r.n))
+            const missing = [...wanted].filter((d) => !known.has(d))
+            if (missing.length) throw new Error(`base introuvable ou invisible pour cet utilisateur : ${missing.join(', ')}`)
+          }
           return `MySQL ${s((rows as { v: string }[])[0]?.v)}`
         } finally {
           await c.end()

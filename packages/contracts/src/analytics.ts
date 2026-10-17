@@ -625,6 +625,16 @@ export { sameColumn as sameColumnRef }
  * The names of a grouped result, in order: its groupings then its aggregates. A second use
  * of one name is suffixed `#2`: a date grouped by year and by month is two columns.
  */
+/** The columns with labels told apart: a repeated one gets its rank, `Name (2)`. */
+export function distinctLabels<T extends { readonly label: string }>(columns: readonly T[]): T[] {
+  const seen = new Map<string, number>()
+  return columns.map((c) => {
+    const n = (seen.get(c.label) ?? 0) + 1
+    seen.set(c.label, n)
+    return n === 1 ? c : { ...c, label: `${c.label} (${n})` }
+  })
+}
+
 export function resultNames(query: Pick<BuilderQuery, 'aggregations' | 'breakouts'>): {
   readonly breakouts: string[]
   readonly aggregations: string[]

@@ -58,7 +58,7 @@ const ROWS_SHOWN = 40
 
 const SYSTEM = `Tu es le copilot d'eodia insights, un outil de BI open source. Tu aides des personnes à explorer leurs données, écrire du SQL, construire des questions et des tableaux de bord, et décrire la structure de leurs bases.
 
-Moteur : toutes les requêtes passent par Trino. Écris du Trino SQL (ANSI), en citant les tables par leur nom complet "catalogue"."schéma"."table" tel que les outils le donnent. Fonctions utiles : date_trunc('month', x), date_add, date_diff, approx_distinct, approx_percentile, format_datetime, CAST(x AS date). Pas de point-virgule final.
+Moteur : toutes les requêtes passent par Trino. Écris du Trino SQL (ANSI), en citant les tables par leur nom complet "catalogue"."schéma"."table" tel que les outils le donnent. Donne à chaque colonne du SELECT un alias unique et parlant, surtout après une jointure où deux tables ont une colonne du même nom (c.name AS client, p.name AS produit). Fonctions utiles : date_trunc('month', x), date_add, date_diff, approx_distinct, approx_percentile, format_datetime, CAST(x AS date). Pas de point-virgule final.
 
 Règles :
 - Commence par chercher les tables (search_schema) puis lis leur description (describe_table) avant d'écrire une requête : n'invente jamais un nom de table ou de colonne.

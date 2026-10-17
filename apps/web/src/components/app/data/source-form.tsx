@@ -1,6 +1,6 @@
 'use client'
 
-import { CATALOG_NAME_RE, type Datasource, type DatasourceInput, type EngineField, type EngineSpec, fieldApplies } from '@eodia/contracts'
+import { CATALOG_NAME_RE, type Datasource, type DatasourceInput, type EngineField, type EngineSpec, fieldApplies, sourceSchemas } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,7 +35,8 @@ export const ENGINE_SPEC_TEXT = [
   msg('Utilisateur'),
   msg('Mot de passe'),
   msg('Base de données'),
-  msg('Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.'),
+  msg('Seules ces bases sont exposées, séparées par des virgules ; vide, toutes celles que l’utilisateur voit.'),
+  msg('ventes, crm'),
   msg('Chiffrer la connexion'),
   msg('Faire confiance au certificat du serveur'),
   msg('Nom de service'),
@@ -211,6 +212,8 @@ export function SourceForm({
 
   const catalogError = catalog && !CATALOG_NAME_RE.test(catalog) ? $t('Minuscules, chiffres, _ et - ; commence par une lettre.') : null
   const fields = spec.fields.filter((f) => fieldApplies(f, config))
+  // Kept to some databases, the source cannot take native SQL: it would reach the others.
+  const native = spec.nativeQuery && sourceSchemas(spec.engine, config) === null
   const missing = fields.filter((f) => f.required && !(f.secret && source?.secrets.includes(f.key)) && (config[f.key] === '' || config[f.key] === undefined))
   const ttlInvalid = cacheTtl !== '' && !(Number.isInteger(Number(cacheTtl)) && Number(cacheTtl) >= 0)
   const valid = name.trim() !== '' && missing.length === 0 && !catalogError && !ttlInvalid
@@ -232,7 +235,7 @@ export function SourceForm({
       description: description.trim() || null,
       config: cfg,
       options: {
-        native_sql: spec.nativeQuery && nativeSql,
+        native_sql: native && nativeSql,
         cache_ttl: cacheTtl === '' ? null : Number(cacheTtl),
         trino_properties: trino,
       },
@@ -382,12 +385,14 @@ export function SourceForm({
             <div className="min-w-0">
               <div className="text-sm font-medium">{$t('Autoriser le SQL natif')}</div>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {spec.nativeQuery
+                {native
                   ? $t('Les personnes autorisées peuvent écrire des requêtes dans le dialecte de la base, transmises telles quelles.')
-                  : $t('Ce moteur n’accepte pas de requête native : seul le SQL Trino est possible.')}
+                  : spec.nativeQuery
+                    ? $t('Indisponible quand la source se limite à certaines bases : une requête native atteindrait les autres.')
+                    : $t('Ce moteur n’accepte pas de requête native : seul le SQL Trino est possible.')}
               </p>
             </div>
-            <Switch checked={spec.nativeQuery && nativeSql} onCheckedChange={setNativeSql} disabled={!spec.nativeQuery} aria-label={$t('Autoriser le SQL natif')} />
+            <Switch checked={native && nativeSql} onCheckedChange={setNativeSql} disabled={!native} aria-label={$t('Autoriser le SQL natif')} />
           </div>
         </div>
 

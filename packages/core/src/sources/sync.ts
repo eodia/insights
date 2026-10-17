@@ -6,7 +6,7 @@
  * 2. empreinte — cardinalité, nulls, min/max sur un échantillon ; pré-devine le type sémantique ;
  * 3. valeurs — les valeurs distinctes des colonnes catégorielles.
  */
-import { type Fingerprint, type SemanticType, type SyncReport, kindOfTrinoType } from '@eodia/contracts'
+import { type Fingerprint, type SemanticType, type SyncReport, kindOfTrinoType, sourceSchemas } from '@eodia/contracts'
 import { humanize } from '@eodia/compiler'
 import { SYSTEM_SCHEMAS, introspect, type NativeIntrospection } from '@eodia/drivers'
 import { quoteTrinoIdent as q, quoteTrinoString } from '@eodia/engine'
@@ -25,6 +25,7 @@ interface DsRow {
   id: string
   catalog: string
   engine: Parameters<typeof introspect>[0]
+  config: Record<string, unknown>
   options: { excluded_schemas?: string[] }
 }
 
@@ -33,7 +34,7 @@ const lower = (s: string) => s.toLowerCase()
 export const syncJob: JobHandler = async (core, payload, progress) => {
   const id = String(payload.datasource)
   const passes = (payload.passes as string[] | undefined) ?? ['schema', 'fingerprint', 'values']
-  const ds = await core.db.one<DsRow>('SELECT id, catalog, engine, options FROM datasource WHERE id = $1', [id])
+  const ds = await core.db.one<DsRow>('SELECT id, catalog, engine, config, options FROM datasource WHERE id = $1', [id])
   if (!ds) return null
   await core.db.exec(`UPDATE datasource SET sync_status = 'running', sync_error = NULL WHERE id = $1`, [id])
   const report: SyncReport = {
@@ -63,6 +64,7 @@ export const syncJob: JobHandler = async (core, payload, progress) => {
 async function schemaPass(core: Core, ds: DsRow, progress: Progress): Promise<Partial<SyncReport>> {
   await progress('Lecture du schéma dans Trino', 0, 3)
   const excluded = new Set([...SYSTEM_SCHEMAS[ds.engine], ...(ds.options?.excluded_schemas ?? [])].map(lower))
+  const only = sourceSchemas(ds.engine, ds.config ?? {})
   const cols = await core.engine.run(
     `SELECT table_schema, table_name, column_name, ordinal_position, data_type, is_nullable
      FROM ${q(ds.catalog)}.information_schema.columns WHERE table_schema <> 'information_schema'`,
@@ -77,7 +79,7 @@ async function schemaPass(core: Core, ds: DsRow, progress: Progress): Promise<Pa
       type: String(r[4]),
       nullable: r[5] !== 'NO',
     }))
-    .filter((c) => !excluded.has(lower(c.schema)))
+    .filter((c) => !excluded.has(lower(c.schema)) && (!only || only.has(lower(c.schema))))
 
   await progress('Clés, commentaires et volumes (pilote natif)', 1, 3)
   let native: NativeIntrospection = { tables: [], columns: [], foreignKeys: [] }

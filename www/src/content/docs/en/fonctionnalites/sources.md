@@ -21,8 +21,10 @@ can join several sources. Adding, editing or deleting a source requires the
 | **Apache Iceberg** | `iceberg` | Hive metastore, REST catalog or Glue; S3 storage (endpoint, region, keys) | no |
 | **Trino connector (advanced)** | the one you name | connector name and `key=value` properties | no |
 
-When no database is specified, a MySQL source exposes every database visible to the user as a
-schema. The **Trino connector** engine opens any connector your Trino knows —
+A MySQL source exposes its databases as schemas: those named in the **Database** field,
+separated by commas (`sales, crm`), or, when empty, all those the user can see. The other
+databases are neither synchronized nor readable, not even by an administrator, and native SQL,
+which would reach them, is then unavailable. The **Trino connector** engine opens any connector your Trino knows —
 `tpch`, `iceberg`, `hive`, `clickhouse`… — with its properties, one per line, as in a
 catalog file.
 

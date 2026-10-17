@@ -112,6 +112,7 @@
   "Le mot de passe doit faire au moins 10 caractères.": "packages/core/src/auth/users.ts",
   "Le moteur d'une source ne change pas : créez-en une autre.": "packages/core/src/sources/datasources.ts",
   "Le nom du groupe est obligatoire.": "packages/core/src/admin/permissions.ts",
+  "Le SQL natif est indisponible sur une source limitée à certaines bases.": "packages/core/src/query/run.ts",
   "Le SQL natif est réservé aux personnes sans restriction de ligne ni de colonne sur cette source.": "packages/core/src/query/run.ts",
   "Les administrateurs lisent toujours tout.": "packages/core/src/admin/permissions.ts",
   "Les filtres auxquels la carte est reliée sont lus dans le tableau de bord lui-même.": "apps/api/src/routes/content.ts",

@@ -20,7 +20,7 @@ const table: SnapTable = {
 const in_ = (user: string, space = 'w1') => `${user}@${space}`
 
 /** The source `ds` belongs to `w1`; `shared` adds the spaces it is shared with. */
-const source = (shared: string[] = []): SnapDatasource => ({ id: 'ds', catalog: 'boutique', engine: 'postgresql', nativeSql: true, workspace: 'w1', workspaces: new Set(['w1', ...shared]) })
+const source = (shared: string[] = []): SnapDatasource => ({ id: 'ds', catalog: 'boutique', engine: 'postgresql', nativeSql: true, schemas: null, workspace: 'w1', workspaces: new Set(['w1', ...shared]) })
 
 function snapshot(over: Partial<Snapshot> = {}): Snapshot {
   const ds = over.datasources?.get('ds') ?? source()
@@ -114,6 +114,28 @@ describe('decide', () => {
     expect(queryLevel(snap, in_('anna'), 'ds')).toBe('sql')
     expect(nativeAllowed(snap, in_('anna'), 'ds')).toBe(false)
     expect(nativeAllowed(snap, in_('bob'), 'ds')).toBe(true)
+  })
+})
+
+describe('a source kept to some schemas', () => {
+  // A MySQL source whose « Base de données » is `public`: the other databases are no one's.
+  const kept: SnapDatasource = { ...source(), engine: 'mysql', schemas: new Set(['public']) }
+  const snap = snapshot({ datasources: new Map([['ds', kept]]), byCatalog: new Map([['boutique', kept]]) })
+  const opa = new OpaDecider(snap, 'eodia-service')
+  const ctx = (user: string) => ({ identity: { user } })
+
+  it('lets no one, admins included, read another schema', () => {
+    expect(tableAccess(snap, in_('admin'), 'ds', 'public', 't-clients').access).toBe('read')
+    expect(tableAccess(snap, in_('admin'), 'ds', 'Autre', null).access).toBe('none')
+    expect(tableAccess(snap, in_('bob'), 'ds', 'autre', null).access).toBe('none')
+    const schemas = { operation: 'FilterSchemas', filterResources: [{ schema: { catalogName: 'boutique', schemaName: 'public' } }, { schema: { catalogName: 'boutique', schemaName: 'autre' } }] }
+    expect(opa.batch({ context: ctx(in_('admin')), action: schemas })).toEqual([0])
+    expect(opa.allow({ context: ctx(in_('bob')), action: { operation: 'SelectFromColumns', resource: { table: { catalogName: 'boutique', schemaName: 'autre', tableName: 't', columns: ['a'] } } } })).toBe(false)
+  })
+
+  it('refuses native SQL, which would reach the other databases', () => {
+    expect(nativeAllowed(snap, in_('admin'), 'ds')).toBe(false)
+    expect(nativeAllowed(snap, in_('bob'), 'ds')).toBe(false)
   })
 })
 

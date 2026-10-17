@@ -58,6 +58,20 @@ export interface EngineField {
   readonly when?: { readonly key: string; readonly is: readonly string[] }
 }
 
+/**
+ * The schemas a source keeps to, lower-cased; null: all those Trino sees. MySQL calls its
+ * schemas databases, and Trino refuses one in the connection URL: the source's « Base de
+ * données » is enforced here instead, by the synchronisation and the access decisions.
+ */
+export function sourceSchemas(engine: Engine, config: Readonly<Record<string, unknown>>): ReadonlySet<string> | null {
+  if (engine !== 'mysql') return null
+  const names = String(config.database ?? '')
+    .split(',')
+    .map((n) => n.trim().toLowerCase())
+    .filter(Boolean)
+  return names.length ? new Set(names) : null
+}
+
 /** Whether a field applies to these settings (its `when`); one that does not is ignored. */
 export function fieldApplies(field: EngineField, settings: Readonly<Record<string, unknown>>): boolean {
   if (!field.when) return true
@@ -218,7 +232,8 @@ export const ENGINE_SPECS: Readonly<Record<Engine, EngineSpec>> = {
         key: 'database',
         label: 'Base de données',
         type: 'text',
-        help: 'Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.',
+        placeholder: 'ventes, crm',
+        help: 'Seules ces bases sont exposées, séparées par des virgules ; vide, toutes celles que l’utilisateur voit.',
       },
       ...credentials,
       { key: 'ssl', label: 'SSL', type: 'boolean', default: false },

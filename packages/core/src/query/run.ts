@@ -12,6 +12,7 @@ import {
   type SourceRef,
   applyConstraints,
   cardConstraints,
+  distinctLabels,
   kindOfTrinoType,
 } from '@eodia/contracts'
 import {
@@ -194,6 +195,7 @@ async function compileQuery(
     if (query.kind === 'native') {
       const ds = snap.datasources.get(query.datasource)
       if (!ds) throw new AppError('NOT_FOUND', 'Source introuvable.')
+      if (ds.schemas) throw new AppError('DATA_ACCESS_DENIED', 'Le SQL natif est indisponible sur une source limitée à certaines bases.')
       if (!nativeAllowed(snap, principalOf(actor), ds.id)) {
         throw new AppError('DATA_ACCESS_DENIED', 'Le SQL natif est réservé aux personnes sans restriction de ligne ni de colonne sur cette source.')
       }
@@ -227,7 +229,8 @@ function normalize(value: unknown, kind: string): unknown {
 
 function sqlColumns(columns: readonly { name: string; dataType: string }[]): ResultColumn[] {
   const seen = new Map<string, number>()
-  return columns.map((c) => {
+  // Trino does not say which table a column comes from: `a.name, b.name` read « Name », « Name (2) ».
+  return distinctLabels(columns.map((c) => {
     const n = (seen.get(c.name) ?? 0) + 1
     seen.set(c.name, n)
     const kind = kindOfTrinoType(c.dataType)
@@ -237,7 +240,7 @@ function sqlColumns(columns: readonly { name: string; dataType: string }[]): Res
       role: 'field' as const,
       type: kind === 'other' ? 'text' : kind,
     }
-  })
+  }))
 }
 
 // ── Exécution ───────────────────────────────────────────────────────────────

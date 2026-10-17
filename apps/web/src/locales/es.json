@@ -918,7 +918,6 @@
   "Océan": "Océano",
   "Ombre": "Sombra",
   "Onglet": "Pestaña",
-  "Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.": "Opcional: todas las bases de datos visibles para el usuario se exponen como esquemas.",
   "Opérateur": "Operador",
   "Oracle": "Oracle",
   "Oracle Database, par nom de service.": "Oracle Database, por nombre de servicio.",
@@ -2253,5 +2252,12 @@
   "URI du catalogue REST": "URI del catálogo REST",
   "URI du metastore": "URI del metastore",
   "Vide pour AWS ; sinon l’adresse de MinIO, Ceph, Scality…": "Vacío para AWS; si no, la dirección de MinIO, Ceph, Scality…",
-  "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": "El catálogo se crea en Trino, lo que prueba la conexión, y luego se sincroniza la estructura."
+  "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": "El catálogo se crea en Trino, lo que prueba la conexión, y luego se sincroniza la estructura.",
+  "Indisponible quand la source se limite à certaines bases : une requête native atteindrait les autres.": "No disponible cuando la fuente se limita a ciertas bases: una consulta nativa llegaría a las demás.",
+  "Seules ces bases sont exposées, séparées par des virgules ; vide, toutes celles que l’utilisateur voit.": "Solo se exponen estas bases, separadas por comas; vacío, todas las que ve el usuario.",
+  "ventes, crm": "ventas, crm",
+  "Abandonner le SQL": "Abandonar el SQL",
+  "L’éditeur visuel repart d’une table : la requête SQL de cette question sera abandonnée.": "El editor visual vuelve a partir de una tabla: se abandonará la consulta SQL de esta pregunta.",
+  "Modifier la question": "Modificar la pregunta",
+  "Passer à l’éditeur visuel ?": "¿Pasar al editor visual?"
 }

@@ -339,7 +339,9 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         !(p.column.source && o.ref.field === p.column.source.field && (o.ref.join ?? '') === (p.column.source.join ?? '')),
     )
 
+  const [leavingSql, setLeavingSql] = useState(false)
   const canEdit = !draft.id || draft.access !== 'view'
+  const toBuilder = () => update({ query: { kind: 'builder', source: { kind: 'table', id: tables[0]?.id ?? '' } } })
   const finer = point?.column.unit ? finerUnit(point.column.unit) : null
   const allowSql = !!me?.can.use_sql
   const sqlError: SqlError | null = error && draft.query.kind !== 'builder' ? { message: error.message, ...((error.details as { location?: { line: number; column: number } })?.location ?? {}) } : null
@@ -353,7 +355,11 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         {dirty ? <span className="text-xs text-muted-foreground">{$t('Modifications non enregistrées')}</span> : null}
         <span className="flex-1" />
         <div className="flex rounded-lg border p-0.5">
-          <button type="button" onClick={() => builder || update({ query: { kind: 'builder', source: { kind: 'table', id: tables[0]?.id ?? '' } } })} className={cn('flex h-7 items-center gap-1.5 rounded-md px-2.5 text-sm', builder ? 'bg-muted font-medium' : 'text-muted-foreground')}>
+          <button
+            type="button"
+            // No SQL becomes a visual question: the copilot's or anyone's SQL is not dropped without a word.
+            onClick={() => (builder ? undefined : 'sql' in draft.query && draft.query.sql.trim() ? setLeavingSql(true) : toBuilder())}
+            className={cn('flex h-7 items-center gap-1.5 rounded-md px-2.5 text-sm', builder ? 'bg-muted font-medium' : 'text-muted-foreground')}>
             <Workflow className="size-3.5" /> {$t('Éditeur visuel')}
           </button>
           {allowSql ? (
@@ -691,6 +697,17 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
           await api.delete(`/v1/questions/${draft.id}`)
           await qc.invalidateQueries({ queryKey: ['folder-items'] })
           router.push(draft.dashboard ? `/dashboard/${draft.dashboard.id}` : draft.folder ? `/browse/${draft.folder}` : '/browse')
+        }}
+      />
+      <ConfirmDialog
+        open={leavingSql}
+        onOpenChange={setLeavingSql}
+        title={$t('Passer à l’éditeur visuel ?')}
+        description={$t('L’éditeur visuel repart d’une table : la requête SQL de cette question sera abandonnée.')}
+        confirmLabel={$t('Abandonner le SQL')}
+        onConfirm={() => {
+          toBuilder()
+          setLeavingSql(false)
         }}
       />
     </div>

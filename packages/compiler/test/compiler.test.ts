@@ -88,6 +88,25 @@ describe('compileBuilder', () => {
     expect(columns[6]?.label).toBe('Clients → Ville')
   })
 
+  it('tells apart the columns of two joins of tables with the same label', () => {
+    // The customers of a second source: also « Clients », also a `ville`.
+    const crm = { ...clients, id: 't-crm', catalog: 'crm' }
+    const { columns } = compileBuilder(
+      {
+        kind: 'builder',
+        source: { kind: 'table', id: 't-orders' },
+        joins: [
+          { alias: 'boutique', source: { kind: 'table', id: 't-clients' }, kind: 'left', left: { field: 'client_id' }, right: 'id', explicit: true },
+          { alias: 'crm', source: { kind: 'table', id: 't-crm' }, kind: 'left', left: { field: 'client_id' }, right: 'id', explicit: true },
+        ],
+        breakouts: [{ join: 'boutique', field: 'ville' }, { join: 'crm', field: 'ville' }],
+        aggregations: [{ fn: 'count' }, { fn: 'count' }],
+      },
+      { ...ctx, table: (id) => [orders, clients, crm].find((t) => t.id === id) },
+    )
+    expect(columns.map((c) => c.label)).toEqual(['Clients (boutique) → Ville', 'Clients (crm) → Ville', 'Nombre de lignes', 'Nombre de lignes (2)'])
+  })
+
   it('escapes every value', () => {
     const { sql } = compileBuilder(
       {

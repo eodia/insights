@@ -138,7 +138,13 @@ export async function createQuestion(core: Core, actor: Actor, input: QuestionIn
   )
   const id = row?.id as string
   await audit(core, actor, `${input.type ?? 'question'}.create`, { kind: input.type ?? 'question', id }, { name: input.name, ...(dashboard ? { dashboard: dashboard.id } : {}) })
-  if (dashboard) {
+  const inline = dashboard && input.card ? dashboard.cards.find((c) => c.id === input.card && c.kind === 'question' && !c.question) : undefined
+  if (dashboard && inline) {
+    // The card keeps its place, size, tab and filters; its query and chart now live in the question.
+    const { query: _query, visualization: _viz, title: _title, ...kept } = inline
+    const cards = dashboard.cards.map((c) => (c.id === inline.id ? { ...kept, question: id } : c))
+    await writeCards(core, actor, dashboard.id, cards)
+  } else if (dashboard) {
     // Its card goes below the others, in the tab it was created from.
     const tab = dashboard.tabs.some((t) => t.id === input.tab) ? (input.tab as string) : (dashboard.tabs[0]?.id ?? null)
     const size = cardSize('question', input.visualization.type as Visualization['type'])

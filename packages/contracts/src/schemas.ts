@@ -256,6 +256,8 @@ export const QuestionInputSchema = z.object({
   /** Created in a dashboard: it belongs to it, and a card showing it is added (to `tab`, or the first). `null` moves it to `folder`. */
   dashboard: id.nullable().optional(),
   tab: z.string().max(60).nullable().optional(),
+  /** With `dashboard`: the card keeping its query to itself (the copilot's) that becomes this question, in place. */
+  card: z.string().max(60).optional(),
   query: QuestionQuerySchema,
   visualization: VisualizationSchema,
   columns_meta: z.record(z.string(), z.record(z.string(), z.unknown())).nullable().optional(),

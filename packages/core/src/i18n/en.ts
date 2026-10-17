@@ -115,6 +115,7 @@ export default {
   "Le mot de passe doit faire au moins 10 caractères.": "The password must be at least 10 characters long.",
   "Le moteur d'une source ne change pas : créez-en une autre.": "A source's engine cannot change: create another one.",
   "Le nom du groupe est obligatoire.": "The group name is required.",
+  "Le SQL natif est indisponible sur une source limitée à certaines bases.": "Native SQL is unavailable on a source kept to some databases.",
   "Le SQL natif est réservé aux personnes sans restriction de ligne ni de colonne sur cette source.": "Native SQL is reserved for people without row or column restrictions on this source.",
   "Les administrateurs lisent toujours tout.": "Administrators can always read everything.",
   "Les filtres auxquels la carte est reliée sont lus dans le tableau de bord lui-même.": "The filters the card is linked to are read from the dashboard itself.",

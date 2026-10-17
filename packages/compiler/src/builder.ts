@@ -18,6 +18,7 @@ import {
   type TemporalUnit,
   addDays,
   columnName,
+  distinctLabels,
   kindOfTrinoType,
   resolveDateExpression,
   resultNames,
@@ -224,7 +225,10 @@ class Compilation {
     const own = r.info.label ?? humanize(r.info.name)
     if (!r.join) return own
     const rel = this.joins.get(r.join)
-    return `${rel?.label ?? r.join} → ${own}`
+    if (!rel) return `${r.join} → ${own}`
+    // Two joins of tables with the same label (a `clients` in each of two sources) say their alias.
+    const twin = [...this.joins.entries()].some(([alias, other]) => alias !== r.join && other.label === rel.label)
+    return `${twin ? `${rel.label} (${r.join})` : rel.label} → ${own}`
   }
 
   fromClause(): string {
@@ -525,7 +529,7 @@ class Compilation {
     if (sort.length > 0) lines.push(`ORDER BY ${sort.join(', ')}`)
     else if (breakouts.length > 0) lines.push(`ORDER BY ${breakouts.map((_, i) => i + 1).join(', ')}`)
     if (q.limit !== undefined && q.limit !== null) lines.push(`LIMIT ${numberLiteral(Math.floor(q.limit))}`)
-    return { sql: lines.join('\n'), columns }
+    return { sql: lines.join('\n'), columns: distinctLabels(columns) }
   }
 
   orderBy(sort: readonly OrderBy[], names: ReturnType<typeof resultNames>, grouped: boolean): string[] {

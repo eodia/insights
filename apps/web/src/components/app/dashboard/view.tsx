@@ -66,6 +66,7 @@ import {
   ListFilter,
   Loader2,
   Maximize2,
+  Pencil,
   Plus,
   Rows3,
   RefreshCw,
@@ -132,6 +133,8 @@ interface CardProps {
   moveTabs?: readonly DashboardTab[]
   onMoveToTab?: (tab: string) => void
   onMoveElsewhere?: () => void
+  /** A card keeping its query to itself (the copilot's): it becomes a question to edit. */
+  onEditQuestion?: () => void
 }
 
 /** Whether a result column can be what a filter restricts. */
@@ -210,7 +213,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, selection } = props
+  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onEditQuestion, selection } = props
   const isQuestion = card.kind === 'question'
   // The card a selection was clicked on keeps all its categories: one can add to it.
   const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
@@ -282,6 +285,10 @@ function CardFrame(props: CardProps) {
                 <Link href={`/question/${card.question}`} className="hover:text-primary hover:underline">
                   {title}
                 </Link>
+              ) : onEditQuestion ? (
+                <button type="button" onClick={onEditQuestion} className="card-still max-w-full truncate text-left hover:text-primary hover:underline">
+                  {title}
+                </button>
               ) : (
                 title
               )}
@@ -306,6 +313,11 @@ function CardFrame(props: CardProps) {
               {card.question && !publicMode ? (
                 <DropdownMenuItem onSelect={() => window.open(`/question/${card.question}`, '_self')}>
                   <ExternalLink /> {$t('Ouvrir la question')}
+                </DropdownMenuItem>
+              ) : null}
+              {onEditQuestion ? (
+                <DropdownMenuItem onSelect={onEditQuestion}>
+                  <Pencil /> {$t('Modifier la question')}
                 </DropdownMenuItem>
               ) : null}
               {onMoveToTab && moveTabs.length > 0 ? (
@@ -776,6 +788,22 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   // A filter left without a name keeps that of its kind.
   const named = (d: typeof draft): typeof draft => ({ ...d, parameters: d.parameters.map((p) => (p.label.trim() ? p : { ...p, label: filterName(p) })) })
 
+  /** A card of the copilot's becomes a question of the dashboard, in place, then opens in the editor. */
+  const editQuestion = async (card: DashboardCard) => {
+    try {
+      const q = await api.post<{ id: string }>('/v1/questions', {
+        name: card.title?.trim() || $t('Question sans titre'),
+        query: card.query,
+        visualization: card.visualization ?? { type: 'table' },
+        dashboard: dashboard.id,
+        card: card.id,
+      })
+      window.location.assign(`/question/${q.id}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+
   const save = async () => {
     if (!onSave) return
     setSaving(true)
@@ -1101,6 +1129,9 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                     : {})}
                   onFullscreen={() => setFullscreenCard(card)}
                   publicMode={publicMode}
+                  {...(editable && !publicMode && !editing && card.kind === 'question' && card.query && !card.question && dashboard.cards.some((c) => c.id === card.id)
+                    ? { onEditQuestion: () => void editQuestion(card) }
+                    : {})}
                   {...selectionOf(card.id)}
                 />
               </div>

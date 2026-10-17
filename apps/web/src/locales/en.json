@@ -917,7 +917,6 @@
   "Océan": "Ocean",
   "Ombre": "Shadow",
   "Onglet": "Tab",
-  "Optionnelle : toutes les bases visibles par l’utilisateur sont exposées comme schémas.": "Optional: all databases visible to the user are exposed as schemas.",
   "Opérateur": "Operator",
   "Oracle": "Oracle",
   "Oracle Database, par nom de service.": "Oracle Database, by service name.",
@@ -2178,5 +2177,12 @@
   "URI du catalogue REST": "REST catalog URI",
   "URI du metastore": "Metastore URI",
   "Vide pour AWS ; sinon l’adresse de MinIO, Ceph, Scality…": "Empty for AWS; otherwise the address of MinIO, Ceph, Scality…",
-  "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": "The catalog is created in Trino, which tests the connection, then the structure is synchronized."
+  "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": "The catalog is created in Trino, which tests the connection, then the structure is synchronized.",
+  "Indisponible quand la source se limite à certaines bases : une requête native atteindrait les autres.": "Unavailable when the source keeps to some databases: a native query would reach the others.",
+  "Seules ces bases sont exposées, séparées par des virgules ; vide, toutes celles que l’utilisateur voit.": "Only these databases are exposed, separated by commas; empty, all those the user can see.",
+  "ventes, crm": "sales, crm",
+  "Abandonner le SQL": "Drop the SQL",
+  "L’éditeur visuel repart d’une table : la requête SQL de cette question sera abandonnée.": "The visual editor starts again from a table: this question's SQL query will be dropped.",
+  "Modifier la question": "Edit the question",
+  "Passer à l’éditeur visuel ?": "Switch to the visual editor?"
 }

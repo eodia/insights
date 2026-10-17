@@ -9,6 +9,7 @@ import {
   ENGINE_SPECS,
   type Engine,
   fieldApplies,
+  sourceSchemas,
 } from '@eodia/contracts'
 import { type Settings, testConnection } from '@eodia/drivers'
 import { type CatalogDefinition, catalogNameFor, connectorOf } from '@eodia/engine'
@@ -67,7 +68,8 @@ function toDto(r: DatasourceRow, workspaceId: string): Datasource {
     description: r.description,
     config: r.config,
     secrets: r.secret_keys,
-    options: r.options,
+    // Kept to some databases, a source takes no native SQL (`nativeAllowed`), whatever was saved.
+    options: sourceSchemas(r.engine, r.config) ? { ...r.options, native_sql: false } : r.options,
     sync: {
       schedule: r.schedule,
       status: r.sync_status,

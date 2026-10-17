@@ -79,6 +79,12 @@ function reachable(snap: Snapshot, u: SnapUser, datasource: string): boolean {
   return u.workspace !== undefined && (snap.datasources.get(datasource)?.workspaces.has(u.workspace) ?? false)
 }
 
+/** Whether a source exposes this schema: one outside its « Base de données » is no one's. */
+function exposed(snap: Snapshot, datasource: string, schema: string): boolean {
+  const only = snap.datasources.get(datasource)?.schemas
+  return !only || only.has(schema.toLowerCase())
+}
+
 export function rightsOf(snap: Snapshot, userId: string): Set<AdminRight> {
   const u = userOf(snap, userId)
   if (!u) return new Set()
@@ -122,7 +128,7 @@ export function tableAccess(
   table: string | null,
 ): TableDecision {
   const u = userOf(snap, userId)
-  if (!u || !reachable(snap, u, datasource)) return { access: 'none', restrictedBy: [] }
+  if (!u || !reachable(snap, u, datasource) || !exposed(snap, datasource, schema)) return { access: 'none', restrictedBy: [] }
   if (u.groups.has(snap.adminGroup)) return { access: 'read', restrictedBy: [] }
   let access: DataAccess = 'none'
   const restrictedBy: string[] = []
@@ -149,7 +155,7 @@ export function datasourceVisible(snap: Snapshot, userId: string, datasource: st
 
 export function schemaVisible(snap: Snapshot, userId: string, datasource: string, schema: string): boolean {
   const u = userOf(snap, userId)
-  if (!u || !reachable(snap, u, datasource)) return false
+  if (!u || !reachable(snap, u, datasource) || !exposed(snap, datasource, schema)) return false
   if (u.groups.has(snap.adminGroup)) return true
   if (tableAccess(snap, userId, datasource, schema, null).access !== 'none') return true
   // A table granted on its own makes its schema visible.
@@ -227,7 +233,8 @@ export function queryLevel(snap: Snapshot, userId: string, datasource: string): 
  */
 export function nativeAllowed(snap: Snapshot, userId: string, datasource: string): boolean {
   const ds = snap.datasources.get(datasource)
-  if (!ds?.nativeSql) return false
+  // Native SQL goes to the base untouched: it would reach the databases the source leaves out.
+  if (!ds?.nativeSql || ds.schemas) return false
   if (queryLevel(snap, userId, datasource) !== 'native') return false
   if (isAdmin(snap, userId)) return true
   if (tableAccess(snap, userId, datasource, '', null).access !== 'read') return false
