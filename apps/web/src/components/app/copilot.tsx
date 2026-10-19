@@ -17,6 +17,7 @@ import { Check, Database, History, LayoutDashboard, Loader2, Plus, Search, Send,
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
+import { tidyFences } from '@/lib/markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 import { Pane } from '@/components/ui/pane'
@@ -68,7 +69,12 @@ export function ProposalCard({ p }: { p: Proposal }) {
           w: Math.min(c.w, DASHBOARD_COLUMNS),
           h: cardSize('question', c.visualization.type as never).h,
         }))
-        if (p.dashboard) {
+        const draft = useUi.getState().dashboardDraft
+        if (p.dashboard && draft?.id === p.dashboard) {
+          // The dashboard is being edited: its draft takes the cards, saved with the rest.
+          draft.add(cardsIn as unknown as Parameters<typeof draft.add>[0])
+          toast.success($tp(cardsIn.length, '{count} carte ajoutée : enregistrez le tableau de bord pour la garder.', '{count} cartes ajoutées : enregistrez le tableau de bord pour les garder.'))
+        } else if (p.dashboard) {
           const d = await api.get<Dashboard>(`/v1/dashboards/${p.dashboard}`)
           const tab = d.tabs[0]?.id ?? null
           const placed = placedAfter(d.cards, tab, cardsIn.map((c) => ({ ...c, tab })))
@@ -288,7 +294,7 @@ export function CopilotPanel() {
               ) : null}
               {e.text ? (
                 <div className="prose-sm max-w-none text-sm leading-relaxed [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_li]:ml-4 [&_ol]:list-decimal [&_p]:my-1.5 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-code [&_pre]:p-3 [&_pre]:text-code-foreground [&_pre_code]:bg-transparent [&_table]:my-2 [&_table]:text-xs [&_td]:border [&_td]:px-2 [&_th]:border [&_th]:px-2 [&_ul]:list-disc">
-                  <Markdown remarkPlugins={[remarkGfm]}>{e.text}</Markdown>
+                  <Markdown remarkPlugins={[remarkGfm]}>{tidyFences(e.text)}</Markdown>
                 </div>
               ) : !e.done && e.tools.length === 0 ? (
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />

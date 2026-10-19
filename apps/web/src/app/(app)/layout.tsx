@@ -2,6 +2,7 @@
 
 import { CopilotPanel } from '@/components/app/copilot'
 import { DemoBanner } from '@/components/app/demo-banner'
+import { DocumentIdentity } from '@/components/app/document-identity'
 import { SaveDialog } from '@/components/app/dialogs'
 import { Palette } from '@/components/app/palette'
 import { Sidebar } from '@/components/app/sidebar'
@@ -43,6 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <DocumentIdentity workspace={me.workspace} />
       {sidebar ? <Sidebar /> : null}
       <div className="flex min-w-0 flex-1 flex-col">
         <DemoBanner />

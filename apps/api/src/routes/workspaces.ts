@@ -5,7 +5,7 @@
  * (`x-eodia-workspace`) ; celui d'un jeton, le sien.
  */
 import { z } from '@hono/zod-openapi'
-import { LOOK_COLORS } from '@eodia/contracts'
+import { IconSchema, LOOK_COLORS } from '@eodia/contracts'
 import { createWorkspace, listMembers, listWorkspaces, setMember, switchWorkspace, updateWorkspace } from '@eodia/core'
 import { actorOf, bodyOf, type newApp, ok, param, requireAdmin, requireRight, route } from '../http'
 
@@ -13,7 +13,8 @@ const WorkspaceInput = z.object({
   name: z.string().min(1).max(80),
   description: z.string().max(500).nullable().optional(),
   color: z.enum(LOOK_COLORS).nullable().optional(),
-  icon: z.string().max(300).nullable().optional(),
+  // A pictogram as elsewhere — a sent image included —: it becomes the favicon of the space.
+  icon: IconSchema.nullable().optional(),
 })
 const WorkspacePatch = WorkspaceInput.partial().extend({ archived: z.boolean().optional() })
 const MemberInput = z.object({ role: z.enum(['admin', 'member']).nullable() })

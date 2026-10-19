@@ -705,7 +705,6 @@
   "Le copilot se configure par les variables d’environnement de l’API (fournisseur, modèle, clé).": "The copilot is configured through the API environment variables (provider, model, key).",
   "Le dossier reprend le thème dont il hérite.": "The folder goes back to the theme it inherits.",
   "Le détail des outils et la configuration des clients MCP sont dans « API et MCP ».": "Tool details and MCP client configuration are in “API and MCP”.",
-  "Le lien d’une invitation n’est montré qu’à sa création. S’il est perdu, annulez l’invitation et invitez la personne à nouveau.": "An invitation link is only shown when it is created. If it is lost, cancel the invitation and invite the person again.",
   "Le lien envoyé à {email} ne fonctionnera plus.": "The link sent to {email} will no longer work.",
   "Le mot de passe compte au moins 10 caractères.": "The password must be at least 10 characters long.",
   "Le nouveau mot de passe compte au moins 10 caractères.": "The new password must be at least 10 characters long.",
@@ -2184,5 +2183,49 @@
   "Abandonner le SQL": "Drop the SQL",
   "L’éditeur visuel repart d’une table : la requête SQL de cette question sera abandonnée.": "The visual editor starts again from a table: this question's SQL query will be dropped.",
   "Modifier la question": "Edit the question",
-  "Passer à l’éditeur visuel ?": "Switch to the visual editor?"
+  "Passer à l’éditeur visuel ?": "Switch to the visual editor?",
+  "{kept} sur {all}": "{kept} of {all}",
+  "Aucune valeur retenue : le filtre écarte tout.": "No value kept: the filter leaves everything out.",
+  "Colonnes : {column}": "Columns: {column}",
+  "De A à Z": "A to Z",
+  "De Z à A": "Z to A",
+  "Lignes : {column}": "Rows: {column}",
+  "Ordre du résultat": "Result order",
+  "Rechercher une valeur…": "Search a value…",
+  "Réinitialiser le tri et le filtre": "Reset the sort and the filter",
+  "Total croissant": "Total, ascending",
+  "Total décroissant": "Total, descending",
+  "Tout cocher": "Check all",
+  "Tout décocher": "Uncheck all",
+  "toutes les valeurs": "all values",
+  "Tri et filtre à l’ouverture": "Sort and filter on opening",
+  "Trier": "Sort",
+  "{count} colonnes de plus ne sont pas affichées : filtrez-les pour les voir.": {
+    "one": "{count} more column is not shown: filter the columns to see it.",
+    "other": "{count} more columns are not shown: filter the columns to see them."
+  },
+  "{kept} valeurs sur {count}": {
+    "one": "{kept} value of {count}",
+    "other": "{kept} values of {count}"
+  },
+  "{email} perd tout accès, ses sessions et ses jetons sont fermés, son dossier personnel est effacé. Cette action est définitive.": "{email} loses all access, their sessions and tokens are closed, their personal folder is erased. This cannot be undone.",
+  "Ce compte n’a aucun moyen de se connecter : ni mot de passe, ni connexion d’entreprise. Un lien d’accès lui fait choisir son mot de passe.": "This account has no way to sign in: no password, no company sign-in. An access link lets the person choose their password.",
+  "Compte de {name} supprimé": "{name}'s account deleted",
+  "Créer un lien d’accès": "Create an access link",
+  "Invitation renvoyée à {email}": "Invitation sent again to {email}",
+  "Le lien d’une invitation n’est montré qu’une fois. « Relancer » en crée un nouveau, valable 7 jours, et l’envoie par e-mail quand c’est possible : l’ancien ne fonctionne plus.": "An invitation link is shown only once. “Resend” creates a new one, valid for 7 days, and emails it when possible: the old one stops working.",
+  "Lien d’accès créé : copiez-le pour la personne.": "Access link created: copy it for the person.",
+  "Lien d’accès envoyé à {email}": "Access link sent to {email}",
+  "Nouveau lien": "New link",
+  "Nouveau lien créé : copiez-le pour la personne.": "New link created: copy it for the person.",
+  "Nouveau lien d’accès": "New access link",
+  "Relancer": "Resend",
+  "Supprimer le compte": "Delete the account",
+  "Supprimer le compte de {name} ?": "Delete {name}'s account?",
+  "Supprimer le compte efface la personne de l’instance, avec son dossier personnel. Ce qu’elle a créé ailleurs reste, sans auteur ; son adresse peut être invitée de nouveau.": "Deleting the account erases the person from the instance, with their personal folder. What they created elsewhere stays, without an author; their address can be invited again.",
+  "Valable 7 jours, une seule fois. Un nouveau lien remplace le précédent.": "Valid for 7 days, once. A new link replaces the previous one.",
+  "{count} cartes ajoutées : enregistrez le tableau de bord pour les garder.": {
+    "one": "{count} card added: save the dashboard to keep it.",
+    "other": "{count} cards added: save the dashboard to keep them."
+  }
 }

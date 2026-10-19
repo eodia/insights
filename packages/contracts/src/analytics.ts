@@ -321,6 +321,10 @@ export type MapRegion = (typeof MAP_REGIONS)[number]
 export const COLOR_SCHEMES = ['eodia', 'vif', 'ocean', 'terre', 'doux', 'degrade', 'custom'] as const
 export type ColorScheme = (typeof COLOR_SCHEMES)[number]
 
+/** How a pivot orders its rows or columns: as the query returns them, by label, or by total. */
+export const PIVOT_SORTS = ['result', 'asc', 'desc', 'total_desc', 'total_asc'] as const
+export type PivotSort = (typeof PIVOT_SORTS)[number]
+
 export interface VisualizationSettings {
   /** Dimensions: the first on the axis, the second splitting it into series. */
   readonly dimensions?: readonly string[]
@@ -349,6 +353,12 @@ export interface VisualizationSettings {
   readonly pivot_rows?: readonly string[]
   readonly pivot_columns?: readonly string[]
   readonly pivot_values?: readonly string[]
+  /** The order of a pivot's rows and columns (`result` when absent: as the query returns them). */
+  readonly pivot_row_sort?: PivotSort
+  readonly pivot_column_sort?: PivotSort
+  /** The values a pivot keeps on its rows and columns, as text; all when absent. */
+  readonly pivot_row_values?: readonly string[]
+  readonly pivot_column_values?: readonly string[]
   readonly totals?: boolean
   /** A map: which regions, the column naming them, or the two holding coordinates. */
   readonly region?: MapRegion

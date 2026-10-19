@@ -15,6 +15,8 @@ import { Segmented } from '@/components/ui/segmented'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { axesOf, pivotModel } from '@/lib/pivot'
+import { PivotAxisSetting } from '@/components/app/pivot-axis'
 import {
   AreaChart,
   BarChart3,
@@ -520,6 +522,8 @@ function Pieces({ settings, set, result, column }: { settings: VisualizationSett
 export function VizSettings({ type, settings, result, onChange }: { type: VisualizationType; settings: VisualizationSettings; result: Result | null; onChange: (s: VisualizationSettings) => void }) {
   const set = (patch: Partial<VisualizationSettings>) => onChange({ ...settings, ...patch })
   const columns = result?.columns.filter((c) => !c.hidden) ?? []
+  const pivotAxes = axesOf(settings)
+  const pivot = type === 'pivot' && result ? pivotModel(result, settings, pivotAxes) : null
   const detected = result ? roles(result, settings) : { dims: [], metrics: [] }
   const numeric = columns.filter((c) => c.type === 'number' && !c.unit)
   const cartesian = ['bar', 'row', 'line', 'area', 'combo'].includes(type)
@@ -1039,6 +1043,26 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           <ColumnsPick label={$t('Lignes')} columns={columns} value={settings.pivot_rows ?? []} onChange={(v) => set({ pivot_rows: v.slice(-1) })} />
           <ColumnsPick label={$t('Colonnes')} columns={columns} value={settings.pivot_columns ?? []} onChange={(v) => set({ pivot_columns: v.slice(-1) })} />
           <ColumnsPick label={$t('Valeurs')} columns={numeric} value={settings.pivot_values ?? []} onChange={(v) => set({ pivot_values: v.slice(-1) })} />
+          {pivot ? (
+            <Field label={$t('Tri et filtre à l’ouverture')}>
+              <div className="space-y-1.5">
+                <PivotAxisSetting
+                  label={$t('Lignes : {column}', { column: pivot.rowDim.label })}
+                  column={pivot.rowDim}
+                  values={pivot.allRows}
+                  axis={pivotAxes.rows}
+                  onChange={(a) => set({ pivot_row_sort: a.sort, pivot_row_values: a.values ?? undefined })}
+                />
+                <PivotAxisSetting
+                  label={$t('Colonnes : {column}', { column: pivot.colDim.label })}
+                  column={pivot.colDim}
+                  values={pivot.allColumns}
+                  axis={pivotAxes.columns}
+                  onChange={(a) => set({ pivot_column_sort: a.sort, pivot_column_values: a.values ?? undefined })}
+                />
+              </div>
+            </Field>
+          ) : null}
           <Toggle label={$t('Totaux')} checked={settings.totals !== false} onChange={(v) => set({ totals: v })} />
           <Toggle label={$t('Carte de chaleur')} checked={settings.heatmap !== false} onChange={(v) => set({ heatmap: v })} />
         </>

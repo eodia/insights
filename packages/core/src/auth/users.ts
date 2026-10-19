@@ -365,7 +365,50 @@ export async function updateUser(
   await audit(core, actor, 'user.update', { kind: 'user', id }, { fields: Object.keys(patch) })
 }
 
+/**
+ * Deletes a person for good (administrators of the instance): their sessions, tokens, groups,
+ * spaces and personal folders — with what those hold —, while what they made elsewhere stays,
+ * without an author. Their address can then be invited again.
+ */
+export async function deleteUser(core: Core, actor: Actor, id: string): Promise<void> {
+  const snap = await core.snapshot()
+  if (!isInstanceAdmin(snap, actor.userId)) throw new AppError('FORBIDDEN', 'Seuls les administrateurs de l’instance suppriment un compte.')
+  if (id === actor.userId) throw invalid('Vous ne pouvez pas supprimer votre propre compte.')
+  const email = await core.db.tx(async (c) => {
+    const user = await core.db.one<{ email: string }>('SELECT email FROM app_user WHERE id = $1', [id], c)
+    if (!user) throw notFound('Personne introuvable.')
+    // Their personal folders and all below them: the folders go with the account, so what they
+    // hold goes first — a question or a dashboard is not left without a folder.
+    const tree = `WITH RECURSIVE tree AS (
+        SELECT id FROM folder WHERE personal_owner_id = $1
+        UNION ALL SELECT f.id FROM folder f JOIN tree t ON f.parent_id = t.id)`
+    await core.db.exec(`${tree} DELETE FROM question WHERE folder_id IN (SELECT id FROM tree)`, [id], c)
+    await core.db.exec(`${tree} DELETE FROM dashboard WHERE folder_id IN (SELECT id FROM tree)`, [id], c)
+    await core.db.exec('DELETE FROM folder WHERE personal_owner_id = $1', [id], c)
+    // A link still pending would bring the account back: it goes with it.
+    await core.db.exec('DELETE FROM invitation WHERE email = $1 AND accepted_at IS NULL', [user.email], c)
+    await core.db.exec('DELETE FROM app_user WHERE id = $1', [id], c)
+    return user.email
+  })
+  core.changed()
+  await audit(core, actor, 'user.delete', { kind: 'user', id }, { email })
+}
+
 // ── Invitations ─────────────────────────────────────────────────────────────
+
+/**
+ * An account that never had a way in — created without a password, by no identity provider,
+ * never signed in: an invitation to it lets the person choose their password.
+ */
+async function pendingAccount(core: Core, email: string, client?: pg.PoolClient): Promise<{ id: string } | undefined> {
+  return core.db.one<{ id: string }>(
+    `SELECT u.id FROM app_user u
+     WHERE u.email = $1 AND u.password_hash IS NULL AND u.last_login_at IS NULL
+       AND NOT EXISTS (SELECT 1 FROM auth_identity i WHERE i.user_id = u.id)`,
+    [email],
+    client,
+  )
+}
 
 export async function createInvitation(
   core: Core,
@@ -373,8 +416,16 @@ export async function createInvitation(
   input: { email: string; name?: string; groups?: readonly string[]; role?: WorkspaceRole },
 ): Promise<{ id: string; url: string }> {
   const email = input.email.trim().toLowerCase()
-  const exists = await core.db.one('SELECT 1 FROM app_user WHERE email = $1', [email])
-  if (exists) throw new AppError('CONFLICT', 'Cette personne a déjà un compte : ajoutez-la plutôt aux membres de l’espace.')
+  const exists = await core.db.one<{ id: string }>('SELECT id FROM app_user WHERE email = $1', [email])
+  if (exists) {
+    // An account that cannot sign in takes an invitation — from its own space's administrators,
+    // or the instance's: no one else may hand out its first password.
+    const snap = await core.snapshot()
+    const theirs = isInstanceAdmin(snap, actor.userId) || !!snap.members.get(exists.id)?.has(actor.workspaceId)
+    if (!theirs || !(await pendingAccount(core, email))) {
+      throw new AppError('CONFLICT', 'Cette personne a déjà un compte : ajoutez-la plutôt aux membres de l’espace.')
+    }
+  }
   // The groups it brings are those of the space it invites into.
   const groups = (
     await core.db.many<{ id: string }>(`SELECT id FROM user_group WHERE id = ANY($1) AND kind = 'custom' AND workspace_id = $2`, [
@@ -416,6 +467,21 @@ export async function readInvitation(core: Core, token: string) {
 export async function acceptInvitation(core: Core, token: string, input: { name: string; password: string }, meta: SessionMeta) {
   const inv = await readInvitation(core, token)
   const userId = await core.db.tx(async (c) => {
+    const pending = await pendingAccount(core, inv.email, c)
+    if (pending) {
+      // The account was there, without a way in: it gets its name, its password, its space.
+      validatePassword(input.password)
+      await core.db.exec('UPDATE app_user SET name = $2, password_hash = $3, active = true WHERE id = $1', [pending.id, input.name.trim() || inv.email, await hashPassword(input.password)], c)
+      if (inv.workspace_id) {
+        await addMember(core, inv.workspace_id, pending.id, inv.workspace_role, c)
+        await personalFolder(core, pending.id, inv.workspace_id, c)
+      }
+      for (const g of inv.groups) {
+        await core.db.exec('INSERT INTO group_member (group_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [g, pending.id], c)
+      }
+      await core.db.exec('UPDATE invitation SET accepted_at = now() WHERE id = $1', [inv.id], c)
+      return pending.id
+    }
     const id = await createUser(
       core,
       {
@@ -430,6 +496,7 @@ export async function acceptInvitation(core: Core, token: string, input: { name:
     await core.db.exec('UPDATE invitation SET accepted_at = now() WHERE id = $1', [inv.id], c)
     return id
   })
+  core.changed()
   await audit(core, { userId, via: 'session' }, 'invitation.accept', { kind: 'invitation', id: inv.id })
   return openSession(core, userId, meta)
 }
@@ -442,6 +509,22 @@ export async function listInvitations(core: Core, actor: Actor) {
      WHERE i.accepted_at IS NULL AND i.expires_at > now() AND i.workspace_id = $1 ORDER BY i.created_at DESC`,
     [actor.workspaceId],
   )
+}
+
+/**
+ * A new link for a pending invitation, valid seven days again: the old one stops working. Its
+ * link is shown only once, so a lost one is replaced rather than read back.
+ */
+export async function renewInvitation(core: Core, actor: Actor, id: string): Promise<{ id: string; email: string; url: string }> {
+  const token = randomToken()
+  const row = await core.db.one<{ email: string }>(
+    `UPDATE invitation SET token_hash = $3, expires_at = now() + interval '7 days', emailed_at = NULL
+     WHERE id = $1 AND accepted_at IS NULL AND workspace_id = $2 RETURNING email`,
+    [id, actor.workspaceId, sha256(token)],
+  )
+  if (!row) throw notFound('Invitation introuvable ou déjà acceptée.')
+  await audit(core, actor, 'invitation.renew', { kind: 'invitation', id }, { email: row.email })
+  return { id, email: row.email, url: `${core.config.publicUrl}/invitation/${token}` }
 }
 
 export async function revokeInvitation(core: Core, actor: Actor, id: string) {

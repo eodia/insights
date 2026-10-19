@@ -1,7 +1,14 @@
 'use client'
 
+import type { DashboardCard } from '@eodia/contracts'
 import { useEffect } from 'react'
 import { create } from 'zustand'
+
+/** A dashboard open for editing: what is added to it goes to its draft, saved with the rest. */
+export interface DashboardDraftSink {
+  readonly id: string
+  add(cards: readonly Omit<DashboardCard, 'x' | 'y' | 'tab'>[]): void
+}
 
 export interface Crumb {
   readonly label: string
@@ -24,6 +31,7 @@ interface UiState {
   copilotContext: CopilotContext
   /** A message the copilot sends as soon as it opens — « Décrire avec le copilot ». */
   copilotPrompt: string | null
+  dashboardDraft: DashboardDraftSink | null
   toggleSidebar(): void
   setCrumbs(crumbs: readonly Crumb[]): void
   setPalette(open: boolean): void
@@ -31,6 +39,7 @@ interface UiState {
   closeCopilot(): void
   setCopilotContext(context: CopilotContext): void
   takeCopilotPrompt(): string | null
+  setDashboardDraft(sink: DashboardDraftSink | null): void
 }
 
 export const useUi = create<UiState>((set, get) => ({
@@ -40,6 +49,8 @@ export const useUi = create<UiState>((set, get) => ({
   copilot: false,
   copilotContext: { kind: 'general' },
   copilotPrompt: null,
+  dashboardDraft: null,
+  setDashboardDraft: (dashboardDraft) => set({ dashboardDraft }),
   toggleSidebar: () => set((s) => ({ sidebar: !s.sidebar })),
   setCrumbs: (crumbs) => set({ crumbs }),
   setPalette: (palette) => set({ palette }),

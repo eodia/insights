@@ -48,6 +48,7 @@ import { $t, $tp, msg } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe, useQuestion, useTables } from '@/lib/queries'
 import { type ColumnOption, columnOptions } from '@/lib/builder'
+import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
@@ -712,6 +713,19 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const setCard = (id: string, patch: Partial<DashboardCard>) => setDraft((d) => ({ ...d, cards: d.cards.map((c) => (c.id === id ? { ...c, ...patch } : c)) }))
   const addCards = (items: Omit<DashboardCard, 'x' | 'y' | 'tab'>[]) =>
     setDraft((d) => ({ ...d, cards: [...d.cards, ...placedAfter(d.cards, currentTab, items.map((i) => ({ ...i, tab: currentTab })))] as DashboardCard[] }))
+
+  // While it is edited, what the copilot adds goes to the draft: saving the dashboard behind
+  // the draft's back would reload it, and the changes not yet saved would be lost.
+  const addRef = useRef(addCards)
+  addRef.current = addCards
+  useEffect(() => {
+    if (!editing) return
+    const sink = { id: dashboard.id, add: (cards: readonly Omit<DashboardCard, 'x' | 'y' | 'tab'>[]) => addRef.current([...cards]) }
+    useUi.getState().setDashboardDraft(sink)
+    return () => {
+      if (useUi.getState().dashboardDraft === sink) useUi.getState().setDashboardDraft(null)
+    }
+  }, [editing, dashboard.id])
 
   // The filter of the dashboard a point's column is tied to, on that card.
   const parameterFor = (card: DashboardCard, p: PointClick) => {

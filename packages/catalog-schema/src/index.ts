@@ -46,13 +46,14 @@ export async function migrate(pool: pg.Pool, schema = 'eodia'): Promise<string[]
   const client = await pool.connect()
   const applied: string[] = []
   try {
-    await client.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
-    await client.query(`SET search_path TO ${schema}, public`)
-    await client.query(`CREATE TABLE IF NOT EXISTS catalog_migration (
-      id int PRIMARY KEY, name text NOT NULL, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`)
-    // One migrator at a time, whatever the number of API replicas.
+    // One migrator at a time — the API, the worker, every replica — from the very first statement:
+    // `IF NOT EXISTS` does not keep two sessions from creating the same table at once.
     await client.query('SELECT pg_advisory_lock(727274)')
     try {
+      await client.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
+      await client.query(`SET search_path TO ${schema}, public`)
+      await client.query(`CREATE TABLE IF NOT EXISTS catalog_migration (
+        id int PRIMARY KEY, name text NOT NULL, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`)
       const done = new Map<number, string>(
         (await client.query('SELECT id, checksum FROM catalog_migration')).rows.map((r) => [
           r.id as number,

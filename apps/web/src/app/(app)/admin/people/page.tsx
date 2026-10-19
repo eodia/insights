@@ -92,8 +92,26 @@ function PersonRow({ user, groups, active, onSelect, onToggle, self }: { user: U
   )
 }
 
-function PersonDetail({ user, groups, known, self }: { user: UserRow; groups: readonly Group[]; known: readonly string[]; self: boolean }) {
+function PersonDetail({ user, groups, known, self, instanceAdmin, onDeleted }: { user: UserRow; groups: readonly Group[]; known: readonly string[]; self: boolean; instanceAdmin: boolean; onDeleted: () => void }) {
   const qc = useQueryClient()
+  // An account with no password, no identity provider and no sign-in yet: it cannot get in.
+  const locked = user.auth.length === 0 && !user.last_login_at
+  const [link, setLink] = useState<string | null>(null)
+  const [linking, setLinking] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const accessLink = async () => {
+    setLinking(true)
+    try {
+      const res = await api.post<{ url: string; emailed: boolean }>('/v1/admin/invitations', { email: user.email, name: user.name })
+      setLink(res.url)
+      await qc.invalidateQueries({ queryKey: adminKeys.invitations })
+      toast.success(res.emailed ? $t('Lien d’accès envoyé à {email}', { email: user.email }) : $t('Lien d’accès créé : copiez-le pour la personne.'))
+    } catch (err) {
+      fail(err)
+    } finally {
+      setLinking(false)
+    }
+  }
   const [name, setName] = useState(user.name)
   const [memberOf, setMemberOf] = useState<string[]>([...user.groups])
   const [attrs, setAttrs] = useState<AttributeRow[]>(toRows(user.attributes))
@@ -160,6 +178,21 @@ function PersonDetail({ user, groups, known, self }: { user: UserRow; groups: re
             void save()
           }}
         >
+          {locked ? (
+            <Notice tone="warn" className="space-y-2.5">
+              <p>{$t('Ce compte n’a aucun moyen de se connecter : ni mot de passe, ni connexion d’entreprise. Un lien d’accès lui fait choisir son mot de passe.')}</p>
+              {link ? (
+                <>
+                  <CopyField value={link} />
+                  <p className="text-xs opacity-80">{$t('Valable 7 jours, une seule fois. Un nouveau lien remplace le précédent.')}</p>
+                </>
+              ) : null}
+              <Button type="button" size="sm" variant="outline" onClick={() => void accessLink()} disabled={linking}>
+                {linking ? <Loader2 className="animate-spin" /> : <Send />}
+                {link ? $t('Nouveau lien d’accès') : $t('Créer un lien d’accès')}
+              </Button>
+            </Notice>
+          ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="person-name">{$t('Nom')}</Label>
             <Input id="person-name" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -220,13 +253,59 @@ function PersonDetail({ user, groups, known, self }: { user: UserRow; groups: re
               ))}
             </dl>
           </div>
+          {instanceAdmin && !self ? (
+            <div>
+              <SectionTitle>{$t('Zone sensible')}</SectionTitle>
+              <div className="flex items-center gap-4 rounded-xl border border-destructive/30 p-4">
+                <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                  {$t('Supprimer le compte efface la personne de l’instance, avec son dossier personnel. Ce qu’elle a créé ailleurs reste, sans auteur ; son adresse peut être invitée de nouveau.')}
+                </p>
+                <Button type="button" variant="outline" className="shrink-0 text-destructive hover:text-destructive" onClick={() => setDeleting(true)}>
+                  <Trash2 /> {$t('Supprimer le compte')}
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </form>
       </div>
+      <ConfirmDialog
+        open={deleting}
+        onOpenChange={setDeleting}
+        title={$t('Supprimer le compte de {name} ?', { name: user.name })}
+        description={$t('{email} perd tout accès, ses sessions et ses jetons sont fermés, son dossier personnel est effacé. Cette action est définitive.', { email: user.email })}
+        confirmLabel={$t('Supprimer le compte')}
+        onConfirm={async () => {
+          try {
+            await api.delete(`/v1/admin/users/${user.id}`)
+            await Promise.all([qc.invalidateQueries({ queryKey: adminKeys.users }), qc.invalidateQueries({ queryKey: adminKeys.groups })])
+            toast.success($t('Compte de {name} supprimé', { name: user.name }))
+            onDeleted()
+          } catch (err) {
+            fail(err)
+          }
+        }}
+      />
     </div>
   )
 }
 
 function InvitationDetail({ invitation, onRevoke }: { invitation: Invitation; onRevoke: () => void }) {
+  const qc = useQueryClient()
+  const [link, setLink] = useState<string | null>(null)
+  const [renewing, setRenewing] = useState(false)
+  const renew = async () => {
+    setRenewing(true)
+    try {
+      const res = await api.post<{ url: string; emailed: boolean }>(`/v1/admin/invitations/${invitation.id}/renew`, {})
+      setLink(res.url)
+      await qc.invalidateQueries({ queryKey: adminKeys.invitations })
+      toast.success(res.emailed ? $t('Invitation renvoyée à {email}', { email: invitation.email }) : $t('Nouveau lien créé : copiez-le pour la personne.'))
+    } catch (err) {
+      fail(err)
+    } finally {
+      setRenewing(false)
+    }
+  }
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-4 border-b px-6 py-5">
@@ -237,6 +316,9 @@ function InvitationDetail({ invitation, onRevoke }: { invitation: Invitation; on
           <h2 className="truncate text-lg font-semibold">{invitation.name || invitation.email}</h2>
           <p className="truncate text-sm text-muted-foreground">{invitation.email}</p>
         </div>
+        <Button variant="outline" onClick={() => void renew()} disabled={renewing}>
+          {renewing ? <Loader2 className="animate-spin" /> : <Send />} {$t('Relancer')}
+        </Button>
         <Button variant="outline" onClick={onRevoke}>
           <Trash2 /> {$t('Annuler l’invitation')}
         </Button>
@@ -255,7 +337,13 @@ function InvitationDetail({ invitation, onRevoke }: { invitation: Invitation; on
             </div>
           ))}
         </dl>
-        <p className="text-sm text-muted-foreground">{$t('Le lien d’une invitation n’est montré qu’à sa création. S’il est perdu, annulez l’invitation et invitez la personne à nouveau.')}</p>
+        {link ? (
+          <div className="space-y-1.5">
+            <Label>{$t('Nouveau lien')}</Label>
+            <CopyField value={link} />
+          </div>
+        ) : null}
+        <p className="text-sm text-muted-foreground">{$t('Le lien d’une invitation n’est montré qu’une fois. « Relancer » en crée un nouveau, valable 7 jours, et l’envoie par e-mail quand c’est possible : l’ancien ne fonctionne plus.')}</p>
       </div>
     </div>
   )
@@ -563,9 +651,17 @@ function People() {
 
       <section className="min-w-0 flex-1">
         {currentUser ? (
-          <PersonDetail key={`${currentUser.id}:${JSON.stringify(currentUser)}`} user={currentUser} groups={groupList} known={perms?.attributes ?? []} self={currentUser.id === me?.id} />
+          <PersonDetail
+            key={`${currentUser.id}:${JSON.stringify(currentUser)}`}
+            user={currentUser}
+            groups={groupList}
+            known={perms?.attributes ?? []}
+            self={currentUser.id === me?.id}
+            instanceAdmin={!!me?.is_instance_admin}
+            onDeleted={() => setSelected(null)}
+          />
         ) : currentInvite ? (
-          <InvitationDetail invitation={currentInvite} onRevoke={() => setRevoking(currentInvite)} />
+          <InvitationDetail key={currentInvite.id} invitation={currentInvite} onRevoke={() => setRevoking(currentInvite)} />
         ) : (
           <Empty icon={<Users className="size-5" />} title={$t('Personnes et invitations')}>
             {$tp(users.length, '{count} personne sur l’instance.', '{count} personnes sur l’instance.')}

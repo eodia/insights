@@ -10,6 +10,8 @@ import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
 import { $t, $tp, intlLocale } from '@/lib/i18n'
 import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles, withTemporalUnits } from '@/lib/viz'
+import { type PivotAxes, axesOf, pivotModel } from '@/lib/pivot'
+import { PivotAxisHeader } from '@/components/app/pivot-axis'
 import { useChartTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
@@ -551,30 +553,26 @@ export function ResultFooter({ result }: { result: RunResult }) {
 // ── Tableau croisé ──────────────────────────────────────────────────────────
 
 function Pivot({ result, settings }: { result: Result; settings: VisualizationSettings }) {
-  const { dims, metrics } = roles(result, settings)
-  const rowDim = result.columns.find((c) => c.name === settings.pivot_rows?.[0]) ?? dims[0]
-  const colDim = result.columns.find((c) => c.name === settings.pivot_columns?.[0]) ?? dims[1]
-  const metric = result.columns.find((c) => c.name === settings.pivot_values?.[0]) ?? metrics[0]
-  if (!rowDim || !colDim || !metric) return <div className="p-4 text-sm text-muted-foreground">{$t('Il faut deux dimensions et une mesure.')}</div>
-  const ri = result.columns.indexOf(rowDim)
-  const ci = result.columns.indexOf(colDim)
-  const mi = result.columns.indexOf(metric)
-  const rowKeys = [...new Map(result.rows.map((r) => [String(r[ri]), r[ri]])).values()]
-  const colKeys = [...new Map(result.rows.map((r) => [String(r[ci]), r[ci]])).values()].slice(0, 60)
-  const cells = new Map<string, number>()
-  for (const r of result.rows) cells.set(`${String(r[ri])}\u0000${String(r[ci])}`, (cells.get(`${String(r[ri])}\u0000${String(r[ci])}`) ?? 0) + (Number(r[mi]) || 0))
-  const max = Math.max(...cells.values(), 1)
-  const total = (k: unknown, byRow: boolean) => (byRow ? colKeys : rowKeys).reduce((s: number, o) => s + (cells.get(byRow ? `${String(k)}\u0000${String(o)}` : `${String(o)}\u0000${String(k)}`) ?? 0), 0)
+  // The order and the values come from the settings; anyone reading can change them, unsaved.
+  const saved = useMemo(() => axesOf(settings), [settings])
+  const [axes, setAxes] = useState<PivotAxes>(saved)
+  useEffect(() => setAxes(saved), [saved])
+  const model = useMemo(() => pivotModel(result, settings, axes), [result, settings, axes])
+  if (!model) return <div className="p-4 text-sm text-muted-foreground">{$t('Il faut deux dimensions et une mesure.')}</div>
+  const { rowDim, colDim, metric, rows, columns, max } = model
   const totals = settings.totals !== false
+  const heat = (v: number | undefined) => (settings.heatmap !== false && v !== undefined ? { background: `color-mix(in oklch, #2a78d6 ${Math.round((v / max) * 38)}%, transparent)` } : undefined)
   return (
     <div className="h-full overflow-auto text-sm">
       <table className="w-max min-w-full border-separate border-spacing-0">
-        <thead className="sticky top-0 bg-background">
+        <thead className="sticky top-0 z-10 bg-background">
           <tr>
-            <th className="sticky left-0 border-b bg-background px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-              {rowDim.label} \ {colDim.label}
+            <th className="sticky left-0 z-10 border-b bg-background px-3 py-2 text-left text-xs font-medium whitespace-nowrap text-muted-foreground">
+              <PivotAxisHeader column={rowDim} values={model.allRows} axis={axes.rows} onChange={(a) => setAxes((x) => ({ ...x, rows: a }))} />
+              <span className="mx-1.5 opacity-60">\</span>
+              <PivotAxisHeader column={colDim} values={model.allColumns} axis={axes.columns} onChange={(a) => setAxes((x) => ({ ...x, columns: a }))} />
             </th>
-            {colKeys.map((k) => (
+            {columns.map((k) => (
               <th key={String(k)} className="border-b px-3 py-2 text-right text-xs font-medium whitespace-nowrap text-muted-foreground">
                 {formatValue(k, colDim) || '∅'}
               </th>
@@ -583,22 +581,47 @@ function Pivot({ result, settings }: { result: Result; settings: VisualizationSe
           </tr>
         </thead>
         <tbody>
-          {rowKeys.map((rk) => (
+          {rows.map((rk) => (
             <tr key={String(rk)}>
               <td className="sticky left-0 border-b bg-background px-3 py-1.5 font-medium whitespace-nowrap">{formatValue(rk, rowDim) || '∅'}</td>
-              {colKeys.map((ck) => {
-                const v = cells.get(`${String(rk)}\u0000${String(ck)}`)
+              {columns.map((ck) => {
+                const v = model.cell(rk, ck)
                 return (
-                  <td key={String(ck)} className="border-b px-3 py-1.5 text-right tabular-nums" style={settings.heatmap !== false && v !== undefined ? { background: `color-mix(in oklch, #2a78d6 ${Math.round((v / max) * 38)}%, transparent)` } : undefined}>
+                  <td key={String(ck)} className="border-b px-3 py-1.5 text-right tabular-nums" style={heat(v)}>
                     {v === undefined ? '' : formatValue(v, metric, { compact: true })}
                   </td>
                 )
               })}
-              {totals ? <td className="border-b px-3 py-1.5 text-right font-semibold tabular-nums">{formatValue(total(rk, true), metric, { compact: true })}</td> : null}
+              {totals ? <td className="border-b px-3 py-1.5 text-right font-semibold tabular-nums">{formatValue(model.rowTotal(rk), metric, { compact: true })}</td> : null}
             </tr>
           ))}
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={columns.length + 2} className="px-3 py-6 text-center text-xs text-muted-foreground">
+                {$t('Aucune valeur retenue : le filtre écarte tout.')}
+              </td>
+            </tr>
+          ) : null}
         </tbody>
+        {totals && rows.length > 0 ? (
+          <tfoot className="sticky bottom-0 bg-background">
+            <tr>
+              <td className="sticky left-0 border-t bg-background px-3 py-1.5 font-semibold">{$t('Total')}</td>
+              {columns.map((ck) => (
+                <td key={String(ck)} className="border-t px-3 py-1.5 text-right font-semibold tabular-nums">
+                  {formatValue(model.columnTotal(ck), metric, { compact: true })}
+                </td>
+              ))}
+              <td className="border-t px-3 py-1.5 text-right font-semibold tabular-nums">{formatValue(model.total, metric, { compact: true })}</td>
+            </tr>
+          </tfoot>
+        ) : null}
       </table>
+      {model.hiddenColumns > 0 ? (
+        <p className="px-3 py-2 text-xs text-muted-foreground">
+          {$tp(model.hiddenColumns, '{count} colonne de plus n’est pas affichée : filtrez-les pour les voir.', '{count} colonnes de plus ne sont pas affichées : filtrez-les pour les voir.')}
+        </p>
+      ) : null}
     </div>
   )
 }

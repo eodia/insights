@@ -15,6 +15,7 @@ import {
   createInvitation,
   createUser,
   deleteGroup,
+  deleteUser,
   deleteRowPolicy,
   getSetting,
   groupMembers,
@@ -26,6 +27,7 @@ import {
   mailEnabled,
   permissionsOverview,
   putSetting,
+  renewInvitation,
   revokeEmbedSecret,
   revokeInvitation,
   saveGroup,
@@ -63,6 +65,7 @@ const InvitationInput = z.object({
   role: z.enum(['admin', 'member']).optional(),
   send: z.boolean().optional(),
 })
+const RenewInput = z.object({ send: z.boolean().optional() })
 const GroupInput = z.object({ name: z.string().min(1).max(120), description: z.string().max(500).nullable().optional() })
 const Members = z.object({ users: z.array(z.string()).max(10_000) })
 const DataPerm = DataPermissionSchema.extend({ access: z.enum(['none', 'read', 'restricted', 'inherit']) })
@@ -89,6 +92,10 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'patch', path: '/api/v1/admin/users/:id', tags, summary: 'Modifier une personne (groupes, attributs, activation)', body: UserPatch }, async (c) => {
     const actor = await requireAdmin(c)
     await updateUser(c.get('core'), actor, param(c, 'id'), bodyOf(c, UserPatch))
+    return ok(c)
+  })
+  route(app, { method: 'delete', path: '/api/v1/admin/users/:id', tags, summary: 'Supprimer une personne pour de bon (administrateurs de l’instance)' }, async (c) => {
+    await deleteUser(c.get('core'), await requireAdmin(c), param(c, 'id'))
     return ok(c)
   })
   // People and groups, for any signed-in person: what the share dialog offers.
@@ -119,6 +126,18 @@ export function adminRoutes(app: ReturnType<typeof newApp>) {
       emailed = await sendInvitation(core, { id: inv.id, email: input.email, url: inv.url, inviter: inviter?.name ?? 'Un administrateur' }).catch(() => false)
     }
     return ok(c, { ...inv, emailed })
+  })
+  // A lost or expiring link: a new one, sent again by e-mail when SMTP is set.
+  route(app, { method: 'post', path: '/api/v1/admin/invitations/:id/renew', tags, summary: 'Relancer une invitation (nouveau lien)', body: RenewInput }, async (c) => {
+    const actor = await requireAdmin(c)
+    const core = c.get('core')
+    const inv = await renewInvitation(core, actor, param(c, 'id'))
+    let emailed = false
+    if (bodyOf(c, RenewInput).send !== false && mailEnabled(core)) {
+      const inviter = await core.db.one<{ name: string }>('SELECT name FROM app_user WHERE id = $1', [actor.userId])
+      emailed = await sendInvitation(core, { id: inv.id, email: inv.email, url: inv.url, inviter: inviter?.name ?? 'Un administrateur' }).catch(() => false)
+    }
+    return ok(c, { id: inv.id, url: inv.url, emailed })
   })
   route(app, { method: 'delete', path: '/api/v1/admin/invitations/:id', tags, summary: 'Annuler une invitation' }, async (c) => {
     await revokeInvitation(c.get('core'), await requireAdmin(c), param(c, 'id'))

@@ -20,6 +20,7 @@ import { ApiError, api } from '@/lib/api'
 import { LOOK_CLASSES } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { ownIdentity } from '@/lib/project'
 import { enterWorkspace } from '@/lib/workspace'
 import { Check, ChevronsUpDown, Layers, Loader2, Plus, Settings2 } from 'lucide-react'
 import Link from 'next/link'
@@ -57,10 +58,18 @@ export function WorkspaceMenu({ me }: { me: Me | undefined }) {
   const face = (
     <>
       {current ? <WorkspaceLogo workspace={current} className="size-10 text-sm" iconClassName="size-5" /> : <BrandMark size={40} className="size-10 shrink-0" />}
-      <div className="min-w-0 flex-1 text-left leading-tight">
-        <div className="truncate text-[15px] font-semibold">eodia insights</div>
-        <div className="truncate text-xs text-muted-foreground">{current?.name ?? $t('Toutes les sources')}</div>
-      </div>
+      {/* A space with a face of its own names the project; « insights » steps below it. */}
+      {current && ownIdentity(current) ? (
+        <div className="min-w-0 flex-1 text-left leading-tight">
+          <div className="truncate text-[15px] font-semibold">{current.name}</div>
+          <div className="truncate text-xs text-muted-foreground">insights</div>
+        </div>
+      ) : (
+        <div className="min-w-0 flex-1 text-left leading-tight">
+          <div className="truncate text-[15px] font-semibold">eodia insights</div>
+          <div className="truncate text-xs text-muted-foreground">{current?.name ?? $t('Toutes les sources')}</div>
+        </div>
+      )}
       {choosing ? <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" /> : null}
     </>
   )

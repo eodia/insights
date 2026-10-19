@@ -84,6 +84,7 @@
   "Historique des requêtes": "apps/api/src/routes/content.ts",
   "Il faut le droit « Gestion » sur ce dossier.": "packages/core/src/content/folders.ts",
   "Invitation expirée ou déjà utilisée.": "packages/core/src/auth/users.ts",
+  "Invitation introuvable ou déjà acceptée.": "packages/core/src/auth/users.ts",
   "Invitations en attente": "apps/api/src/routes/admin.ts",
   "Inviter une personne (lien, et e-mail si SMTP)": "apps/api/src/routes/admin.ts",
   "Jeton d'intégration `eoi_…`, créé depuis la documentation ou le profil.": "apps/api/src/server.ts",
@@ -181,6 +182,7 @@
   "Session expirée.": "packages/core/src/auth/users.ts",
   "Seul un administrateur crée ou modifie un thème.": "packages/core/src/content/themes.ts",
   "Seul un administrateur range un dossier à la racine.": "packages/core/src/content/folders.ts",
+  "Seuls les administrateurs de l’instance suppriment un compte.": "packages/core/src/auth/users.ts",
   "Snippet introuvable.": "packages/core/src/query/history.ts",
   "Snippets SQL": "apps/api/src/routes/content.ts",
   "Source introuvable.": "packages/core/src/query/run.ts",
@@ -234,6 +236,7 @@
   "Vous ne pouvez pas modifier cette question.": "packages/core/src/content/items.ts",
   "Vous ne pouvez pas modifier le tableau de bord où elle se trouve.": "packages/core/src/content/items.ts",
   "Vous ne pouvez pas modifier le tableau de bord visé.": "packages/core/src/content/items.ts",
+  "Vous ne pouvez pas supprimer votre propre compte.": "packages/core/src/auth/users.ts",
   "Vous ne pouvez pas vous désactiver vous-même.": "packages/core/src/auth/users.ts",
   "Vous ne pouvez pas vous retirer vous-même des administrateurs.": "packages/core/src/admin/permissions.ts"
 }

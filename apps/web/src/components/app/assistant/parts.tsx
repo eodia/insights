@@ -37,6 +37,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { type ReactNode, useState } from 'react'
 import Markdown from 'react-markdown'
+import { tidyFences } from '@/lib/markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 
@@ -214,7 +215,7 @@ export function Prose({ text }: { text: string }) {
           pre: ({ children }) => <>{children}</>,
         }}
       >
-        {text}
+        {tidyFences(text)}
       </Markdown>
     </div>
   )
