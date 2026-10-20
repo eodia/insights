@@ -126,6 +126,63 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   )
 }
 
+/**
+ * A table's columns: which show, in what order, under which title. Without a choice, all show
+ * in the result's order under their own name.
+ */
+function TableColumns({ columns, settings, set }: { columns: readonly ResultColumn[]; settings: VisualizationSettings; set: (patch: Partial<VisualizationSettings>) => void }) {
+  const chosen = settings.columns?.length ? settings.columns.filter((n) => columns.some((c) => c.name === n)) : columns.map((c) => c.name)
+  const shown = new Set(chosen)
+  const ordered = [...chosen.map((n) => columns.find((c) => c.name === n) as ResultColumn), ...columns.filter((c) => !shown.has(c.name))]
+  const labels = settings.column_labels ?? {}
+  const move = (name: string, by: -1 | 1) => {
+    const list = [...chosen]
+    const at = list.indexOf(name)
+    const to = at + by
+    if (at < 0 || to < 0 || to >= list.length) return
+    list.splice(at, 1)
+    list.splice(to, 0, name)
+    set({ columns: list })
+  }
+  return (
+    <Field label={$t('Colonnes')}>
+      <div className="max-h-72 space-y-0.5 overflow-y-auto rounded-lg border p-1">
+        {ordered.map((c) => {
+          const on = shown.has(c.name)
+          const at = chosen.indexOf(c.name)
+          return (
+            <div key={c.name} className={cn('flex items-center gap-1.5 rounded-md px-1 py-0.5', !on && 'opacity-60')}>
+              <Switch
+                checked={on}
+                onCheckedChange={(v) => set({ columns: v ? [...chosen, c.name] : chosen.filter((n) => n !== c.name) })}
+                aria-label={$t('Afficher « {column} »', { column: c.label })}
+                className="scale-75"
+              />
+              <Input
+                value={labels[c.name] ?? ''}
+                onChange={(e) => {
+                  const { [c.name]: _gone, ...others } = labels
+                  set({ column_labels: e.target.value ? { ...others, [c.name]: e.target.value } : others })
+                }}
+                placeholder={c.label}
+                className="h-7 min-w-0 flex-1 text-xs"
+                aria-label={$t('Titre de « {column} »', { column: c.label })}
+              />
+              <button type="button" disabled={!on || at <= 0} onClick={() => move(c.name, -1)} className="rounded p-1 text-muted-foreground hover:bg-accent disabled:opacity-30" aria-label={$t('Monter')}>
+                ↑
+              </button>
+              <button type="button" disabled={!on || at < 0 || at >= chosen.length - 1} onClick={() => move(c.name, 1)} className="rounded p-1 text-muted-foreground hover:bg-accent disabled:opacity-30" aria-label={$t('Descendre')}>
+                ↓
+              </button>
+            </div>
+          )
+        })}
+      </div>
+      <p className="text-xs text-muted-foreground">{$t('Un titre vide garde le nom de la colonne. Les colonnes se déplacent aussi en glissant leur en-tête dans la table.')}</p>
+    </Field>
+  )
+}
+
 function ColumnsPick({ columns, value, onChange, label }: { columns: readonly ResultColumn[]; value: readonly string[]; onChange: (v: string[]) => void; label: string }) {
   return (
     <Field label={label}>
@@ -1021,6 +1078,34 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
 
       {type === 'table' ? (
         <>
+          <TableColumns columns={columns} settings={settings} set={set} />
+          <Field label={$t('Affichage des lignes')}>
+            <Segmented
+              value={settings.pagination ?? 'pages'}
+              onValueChange={(v) => set({ pagination: v })}
+              options={[
+                { value: 'pages', label: $t('Par pages'), icon: IconRows2 },
+                { value: 'scroll', label: $t('Défilement continu'), icon: IconRows3 },
+              ]}
+              aria-label={$t('Affichage des lignes')}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            {settings.pagination !== 'scroll' ? (
+              <Field label={$t('Lignes par page')}>
+                <Input type="number" min={10} max={5000} value={settings.page_size ?? ''} placeholder="100" onChange={(e) => set({ page_size: num(e.target.value) ?? undefined })} className="h-8" />
+              </Field>
+            ) : null}
+            <Field label={$t('Limite de lignes')}>
+              <Input type="number" min={1} max={100000} value={settings.max_rows ?? ''} placeholder="2 000" onChange={(e) => set({ max_rows: num(e.target.value) ?? undefined })} className="h-8" />
+            </Field>
+          </div>
+          <p className="-mt-1 text-xs text-muted-foreground">{$t('La limite fixe les lignes lues par la requête, 100 000 au plus ; elle s’applique à la prochaine exécution.')}</p>
+          <Toggle label={$t('Barre de recherche, filtres et export')} checked={settings.table_toolbar !== false} onChange={(v) => set({ table_toolbar: v })} />
+          <Toggle label={$t('Ligne de totaux')} checked={!!settings.totals_row} onChange={(v) => set({ totals_row: v })} />
+          <Toggle label={$t('Lignes zébrées')} checked={!!settings.zebra} onChange={(v) => set({ zebra: v })} />
+          <Toggle label={$t('Texte sur plusieurs lignes')} checked={!!settings.wrap_text} onChange={(v) => set({ wrap_text: v })} />
+          <Toggle label={$t('Figer la première colonne')} checked={!!settings.freeze_first} onChange={(v) => set({ freeze_first: v })} />
           <Toggle label={$t('Numéros de ligne')} checked={!!settings.row_numbers} onChange={(v) => set({ row_numbers: v })} />
           <Field label={$t('Densité')}>
             <Segmented

@@ -484,8 +484,21 @@ export interface VisualizationSettings {
   /** Numbers drawn with a bar in their cell. */
   readonly cell_bars?: readonly string[]
   readonly density?: 'compact' | 'normal' | 'comfortable'
+  /** A table: by pages (`page_size` rows each, 100 by default), or all of it scrolled. */
+  readonly pagination?: 'pages' | 'scroll'
   readonly page_size?: number
+  /** The rows the question reads — 2 000 by default, 100 000 at most. */
+  readonly max_rows?: number
   readonly row_numbers?: boolean
+  /** A table's bar above it: search, filters by column, export. On by default. */
+  readonly table_toolbar?: boolean
+  readonly zebra?: boolean
+  /** Long texts on several lines rather than cut. */
+  readonly wrap_text?: boolean
+  /** The first column stays in sight when scrolling sideways. */
+  readonly freeze_first?: boolean
+  /** A last row with the sum of each number column. */
+  readonly totals_row?: boolean
   /** A pivot: each cell tinted by its value. */
   readonly heatmap?: boolean
 

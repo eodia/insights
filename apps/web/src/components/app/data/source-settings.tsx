@@ -6,6 +6,7 @@ import { WorkspaceLogo } from '@/components/app/workspace-menu'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CatalogName } from '@/components/app/data/source-look'
 import { SyncPanel } from '@/components/app/data/sync-panel'
+import { SchemasPanel } from '@/components/app/data/schemas-panel'
 import { ConfirmDialog } from '@/components/app/dialogs'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -214,6 +215,7 @@ export function SourceSettings({ id }: { id: string }) {
         ) : null}
         {source.description ? <p className="text-sm">{source.description}</p> : null}
         <ConnectionView source={source} canEdit={canSources} />
+        <SchemasPanel source={source} canEdit={!!me?.can.manage_metadata && own} />
       </div>
       <div className="space-y-6">
         <div className="grid grid-cols-3 gap-2">

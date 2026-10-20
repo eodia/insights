@@ -15,7 +15,8 @@ import type {
   SourceRef,
   Visualization,
 } from '@eodia/contracts'
-import { DASHBOARD_COLUMNS, DASHBOARD_LIMITS, cardSize, placedAfter } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, DASHBOARD_FORMAT, DASHBOARD_LIMITS, DashboardImportSchema, cardSize, placedAfter } from '@eodia/contracts'
+import type { z } from 'zod'
 import { audit } from '../audit'
 import { checkTheme, resolveTheme } from './themes'
 import { summaryOf } from '../auth/users'
@@ -371,6 +372,45 @@ function checkCards(input: Partial<DashboardInput>): void {
     if (typeof card.id !== 'string' || typeof card.kind !== 'string') throw invalid('Carte invalide.')
     if ((card.text ?? '').length > DASHBOARD_LIMITS.html) throw invalid('Texte de carte trop long.')
   }
+}
+
+/**
+ * A dashboard as JSON, to paste elsewhere: its own questions written into the cards that show
+ * them — the copy stands on its own —, a saved question of a folder kept by reference.
+ */
+export async function exportDashboard(core: Core, actor: Actor, id: string): Promise<z.infer<typeof DashboardImportSchema>> {
+  const d = await getDashboard(core, actor, id)
+  const cards: Record<string, unknown>[] = []
+  for (const card of d.cards) {
+    if (card.kind !== 'question' || !card.question) {
+      cards.push({ ...card })
+      continue
+    }
+    const q = await getQuestion(core, actor, card.question).catch(() => null)
+    if (q?.dashboard?.id === d.id) {
+      const { question: _question, ...rest } = card
+      cards.push({ ...rest, title: card.title || q.name, query: q.query, visualization: card.visualization ?? q.visualization })
+    } else cards.push({ ...card })
+  }
+  return {
+    format: DASHBOARD_FORMAT,
+    version: 1,
+    name: d.name,
+    description: d.description,
+    tabs: d.tabs.map((t) => ({ id: t.id, label: t.label })),
+    cards,
+    parameters: d.parameters as unknown as Record<string, unknown>[],
+    auto_refresh: d.auto_refresh ?? null,
+    cache_ttl: d.cache_ttl ?? null,
+  }
+}
+
+/** A dashboard pasted as JSON becomes a new one, in `folder`. */
+export async function importDashboard(core: Core, actor: Actor, input: { folder?: string | null; dashboard: unknown }): Promise<Dashboard> {
+  const parsed = DashboardImportSchema.safeParse(input.dashboard)
+  if (!parsed.success) throw invalid('Ce JSON n’est pas un tableau de bord copié depuis eodia insights.')
+  const { format: _format, version: _version, ...dashboard } = parsed.data
+  return createDashboard(core, actor, { ...dashboard, folder: input.folder ?? null } as DashboardInput)
 }
 
 export async function createDashboard(core: Core, actor: Actor, input: DashboardInput): Promise<Dashboard> {

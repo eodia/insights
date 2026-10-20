@@ -4,6 +4,7 @@ import {
   ColumnValueSchema,
   DatasourceInputSchema,
   ENGINE_SPECS,
+  SourceSchemasInputSchema,
   TablePatchSchema,
 } from '@eodia/contracts'
 import {
@@ -25,7 +26,10 @@ import {
   patchColumn,
   patchTable,
   putColumnValues,
+  listSourceSchemas,
   requestSync,
+  setSourceSchemas,
+  stopSync,
   schemaTree,
   testDatasource,
   updateDatasource,
@@ -97,6 +101,17 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
     await assertOwnSource(c.get('core'), actor, param(c, 'id'))
     const job = await requestSync(c.get('core'), param(c, 'id'), actor.userId, bodyOf(c, SyncInput).passes)
     return ok(c, { job })
+  })
+  route(app, { method: 'get', path: '/api/v1/datasources/:id/schemas', tags, summary: 'Schémas de la source : affichés ou non, et leurs noms' }, async (c) => {
+    return ok(c, await listSourceSchemas(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id')))
+  })
+  route(app, { method: 'put', path: '/api/v1/datasources/:id/schemas', tags, summary: 'Choisir les schémas affichés et les renommer (relance la synchronisation)', body: SourceSchemasInputSchema }, async (c) => {
+    const job = await setSourceSchemas(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id'), bodyOf(c, SourceSchemasInputSchema))
+    return ok(c, { job })
+  })
+  route(app, { method: 'post', path: '/api/v1/datasources/:id/sync/stop', tags, summary: 'Arrêter la synchronisation en cours (bloquée, trop longue)' }, async (c) => {
+    await stopSync(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id'))
+    return ok(c)
   })
 
   route(app, { method: 'get', path: '/api/v1/jobs/:id', tags, summary: "État d'un job (synchronisation…)" }, async (c) => {

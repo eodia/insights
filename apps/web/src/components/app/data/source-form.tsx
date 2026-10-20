@@ -9,7 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { api } from '@/lib/api'
 import { $t, intlLocale, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { CalendarDays, CheckCircle2, ChevronRight, Hand, Info, Loader2, Plug, Plus, Timer, Trash2, XCircle } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ChevronRight, ClipboardPaste, Copy, Hand, Info, Loader2, Plug, Plus, Timer, Trash2, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Segmented } from '@/components/ui/segmented'
 import { useId, useState } from 'react'
 
@@ -74,6 +76,37 @@ export const ENGINE_SPEC_TEXT = [
   msg('Adresses de type chemin (path-style)'),
   msg('Nécessaire pour MinIO et la plupart des S3 sur site.'),
 ] as const
+
+/**
+ * Catalog properties pasted: a JSON object of texts (numbers and booleans read as text), or
+ * `key=value` lines as in a catalog file. Null when it is neither.
+ */
+function readProperties(text: string): Record<string, string> | null {
+  const t = text.trim()
+  if (t.startsWith('{')) {
+    try {
+      const o = JSON.parse(t) as unknown
+      if (!o || typeof o !== 'object' || Array.isArray(o)) return null
+      const out: Record<string, string> = {}
+      for (const [k, v] of Object.entries(o)) {
+        if (typeof v !== 'string' && typeof v !== 'number' && typeof v !== 'boolean') return null
+        out[k.trim()] = String(v)
+      }
+      return out
+    } catch {
+      return null
+    }
+  }
+  const out: Record<string, string> = {}
+  for (const raw of t.split(/\r?\n/)) {
+    const line = raw.trim()
+    if (!line || line.startsWith('#')) continue
+    const eq = line.indexOf('=')
+    if (eq <= 0) return null
+    out[line.slice(0, eq).trim()] = line.slice(eq + 1).trim()
+  }
+  return Object.keys(out).length ? out : null
+}
 
 /** What a name becomes as a Trino catalog: `Support client` → `support_client`. */
 export function catalogFromName(name: string): string {
@@ -201,6 +234,9 @@ export function SourceForm({
   const [cacheTtl, setCacheTtl] = useState<string>(source?.options.cache_ttl != null ? String(source.options.cache_ttl) : '')
   const [props, setProps] = useState<{ key: string; value: string }[]>(() => Object.entries(source?.options.trino_properties ?? {}).map(([key, value]) => ({ key, value })))
   const [advanced, setAdvanced] = useState(props.length > 0)
+  const [pasting, setPasting] = useState(false)
+  const [pasted, setPasted] = useState('')
+  const [pasteError, setPasteError] = useState<string | null>(null)
   const [test, setTest] = useState<TestResult | null>(null)
   const [testing, setTesting] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -402,7 +438,26 @@ export function SourceForm({
         </button>
         {advanced ? (
           <div className="space-y-2 rounded-xl border p-3">
-            <div className="text-sm font-medium">{$t('Propriétés du catalogue Trino')}</div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 text-sm font-medium">{$t('Propriétés du catalogue Trino')}</div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={!props.some((p) => p.key.trim())}
+                onClick={async () => {
+                  const json = JSON.stringify(Object.fromEntries(props.filter((p) => p.key.trim()).map((p) => [p.key.trim(), p.value])), null, 2)
+                  await navigator.clipboard.writeText(json)
+                  toast.success($t('Propriétés copiées en JSON.'))
+                }}
+              >
+                <Copy /> {$t('Copier en JSON')}
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPasting(true)}>
+                <ClipboardPaste /> {$t('Coller')}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">{$t('Ajoutées aux réglages par défaut du connecteur : cache des métadonnées, pushdown, délais…')}</p>
             {props.map((p, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: rows are edited in place
@@ -432,6 +487,36 @@ export function SourceForm({
             </Button>
           </div>
         ) : null}
+        <Dialog open={pasting} onOpenChange={setPasting}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{$t('Coller des propriétés')}</DialogTitle>
+              <DialogDescription>{$t('Un objet JSON { "clé": "valeur" }, ou des lignes clé=valeur comme dans un fichier de catalogue. Elles remplacent les propriétés actuelles.')}</DialogDescription>
+            </DialogHeader>
+            <Textarea value={pasted} onChange={(e) => setPasted(e.target.value)} rows={10} spellCheck={false} className="font-mono text-xs" placeholder={'{\n  "metadata.cache-ttl": "10m"\n}'} />
+            {pasteError ? <p className="text-xs text-destructive">{pasteError}</p> : null}
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setPasting(false)}>
+                {$t('Annuler')}
+              </Button>
+              <Button
+                type="button"
+                disabled={!pasted.trim()}
+                onClick={() => {
+                  const read = readProperties(pasted)
+                  if (!read) return setPasteError($t('Ni un objet JSON de textes, ni des lignes clé=valeur.'))
+                  setProps(Object.entries(read).map(([key, value]) => ({ key, value })))
+                  setPasted('')
+                  setPasteError(null)
+                  setPasting(false)
+                  setTest(null)
+                }}
+              >
+                {$t('Remplacer les propriétés')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {test ? (

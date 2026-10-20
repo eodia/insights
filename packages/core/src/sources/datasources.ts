@@ -6,19 +6,20 @@ import {
   type Datasource,
   type DatasourceInput,
   type DatasourceOptions,
+  type SourceSchema,
   ENGINE_SPECS,
   type Engine,
   fieldApplies,
   sourceSchemas,
 } from '@eodia/contracts'
-import { type Settings, testConnection } from '@eodia/drivers'
+import { type Settings, isSystemSchema, testConnection } from '@eodia/drivers'
 import { type CatalogDefinition, catalogNameFor, connectorOf } from '@eodia/engine'
 import { audit } from '../audit'
-import type { Actor, Core } from '../context'
+import { type Actor, type Core, principalOf } from '../context'
 import { decrypt, encrypt } from '../crypto'
 import type pg from 'pg'
 import { AppError, invalid, notFound } from '../errors'
-import { enqueue } from '../jobs'
+import { enqueue, stopJob } from '../jobs'
 import { cacheClear } from '../query/cache'
 import { notHere } from '../workspaces'
 
@@ -342,6 +343,74 @@ export async function deleteDatasource(core: Core, actor: Actor, id: string): Pr
 export async function requestSync(core: Core, id: string, userId: string | null, passes: readonly string[] = ['schema', 'fingerprint', 'values']): Promise<string> {
   await core.db.exec(`UPDATE datasource SET sync_status = 'queued' WHERE id = $1 AND sync_status <> 'running'`, [id])
   return enqueue(core, 'sync', { datasource: id, passes }, { dedupe: `sync:${id}`, createdBy: userId })
+}
+
+/**
+ * The schemas of a source as Trino lists them under the administrator's own rights: which are
+ * shown, how they are named, how many tables each brought.
+ */
+export async function listSourceSchemas(core: Core, actor: Actor, id: string): Promise<SourceSchema[]> {
+  await assertOwnSource(core, actor, id)
+  const { row } = await settingsOf(core, id)
+  const res = await core.engine.run(`SHOW SCHEMAS FROM "${row.catalog.replace(/"/g, '""')}"`, { user: principalOf(actor), timeoutMs: 60_000 })
+  const counts = new Map(
+    (await core.db.many<{ schema_name: string; n: number }>(`SELECT schema_name, count(*)::int AS n FROM db_table WHERE datasource_id = $1 AND status = 'active' GROUP BY 1`, [id])).map((r) => [
+      r.schema_name.toLowerCase(),
+      r.n,
+    ]),
+  )
+  const chosen = row.options?.schemas?.length ? new Set(row.options.schemas.map((s) => s.toLowerCase())) : null
+  const labels = row.options?.schema_labels ?? {}
+  return res.data
+    .map((r) => String(r[0]))
+    .filter((name) => name.toLowerCase() !== 'information_schema')
+    .map((name) => {
+      const system = isSystemSchema(row.engine, name)
+      return {
+        name,
+        system,
+        shown: !system && (!chosen || chosen.has(name.toLowerCase())),
+        label: labels[name] ?? null,
+        tables: counts.get(name.toLowerCase()) ?? 0,
+      }
+    })
+    .sort((a, b) => Number(a.system) - Number(b.system) || a.name.localeCompare(b.name))
+}
+
+/**
+ * Keeps a source to some schemas, and names them: the next sync leaves the others out. Every
+ * schema chosen is every schema: then none is singled out.
+ */
+export async function setSourceSchemas(core: Core, actor: Actor, id: string, input: { schemas: readonly string[]; labels: Readonly<Record<string, string>> }): Promise<string> {
+  const all = await listSourceSchemas(core, actor, id)
+  const open = all.filter((s) => !s.system).map((s) => s.name)
+  const wanted = new Set(input.schemas.map((s) => s.toLowerCase()))
+  const schemas = open.filter((s) => wanted.has(s.toLowerCase()))
+  if (schemas.length === 0) throw invalid('Gardez au moins un schéma.')
+  const labels = Object.fromEntries(Object.entries(input.labels).map(([k, v]) => [k, v.trim()]).filter(([, v]) => v))
+  const { row } = await settingsOf(core, id)
+  const options: DatasourceOptions = { ...row.options, schemas: schemas.length === open.length ? [] : schemas, schema_labels: labels }
+  await core.db.exec('UPDATE datasource SET options = $2, updated_at = now() WHERE id = $1', [id, options])
+  core.changed()
+  await audit(core, actor, 'datasource.schemas', { kind: 'datasource', id }, { schemas: options.schemas })
+  // The schemas left out go now, those added come in: the structure follows at once.
+  return requestSync(core, id, actor.userId, ['schema'])
+}
+
+/**
+ * Stops the source's sync, queued or running — stuck on a huge table, say: its Trino queries are
+ * cancelled, and the source is free to be synchronised again by hand. A status left « running »
+ * by a process that died is released the same way.
+ */
+export async function stopSync(core: Core, actor: Actor, id: string): Promise<void> {
+  await assertOwnSource(core, actor, id)
+  const job = await core.db.one<{ id: string }>(`SELECT id::text FROM job WHERE dedupe_key = $1 AND status IN ('queued', 'running')`, [`sync:${id}`])
+  const who = await core.db.one<{ name: string }>('SELECT name FROM app_user WHERE id = $1', [actor.userId])
+  const reason = `Synchronisation arrêtée par ${who?.name ?? 'un administrateur'}.`
+  if (job) await stopJob(core, job.id, reason)
+  await core.db.exec(`UPDATE datasource SET sync_status = 'failed', sync_error = $2 WHERE id = $1 AND sync_status IN ('queued', 'running')`, [id, reason])
+  core.changed()
+  await audit(core, actor, 'datasource.sync_stop', { kind: 'datasource', id })
 }
 
 /** Recreates in Trino every catalog it lacks — at start, and when a statement finds one missing. */

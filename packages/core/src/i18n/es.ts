@@ -106,6 +106,8 @@ export default {
   "Invitation introuvable ou déjà acceptée.": "Invitación no encontrada o ya aceptada.",
   "Seuls les administrateurs de l’instance suppriment un compte.": "Solo los administradores de la instancia eliminan una cuenta.",
   "Vous ne pouvez pas supprimer votre propre compte.": "No puede eliminar su propia cuenta.",
+  "Gardez au moins un schéma.": "Conserve al menos un esquema.",
+  "Ce JSON n’est pas un tableau de bord copié depuis eodia insights.": "Este JSON no es un panel copiado desde eodia insights.",
   "Le catalogue « {1} » existe déjà.": "El catálogo «{1}» ya existe.",
   "Le champ « {1} » est obligatoire.": "El campo «{1}» es obligatorio.",
   "Le connecteur « {1} » exige la propriété « {2} ».": "El conector «{1}» exige la propiedad «{2}».",

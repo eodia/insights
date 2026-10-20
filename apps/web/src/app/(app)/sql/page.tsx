@@ -428,7 +428,7 @@ function SqlWorkspace() {
             </div>
           ) : state.result ? (
             view === 'table' ? (
-              <DataTable result={state.result} looks={state.result.looks} settings={{ row_numbers: true, density: 'compact' }} />
+              <DataTable result={state.result} looks={state.result.looks} settings={{ row_numbers: true, density: 'compact' }} exportName={$t('Requête SQL')} />
             ) : (
               <div className="h-full p-4">
                 <Visualization result={state.result} viz={{ type: vizType }} />

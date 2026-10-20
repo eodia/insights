@@ -106,6 +106,8 @@ export default {
   "Invitation introuvable ou déjà acceptée.": "Invitation not found or already accepted.",
   "Seuls les administrateurs de l’instance suppriment un compte.": "Only instance administrators delete an account.",
   "Vous ne pouvez pas supprimer votre propre compte.": "You cannot delete your own account.",
+  "Gardez au moins un schéma.": "Keep at least one schema.",
+  "Ce JSON n’est pas un tableau de bord copié depuis eodia insights.": "This JSON is not a dashboard copied from eodia insights.",
   "Le catalogue « {1} » existe déjà.": "The catalog “{1}” already exists.",
   "Le champ « {1} » est obligatoire.": "The field “{1}” is required.",
   "Le connecteur « {1} » exige la propriété « {2} ».": "The “{1}” connector requires the property “{2}”.",

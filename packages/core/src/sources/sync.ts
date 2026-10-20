@@ -8,7 +8,7 @@
  */
 import { type Fingerprint, type SemanticType, type SyncReport, kindOfTrinoType, sourceSchemas } from '@eodia/contracts'
 import { humanize } from '@eodia/compiler'
-import { SYSTEM_SCHEMAS, introspect, type NativeIntrospection } from '@eodia/drivers'
+import { SYSTEM_SCHEMAS, introspect, isSystemSchema, type NativeIntrospection } from '@eodia/drivers'
 import { quoteTrinoIdent as q, quoteTrinoString } from '@eodia/engine'
 import type { Core } from '../context'
 import type { JobHandler } from '../jobs'
@@ -26,12 +26,12 @@ interface DsRow {
   catalog: string
   engine: Parameters<typeof introspect>[0]
   config: Record<string, unknown>
-  options: { excluded_schemas?: string[] }
+  options: { excluded_schemas?: string[]; schemas?: string[] }
 }
 
 const lower = (s: string) => s.toLowerCase()
 
-export const syncJob: JobHandler = async (core, payload, progress) => {
+export const syncJob: JobHandler = async (core, payload, progress, signal) => {
   const id = String(payload.datasource)
   const passes = (payload.passes as string[] | undefined) ?? ['schema', 'fingerprint', 'values']
   const ds = await core.db.one<DsRow>('SELECT id, catalog, engine, config, options FROM datasource WHERE id = $1', [id])
@@ -45,30 +45,35 @@ export const syncJob: JobHandler = async (core, payload, progress) => {
     values: 0,
   }
   try {
-    if (passes.includes('schema')) Object.assign(report, await schemaPass(core, ds, progress))
+    if (passes.includes('schema')) Object.assign(report, await schemaPass(core, ds, progress, signal))
     core.changed()
-    if (passes.includes('fingerprint')) (report as { fingerprinted: number }).fingerprinted = await fingerprintPass(core, ds, progress)
-    if (passes.includes('values')) (report as { values: number }).values = await valuesPass(core, ds, progress)
+    if (passes.includes('fingerprint')) (report as { fingerprinted: number }).fingerprinted = await fingerprintPass(core, ds, progress, signal)
+    if (passes.includes('values')) (report as { values: number }).values = await valuesPass(core, ds, progress, signal)
     await core.db.exec(`UPDATE datasource SET sync_status = 'ok', last_sync_at = now(), sync_error = NULL WHERE id = $1`, [id])
     core.changed()
     return report
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    await core.db.exec(`UPDATE datasource SET sync_status = 'failed', last_sync_at = now(), sync_error = $2 WHERE id = $1`, [id, message])
+    // Stopped: `stopSync` already said so on the source.
+    if (!signal.aborted) {
+      const message = err instanceof Error ? err.message : String(err)
+      await core.db.exec(`UPDATE datasource SET sync_status = 'failed', last_sync_at = now(), sync_error = $2 WHERE id = $1`, [id, message])
+    }
     throw err
   }
 }
 
 // ── Passe 1 : schéma ─────────────────────────────────────────────────────────
 
-async function schemaPass(core: Core, ds: DsRow, progress: Progress): Promise<Partial<SyncReport>> {
+async function schemaPass(core: Core, ds: DsRow, progress: Progress, signal: AbortSignal): Promise<Partial<SyncReport>> {
   await progress('Lecture du schéma dans Trino', 0, 3)
   const excluded = new Set([...SYSTEM_SCHEMAS[ds.engine], ...(ds.options?.excluded_schemas ?? [])].map(lower))
   const only = sourceSchemas(ds.engine, ds.config ?? {})
+  // The schemas chosen in the source's settings — a database full of system schemas, say.
+  const shown = ds.options?.schemas?.length ? new Set(ds.options.schemas.map(lower)) : null
   const cols = await core.engine.run(
     `SELECT table_schema, table_name, column_name, ordinal_position, data_type, is_nullable
      FROM ${q(ds.catalog)}.information_schema.columns WHERE table_schema <> 'information_schema'`,
-    { timeoutMs: 300_000 },
+    { timeoutMs: 300_000, signal },
   )
   const trinoColumns = cols.data
     .map((r) => ({
@@ -79,7 +84,7 @@ async function schemaPass(core: Core, ds: DsRow, progress: Progress): Promise<Pa
       type: String(r[4]),
       nullable: r[5] !== 'NO',
     }))
-    .filter((c) => !excluded.has(lower(c.schema)) && (!only || only.has(lower(c.schema))))
+    .filter((c) => !excluded.has(lower(c.schema)) && !isSystemSchema(ds.engine, c.schema) && (!only || only.has(lower(c.schema))) && (!shown || shown.has(lower(c.schema))))
 
   await progress('Clés, commentaires et volumes (pilote natif)', 1, 3)
   let native: NativeIntrospection = { tables: [], columns: [], foreignKeys: [] }
@@ -257,7 +262,7 @@ interface ColRow {
   fk: boolean
 }
 
-async function fingerprintPass(core: Core, ds: DsRow, progress: Progress): Promise<number> {
+async function fingerprintPass(core: Core, ds: DsRow, progress: Progress, signal: AbortSignal): Promise<number> {
   const tables = await core.db.many<{ id: string; schema_name: string; name: string }>(
     `SELECT id, schema_name, name FROM db_table WHERE datasource_id = $1 AND status = 'active' ORDER BY schema_name, name LIMIT $2`,
     [ds.id, MAX_FINGERPRINT_TABLES],
@@ -291,8 +296,10 @@ async function fingerprintPass(core: Core, ds: DsRow, progress: Progress): Promi
     const from = `${q(ds.catalog)}.${q(t.schema_name)}.${q(t.name)}`
     let row: unknown[] | undefined
     try {
-      row = (await core.engine.run(`SELECT ${exprs.join(', ')} FROM (SELECT * FROM ${from} LIMIT ${SAMPLE_ROWS})`, { timeoutMs: 120_000 })).data[0]
-    } catch {
+      row = (await core.engine.run(`SELECT ${exprs.join(', ')} FROM (SELECT * FROM ${from} LIMIT ${SAMPLE_ROWS})`, { timeoutMs: 120_000, signal })).data[0]
+    } catch (err) {
+      // A table that cannot be read is skipped; a stopped sync is not.
+      if (signal.aborted) throw err
       continue
     }
     if (!row) continue
@@ -330,7 +337,7 @@ async function fingerprintPass(core: Core, ds: DsRow, progress: Progress): Promi
 
 // ── Passe 3 : valeurs ────────────────────────────────────────────────────────
 
-async function valuesPass(core: Core, ds: DsRow, progress: Progress): Promise<number> {
+async function valuesPass(core: Core, ds: DsRow, progress: Progress, signal: AbortSignal): Promise<number> {
   const columns = await core.db.many<{ id: string; name: string; schema_name: string; table_name: string }>(
     `SELECT c.id, c.name, t.schema_name, t.name AS table_name FROM db_column c JOIN db_table t ON t.id = c.table_id
      WHERE t.datasource_id = $1 AND t.status = 'active' AND c.status = 'active' AND c.has_values ORDER BY t.name, c.position`,
@@ -347,10 +354,11 @@ async function valuesPass(core: Core, ds: DsRow, progress: Progress): Promise<nu
         await core.engine.run(
           `SELECT CAST(${col} AS varchar), count(*) FROM ${q(ds.catalog)}.${q(c.schema_name)}.${q(c.table_name)}
            WHERE ${col} IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT ${MAX_VALUES + 1}`,
-          { timeoutMs: 120_000 },
+          { timeoutMs: 120_000, signal },
         )
       ).data
-    } catch {
+    } catch (err) {
+      if (signal.aborted) throw err
       continue
     }
     if (rows.length > MAX_VALUES) {

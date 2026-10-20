@@ -34,6 +34,8 @@ import type { Dashboard } from '@eodia/contracts'
 import { cardConstraints } from '@eodia/contracts'
 import { useQueryClient } from '@tanstack/react-query'
 import {
+  Braces,
+  ClipboardPaste,
   Copy,
   Ellipsis,
   FileDown,
@@ -169,6 +171,9 @@ function DashboardScreen({ id }: { id: string }) {
   const { data: dashboard, error } = useDashboard(id)
   const setCopilotContext = useUi((s) => s.setCopilotContext)
   const [share, setShare] = useState(false)
+  const [pasting, setPasting] = useState(false)
+  const [pasted, setPasted] = useState('')
+  const [pasteError, setPasteError] = useState<string | null>(null)
   const [settings, setSettings] = useState(false)
   const [remove, setRemove] = useState(false)
   const [refresh, setRefresh] = useState<number | null>(null)
@@ -334,6 +339,22 @@ function DashboardScreen({ id }: { id: string }) {
                     >
                       <Copy /> {$t('Dupliquer')}
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        try {
+                          const json = await api.get<unknown>(`/v1/dashboards/${id}/export`)
+                          await navigator.clipboard.writeText(JSON.stringify(json, null, 2))
+                          toast.success($t('Tableau de bord copié en JSON : collez-le dans « Coller un JSON » pour en créer un autre.'))
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : String(err))
+                        }
+                      }}
+                    >
+                      <Braces /> {$t('Copier en JSON')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setPasting(true)}>
+                      <ClipboardPaste /> {$t('Coller un JSON…')}
+                    </DropdownMenuItem>
                     {editable ? (
                       <>
                         <DropdownMenuItem onSelect={() => router.push(newQuestionHref(tab))}>
@@ -358,6 +379,43 @@ function DashboardScreen({ id }: { id: string }) {
           />
         </div>
       </ThemeScope>
+      <Dialog open={pasting} onOpenChange={setPasting}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{$t('Nouveau tableau de bord depuis un JSON')}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{$t('Collez un tableau de bord copié avec « Copier en JSON » : il est créé à côté de celui-ci, dans le même dossier.')}</p>
+          <Textarea value={pasted} onChange={(e) => setPasted(e.target.value)} rows={12} spellCheck={false} className="font-mono text-xs" placeholder='{ "format": "eodia-insights/dashboard", … }' />
+          {pasteError ? <p className="text-xs text-destructive">{pasteError}</p> : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPasting(false)}>
+              {$t('Annuler')}
+            </Button>
+            <Button
+              disabled={!pasted.trim()}
+              onClick={async () => {
+                let parsed: unknown
+                try {
+                  parsed = JSON.parse(pasted)
+                } catch {
+                  return setPasteError($t('Ce texte n’est pas du JSON.'))
+                }
+                try {
+                  const d = await api.post<Dashboard>('/v1/dashboards/import', { folder: dashboard.folder, dashboard: parsed })
+                  setPasting(false)
+                  setPasted('')
+                  setPasteError(null)
+                  router.push(`/dashboard/${d.id}`)
+                } catch (err) {
+                  setPasteError(err instanceof Error ? err.message : String(err))
+                }
+              }}
+            >
+              {$t('Créer le tableau de bord')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <ShareDialog
         open={share}
         onOpenChange={setShare}

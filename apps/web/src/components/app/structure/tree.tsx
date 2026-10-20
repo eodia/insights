@@ -114,7 +114,13 @@ export function StructureTree({
                         >
                           <ChevronRight className={cn('size-3.5 transition-transform', schemaOpen && 'rotate-90')} />
                           <FolderTree className="size-3.5" />
-                          <span className="flex-1 truncate font-mono">{schema}</span>
+                          {ds.options.schema_labels?.[schema] ? (
+                            <span className="flex-1 truncate" title={schema}>
+                              {ds.options.schema_labels[schema]}
+                            </span>
+                          ) : (
+                            <span className="flex-1 truncate font-mono">{schema}</span>
+                          )}
                           <span className="font-normal">{list.length}</span>
                         </button>
                         {schemaOpen

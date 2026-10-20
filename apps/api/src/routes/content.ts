@@ -1,6 +1,7 @@
 import { z } from '@hono/zod-openapi'
 import {
   DashboardInputSchema,
+  DashboardPasteSchema,
   FolderInputSchema,
   QuestionInputSchema,
   RunQuerySchema,
@@ -24,6 +25,8 @@ import {
   folderContents,
   deleteSnippet,
   duplicateDashboard,
+  exportDashboard,
+  importDashboard,
   duplicateQuestion,
   folderItems,
   getDashboard,
@@ -65,6 +68,13 @@ const RunSaved = z.object({
 const CardMove = z.object({ dashboard: z.string().min(1).max(64), tab: z.string().max(60).nullable().optional() })
 const CardRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional() })
 const ExportInput = Run.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(120).optional() })
+/** A table as it shows — its columns, its titles, its filters and its order —, to save as a file. */
+const TableExport = z.object({
+  format: z.enum(['csv', 'xlsx']),
+  name: z.string().max(120).optional(),
+  columns: z.array(z.object({ name: z.string().max(300), label: z.string().max(300), type: z.enum(['text', 'number', 'date', 'datetime', 'boolean']) })).min(1).max(500),
+  rows: z.array(z.array(z.unknown())).max(100_000),
+})
 const HistoryQuery = z.object({ all: z.enum(['0', '1']).optional(), origin: z.string().optional(), errors: z.enum(['0', '1']).optional(), before: z.string().optional() })
 const SnippetInput = z.object({ name: z.string().min(1).max(80), description: z.string().max(500).nullable().optional(), content: z.string().min(1).max(50_000) })
 const Bookmark = z.object({ kind: z.enum(['question', 'model', 'metric', 'dashboard', 'folder']), id: z.string(), on: z.boolean() })
@@ -115,6 +125,12 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
     ok(c, { cancelled: await cancelExecution(c.get('core'), actorOf(c), bodyOf(c, z.object({ execution_id: z.string() })).execution_id) }),
   )
 
+  // What the person already sees, written as a file: no query runs, nothing new is read.
+  route(app, { method: 'post', path: '/api/v1/export/table', tags: qtags, summary: 'Exporter une table telle qu’elle s’affiche (CSV, XLSX)', body: TableExport }, async (c) => {
+    actorOf(c)
+    const input = bodyOf(c, TableExport)
+    return download(c, input.format, input.name ?? '', { columns: input.columns.map((col) => ({ ...col, role: 'field' as const })), rows: input.rows } as Parameters<typeof toCsv>[0])
+  })
   route(app, { method: 'post', path: '/api/v1/query/export', tags: qtags, summary: 'Exporter un résultat (CSV, JSON, XLSX)', body: ExportInput }, async (c) => {
     const input = bodyOf(c, ExportInput)
     const result = await runQuery(c.get('core'), actorOf(c), {
@@ -282,6 +298,12 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   })
   route(app, { method: 'post', path: '/api/v1/dashboards/:id/duplicate', tags: dtags, summary: 'Dupliquer un tableau de bord', body: Copy }, async (c) =>
     ok(c, await duplicateDashboard(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, Copy).folder)),
+  )
+  route(app, { method: 'get', path: '/api/v1/dashboards/:id/export', tags: dtags, summary: 'Un tableau de bord en JSON, ses questions propres incluses' }, async (c) =>
+    ok(c, await exportDashboard(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'post', path: '/api/v1/dashboards/import', tags: dtags, summary: 'Créer un tableau de bord depuis un JSON copié', body: DashboardPasteSchema }, async (c) =>
+    ok(c, await importDashboard(c.get('core'), actorOf(c), bodyOf(c, DashboardPasteSchema))),
   )
   route(app, {
     method: 'post',

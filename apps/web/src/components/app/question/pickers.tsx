@@ -11,6 +11,7 @@ import { PeriodPicker } from '@/components/app/period-picker'
 import { type ColumnOption, OPS_BY_KIND, OP_LABELS, semanticLabel } from '@/lib/builder'
 import { formatCount } from '@/lib/format'
 import { $t } from '@/lib/i18n'
+import { useDatasources } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, CaseSensitive, Hash, Link2, Search, ToggleLeft, Braces } from 'lucide-react'
@@ -79,16 +80,20 @@ export function ColumnList({ options, onPick, filter }: { options: readonly Colu
 /** Tables by source, then models: what a question starts from. */
 export function SourceList({ tables, models, onPick }: { tables: readonly TableMeta[]; models: readonly ItemSummary[]; onPick: (ref: { kind: 'table' | 'question'; id: string }) => void }) {
   const [q, setQ] = useState('')
+  const { data: sources = [] } = useDatasources()
   const groups = useMemo(() => {
+    // A schema shows under the name its source gives it.
+    const labels = new Map(sources.map((s) => [s.id, s.options.schema_labels ?? {}]))
     const out = new Map<string, TableMeta[]>()
     for (const t of tables) {
       if (t.visibility !== 'normal') continue
-      if (q && !fold(`${t.label} ${t.name} ${t.schema}`).includes(fold(q))) continue
-      const key = `${t.qualified.split('.')[0]?.replace(/"/g, '')} · ${t.schema}`
+      const schema = labels.get(t.datasource)?.[t.schema] || t.schema
+      if (q && !fold(`${t.label} ${t.name} ${t.schema} ${schema}`).includes(fold(q))) continue
+      const key = `${t.qualified.split('.')[0]?.replace(/"/g, '')} · ${schema}`
       out.set(key, [...(out.get(key) ?? []), t])
     }
     return [...out.entries()]
-  }, [tables, q])
+  }, [tables, q, sources])
   const ms = models.filter((m) => !q || fold(m.name).includes(fold(q)))
   return (
     <div className="flex max-h-[460px] w-80 flex-col">

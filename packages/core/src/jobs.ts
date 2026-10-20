@@ -9,7 +9,32 @@ export type JobHandler = (
   core: Core,
   payload: Record<string, unknown>,
   progress: (step: string, done: number, total: number) => Promise<void>,
+  /** Aborted when the job is stopped: its queries are cancelled, its next step does not start. */
+  signal: AbortSignal,
 ) => Promise<unknown>
+
+/** The error a stopped job ends with. */
+export class JobStopped extends Error {
+  constructor(message = 'Tâche arrêtée.') {
+    super(message)
+    this.name = 'JobStopped'
+  }
+}
+
+/** How often a running job looks whether it was stopped. */
+const STOP_POLL_MS = 2000
+
+/**
+ * Stops a job still queued or running: it ends as failed, with `reason`. A worker running it
+ * sees it within seconds, cancels its queries and moves on — even when the job hangs.
+ */
+export async function stopJob(core: Core, id: string, reason: string): Promise<boolean> {
+  const n = await core.db.exec(
+    `UPDATE job SET status = 'failed', finished_at = now(), error = $2 WHERE id = $1 AND status IN ('queued', 'running')`,
+    [id, reason],
+  )
+  return n > 0
+}
 
 export async function enqueue(
   core: Core,
@@ -95,21 +120,41 @@ export class Worker {
 
   private async run(job: { id: string; kind: string; payload: Record<string, unknown> }): Promise<void> {
     const handler = this.handlers[job.kind]
+    const stop = new AbortController()
     const progress = async (step: string, done: number, total: number) => {
+      if (stop.signal.aborted) throw new JobStopped()
       await this.core.db.exec('UPDATE job SET progress = $2, heartbeat_at = now() WHERE id = $1', [job.id, { step, done, total }])
     }
+    // Stopped from elsewhere (`stopJob`, maybe another process): the job is told, and the worker
+    // stops waiting for it — a handler stuck in a call that cannot be cancelled no longer blocks
+    // the queue behind it.
+    const stopped = new Promise<never>((_, reject) => stop.signal.addEventListener('abort', () => reject(new JobStopped()), { once: true }))
+    stopped.catch(() => undefined)
+    const watch = setInterval(() => {
+      void this.core.db
+        .one<{ status: string }>('SELECT status FROM job WHERE id = $1', [job.id])
+        .then((row) => {
+          if (row?.status !== 'running') stop.abort()
+        })
+        .catch(() => undefined)
+    }, STOP_POLL_MS)
+    watch.unref()
     try {
       if (!handler) throw new Error(`Job inconnu : ${job.kind}`)
-      const result = await handler(this.core, job.payload, progress)
-      await this.core.db.exec(`UPDATE job SET status = 'done', finished_at = now(), result = $2 WHERE id = $1`, [
+      const result = await Promise.race([handler(this.core, job.payload, progress, stop.signal), stopped])
+      await this.core.db.exec(`UPDATE job SET status = 'done', finished_at = now(), result = $2 WHERE id = $1 AND status = 'running'`, [
         job.id,
         JSON.stringify(result ?? null),
       ])
     } catch (err) {
-      await this.core.db.exec(`UPDATE job SET status = 'failed', finished_at = now(), error = $2 WHERE id = $1`, [
+      // A stopped job already says why; its own failure would only hide it.
+      await this.core.db.exec(`UPDATE job SET status = 'failed', finished_at = now(), error = $2 WHERE id = $1 AND status = 'running'`, [
         job.id,
         err instanceof Error ? err.message : String(err),
       ])
+    } finally {
+      clearInterval(watch)
+      stop.abort()
     }
   }
 }

@@ -28,7 +28,7 @@
     "one": "« {label} » relié à {count} carte.",
     "other": "« {label} » relié à {count} cartes.",
     "where": [
-      "components/app/dashboard/view.tsx:565"
+      "components/app/dashboard/view.tsx:570"
     ]
   },
   "« {name} » est archivé": {
@@ -106,7 +106,7 @@
     "one": "{count} carte",
     "other": "{count} cartes",
     "where": [
-      "components/app/dashboard/view.tsx:571"
+      "components/app/dashboard/view.tsx:576"
     ]
   },
   "{count} cartes ajoutées : enregistrez le tableau de bord pour les garder.": {
@@ -127,7 +127,7 @@
     "one": "{count} carte d’un autre onglet : ouvrez-le pour la relier.",
     "other": "{count} cartes d’autres onglets : ouvrez-les pour les relier.",
     "where": [
-      "components/app/dashboard/view.tsx:584"
+      "components/app/dashboard/view.tsx:589"
     ]
   },
   "{count} chiffres clés": {
@@ -163,7 +163,7 @@
     "one": "{count} colonne de plus n’est pas affichée : filtrez-les pour les voir.",
     "other": "{count} colonnes de plus ne sont pas affichées : filtrez-les pour les voir.",
     "where": [
-      "components/app/visualization.tsx:622"
+      "components/app/visualization.tsx:789"
     ]
   },
   "{count} dernières années": {
@@ -314,7 +314,7 @@
     "one": "{count} ligne (tronqué)",
     "other": "{count} lignes (tronqué)",
     "where": [
-      "components/app/visualization.tsx:543"
+      "components/app/visualization.tsx:710"
     ]
   },
   "{count} membres": {
@@ -403,6 +403,13 @@
       "components/app/admin/permission-matrix.tsx:279"
     ]
   },
+  "{count} renommés.": {
+    "one": "{count} renommé.",
+    "other": "{count} renommés.",
+    "where": [
+      "components/app/data/schemas-panel.tsx:43"
+    ]
+  },
   "{count} requêtes": {
     "one": "{count} requête",
     "other": "{count} requêtes",
@@ -429,6 +436,13 @@
     "other": "{count} schémas",
     "where": [
       "components/app/data/sources-overview.tsx:160"
+    ]
+  },
+  "{count} schémas affichés, les autres sont laissés de côté.": {
+    "one": "{count} schéma affiché, les autres sont laissés de côté.",
+    "other": "{count} schémas affichés, les autres sont laissés de côté.",
+    "where": [
+      "components/app/data/schemas-panel.tsx:42"
     ]
   },
   "{count} secondes": {
@@ -461,7 +475,7 @@
   },
   "{count} sur {total}": {
     "where": [
-      "components/app/dashboard/view.tsx:547",
+      "components/app/dashboard/view.tsx:552",
       "components/app/question/notebook.tsx:291"
     ]
   },
@@ -478,14 +492,14 @@
     "where": [
       "components/app/admin/permission-matrix.tsx:232",
       "components/app/admin/permission-matrix.tsx:278",
-      "components/app/data/sources-overview.tsx:161"
+      "components/app/data/schemas-panel.tsx:135"
     ]
   },
   "{count} types changés": {
     "one": "{count} type changé",
     "other": "{count} types changés",
     "where": [
-      "components/app/data/sync-panel.tsx:71"
+      "components/app/data/sync-panel.tsx:72"
     ]
   },
   "{count} valeurs choisies": {
@@ -507,7 +521,7 @@
   },
   "{duration} ms": {
     "where": [
-      "components/app/visualization.tsx:545"
+      "components/app/visualization.tsx:712"
     ]
   },
   "{email} perd tout accès, ses sessions et ses jetons sont fermés, son dossier personnel est effacé. Cette action est définitive.": {
@@ -521,6 +535,11 @@
       "lib/builder.ts:185"
     ]
   },
+  "{from}–{to} sur {total}": {
+    "where": [
+      "components/app/table-parts.tsx:273"
+    ]
+  },
   "{hour} h": {
     "where": [
       "lib/format.ts:121"
@@ -528,7 +547,9 @@
   },
   "{kept} sur {all}": {
     "where": [
-      "components/app/pivot-axis.tsx:62"
+      "components/app/data/schemas-panel.tsx:148",
+      "components/app/pivot-axis.tsx:62",
+      "components/app/visualization.tsx:545"
     ]
   },
   "{kept} valeurs sur {count}": {
@@ -550,7 +571,7 @@
   },
   "{n} s": {
     "where": [
-      "components/app/data/source-settings.tsx:84"
+      "components/app/data/source-settings.tsx:85"
     ]
   },
   "{name} (groupe)": {
@@ -595,7 +616,7 @@
   },
   "••••• (inchangé)": {
     "where": [
-      "components/app/data/source-form.tsx:135"
+      "components/app/data/source-form.tsx:168"
     ]
   },
   "≈ {count} lignes": {
@@ -650,7 +671,7 @@
   },
   "1 heure": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:125"
+      "app/(app)/dashboard/[id]/page.tsx:127"
     ]
   },
   "1 min": {
@@ -675,7 +696,7 @@
   },
   "100 %": {
     "where": [
-      "components/app/question/viz-settings.tsx:716"
+      "components/app/question/viz-settings.tsx:773"
     ]
   },
   "12 derniers mois": {
@@ -706,7 +727,7 @@
   },
   "24 heures": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:126"
+      "app/(app)/dashboard/[id]/page.tsx:128"
     ]
   },
   "3 dernières années": {
@@ -758,7 +779,7 @@
   },
   "5 minutes": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:124"
+      "app/(app)/dashboard/[id]/page.tsx:126"
     ]
   },
   "6 derniers mois": {
@@ -817,17 +838,17 @@
   },
   "À quelle colonne relier « {label} » sur chaque carte qui l’a ?": {
     "where": [
-      "components/app/dashboard/view.tsx:557"
+      "components/app/dashboard/view.tsx:562"
     ]
   },
   "À quoi sert cette question ?": {
     "where": [
-      "components/app/question/editor.tsx:625"
+      "components/app/question/editor.tsx:636"
     ]
   },
   "Abandonner le SQL": {
     "where": [
-      "components/app/question/editor.tsx:707"
+      "components/app/question/editor.tsx:718"
     ]
   },
   "Accent": {
@@ -839,7 +860,7 @@
     "where": [
       "app/(app)/account/page.tsx:293",
       "app/(app)/browse/[[...folder]]/page.tsx:499",
-      "components/app/question/editor.tsx:646"
+      "components/app/question/editor.tsx:657"
     ]
   },
   "Accès à la colonne {col}": {
@@ -864,7 +885,7 @@
   },
   "Accès au stockage fournis par le catalogue": {
     "where": [
-      "components/app/data/source-form.tsx:65",
+      "components/app/data/source-form.tsx:67",
       "packages/contracts/src/domain.ts:182"
     ]
   },
@@ -881,7 +902,7 @@
   "Accès aux données refusé": {
     "where": [
       "app/(app)/sql/page.tsx:421",
-      "components/app/question/editor.tsx:522"
+      "components/app/question/editor.tsx:525"
     ]
   },
   "Accès du groupe": {
@@ -915,7 +936,7 @@
   },
   "Actions de la carte": {
     "where": [
-      "components/app/dashboard/view.tsx:301"
+      "components/app/dashboard/view.tsx:304"
     ]
   },
   "Actions du dossier": {
@@ -1005,18 +1026,29 @@
   },
   "Adresses de type chemin (path-style)": {
     "where": [
-      "components/app/data/source-form.tsx:74",
+      "components/app/data/source-form.tsx:76",
       "packages/contracts/src/domain.ts:200"
     ]
   },
   "Aérée": {
     "where": [
-      "components/app/question/viz-settings.tsx:1032"
+      "components/app/question/viz-settings.tsx:1117"
+    ]
+  },
+  "Affichage des lignes": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1082",
+      "components/app/question/viz-settings.tsx:1090"
     ]
   },
   "Affiche un graphique dans la conversation (MCP Apps : Claude, ChatGPT, VS Code…), dessiné comme dans l’application, d’une question enregistrée ou d’une requête SQL. Un client sans MCP Apps reçoit le résultat en texte.": {
     "where": [
       "components/app/docs/mcp-tools.ts:128"
+    ]
+  },
+  "Afficher « {column} »": {
+    "where": [
+      "components/app/question/viz-settings.tsx:158"
     ]
   },
   "Afficher l’historique": {
@@ -1047,17 +1079,17 @@
   },
   "Agrandir": {
     "where": [
-      "components/app/dashboard/view.tsx:312"
+      "components/app/dashboard/view.tsx:315"
     ]
   },
   "Aire": {
     "where": [
-      "components/app/question/viz-settings.tsx:940"
+      "components/app/question/viz-settings.tsx:997"
     ]
   },
   "Aire en dégradé": {
     "where": [
-      "components/app/question/viz-settings.tsx:763"
+      "components/app/question/viz-settings.tsx:820"
     ]
   },
   "Aires": {
@@ -1067,17 +1099,17 @@
   },
   "Ajouté aux favoris.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:324"
+      "app/(app)/dashboard/[id]/page.tsx:329"
     ]
   },
   "Ajoutée à « {name} ».": {
     "where": [
-      "components/app/question/editor.tsx:274"
+      "components/app/question/editor.tsx:277"
     ]
   },
   "Ajoutées aux réglages par défaut du connecteur : cache des métadonnées, pushdown, délais…": {
     "where": [
-      "components/app/data/source-form.tsx:406"
+      "components/app/data/source-form.tsx:461"
     ]
   },
   "Ajouter": {
@@ -1088,28 +1120,28 @@
   },
   "Ajouter à un tableau de bord": {
     "where": [
-      "components/app/question/editor.tsx:414"
+      "components/app/question/editor.tsx:417"
     ]
   },
   "Ajouter aux favoris": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:327",
+      "app/(app)/dashboard/[id]/page.tsx:332",
       "components/app/item-selection.tsx:233"
     ]
   },
   "Ajouter des cartes": {
     "where": [
-      "components/app/dashboard/view.tsx:1089"
+      "components/app/dashboard/view.tsx:1094"
     ]
   },
   "Ajouter et synchroniser": {
     "where": [
-      "components/app/data/source-form.tsx:473"
+      "components/app/data/source-form.tsx:558"
     ]
   },
   "Ajouter le filtre": {
     "where": [
-      "components/app/question/pickers.tsx:216"
+      "components/app/question/pickers.tsx:221"
     ]
   },
   "Ajouter un attribut": {
@@ -1119,7 +1151,7 @@
   },
   "Ajouter un filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:917"
+      "components/app/dashboard/view.tsx:922"
     ]
   },
   "Ajouter une condition": {
@@ -1130,12 +1162,12 @@
   "Ajouter une couleur": {
     "where": [
       "app/(app)/admin/themes/page.tsx:545",
-      "components/app/question/viz-settings.tsx:369"
+      "components/app/question/viz-settings.tsx:426"
     ]
   },
   "Ajouter une période": {
     "where": [
-      "components/app/question/viz-settings.tsx:516"
+      "components/app/question/viz-settings.tsx:573"
     ]
   },
   "Ajouter une personne": {
@@ -1160,13 +1192,13 @@
   },
   "Ajouter une propriété": {
     "where": [
-      "components/app/data/source-form.tsx:431"
+      "components/app/data/source-form.tsx:486"
     ]
   },
   "Ajouter une question": {
     "where": [
-      "components/app/dashboard/view.tsx:429",
-      "components/app/dashboard/view.tsx:1093"
+      "components/app/dashboard/view.tsx:434",
+      "components/app/dashboard/view.tsx:1098"
     ]
   },
   "Ajouter une règle de lignes": {
@@ -1192,7 +1224,7 @@
   },
   "Ajoutez-y des questions : chacune devient une carte, que vous placez et redimensionnez sur la grille.": {
     "where": [
-      "components/app/dashboard/view.tsx:1086"
+      "components/app/dashboard/view.tsx:1091"
     ]
   },
   "Aller à": {
@@ -1233,7 +1265,7 @@
   },
   "Anneau": {
     "where": [
-      "components/app/question/viz-settings.tsx:881"
+      "components/app/question/viz-settings.tsx:938"
     ]
   },
   "Année": {
@@ -1290,7 +1322,7 @@
   },
   "Apache Iceberg": {
     "where": [
-      "components/app/data/source-form.tsx:54",
+      "components/app/data/source-form.tsx:56",
       "packages/contracts/src/domain.ts:308"
     ]
   },
@@ -1432,7 +1464,7 @@
   },
   "Au": {
     "where": [
-      "components/app/question/viz-settings.tsx:492"
+      "components/app/question/viz-settings.tsx:549"
     ]
   },
   "au moins une condition": {
@@ -1485,7 +1517,7 @@
   },
   "Aucun filtre du tableau n’est relié à « {col} ».": {
     "where": [
-      "components/app/dashboard/view.tsx:743"
+      "components/app/dashboard/view.tsx:748"
     ]
   },
   "Aucun groupe": {
@@ -1528,8 +1560,13 @@
   "Aucun résultat": {
     "where": [
       "components/app/palette.tsx:54",
-      "components/app/visualization.tsx:110",
+      "components/app/visualization.tsx:124",
       "components/ui/combobox.tsx:99"
+    ]
+  },
+  "Aucun schéma": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:138"
     ]
   },
   "Aucun secret d’intégration.": {
@@ -1567,12 +1604,12 @@
     "where": [
       "app/(app)/admin/themes/page.tsx:434",
       "components/app/question/notebook.tsx:314",
-      "components/app/question/viz-settings.tsx:943"
+      "components/app/question/viz-settings.tsx:1000"
     ]
   },
   "Aucune : tout est affiché": {
     "where": [
-      "components/app/dashboard/view.tsx:591"
+      "components/app/dashboard/view.tsx:596"
     ]
   },
   "Aucune cible": {
@@ -1587,12 +1624,12 @@
   },
   "Aucune colonne": {
     "where": [
-      "components/app/question/pickers.tsx:73"
+      "components/app/question/pickers.tsx:74"
     ]
   },
   "Aucune colonne commune : choisissez-la sur chaque carte, ci-dessous.": {
     "where": [
-      "components/app/dashboard/view.tsx:583"
+      "components/app/dashboard/view.tsx:588"
     ]
   },
   "Aucune colonne ne correspond.": {
@@ -1624,6 +1661,11 @@
   "Aucune invitation en attente.": {
     "where": [
       "app/(app)/admin/people/page.tsx:634"
+    ]
+  },
+  "Aucune ligne ne correspond à la recherche ou aux filtres.": {
+    "where": [
+      "components/app/visualization.tsx:679"
     ]
   },
   "Aucune méthode": {
@@ -1691,7 +1733,7 @@
   "Aucune table synchronisée.": {
     "where": [
       "components/app/admin/permission-matrix.tsx:220",
-      "components/app/structure/tree.tsx:144"
+      "components/app/structure/tree.tsx:150"
     ]
   },
   "Aucune valeur": {
@@ -1712,7 +1754,7 @@
   },
   "Aucune valeur retenue : le filtre écarte tout.": {
     "where": [
-      "components/app/visualization.tsx:601"
+      "components/app/visualization.tsx:768"
     ]
   },
   "Audience": {
@@ -1763,15 +1805,15 @@
   },
   "auto": {
     "where": [
-      "components/app/question/viz-settings.tsx:800",
-      "components/app/question/viz-settings.tsx:803"
+      "components/app/question/viz-settings.tsx:857",
+      "components/app/question/viz-settings.tsx:860"
     ]
   },
   "Auto": {
     "where": [
       "components/app/login-stage.tsx:627",
-      "components/app/question/viz-settings.tsx:669",
-      "components/app/question/viz-settings.tsx:740"
+      "components/app/question/viz-settings.tsx:726",
+      "components/app/question/viz-settings.tsx:797"
     ]
   },
   "Automatique": {
@@ -1786,7 +1828,7 @@
   },
   "Autorisé": {
     "where": [
-      "components/app/data/source-settings.tsx:83"
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "Autoriser l’exécution de requêtes (sous vos droits)": {
@@ -1796,13 +1838,13 @@
   },
   "Autoriser le SQL natif": {
     "where": [
-      "components/app/data/source-form.tsx:386",
-      "components/app/data/source-form.tsx:395"
+      "components/app/data/source-form.tsx:422",
+      "components/app/data/source-form.tsx:431"
     ]
   },
   "Autre couleur": {
     "where": [
-      "components/app/question/viz-settings.tsx:406"
+      "components/app/question/viz-settings.tsx:463"
     ]
   },
   "Autres": {
@@ -1814,7 +1856,7 @@
   },
   "Avancé": {
     "where": [
-      "components/app/data/source-form.tsx:401"
+      "components/app/data/source-form.tsx:437"
     ]
   },
   "Avant": {
@@ -1886,22 +1928,22 @@
   },
   "Axe du temps continu": {
     "where": [
-      "components/app/question/viz-settings.tsx:780"
+      "components/app/question/viz-settings.tsx:837"
     ]
   },
   "Axe horizontal": {
     "where": [
-      "components/app/question/viz-settings.tsx:818"
+      "components/app/question/viz-settings.tsx:875"
     ]
   },
   "Axe vertical": {
     "where": [
-      "components/app/question/viz-settings.tsx:819"
+      "components/app/question/viz-settings.tsx:876"
     ]
   },
   "Axes": {
     "where": [
-      "components/app/question/viz-settings.tsx:777"
+      "components/app/question/viz-settings.tsx:834"
     ]
   },
   "bar, row, line, area, combo, pie, funnel, scatter, scalar, gauge, table…": {
@@ -1909,21 +1951,26 @@
       "components/app/docs/mcp-tools.ts:133"
     ]
   },
+  "Barre de recherche, filtres et export": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1104"
+    ]
+  },
   "Barres": {
     "where": [
-      "components/app/question/viz-settings.tsx:942",
+      "components/app/question/viz-settings.tsx:999",
       "lib/viz.ts:207"
     ]
   },
   "Barres affichées": {
     "where": [
-      "components/app/question/viz-settings.tsx:588",
-      "components/app/question/viz-settings.tsx:593"
+      "components/app/question/viz-settings.tsx:645",
+      "components/app/question/viz-settings.tsx:650"
     ]
   },
   "Barres dans les cellules": {
     "where": [
-      "components/app/question/viz-settings.tsx:1037"
+      "components/app/question/viz-settings.tsx:1122"
     ]
   },
   "Barres horizontales": {
@@ -1933,13 +1980,13 @@
   },
   "Barres polaires": {
     "where": [
-      "components/app/question/viz-settings.tsx:834",
+      "components/app/question/viz-settings.tsx:891",
       "lib/viz.ts:217"
     ]
   },
   "Base de données": {
     "where": [
-      "components/app/data/source-form.tsx:37",
+      "components/app/data/source-form.tsx:39",
       "packages/contracts/src/domain.ts:219",
       "packages/contracts/src/domain.ts:233"
     ]
@@ -1997,7 +2044,7 @@
   },
   "Boutique, Entrepôt…": {
     "where": [
-      "components/app/data/source-form.tsx:290"
+      "components/app/data/source-form.tsx:326"
     ]
   },
   "Brancher un assistant": {
@@ -2017,25 +2064,25 @@
   },
   "Bulles": {
     "where": [
-      "components/app/question/viz-settings.tsx:985",
+      "components/app/question/viz-settings.tsx:1042",
       "lib/viz.ts:214"
     ]
   },
   "Cache": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:128",
+      "app/(app)/dashboard/[id]/page.tsx:130",
       "app/(app)/history/page.tsx:77"
     ]
   },
   "Cache des résultats": {
     "where": [
       "app/(app)/admin/settings/page.tsx:80",
-      "components/app/data/source-settings.tsx:84"
+      "components/app/data/source-settings.tsx:85"
     ]
   },
   "Cache des résultats (secondes)": {
     "where": [
-      "components/app/data/source-form.tsx:381"
+      "components/app/data/source-form.tsx:417"
     ]
   },
   "Cachée": {
@@ -2066,13 +2113,13 @@
   },
   "Calendrier": {
     "where": [
-      "components/app/question/viz-settings.tsx:863",
+      "components/app/question/viz-settings.tsx:920",
       "lib/viz.ts:221"
     ]
   },
   "Camembert": {
     "where": [
-      "components/app/question/viz-settings.tsx:880",
+      "components/app/question/viz-settings.tsx:937",
       "lib/viz.ts:212"
     ]
   },
@@ -2089,29 +2136,29 @@
   },
   "Cardinalité, nulls, min et max sur un échantillon.": {
     "where": [
-      "components/app/data/sync-panel.tsx:19"
+      "components/app/data/sync-panel.tsx:20"
     ]
   },
   "Carte": {
     "where": [
       "app/(app)/history/page.tsx:26",
-      "components/app/dashboard/view.tsx:1170",
-      "components/app/dashboard/view.tsx:1202"
+      "components/app/dashboard/view.tsx:1175",
+      "components/app/dashboard/view.tsx:1207"
     ]
   },
   "Carte de chaleur": {
     "where": [
-      "components/app/question/viz-settings.tsx:1067"
+      "components/app/question/viz-settings.tsx:1152"
     ]
   },
   "Carte déplacée dans « {name} ».": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:282"
+      "app/(app)/dashboard/[id]/page.tsx:287"
     ]
   },
   "Carte déplacée.": {
     "where": [
-      "components/app/dashboard/view.tsx:867"
+      "components/app/dashboard/view.tsx:872"
     ]
   },
   "Carte proportionnelle": {
@@ -2121,7 +2168,7 @@
   },
   "Carte sans question.": {
     "where": [
-      "components/app/dashboard/view.tsx:785"
+      "components/app/dashboard/view.tsx:790"
     ]
   },
   "Carte||type de graphique : une carte géographique": {
@@ -2136,7 +2183,7 @@
   },
   "Cases colorées": {
     "where": [
-      "components/app/question/viz-settings.tsx:870"
+      "components/app/question/viz-settings.tsx:927"
     ]
   },
   "Casse des titres": {
@@ -2147,19 +2194,19 @@
   },
   "Catalogue Iceberg": {
     "where": [
-      "components/app/data/source-form.tsx:55",
+      "components/app/data/source-form.tsx:57",
       "packages/contracts/src/domain.ts:144"
     ]
   },
   "Catalogue REST": {
     "where": [
-      "components/app/data/source-form.tsx:57",
+      "components/app/data/source-form.tsx:59",
       "packages/contracts/src/domain.ts:150"
     ]
   },
   "Catalogue Trino": {
     "where": [
-      "components/app/data/source-settings.tsx:81"
+      "components/app/data/source-settings.tsx:82"
     ]
   },
   "Catalogues": {
@@ -2208,7 +2255,7 @@
   },
   "Ce moteur n’accepte pas de requête native : seul le SQL Trino est possible.": {
     "where": [
-      "components/app/data/source-form.tsx:392"
+      "components/app/data/source-form.tsx:428"
     ]
   },
   "Ce que contient la colonne, pour les analystes et le copilot.": {
@@ -2223,7 +2270,7 @@
   },
   "Ce que lit la personne dans la barre des filtres.": {
     "where": [
-      "components/app/dashboard/view.tsx:532"
+      "components/app/dashboard/view.tsx:537"
     ]
   },
   "Ce que vous accordez ici, tout le monde l’a. Accordez plutôt les accès larges à des groupes dédiés.": {
@@ -2238,17 +2285,22 @@
   },
   "Ce résultat ne se prête pas à cette visualisation : il faut au moins une dimension et une mesure.": {
     "where": [
-      "components/app/visualization.tsx:130"
+      "components/app/visualization.tsx:154"
     ]
   },
   "Ce tableau de bord est vide.": {
     "where": [
-      "components/app/dashboard/view.tsx:1085"
+      "components/app/dashboard/view.tsx:1090"
     ]
   },
   "Ce texte n’est pas du JSON valide.": {
     "where": [
       "components/app/structure/json-tools.tsx:65"
+    ]
+  },
+  "Ce texte n’est pas du JSON.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:401"
     ]
   },
   "ce trimestre": {
@@ -2275,7 +2327,7 @@
   },
   "Celle de l'instance": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:122"
+      "app/(app)/dashboard/[id]/page.tsx:124"
     ]
   },
   "Celui de la source (Europe/Paris…)": {
@@ -2332,7 +2384,7 @@
   },
   "Chaîne de connexion": {
     "where": [
-      "components/app/data/source-form.tsx:46",
+      "components/app/data/source-form.tsx:48",
       "packages/contracts/src/domain.ts:298"
     ]
   },
@@ -2353,7 +2405,7 @@
   },
   "Changer la couleur": {
     "where": [
-      "components/app/question/viz-settings.tsx:396"
+      "components/app/question/viz-settings.tsx:453"
     ]
   },
   "Changer le mot de passe": {
@@ -2378,7 +2430,7 @@
   },
   "Chaque case teintée selon la valeur, avec sa légende": {
     "where": [
-      "components/app/question/viz-settings.tsx:870"
+      "components/app/question/viz-settings.tsx:927"
     ]
   },
   "Chaque espace a ses sources, ses dossiers, ses groupes et ses droits ; une personne peut appartenir à plusieurs. Les administrateurs de l’instance les voient tous.": {
@@ -2388,23 +2440,23 @@
   },
   "Chaque heure": {
     "where": [
-      "components/app/data/source-form.tsx:374"
+      "components/app/data/source-form.tsx:410"
     ]
   },
   "Chaque jour": {
     "where": [
-      "components/app/data/source-form.tsx:375"
+      "components/app/data/source-form.tsx:411"
     ]
   },
   "Chaque jour, dessiner": {
     "where": [
-      "components/app/question/viz-settings.tsx:864",
-      "components/app/question/viz-settings.tsx:872"
+      "components/app/question/viz-settings.tsx:921",
+      "components/app/question/viz-settings.tsx:929"
     ]
   },
   "Chaque période s’ajoute aux précédentes : un total qui grandit.": {
     "where": [
-      "components/app/question/viz-settings.tsx:604"
+      "components/app/question/viz-settings.tsx:661"
     ]
   },
   "Chaque personne de l’instance en fait partie": {
@@ -2435,7 +2487,7 @@
   "Chargement…": {
     "where": [
       "components/app/dashboard/value-list.tsx:314",
-      "components/app/question/pickers.tsx:151"
+      "components/app/question/pickers.tsx:156"
     ]
   },
   "Charger plus": {
@@ -2462,18 +2514,18 @@
   "Chercher une colonne…": {
     "where": [
       "components/app/question/notebook.tsx:297",
-      "components/app/question/pickers.tsx:50"
+      "components/app/question/pickers.tsx:51"
     ]
   },
   "Chercher une table ou un modèle…": {
     "where": [
-      "components/app/question/pickers.tsx:96"
+      "components/app/question/pickers.tsx:101"
     ]
   },
   "Chercher une valeur…": {
     "where": [
       "components/app/dashboard/value-list.tsx:248",
-      "components/app/question/pickers.tsx:149"
+      "components/app/question/pickers.tsx:154"
     ]
   },
   "Chiffre d’affaires": {
@@ -2504,19 +2556,24 @@
   },
   "Chiffrer la connexion": {
     "where": [
-      "components/app/data/source-form.tsx:40",
+      "components/app/data/source-form.tsx:42",
       "packages/contracts/src/domain.ts:251"
     ]
   },
   "Chiffres clés": {
     "where": [
       "components/app/home/exploration.tsx:150",
-      "components/app/question/viz-settings.tsx:210"
+      "components/app/question/viz-settings.tsx:267"
     ]
   },
   "Choisie selon la série : la saison si elle en couvre deux, sinon une tendance lissée": {
     "where": [
-      "components/app/question/viz-settings.tsx:669"
+      "components/app/question/viz-settings.tsx:726"
+    ]
+  },
+  "Choisir et renommer": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:37"
     ]
   },
   "Choisir une image (PNG, SVG, JPEG, WebP)": {
@@ -2566,12 +2623,12 @@
   },
   "Choisissez une source de données.": {
     "where": [
-      "components/app/question/editor.tsx:541"
+      "components/app/question/editor.tsx:552"
     ]
   },
   "Choisissez une valeur dans le filtre, en haut, puis gardez-la ici.": {
     "where": [
-      "components/app/dashboard/view.tsx:601"
+      "components/app/dashboard/view.tsx:606"
     ]
   },
   "Cible": {
@@ -2622,7 +2679,7 @@
   },
   "Clé d’accès S3": {
     "where": [
-      "components/app/data/source-form.tsx:72",
+      "components/app/data/source-form.tsx:74",
       "packages/contracts/src/domain.ts:196"
     ]
   },
@@ -2642,7 +2699,7 @@
   },
   "Clé secrète S3": {
     "where": [
-      "components/app/data/source-form.tsx:73",
+      "components/app/data/source-form.tsx:75",
       "packages/contracts/src/domain.ts:197"
     ]
   },
@@ -2659,6 +2716,11 @@
   "Cliquez une colonne pour sa description, son format et ses valeurs.": {
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:132"
+    ]
+  },
+  "Cochez les schémas à garder ; un nom à afficher les rend plus lisibles. La structure est synchronisée de nouveau à l’enregistrement.": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:86"
     ]
   },
   "Code postal": {
@@ -2679,7 +2741,13 @@
   },
   "Coller": {
     "where": [
+      "components/app/data/source-form.tsx:458",
       "components/app/structure/json-tools.tsx:89"
+    ]
+  },
+  "Coller des propriétés": {
+    "where": [
+      "components/app/data/source-form.tsx:493"
     ]
   },
   "Coller la configuration d’une colonne": {
@@ -2692,16 +2760,26 @@
       "components/app/structure/json-tools.tsx:106"
     ]
   },
+  "Coller un JSON…": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:356"
+    ]
+  },
   "Coller une configuration": {
     "where": [
       "components/app/structure/json-tools.tsx:93",
       "components/app/structure/json-tools.tsx:94"
     ]
   },
+  "Collez un tableau de bord copié avec « Copier en JSON » : il est créé à côté de celui-ci, dans le même dossier.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:387"
+    ]
+  },
   "Colonne": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:208",
-      "components/app/dashboard/view.tsx:206"
+      "components/app/dashboard/view.tsx:207"
     ]
   },
   "Colonne calculée": {
@@ -2746,12 +2824,12 @@
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:129",
       "components/app/admin/permission-matrix.tsx:196",
-      "components/app/data/source-settings.tsx:223"
+      "components/app/data/source-settings.tsx:225"
     ]
   },
   "Colonnes : {column}": {
     "where": [
-      "components/app/question/viz-settings.tsx:1057"
+      "components/app/question/viz-settings.tsx:1142"
     ]
   },
   "Colonnes personnalisées": {
@@ -2830,12 +2908,12 @@
   },
   "Compacte": {
     "where": [
-      "components/app/question/viz-settings.tsx:1030"
+      "components/app/question/viz-settings.tsx:1115"
     ]
   },
   "Comparer": {
     "where": [
-      "components/app/question/viz-settings.tsx:211"
+      "components/app/question/viz-settings.tsx:268"
     ]
   },
   "Complète": {
@@ -2846,7 +2924,7 @@
   "Compte": {
     "where": [
       "app/(app)/admin/people/page.tsx:242",
-      "components/app/data/source-form.tsx:43",
+      "components/app/data/source-form.tsx:45",
       "packages/contracts/src/domain.ts:279"
     ]
   },
@@ -2930,13 +3008,13 @@
   },
   "Connecteur": {
     "where": [
-      "components/app/data/source-form.tsx:48",
+      "components/app/data/source-form.tsx:50",
       "packages/contracts/src/domain.ts:321"
     ]
   },
   "Connecteur Trino (avancé)": {
     "where": [
-      "components/app/data/source-form.tsx:31",
+      "components/app/data/source-form.tsx:33",
       "packages/contracts/src/domain.ts:315"
     ]
   },
@@ -2954,17 +3032,17 @@
   },
   "Connexion {engine}": {
     "where": [
-      "components/app/data/source-form.tsx:315"
+      "components/app/data/source-form.tsx:351"
     ]
   },
   "Connexion enregistrée.": {
     "where": [
-      "components/app/data/source-settings.tsx:40"
+      "components/app/data/source-settings.tsx:41"
     ]
   },
   "Connexion impossible": {
     "where": [
-      "components/app/data/source-form.tsx:446"
+      "components/app/data/source-form.tsx:531"
     ]
   },
   "Connexion impossible.": {
@@ -2974,7 +3052,7 @@
   },
   "Connexion réussie": {
     "where": [
-      "components/app/data/source-form.tsx:446"
+      "components/app/data/source-form.tsx:531"
     ]
   },
   "Connexions": {
@@ -2984,12 +3062,12 @@
   },
   "Conseillé": {
     "where": [
-      "components/app/question/viz-settings.tsx:264"
+      "components/app/question/viz-settings.tsx:321"
     ]
   },
   "Conseillé pour ce résultat": {
     "where": [
-      "components/app/question/viz-settings.tsx:271"
+      "components/app/question/viz-settings.tsx:328"
     ]
   },
   "Construis un tableau de bord du service client.": {
@@ -3010,7 +3088,7 @@
   },
   "Convertir en SQL": {
     "where": [
-      "components/app/question/editor.tsx:437"
+      "components/app/question/editor.tsx:440"
     ]
   },
   "Cookies": {
@@ -3056,6 +3134,12 @@
       "components/app/admin/common.tsx:218"
     ]
   },
+  "Copier en JSON": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:353",
+      "components/app/data/source-form.tsx:455"
+    ]
+  },
   "Copier la configuration": {
     "where": [
       "components/app/structure/json-tools.tsx:32"
@@ -3069,8 +3153,8 @@
   },
   "Copier la valeur": {
     "where": [
-      "components/app/dashboard/view.tsx:1195",
-      "components/app/question/editor.tsx:582"
+      "components/app/dashboard/view.tsx:1200",
+      "components/app/question/editor.tsx:593"
     ]
   },
   "Copier le SQL": {
@@ -3114,7 +3198,7 @@
   },
   "Corrige cette requête : {error}": {
     "where": [
-      "components/app/question/editor.tsx:525"
+      "components/app/question/editor.tsx:528"
     ]
   },
   "Corrige cette requête.": {
@@ -3125,25 +3209,25 @@
   "Corriger avec le copilote": {
     "where": [
       "app/(app)/sql/page.tsx:425",
-      "components/app/question/editor.tsx:526"
+      "components/app/question/editor.tsx:529"
     ]
   },
   "Côte à côte": {
     "where": [
-      "components/app/question/viz-settings.tsx:714",
-      "components/app/question/viz-settings.tsx:851"
+      "components/app/question/viz-settings.tsx:771",
+      "components/app/question/viz-settings.tsx:908"
     ]
   },
   "Couleur": {
     "where": [
-      "components/app/question/viz-settings.tsx:1072",
+      "components/app/question/viz-settings.tsx:1157",
       "components/app/structure/pickers.tsx:74",
       "components/app/structure/pickers.tsx:76"
     ]
   },
   "Couleur {i}": {
     "where": [
-      "components/app/question/viz-settings.tsx:357"
+      "components/app/question/viz-settings.tsx:414"
     ]
   },
   "Couleur {n}": {
@@ -3153,29 +3237,29 @@
   },
   "Couleur de chaque élément": {
     "where": [
-      "components/app/question/viz-settings.tsx:441"
+      "components/app/question/viz-settings.tsx:498"
     ]
   },
   "Couleur unique": {
     "where": [
-      "components/app/question/viz-settings.tsx:562"
+      "components/app/question/viz-settings.tsx:619"
     ]
   },
   "Couleurs": {
     "where": [
       "app/(app)/admin/themes/page.tsx:382",
-      "components/app/question/viz-settings.tsx:556"
+      "components/app/question/viz-settings.tsx:613"
     ]
   },
   "Courbe miniature": {
     "where": [
-      "components/app/question/viz-settings.tsx:935",
-      "components/app/question/viz-settings.tsx:945"
+      "components/app/question/viz-settings.tsx:992",
+      "components/app/question/viz-settings.tsx:1002"
     ]
   },
   "Course": {
     "where": [
-      "components/app/question/viz-settings.tsx:574"
+      "components/app/question/viz-settings.tsx:631"
     ]
   },
   "Course de barres": {
@@ -3216,7 +3300,7 @@
   },
   "Créée dans ce tableau de bord, sans passer par un dossier": {
     "where": [
-      "components/app/dashboard/view.tsx:443"
+      "components/app/dashboard/view.tsx:448"
     ]
   },
   "Créer": {
@@ -3240,6 +3324,11 @@
   "Créer le secret": {
     "where": [
       "app/(app)/admin/settings/page.tsx:295"
+    ]
+  },
+  "Créer le tableau de bord": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:414"
     ]
   },
   "Créer le thème": {
@@ -3298,12 +3387,17 @@
   },
   "Croissant": {
     "where": [
-      "components/app/question/viz-settings.tsx:696"
+      "components/app/question/viz-settings.tsx:753"
+    ]
+  },
+  "CSV": {
+    "where": [
+      "components/app/visualization.tsx:573"
     ]
   },
   "Cumuler les périodes": {
     "where": [
-      "components/app/question/viz-settings.tsx:598"
+      "components/app/question/viz-settings.tsx:655"
     ]
   },
   "Curateur": {
@@ -3319,8 +3413,8 @@
   },
   "Dans chaque bulle": {
     "where": [
-      "components/app/question/viz-settings.tsx:999",
-      "components/app/question/viz-settings.tsx:1008"
+      "components/app/question/viz-settings.tsx:1056",
+      "components/app/question/viz-settings.tsx:1065"
     ]
   },
   "Dans un terminal": {
@@ -3376,7 +3470,7 @@
   },
   "db.exemple.fr": {
     "where": [
-      "components/app/data/source-form.tsx:33",
+      "components/app/data/source-form.tsx:35",
       "packages/contracts/src/domain.ts:100"
     ]
   },
@@ -3407,7 +3501,7 @@
   },
   "Décimales": {
     "where": [
-      "components/app/question/viz-settings.tsx:923",
+      "components/app/question/viz-settings.tsx:980",
       "components/app/structure/format-editor.tsx:154"
     ]
   },
@@ -3443,7 +3537,7 @@
   },
   "Décroissant": {
     "where": [
-      "components/app/question/viz-settings.tsx:695"
+      "components/app/question/viz-settings.tsx:752"
     ]
   },
   "défaut {value}": {
@@ -3451,16 +3545,21 @@
       "components/app/docs/openapi.ts:175"
     ]
   },
+  "Défilement continu": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1088"
+    ]
+  },
   "Dégradé": {
     "where": [
       "app/(app)/admin/themes/page.tsx:509",
-      "components/app/question/viz-settings.tsx:977",
+      "components/app/question/viz-settings.tsx:1034",
       "lib/palettes.ts:48"
     ]
   },
   "Délier toutes": {
     "where": [
-      "components/app/dashboard/view.tsx:578"
+      "components/app/dashboard/view.tsx:583"
     ]
   },
   "Delta Lake": {
@@ -3475,7 +3574,7 @@
   },
   "Demander au copilote": {
     "where": [
-      "components/app/question/editor.tsx:398",
+      "components/app/question/editor.tsx:401",
       "components/app/topbar.tsx:100"
     ]
   },
@@ -3504,12 +3603,12 @@
   "Démarrage…": {
     "where": [
       "app/(app)/admin/settings/page.tsx:343",
-      "components/app/data/sync-panel.tsx:200"
+      "components/app/data/sync-panel.tsx:232"
     ]
   },
   "Demi-cercle": {
     "where": [
-      "components/app/question/viz-settings.tsx:888"
+      "components/app/question/viz-settings.tsx:945"
     ]
   },
   "Démo publique : Maison Arvor est une boutique fictive, remise à zéro chaque nuit.": {
@@ -3519,8 +3618,8 @@
   },
   "Densité": {
     "where": [
-      "components/app/question/viz-settings.tsx:1025",
-      "components/app/question/viz-settings.tsx:1034"
+      "components/app/question/viz-settings.tsx:1110",
+      "components/app/question/viz-settings.tsx:1119"
     ]
   },
   "Déplacer": {
@@ -3535,7 +3634,7 @@
   },
   "Déplacer…": {
     "where": [
-      "components/app/question/editor.tsx:408"
+      "components/app/question/editor.tsx:411"
     ]
   },
   "déplier": {
@@ -3577,7 +3676,7 @@
   },
   "Dernière": {
     "where": [
-      "components/app/question/viz-settings.tsx:621"
+      "components/app/question/viz-settings.tsx:678"
     ]
   },
   "Dernière connexion": {
@@ -3585,9 +3684,14 @@
       "app/(app)/admin/people/page.tsx:247"
     ]
   },
+  "Dernière page": {
+    "where": [
+      "components/app/table-parts.tsx:284"
+    ]
+  },
   "Dernière synchro": {
     "where": [
-      "components/app/data/sync-panel.tsx:142"
+      "components/app/data/sync-panel.tsx:161"
     ]
   },
   "Derniers": {
@@ -3597,7 +3701,7 @@
   },
   "Des colonnes reliées par des bandes qui disent la conversion de chaque étape": {
     "where": [
-      "components/app/question/viz-settings.tsx:960"
+      "components/app/question/viz-settings.tsx:1017"
     ]
   },
   "Des jours précis sur le calendrier": {
@@ -3628,10 +3732,15 @@
       "components/app/share-dialog.tsx:173"
     ]
   },
+  "Descendre": {
+    "where": [
+      "components/app/question/viz-settings.tsx:174"
+    ]
+  },
   "Description": {
     "where": [
       "app/(app)/admin/workspace/page.tsx:85",
-      "app/(app)/dashboard/[id]/page.tsx:88",
+      "app/(app)/dashboard/[id]/page.tsx:90",
       "components/app/admin/row-rule-editor.tsx:235"
     ]
   },
@@ -3659,12 +3768,12 @@
   "Détail": {
     "where": [
       "app/(app)/admin/themes/page.tsx:237",
-      "components/app/question/viz-settings.tsx:215"
+      "components/app/question/viz-settings.tsx:272"
     ]
   },
   "Détailler par {unit}": {
     "where": [
-      "components/app/question/editor.tsx:562"
+      "components/app/question/editor.tsx:573"
     ]
   },
   "Détails": {
@@ -3681,7 +3790,7 @@
   },
   "Deux secondes par période": {
     "where": [
-      "components/app/question/viz-settings.tsx:580"
+      "components/app/question/viz-settings.tsx:637"
     ]
   },
   "Devise": {
@@ -3698,7 +3807,7 @@
   },
   "Dimensions (axe, puis séries)": {
     "where": [
-      "components/app/question/viz-settings.tsx:550"
+      "components/app/question/viz-settings.tsx:607"
     ]
   },
   "Direction": {
@@ -3713,9 +3822,9 @@
   },
   "Disposition": {
     "where": [
-      "components/app/question/viz-settings.tsx:835",
-      "components/app/question/viz-settings.tsx:843",
-      "components/app/question/viz-settings.tsx:986"
+      "components/app/question/viz-settings.tsx:892",
+      "components/app/question/viz-settings.tsx:900",
+      "components/app/question/viz-settings.tsx:1043"
     ]
   },
   "Documentation indisponible.": {
@@ -3743,7 +3852,7 @@
   "Dossier": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:475",
-      "app/(app)/dashboard/[id]/page.tsx:96",
+      "app/(app)/dashboard/[id]/page.tsx:98",
       "components/app/admin/permission-matrix.tsx:353"
     ]
   },
@@ -3766,7 +3875,7 @@
   },
   "Droit": {
     "where": [
-      "components/app/question/viz-settings.tsx:728"
+      "components/app/question/viz-settings.tsx:785"
     ]
   },
   "Droit accordé à {group}": {
@@ -3782,17 +3891,17 @@
   "Droite": {
     "where": [
       "components/app/login-stage.tsx:628",
-      "components/app/question/viz-settings.tsx:670"
+      "components/app/question/viz-settings.tsx:727"
     ]
   },
   "Droite de tendance (moindres carrés)": {
     "where": [
-      "components/app/question/viz-settings.tsx:670"
+      "components/app/question/viz-settings.tsx:727"
     ]
   },
   "Droits": {
     "where": [
-      "components/app/question/viz-settings.tsx:811"
+      "components/app/question/viz-settings.tsx:868"
     ]
   },
   "Droits d’administration": {
@@ -3802,7 +3911,7 @@
   },
   "Du": {
     "where": [
-      "components/app/question/viz-settings.tsx:491"
+      "components/app/question/viz-settings.tsx:548"
     ]
   },
   "du {from} au {to}": {
@@ -3822,14 +3931,14 @@
   },
   "Du thème": {
     "where": [
-      "components/app/question/viz-settings.tsx:974"
+      "components/app/question/viz-settings.tsx:1031"
     ]
   },
   "Dupliquer": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:335",
-      "components/app/dashboard/view.tsx:350",
-      "components/app/question/editor.tsx:458"
+      "app/(app)/dashboard/[id]/page.tsx:340",
+      "components/app/dashboard/view.tsx:353",
+      "components/app/question/editor.tsx:461"
     ]
   },
   "Durée": {
@@ -3847,7 +3956,7 @@
   },
   "Durée de cache des résultats": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:115"
+      "app/(app)/dashboard/[id]/page.tsx:117"
     ]
   },
   "Durée de conservation (secondes)": {
@@ -3900,8 +4009,8 @@
   },
   "Échelle": {
     "where": [
-      "components/app/question/viz-settings.tsx:787",
-      "components/app/question/viz-settings.tsx:795"
+      "components/app/question/viz-settings.tsx:844",
+      "components/app/question/viz-settings.tsx:852"
     ]
   },
   "Écriture du SQL": {
@@ -3911,7 +4020,7 @@
   },
   "Écrivez une requête puis Ctrl+Entrée.": {
     "where": [
-      "components/app/question/editor.tsx:541"
+      "components/app/question/editor.tsx:552"
     ]
   },
   "Éditeur SQL": {
@@ -3925,7 +4034,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:489",
       "components/app/admin/common.tsx:54",
-      "components/app/question/editor.tsx:363"
+      "components/app/question/editor.tsx:366"
     ]
   },
   "Effacer": {
@@ -3942,6 +4051,11 @@
   "Effacer le filtre": {
     "where": [
       "components/app/dashboard/parameters.tsx:290"
+    ]
+  },
+  "Effacer les filtres": {
+    "where": [
+      "components/app/visualization.tsx:554"
     ]
   },
   "égale": {
@@ -3961,7 +4075,7 @@
   },
   "Elle appartient au tableau de bord « {name} » et n’apparaît dans aucun dossier.": {
     "where": [
-      "components/app/question/editor.tsx:663"
+      "components/app/question/editor.tsx:674"
     ]
   },
   "Elle recevra un e-mail avec un lien pour choisir son mot de passe.": {
@@ -3986,36 +4100,36 @@
   },
   "Empilé": {
     "where": [
-      "components/app/question/viz-settings.tsx:715"
+      "components/app/question/viz-settings.tsx:772"
     ]
   },
   "Empilé à 100 % : la part de chaque série": {
     "where": [
-      "components/app/question/viz-settings.tsx:716"
+      "components/app/question/viz-settings.tsx:773"
     ]
   },
   "Empilées": {
     "where": [
-      "components/app/question/viz-settings.tsx:852"
+      "components/app/question/viz-settings.tsx:909"
     ]
   },
   "Empilement": {
     "where": [
-      "components/app/question/viz-settings.tsx:709",
-      "components/app/question/viz-settings.tsx:718",
-      "components/app/question/viz-settings.tsx:846"
+      "components/app/question/viz-settings.tsx:766",
+      "components/app/question/viz-settings.tsx:775",
+      "components/app/question/viz-settings.tsx:903"
     ]
   },
   "Empreinte": {
     "where": [
-      "components/app/data/sync-panel.tsx:19",
+      "components/app/data/sync-panel.tsx:20",
       "components/app/structure/column-bits.tsx:158",
       "components/app/structure/column-bits.tsx:160"
     ]
   },
   "Empreintes": {
     "where": [
-      "components/app/data/sync-panel.tsx:72"
+      "components/app/data/sync-panel.tsx:73"
     ]
   },
   "En accès restreint, le SQL natif reste interdit : les règles ne pourraient pas s’y appliquer. Le groupe écrira en SQL Trino.": {
@@ -4025,7 +4139,7 @@
   },
   "En anneaux": {
     "where": [
-      "components/app/question/viz-settings.tsx:840"
+      "components/app/question/viz-settings.tsx:897"
     ]
   },
   "En attente": {
@@ -4035,7 +4149,7 @@
   },
   "En développement, Trino tourne dans Docker : « localhost » est traduit automatiquement en « host.docker.internal » pour que Trino joigne votre base.": {
     "where": [
-      "components/app/data/source-form.tsx:357"
+      "components/app/data/source-form.tsx:393"
     ]
   },
   "En erreur": {
@@ -4050,12 +4164,12 @@
   },
   "En file d’attente…": {
     "where": [
-      "components/app/data/sync-panel.tsx:200"
+      "components/app/data/sync-panel.tsx:232"
     ]
   },
   "En grappe": {
     "where": [
-      "components/app/question/viz-settings.tsx:993"
+      "components/app/question/viz-settings.tsx:1050"
     ]
   },
   "En HTTP avec l’en-tête Authorization, ou en stdio : le client lance alors {command} avec EODIA_URL et EODIA_TOKEN dans son environnement. Les configurations sont à droite.": {
@@ -4080,7 +4194,7 @@
   },
   "En pétales": {
     "where": [
-      "components/app/question/viz-settings.tsx:841"
+      "components/app/question/viz-settings.tsx:898"
     ]
   },
   "En SQL": {
@@ -4105,13 +4219,13 @@
   },
   "Endpoint S3": {
     "where": [
-      "components/app/data/source-form.tsx:68",
+      "components/app/data/source-form.tsx:70",
       "packages/contracts/src/domain.ts:190"
     ]
   },
   "Enregistré.": {
     "where": [
-      "components/app/question/editor.tsx:248"
+      "components/app/question/editor.tsx:251"
     ]
   },
   "Enregistrement impossible.": {
@@ -4141,7 +4255,7 @@
   },
   "Enregistrer la question": {
     "where": [
-      "components/app/question/editor.tsx:662"
+      "components/app/question/editor.tsx:673"
     ]
   },
   "Enregistrer la règle": {
@@ -4156,7 +4270,7 @@
   },
   "Enregistrer les partages": {
     "where": [
-      "components/app/data/source-settings.tsx:174"
+      "components/app/data/source-settings.tsx:175"
     ]
   },
   "Enregistrer les valeurs": {
@@ -4166,13 +4280,13 @@
   },
   "Enregistrer une copie": {
     "where": [
-      "components/app/question/editor.tsx:386",
-      "components/app/question/editor.tsx:662"
+      "components/app/question/editor.tsx:389",
+      "components/app/question/editor.tsx:673"
     ]
   },
   "Enregistrez d’abord la question.": {
     "where": [
-      "components/app/question/editor.tsx:266"
+      "components/app/question/editor.tsx:269"
     ]
   },
   "Entier": {
@@ -4188,8 +4302,8 @@
   },
   "Entonnoir": {
     "where": [
-      "components/app/question/viz-settings.tsx:953",
-      "components/app/question/viz-settings.tsx:959",
+      "components/app/question/viz-settings.tsx:1010",
+      "components/app/question/viz-settings.tsx:1016",
       "lib/viz.ts:215"
     ]
   },
@@ -4226,13 +4340,13 @@
   },
   "Entrepôt": {
     "where": [
-      "components/app/data/source-form.tsx:44",
+      "components/app/data/source-form.tsx:46",
       "packages/contracts/src/domain.ts:286"
     ]
   },
   "Entrepôt (warehouse)": {
     "where": [
-      "components/app/data/source-form.tsx:61",
+      "components/app/data/source-form.tsx:63",
       "packages/contracts/src/domain.ts:171"
     ]
   },
@@ -4275,7 +4389,7 @@
   },
   "Épaisseur de l’anneau": {
     "where": [
-      "components/app/question/viz-settings.tsx:883"
+      "components/app/question/viz-settings.tsx:940"
     ]
   },
   "équipe régionale — lignes filtrées, e-mails masqués": {
@@ -4397,12 +4511,12 @@
   },
   "Étiquettes à l’extérieur": {
     "where": [
-      "components/app/question/viz-settings.tsx:906"
+      "components/app/question/viz-settings.tsx:963"
     ]
   },
   "Étiquettes et légende": {
     "where": [
-      "components/app/question/viz-settings.tsx:768"
+      "components/app/question/viz-settings.tsx:825"
     ]
   },
   "eu-west-3": {
@@ -4412,7 +4526,7 @@
   },
   "Évolution": {
     "where": [
-      "components/app/question/viz-settings.tsx:212"
+      "components/app/question/viz-settings.tsx:269"
     ]
   },
   "Évolution de « {title} »": {
@@ -4427,7 +4541,12 @@
   },
   "Ex. {example}": {
     "where": [
-      "components/app/dashboard/view.tsx:527"
+      "components/app/dashboard/view.tsx:532"
+    ]
+  },
+  "Excel (.xlsx)": {
+    "where": [
+      "components/app/visualization.tsx:574"
     ]
   },
   "Exclues": {
@@ -4437,7 +4556,7 @@
   },
   "Exclure cette valeur": {
     "where": [
-      "components/app/question/editor.tsx:557"
+      "components/app/question/editor.tsx:568"
     ]
   },
   "Exécute une question enregistrée et renvoie son résultat en tableau (50 lignes au plus).": {
@@ -4454,7 +4573,7 @@
     "where": [
       "app/(app)/sql/page.tsx:340",
       "components/app/login-stage.tsx:350",
-      "components/app/question/editor.tsx:377"
+      "components/app/question/editor.tsx:380"
     ]
   },
   "Exécuter du SQL": {
@@ -4496,7 +4615,7 @@
   },
   "Exigée même hors AWS : gardez us-east-1 pour MinIO.": {
     "where": [
-      "components/app/data/source-form.tsx:71",
+      "components/app/data/source-form.tsx:73",
       "packages/contracts/src/domain.ts:195"
     ]
   },
@@ -4554,12 +4673,13 @@
   },
   "Exporter": {
     "where": [
-      "components/app/question/editor.tsx:427"
+      "components/app/question/editor.tsx:430",
+      "components/app/visualization.tsx:569"
     ]
   },
   "Exporter en PDF": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:319"
+      "app/(app)/dashboard/[id]/page.tsx:324"
     ]
   },
   "expression régulière": {
@@ -4579,25 +4699,25 @@
   },
   "facultatif": {
     "where": [
-      "components/app/dashboard/view.tsx:614",
+      "components/app/dashboard/view.tsx:619",
       "components/app/docs/endpoint.tsx:116"
     ]
   },
   "Facultatif": {
     "where": [
       "app/(app)/admin/people/page.tsx:497",
-      "components/app/data/source-form.tsx:62",
+      "components/app/data/source-form.tsx:64",
       "packages/contracts/src/domain.ts:171"
     ]
   },
   "Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.": {
     "where": [
-      "components/app/data/source-form.tsx:303"
+      "components/app/data/source-form.tsx:339"
     ]
   },
   "Facultatif : un catalogue ouvert n’en demande pas.": {
     "where": [
-      "components/app/data/source-form.tsx:64",
+      "components/app/data/source-form.tsx:66",
       "packages/contracts/src/domain.ts:177"
     ]
   },
@@ -4608,20 +4728,20 @@
   },
   "Facultative": {
     "where": [
-      "components/app/data/source-form.tsx:308",
+      "components/app/data/source-form.tsx:344",
       "components/app/dialogs.tsx:106"
     ]
   },
   "Faire confiance au certificat du serveur": {
     "where": [
-      "components/app/data/source-form.tsx:41",
+      "components/app/data/source-form.tsx:43",
       "packages/contracts/src/domain.ts:254"
     ]
   },
   "Faire ressortir": {
     "where": [
-      "components/app/question/viz-settings.tsx:613",
-      "components/app/question/viz-settings.tsx:623"
+      "components/app/question/viz-settings.tsx:670",
+      "components/app/question/viz-settings.tsx:680"
     ]
   },
   "Favori": {
@@ -4642,6 +4762,11 @@
       "components/app/structure/column-panel.tsx:62"
     ]
   },
+  "Figer la première colonne": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1108"
+    ]
+  },
   "Fil d'Ariane": {
     "where": [
       "components/app/topbar.tsx:45"
@@ -4649,24 +4774,24 @@
   },
   "Filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:912",
+      "components/app/dashboard/view.tsx:917",
       "components/app/question/editor.tsx:99",
       "components/app/question/notebook.tsx:601"
     ]
   },
   "Filtré : {label} = {value}": {
     "where": [
-      "components/app/dashboard/view.tsx:774"
+      "components/app/dashboard/view.tsx:779"
     ]
   },
   "Filtre « {label} » retiré.": {
     "where": [
-      "components/app/dashboard/view.tsx:772"
+      "components/app/dashboard/view.tsx:777"
     ]
   },
   "Filtre « {name} »": {
     "where": [
-      "components/app/dashboard/view.tsx:511"
+      "components/app/dashboard/view.tsx:516"
     ]
   },
   "Filtrer": {
@@ -4676,9 +4801,14 @@
       "components/app/pivot-axis.tsx:61"
     ]
   },
+  "Filtrer « {column} »": {
+    "where": [
+      "components/app/table-parts.tsx:247"
+    ]
+  },
   "Filtrer le tableau de bord sur cette valeur": {
     "where": [
-      "components/app/dashboard/view.tsx:1190"
+      "components/app/dashboard/view.tsx:1195"
     ]
   },
   "Filtrer les membres…": {
@@ -4703,7 +4833,7 @@
   },
   "Filtrer sur cette valeur": {
     "where": [
-      "components/app/question/editor.tsx:552"
+      "components/app/question/editor.tsx:563"
     ]
   },
   "Filtres : {filters}": {
@@ -4728,7 +4858,7 @@
   },
   "Fine": {
     "where": [
-      "components/app/question/viz-settings.tsx:755"
+      "components/app/question/viz-settings.tsx:812"
     ]
   },
   "finit par": {
@@ -4753,7 +4883,7 @@
   },
   "Format compact (1,2 k)": {
     "where": [
-      "components/app/question/viz-settings.tsx:926"
+      "components/app/question/viz-settings.tsx:983"
     ]
   },
   "Formater": {
@@ -4763,9 +4893,9 @@
   },
   "Forme": {
     "where": [
-      "components/app/question/viz-settings.tsx:708",
-      "components/app/question/viz-settings.tsx:954",
-      "components/app/question/viz-settings.tsx:962"
+      "components/app/question/viz-settings.tsx:765",
+      "components/app/question/viz-settings.tsx:1011",
+      "components/app/question/viz-settings.tsx:1019"
     ]
   },
   "Fournisseur": {
@@ -4781,6 +4911,11 @@
   "Garde les lignes d’une période : ce mois-ci, les 30 derniers jours, une plage de dates…": {
     "where": [
       "components/app/dashboard/parameters.tsx:38"
+    ]
+  },
+  "Garder les lignes qui contiennent « {text} »": {
+    "where": [
+      "components/app/table-parts.tsx:123"
     ]
   },
   "Genre": {
@@ -4828,7 +4963,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:500",
       "components/app/admin/common.tsx:69",
-      "components/app/question/editor.tsx:647"
+      "components/app/question/editor.tsx:658"
     ]
   },
   "GET /api/v1/me dit dans quel espace agit le jeton (workspace) et les espaces où vous pouvez entrer (workspaces).": {
@@ -4885,7 +5020,7 @@
   },
   "Grille": {
     "where": [
-      "components/app/question/viz-settings.tsx:820"
+      "components/app/question/viz-settings.tsx:877"
     ]
   },
   "Gris": {
@@ -4935,7 +5070,7 @@
   "Hachuré": {
     "where": [
       "app/(app)/admin/themes/page.tsx:508",
-      "components/app/question/viz-settings.tsx:976"
+      "components/app/question/viz-settings.tsx:1033"
     ]
   },
   "Hauteur : {height} px": {
@@ -5042,7 +5177,7 @@
   },
   "Hôte": {
     "where": [
-      "components/app/data/source-form.tsx:32",
+      "components/app/data/source-form.tsx:34",
       "packages/contracts/src/domain.ts:100"
     ]
   },
@@ -5063,13 +5198,13 @@
   },
   "Iceberg · catalogue REST": {
     "where": [
-      "components/app/data/source-form.tsx:53",
+      "components/app/data/source-form.tsx:55",
       "packages/contracts/src/domain.ts:120"
     ]
   },
   "Iceberg · metastore Hive": {
     "where": [
-      "components/app/data/source-form.tsx:52",
+      "components/app/data/source-form.tsx:54",
       "packages/contracts/src/domain.ts:116"
     ]
   },
@@ -5137,46 +5272,46 @@
   },
   "Il faut au moins une dimension et une mesure.": {
     "where": [
-      "components/app/question/viz-settings.tsx:271"
+      "components/app/question/viz-settings.tsx:328"
     ]
   },
   "Il faut de 3 à 30 catégories et une mesure.": {
     "where": [
-      "components/app/question/viz-settings.tsx:223"
+      "components/app/question/viz-settings.tsx:280"
     ]
   },
   "Il faut deux dimensions et une mesure.": {
     "where": [
-      "components/app/question/viz-settings.tsx:221",
-      "components/app/visualization.tsx:561"
+      "components/app/question/viz-settings.tsx:278",
+      "components/app/visualization.tsx:728"
     ]
   },
   "Il faut deux mesures, ou une dimension et une mesure.": {
     "where": [
-      "components/app/question/viz-settings.tsx:224",
-      "components/app/question/viz-settings.tsx:225"
+      "components/app/question/viz-settings.tsx:281",
+      "components/app/question/viz-settings.tsx:282"
     ]
   },
   "Il faut une date et une mesure.": {
     "where": [
-      "components/app/question/viz-settings.tsx:220",
-      "components/app/question/viz-settings.tsx:227",
-      "components/app/question/viz-settings.tsx:228"
+      "components/app/question/viz-settings.tsx:277",
+      "components/app/question/viz-settings.tsx:284",
+      "components/app/question/viz-settings.tsx:285"
     ]
   },
   "Il faut une date, une mesure, et une seconde dimension ou plusieurs mesures.": {
     "where": [
-      "components/app/question/viz-settings.tsx:226"
+      "components/app/question/viz-settings.tsx:283"
     ]
   },
   "Il faut une latitude et une longitude.": {
     "where": [
-      "components/app/question/viz-settings.tsx:222"
+      "components/app/question/viz-settings.tsx:279"
     ]
   },
   "Il s’affiche en haut du tableau de bord et restreint, d’un coup, toutes les cartes que vous lui reliez.": {
     "where": [
-      "components/app/dashboard/view.tsx:918"
+      "components/app/dashboard/view.tsx:923"
     ]
   },
   "Il y a": {
@@ -5227,7 +5362,7 @@
   },
   "Ils la lisent avec les droits de leurs propres groupes ; sa connexion, sa synchronisation et ses descriptions restent gérées ici.": {
     "where": [
-      "components/app/data/source-settings.tsx:133"
+      "components/app/data/source-settings.tsx:134"
     ]
   },
   "Image": {
@@ -5254,7 +5389,7 @@
   },
   "Inclinés": {
     "where": [
-      "components/app/question/viz-settings.tsx:812"
+      "components/app/question/viz-settings.tsx:869"
     ]
   },
   "Inclure la période en cours": {
@@ -5274,7 +5409,7 @@
   },
   "Indisponible quand la source se limite à certaines bases : une requête native atteindrait les autres.": {
     "where": [
-      "components/app/data/source-form.tsx:391"
+      "components/app/data/source-form.tsx:427"
     ]
   },
   "Injoignable": {
@@ -5315,7 +5450,7 @@
   },
   "Intégration": {
     "where": [
-      "components/app/dashboard/view.tsx:960"
+      "components/app/dashboard/view.tsx:965"
     ]
   },
   "Intégration signée": {
@@ -5331,7 +5466,7 @@
   },
   "Interdit": {
     "where": [
-      "components/app/data/source-settings.tsx:83"
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "Interne": {
@@ -5347,7 +5482,7 @@
   "Intervalle de confiance (80 %)": {
     "where": [
       "components/app/login-stage.tsx:643",
-      "components/app/question/viz-settings.tsx:677"
+      "components/app/question/viz-settings.tsx:734"
     ]
   },
   "Inverser": {
@@ -5473,7 +5608,7 @@
   },
   "Jeton OAuth2": {
     "where": [
-      "components/app/data/source-form.tsx:63",
+      "components/app/data/source-form.tsx:65",
       "packages/contracts/src/domain.ts:174"
     ]
   },
@@ -5645,7 +5780,7 @@
   },
   "L’éditeur visuel repart d’une table : la requête SQL de cette question sera abandonnée.": {
     "where": [
-      "components/app/question/editor.tsx:706"
+      "components/app/question/editor.tsx:717"
     ]
   },
   "L’envoi d’e-mails n’est pas configuré : vous obtiendrez un lien à lui transmettre.": {
@@ -5670,12 +5805,12 @@
   },
   "L’ordre compte : deux couleurs voisines doivent bien se distinguer. En thème sombre, chaque couleur est ajustée pour rester lisible.": {
     "where": [
-      "components/app/question/viz-settings.tsx:386"
+      "components/app/question/viz-settings.tsx:443"
     ]
   },
   "L’ordre du résultat": {
     "where": [
-      "components/app/question/viz-settings.tsx:694"
+      "components/app/question/viz-settings.tsx:751"
     ]
   },
   "La colonne d’affichage nomme une ligne quand une autre table y fait référence.": {
@@ -5700,22 +5835,27 @@
   },
   "La couleur {i} est trop pâle, trop sombre ou trop grise pour un graphique.": {
     "where": [
-      "components/app/question/viz-settings.tsx:348"
+      "components/app/question/viz-settings.tsx:405"
     ]
   },
   "La date fait avancer la course ; la seconde dimension, ou chaque mesure, est un concurrent.": {
     "where": [
-      "components/app/question/viz-settings.tsx:605"
+      "components/app/question/viz-settings.tsx:662"
     ]
   },
   "La dernière valeur ressort, les autres s’estompent": {
     "where": [
-      "components/app/question/viz-settings.tsx:621"
+      "components/app/question/viz-settings.tsx:678"
     ]
   },
   "La durée par défaut de l’instance. Une source, une question ou un tableau de bord peut fixer la sienne.": {
     "where": [
       "app/(app)/admin/settings/page.tsx:121"
+    ]
+  },
+  "La limite fixe les lignes lues par la requête, 100 000 au plus ; elle s’applique à la prochaine exécution.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1103"
     ]
   },
   "La partie prévue est dessinée en pointillés verts : tendance et saison, prolongées par Holt-Winters.": {
@@ -5725,7 +5865,7 @@
   },
   "La partie prévue est dessinée en pointillés verts. Automatique choisit la saison quand la série en couvre deux (12 mois, 4 trimestres, 7 jours), sinon une tendance lissée.": {
     "where": [
-      "components/app/question/viz-settings.tsx:680"
+      "components/app/question/viz-settings.tsx:737"
     ]
   },
   "La période en cours": {
@@ -5745,32 +5885,32 @@
   },
   "La plus basse valeur ressort, les autres s’estompent": {
     "where": [
-      "components/app/question/viz-settings.tsx:620"
+      "components/app/question/viz-settings.tsx:677"
     ]
   },
   "La plus grande valeur d’abord": {
     "where": [
-      "components/app/question/viz-settings.tsx:695"
+      "components/app/question/viz-settings.tsx:752"
     ]
   },
   "La plus haute valeur ressort, les autres s’estompent": {
     "where": [
-      "components/app/question/viz-settings.tsx:619"
+      "components/app/question/viz-settings.tsx:676"
     ]
   },
   "La plus petite valeur d’abord": {
     "where": [
-      "components/app/question/viz-settings.tsx:696"
+      "components/app/question/viz-settings.tsx:753"
     ]
   },
   "La requête a échoué": {
     "where": [
-      "components/app/question/editor.tsx:522"
+      "components/app/question/editor.tsx:525"
     ]
   },
   "La requête n’a trouvé aucune ligne : un filtre est peut-être trop étroit.": {
     "where": [
-      "components/app/visualization.tsx:111"
+      "components/app/visualization.tsx:125"
     ]
   },
   "la semaine d'il y a {count} semaines": {
@@ -5787,23 +5927,23 @@
   },
   "La synchronisation a échoué": {
     "where": [
-      "components/app/data/sync-panel.tsx:193"
+      "components/app/data/sync-panel.tsx:225"
     ]
   },
   "La valeur de connector.name dans le fichier du catalogue.": {
     "where": [
-      "components/app/data/source-form.tsx:50",
+      "components/app/data/source-form.tsx:52",
       "packages/contracts/src/domain.ts:325"
     ]
   },
   "Laissez vide pour conserver la valeur enregistrée.": {
     "where": [
-      "components/app/data/source-form.tsx:172"
+      "components/app/data/source-form.tsx:205"
     ]
   },
   "Lancer la course à l’ouverture": {
     "where": [
-      "components/app/question/viz-settings.tsx:599"
+      "components/app/question/viz-settings.tsx:656"
     ]
   },
   "Langue": {
@@ -5818,17 +5958,22 @@
   },
   "Large": {
     "where": [
-      "components/app/question/viz-settings.tsx:757"
+      "components/app/question/viz-settings.tsx:814"
     ]
   },
   "Largeur": {
     "where": [
-      "components/app/question/viz-settings.tsx:759"
+      "components/app/question/viz-settings.tsx:816"
     ]
   },
   "Largeur des barres": {
     "where": [
-      "components/app/question/viz-settings.tsx:750"
+      "components/app/question/viz-settings.tsx:807"
+    ]
+  },
+  "Largeurs et ordre des colonnes d’origine": {
+    "where": [
+      "components/app/visualization.tsx:560"
     ]
   },
   "Latitude": {
@@ -5849,7 +5994,7 @@
   },
   "Le catalogue « {catalog} » sera retiré de Trino. Cette action est définitive.": {
     "where": [
-      "components/app/data/source-settings.tsx:251"
+      "components/app/data/source-settings.tsx:253"
     ]
   },
   "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": {
@@ -5859,12 +6004,12 @@
   },
   "Le catalogue ne change pas : le SQL le cite.": {
     "where": [
-      "components/app/data/source-form.tsx:302"
+      "components/app/data/source-form.tsx:338"
     ]
   },
   "Le catalogue REST délivre les accès aux fichiers (vended credentials) : les clés S3 deviennent inutiles.": {
     "where": [
-      "components/app/data/source-form.tsx:66",
+      "components/app/data/source-form.tsx:68",
       "packages/contracts/src/domain.ts:184"
     ]
   },
@@ -5937,7 +6082,7 @@
   },
   "Le résultat de la carte se charge…": {
     "where": [
-      "components/app/dashboard/view.tsx:210"
+      "components/app/dashboard/view.tsx:211"
     ]
   },
   "Le résumé décide des colonnes du résultat.": {
@@ -5974,7 +6119,7 @@
   },
   "Le worker garde ses résultats au chaud, sous les droits de son auteur.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:137"
+      "app/(app)/dashboard/[id]/page.tsx:139"
     ]
   },
   "Lecture": {
@@ -6009,14 +6154,14 @@
   },
   "Légende": {
     "where": [
-      "components/app/question/viz-settings.tsx:772",
-      "components/app/question/viz-settings.tsx:858",
-      "components/app/question/viz-settings.tsx:907"
+      "components/app/question/viz-settings.tsx:829",
+      "components/app/question/viz-settings.tsx:915",
+      "components/app/question/viz-settings.tsx:964"
     ]
   },
   "Légende sous le nombre": {
     "where": [
-      "components/app/question/viz-settings.tsx:927"
+      "components/app/question/viz-settings.tsx:984"
     ]
   },
   "Légère": {
@@ -6026,7 +6171,12 @@
   },
   "Lente": {
     "where": [
-      "components/app/question/viz-settings.tsx:580"
+      "components/app/question/viz-settings.tsx:637"
+    ]
+  },
+  "Les 200 valeurs les plus fréquentes : cherchez les autres.": {
+    "where": [
+      "components/app/table-parts.tsx:143"
     ]
   },
   "Les administrateurs lisent tout": {
@@ -6056,22 +6206,22 @@
   },
   "Les cartes qu’il filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:542"
+      "components/app/dashboard/view.tsx:547"
     ]
   },
   "Les couleurs {a} et {b} se confondent pour un daltonien.": {
     "where": [
-      "components/app/question/viz-settings.tsx:346"
+      "components/app/question/viz-settings.tsx:403"
     ]
   },
   "Les couleurs {a} et {b} sont trop proches.": {
     "where": [
-      "components/app/question/viz-settings.tsx:347"
+      "components/app/question/viz-settings.tsx:404"
     ]
   },
   "Les dates s’espacent selon le temps réel qui les sépare : un trou dans les données se voit.": {
     "where": [
-      "components/app/question/viz-settings.tsx:783"
+      "components/app/question/viz-settings.tsx:840"
     ]
   },
   "Les deux saisies du nouveau mot de passe diffèrent.": {
@@ -6176,7 +6326,7 @@
   },
   "Les personnes autorisées peuvent écrire des requêtes dans le dialecte de la base, transmises telles quelles.": {
     "where": [
-      "components/app/data/source-form.tsx:389"
+      "components/app/data/source-form.tsx:425"
     ]
   },
   "Les prochaines requêtes interrogeront à nouveau les sources.": {
@@ -6186,7 +6336,7 @@
   },
   "Les questions créées dans ce tableau de bord sont supprimées avec lui ; celles rangées dans un dossier restent.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:373",
+      "app/(app)/dashboard/[id]/page.tsx:431",
       "components/app/item-selection.tsx:116"
     ]
   },
@@ -6218,12 +6368,12 @@
   "Les tableaux de bord qui l’affichent perdront la carte.": {
     "where": [
       "components/app/item-selection.tsx:119",
-      "components/app/question/editor.tsx:695"
+      "components/app/question/editor.tsx:706"
     ]
   },
   "Les trois années les plus récentes du résultat, une ligne par année.": {
     "where": [
-      "components/app/question/viz-settings.tsx:875"
+      "components/app/question/viz-settings.tsx:932"
     ]
   },
   "Les valeurs possibles non choisies": {
@@ -6248,7 +6398,7 @@
   },
   "Libellé": {
     "where": [
-      "components/app/question/viz-settings.tsx:635",
+      "components/app/question/viz-settings.tsx:692",
       "components/app/structure/column-panel.tsx:93",
       "components/app/structure/column-panel.tsx:94"
     ]
@@ -6275,12 +6425,12 @@
   },
   "Libellés": {
     "where": [
-      "components/app/question/viz-settings.tsx:815"
+      "components/app/question/viz-settings.tsx:872"
     ]
   },
   "Libellés de l’axe horizontal": {
     "where": [
-      "components/app/question/viz-settings.tsx:806"
+      "components/app/question/viz-settings.tsx:863"
     ]
   },
   "Libellés, descriptions, types sémantiques, formats et valeurs ; les colonnes sont rapprochées par leur nom, les absentes restent inchangées.": {
@@ -6325,17 +6475,22 @@
   },
   "Ligne": {
     "where": [
-      "components/app/question/viz-settings.tsx:941"
+      "components/app/question/viz-settings.tsx:998"
     ]
   },
   "Ligne de la médiane": {
     "where": [
-      "components/app/question/viz-settings.tsx:629"
+      "components/app/question/viz-settings.tsx:686"
     ]
   },
   "Ligne de la moyenne": {
     "where": [
-      "components/app/question/viz-settings.tsx:628"
+      "components/app/question/viz-settings.tsx:685"
+    ]
+  },
+  "Ligne de totaux": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1105"
     ]
   },
   "lignes": {
@@ -6346,12 +6501,12 @@
   "Lignes": {
     "where": [
       "components/app/admin/permission-matrix.tsx:204",
-      "components/app/question/viz-settings.tsx:1043"
+      "components/app/question/viz-settings.tsx:1128"
     ]
   },
   "Lignes : {column}": {
     "where": [
-      "components/app/question/viz-settings.tsx:1050"
+      "components/app/question/viz-settings.tsx:1135"
     ]
   },
   "Lignes filtrées": {
@@ -6359,9 +6514,19 @@
       "components/app/admin/permission-matrix.tsx:168"
     ]
   },
+  "Lignes par page": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1095"
+    ]
+  },
   "Lignes reliées quand": {
     "where": [
       "components/app/question/notebook.tsx:197"
+    ]
+  },
+  "Lignes zébrées": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1106"
     ]
   },
   "Lignes||type de graphique : des courbes": {
@@ -6374,9 +6539,14 @@
       "components/app/question/notebook.tsx:778"
     ]
   },
+  "Limite de lignes": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1099"
+    ]
+  },
   "Linéaire": {
     "where": [
-      "components/app/question/viz-settings.tsx:792"
+      "components/app/question/viz-settings.tsx:849"
     ]
   },
   "Lisible": {
@@ -6387,18 +6557,18 @@
   },
   "Lisible, y compris pour les daltoniens.": {
     "where": [
-      "components/app/question/viz-settings.tsx:383"
+      "components/app/question/viz-settings.tsx:440"
     ]
   },
   "Lissé": {
     "where": [
-      "components/app/question/viz-settings.tsx:729"
+      "components/app/question/viz-settings.tsx:786"
     ]
   },
   "Lissée": {
     "where": [
       "components/app/login-stage.tsx:629",
-      "components/app/question/viz-settings.tsx:671"
+      "components/app/question/viz-settings.tsx:728"
     ]
   },
   "Liste les métriques enregistrées : des agrégats définis une fois (chiffre d'affaires, panier moyen…).": {
@@ -6418,7 +6588,7 @@
   },
   "Logarithmique": {
     "where": [
-      "components/app/question/viz-settings.tsx:793"
+      "components/app/question/viz-settings.tsx:850"
     ]
   },
   "Logo": {
@@ -6454,23 +6624,23 @@
   },
   "Maj + clic pour ajouter d’autres catégories.": {
     "where": [
-      "components/app/dashboard/view.tsx:775"
+      "components/app/dashboard/view.tsx:780"
     ]
   },
   "Manuelle": {
     "where": [
-      "components/app/data/source-form.tsx:376",
+      "components/app/data/source-form.tsx:412",
       "components/app/data/source-look.tsx:60"
     ]
   },
   "Manuelle uniquement": {
     "where": [
-      "components/app/data/source-form.tsx:376"
+      "components/app/data/source-form.tsx:412"
     ]
   },
   "Marches": {
     "where": [
-      "components/app/question/viz-settings.tsx:730"
+      "components/app/question/viz-settings.tsx:787"
     ]
   },
   "Marquée": {
@@ -6520,6 +6690,11 @@
       "components/app/admin/permission-matrix.tsx:186"
     ]
   },
+  "Masquer les schémas système": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:142"
+    ]
+  },
   "max": {
     "where": [
       "components/app/dashboard/parameters.tsx:162"
@@ -6527,8 +6702,8 @@
   },
   "Maximum": {
     "where": [
-      "components/app/question/viz-settings.tsx:802",
-      "components/app/question/viz-settings.tsx:1017",
+      "components/app/question/viz-settings.tsx:859",
+      "components/app/question/viz-settings.tsx:1074",
       "components/app/structure/column-bits.tsx:178"
     ]
   },
@@ -6584,7 +6759,7 @@
   },
   "Mesures": {
     "where": [
-      "components/app/question/viz-settings.tsx:551"
+      "components/app/question/viz-settings.tsx:608"
     ]
   },
   "Métadonnées": {
@@ -6594,22 +6769,22 @@
   },
   "Metastore Hive": {
     "where": [
-      "components/app/data/source-form.tsx:56",
+      "components/app/data/source-form.tsx:58",
       "packages/contracts/src/domain.ts:149"
     ]
   },
   "Méthode": {
     "where": [
       "components/app/login-stage.tsx:623",
-      "components/app/question/viz-settings.tsx:664",
-      "components/app/question/viz-settings.tsx:674"
+      "components/app/question/viz-settings.tsx:721",
+      "components/app/question/viz-settings.tsx:731"
     ]
   },
   "Métrique": {
     "where": [
       "components/app/look.tsx:53",
-      "components/app/question/editor.tsx:354",
-      "components/app/question/editor.tsx:635"
+      "components/app/question/editor.tsx:357",
+      "components/app/question/editor.tsx:646"
     ]
   },
   "Métriques": {
@@ -6621,7 +6796,7 @@
   },
   "Mettre à jour": {
     "where": [
-      "components/app/question/pickers.tsx:216"
+      "components/app/question/pickers.tsx:221"
     ]
   },
   "Microsoft SQL Server et Azure SQL.": {
@@ -6641,14 +6816,14 @@
   },
   "Minimum": {
     "where": [
-      "components/app/question/viz-settings.tsx:799",
+      "components/app/question/viz-settings.tsx:856",
       "components/app/structure/column-bits.tsx:177",
       "lib/builder.ts:120"
     ]
   },
   "Minuscules, chiffres, _ et - ; commence par une lettre.": {
     "where": [
-      "components/app/data/source-form.tsx:213"
+      "components/app/data/source-form.tsx:249"
     ]
   },
   "Minute": {
@@ -6663,28 +6838,28 @@
   },
   "Mise en avant": {
     "where": [
-      "components/app/question/viz-settings.tsx:611"
+      "components/app/question/viz-settings.tsx:668"
     ]
   },
   "Modèle": {
     "where": [
       "app/(app)/admin/settings/page.tsx:368",
       "components/app/look.tsx:52",
-      "components/app/question/editor.tsx:354"
+      "components/app/question/editor.tsx:357"
     ]
   },
   "Modèles": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:665",
       "components/app/question/editor.tsx:156",
-      "components/app/question/pickers.tsx:101"
+      "components/app/question/pickers.tsx:106"
     ]
   },
   "Modification": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:500",
       "components/app/admin/common.tsx:68",
-      "components/app/question/editor.tsx:647"
+      "components/app/question/editor.tsx:658"
     ]
   },
   "Modifications enregistrées": {
@@ -6694,7 +6869,7 @@
   },
   "Modifications non enregistrées": {
     "where": [
-      "components/app/question/editor.tsx:355"
+      "components/app/question/editor.tsx:358"
     ]
   },
   "Modifié": {
@@ -6710,13 +6885,13 @@
   "Modifier": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:152",
-      "components/app/dashboard/view.tsx:984",
-      "components/app/data/source-settings.tsx:74"
+      "components/app/dashboard/view.tsx:989",
+      "components/app/data/source-settings.tsx:75"
     ]
   },
   "Modifier la question": {
     "where": [
-      "components/app/dashboard/view.tsx:321"
+      "components/app/dashboard/view.tsx:324"
     ]
   },
   "mois": {
@@ -6777,7 +6952,7 @@
   },
   "mongodb://utilisateur:motdepasse@hote:27017/": {
     "where": [
-      "components/app/data/source-form.tsx:47",
+      "components/app/data/source-form.tsx:49",
       "packages/contracts/src/domain.ts:302"
     ]
   },
@@ -6786,6 +6961,11 @@
       "components/app/dashboard/parameters.tsx:60",
       "components/app/structure/column-bits.tsx:58",
       "packages/contracts/src/metadata.ts:92"
+    ]
+  },
+  "Monter": {
+    "where": [
+      "components/app/question/viz-settings.tsx:171"
     ]
   },
   "Montre-moi l’évolution des ventes mois par mois": {
@@ -6827,7 +7007,7 @@
   },
   "Moteur": {
     "where": [
-      "components/app/data/source-settings.tsx:80"
+      "components/app/data/source-settings.tsx:81"
     ]
   },
   "Moteur Trino": {
@@ -6899,8 +7079,8 @@
   },
   "Nature": {
     "where": [
-      "components/app/question/editor.tsx:628",
-      "components/app/question/editor.tsx:637",
+      "components/app/question/editor.tsx:639",
+      "components/app/question/editor.tsx:648",
       "lib/icon-library.ts:79"
     ]
   },
@@ -6916,8 +7096,13 @@
   },
   "Nécessaire pour MinIO et la plupart des S3 sur site.": {
     "where": [
-      "components/app/data/source-form.tsx:75",
+      "components/app/data/source-form.tsx:77",
       "packages/contracts/src/domain.ts:202"
+    ]
+  },
+  "Ni un objet JSON de textes, ni des lignes clé=valeur.": {
+    "where": [
+      "components/app/data/source-form.tsx:507"
     ]
   },
   "nom": {
@@ -6934,7 +7119,12 @@
   },
   "Nom (facultatif)": {
     "where": [
-      "components/app/question/viz-settings.tsx:498"
+      "components/app/question/viz-settings.tsx:555"
+    ]
+  },
+  "Nom affiché": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:131"
     ]
   },
   "Nom d’attribut invalide : « {key} ». Lettres, chiffres et _ ; pas de chiffre en tête.": {
@@ -6960,18 +7150,18 @@
   },
   "Nom de service": {
     "where": [
-      "components/app/data/source-form.tsx:42",
+      "components/app/data/source-form.tsx:44",
       "packages/contracts/src/domain.ts:267"
     ]
   },
   "Nom des courbes au bout du tracé": {
     "where": [
-      "components/app/question/viz-settings.tsx:771"
+      "components/app/question/viz-settings.tsx:828"
     ]
   },
   "Nom du catalogue": {
     "where": [
-      "components/app/data/source-form.tsx:293"
+      "components/app/data/source-form.tsx:329"
     ]
   },
   "Nom du client": {
@@ -6987,7 +7177,7 @@
   },
   "Nom du filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:528"
+      "components/app/dashboard/view.tsx:533"
     ]
   },
   "Nom du snippet": {
@@ -7002,12 +7192,12 @@
   },
   "Nom et pourcentage": {
     "where": [
-      "components/app/question/viz-settings.tsx:899"
+      "components/app/question/viz-settings.tsx:956"
     ]
   },
   "Nom et valeur": {
     "where": [
-      "components/app/question/viz-settings.tsx:900"
+      "components/app/question/viz-settings.tsx:957"
     ]
   },
   "Nom qualifié Trino, colonnes (type, type sémantique, clés, description) et valeurs des colonnes de catégorie.": {
@@ -7045,7 +7235,7 @@
   },
   "Non": {
     "where": [
-      "components/app/data/source-settings.tsx:60",
+      "components/app/data/source-settings.tsx:61",
       "lib/format.ts:193"
     ]
   },
@@ -7072,7 +7262,7 @@
   },
   "Non relié": {
     "where": [
-      "components/app/dashboard/view.tsx:185"
+      "components/app/dashboard/view.tsx:186"
     ]
   },
   "none, stacked ou percent.": {
@@ -7083,8 +7273,8 @@
   "Normale": {
     "where": [
       "app/(app)/admin/themes/page.tsx:373",
-      "components/app/question/viz-settings.tsx:581",
-      "components/app/question/viz-settings.tsx:756"
+      "components/app/question/viz-settings.tsx:638",
+      "components/app/question/viz-settings.tsx:813"
     ]
   },
   "Note": {
@@ -7159,6 +7349,11 @@
       "app/(app)/layout.tsx:75"
     ]
   },
+  "Nouveau tableau de bord depuis un JSON": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:385"
+    ]
+  },
   "Nouveau thème": {
     "where": [
       "app/(app)/admin/themes/page.tsx:702"
@@ -7179,8 +7374,8 @@
   "Nouvel onglet": {
     "where": [
       "app/(app)/sql/page.tsx:327",
-      "components/app/dashboard/view.tsx:1067",
-      "components/app/dashboard/view.tsx:1069"
+      "components/app/dashboard/view.tsx:1072",
+      "components/app/dashboard/view.tsx:1074"
     ]
   },
   "Nouvelle": {
@@ -7198,13 +7393,13 @@
   "Nouvelle question": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:784",
-      "app/(app)/dashboard/[id]/page.tsx:340",
-      "components/app/dashboard/view.tsx:442"
+      "app/(app)/dashboard/[id]/page.tsx:361",
+      "components/app/dashboard/view.tsx:447"
     ]
   },
   "Nouvelle section": {
     "where": [
-      "components/app/dashboard/view.tsx:953"
+      "components/app/dashboard/view.tsx:958"
     ]
   },
   "Nuage de points": {
@@ -7229,19 +7424,19 @@
   },
   "Numéros de ligne": {
     "where": [
-      "components/app/question/viz-settings.tsx:1024"
+      "components/app/question/viz-settings.tsx:1109"
     ]
   },
   "Objectif": {
     "where": [
-      "components/app/question/viz-settings.tsx:632",
-      "components/app/question/viz-settings.tsx:636",
-      "components/app/question/viz-settings.tsx:1017"
+      "components/app/question/viz-settings.tsx:689",
+      "components/app/question/viz-settings.tsx:693",
+      "components/app/question/viz-settings.tsx:1074"
     ]
   },
   "objectif {goal}": {
     "where": [
-      "components/app/visualization.tsx:347"
+      "components/app/visualization.tsx:371"
     ]
   },
   "Objets": {
@@ -7273,7 +7468,7 @@
   },
   "Onglet": {
     "where": [
-      "components/app/dashboard/view.tsx:1074",
+      "components/app/dashboard/view.tsx:1079",
       "components/app/move-dialog.tsx:174",
       "components/app/move-dialog.tsx:179"
     ]
@@ -7281,7 +7476,7 @@
   "Opérateur": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:209",
-      "components/app/question/pickers.tsx:189"
+      "components/app/question/pickers.tsx:194"
     ]
   },
   "Oracle": {
@@ -7306,8 +7501,8 @@
   },
   "Ordre des catégories": {
     "where": [
-      "components/app/question/viz-settings.tsx:689",
-      "components/app/question/viz-settings.tsx:698"
+      "components/app/question/viz-settings.tsx:746",
+      "components/app/question/viz-settings.tsx:755"
     ]
   },
   "Ordre du résultat": {
@@ -7335,7 +7530,7 @@
   },
   "Ou choisissez la colonne sur chaque carte, ci-dessous.": {
     "where": [
-      "components/app/dashboard/view.tsx:583"
+      "components/app/dashboard/view.tsx:588"
     ]
   },
   "Ou collez un emoji": {
@@ -7365,7 +7560,7 @@
   },
   "Oui": {
     "where": [
-      "components/app/data/source-settings.tsx:59",
+      "components/app/data/source-settings.tsx:60",
       "lib/format.ts:193"
     ]
   },
@@ -7388,7 +7583,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:369",
       "app/(app)/browse/[[...folder]]/page.tsx:425",
-      "app/(app)/dashboard/[id]/page.tsx:284"
+      "app/(app)/dashboard/[id]/page.tsx:289"
     ]
   },
   "Ouvrir « API et MCP »": {
@@ -7423,7 +7618,12 @@
   },
   "Ouvrir la question": {
     "where": [
-      "components/app/dashboard/view.tsx:316"
+      "components/app/dashboard/view.tsx:319"
+    ]
+  },
+  "Page {page} / {pages}": {
+    "where": [
+      "components/app/table-parts.tsx:280"
     ]
   },
   "Page de garde": {
@@ -7433,12 +7633,22 @@
   },
   "Page intégrée": {
     "where": [
-      "components/app/dashboard/view.tsx:959"
+      "components/app/dashboard/view.tsx:964"
     ]
   },
   "Page introuvable": {
     "where": [
       "app/not-found.tsx:20"
+    ]
+  },
+  "Page précédente": {
+    "where": [
+      "components/app/table-parts.tsx:277"
+    ]
+  },
+  "Page suivante": {
+    "where": [
+      "components/app/table-parts.tsx:281"
     ]
   },
   "Palette": {
@@ -7484,6 +7694,11 @@
       "components/app/structure/format-editor.tsx:29"
     ]
   },
+  "Par pages": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1087"
+    ]
+  },
   "Paramètres de chemin": {
     "where": [
       "components/app/docs/endpoint.tsx:36"
@@ -7491,7 +7706,7 @@
   },
   "Paramètres de connexion": {
     "where": [
-      "components/app/data/source-settings.tsx:71"
+      "components/app/data/source-settings.tsx:72"
     ]
   },
   "Paramètres de l’espace": {
@@ -7516,7 +7731,7 @@
   },
   "Part": {
     "where": [
-      "components/app/question/viz-settings.tsx:1004"
+      "components/app/question/viz-settings.tsx:1061"
     ]
   },
   "Part de valeurs nulles": {
@@ -7538,13 +7753,13 @@
   },
   "Partagée par l’espace « {name} » : sa connexion, sa synchronisation et ses descriptions se gèrent là-bas. Ici, vos groupes décident qui la lit, dans Permissions.": {
     "where": [
-      "components/app/data/source-settings.tsx:209"
+      "components/app/data/source-settings.tsx:210"
     ]
   },
   "Partager": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:519",
-      "app/(app)/dashboard/[id]/page.tsx:301",
+      "app/(app)/dashboard/[id]/page.tsx:306",
       "components/app/item-selection.tsx:237"
     ]
   },
@@ -7555,7 +7770,7 @@
   },
   "Partager avec d’autres espaces": {
     "where": [
-      "components/app/data/source-settings.tsx:131"
+      "components/app/data/source-settings.tsx:132"
     ]
   },
   "Partages": {
@@ -7565,22 +7780,22 @@
   },
   "Partages enregistrés.": {
     "where": [
-      "components/app/data/source-settings.tsx:166"
+      "components/app/data/source-settings.tsx:167"
     ]
   },
   "Partir d’un modèle :": {
     "where": [
-      "components/app/data/source-form.tsx:319"
+      "components/app/data/source-form.tsx:355"
     ]
   },
   "Parts au plus (le reste devient « Autres »)": {
     "where": [
-      "components/app/question/viz-settings.tsx:908"
+      "components/app/question/viz-settings.tsx:965"
     ]
   },
   "Parts proportionnelles en rayon (rose)": {
     "where": [
-      "components/app/question/viz-settings.tsx:889"
+      "components/app/question/viz-settings.tsx:946"
     ]
   },
   "pas de cache": {
@@ -7590,7 +7805,7 @@
   },
   "Pas de cache": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:123"
+      "app/(app)/dashboard/[id]/page.tsx:125"
     ]
   },
   "Pas de format d’affichage pour une colonne de type {type}.": {
@@ -7615,7 +7830,7 @@
   },
   "Passer à l’éditeur visuel ?": {
     "where": [
-      "components/app/question/editor.tsx:705"
+      "components/app/question/editor.tsx:716"
     ]
   },
   "Pays": {
@@ -7653,12 +7868,12 @@
   "périodes": {
     "where": [
       "components/app/login-stage.tsx:615",
-      "components/app/question/viz-settings.tsx:653"
+      "components/app/question/viz-settings.tsx:710"
     ]
   },
   "Périodes mises en avant": {
     "where": [
-      "components/app/question/viz-settings.tsx:643"
+      "components/app/question/viz-settings.tsx:700"
     ]
   },
   "Permission enregistrée": {
@@ -7681,7 +7896,7 @@
   "Personnalisée": {
     "where": [
       "app/(app)/admin/themes/page.tsx:498",
-      "components/app/question/viz-settings.tsx:332"
+      "components/app/question/viz-settings.tsx:389"
     ]
   },
   "Personne ne correspond.": {
@@ -7734,25 +7949,25 @@
   },
   "Planning": {
     "where": [
-      "components/app/data/sync-panel.tsx:138"
+      "components/app/data/sync-panel.tsx:157"
     ]
   },
   "Plein": {
     "where": [
       "app/(app)/admin/themes/page.tsx:507",
-      "components/app/question/viz-settings.tsx:975"
+      "components/app/question/viz-settings.tsx:1032"
     ]
   },
   "Plein écran": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:311"
+      "app/(app)/dashboard/[id]/page.tsx:316"
     ]
   },
   "Plus": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:305",
+      "app/(app)/dashboard/[id]/page.tsx:310",
       "components/app/assistant/parts.tsx:307",
-      "components/app/question/editor.tsx:391"
+      "components/app/question/editor.tsx:394"
     ]
   },
   "Plus ancien": {
@@ -7763,40 +7978,40 @@
   },
   "Plus basse": {
     "where": [
-      "components/app/question/viz-settings.tsx:620"
+      "components/app/question/viz-settings.tsx:677"
     ]
   },
   "Plus haute": {
     "where": [
-      "components/app/question/viz-settings.tsx:619"
+      "components/app/question/viz-settings.tsx:676"
     ]
   },
   "Plusieurs dimensions : des rectangles imbriqués, un niveau par dimension. Cliquez un rectangle pour zoomer dessus.": {
     "where": [
-      "components/app/question/viz-settings.tsx:829"
+      "components/app/question/viz-settings.tsx:886"
     ]
   },
   "Plusieurs dimensions (type, motif, sous-motif…) : un anneau par niveau, du centre vers l’extérieur. Cliquez une part pour zoomer dessus.": {
     "where": [
-      "components/app/question/viz-settings.tsx:828"
+      "components/app/question/viz-settings.tsx:885"
     ]
   },
   "Plusieurs URI séparées par des virgules.": {
     "where": [
-      "components/app/data/source-form.tsx:59",
+      "components/app/data/source-form.tsx:61",
       "packages/contracts/src/domain.ts:160"
     ]
   },
   "Plusieurs valeurs à la fois": {
     "where": [
-      "components/app/dashboard/view.tsx:536"
+      "components/app/dashboard/view.tsx:541"
     ]
   },
   "Points": {
     "where": [
-      "components/app/question/viz-settings.tsx:735",
-      "components/app/question/viz-settings.tsx:744",
-      "components/app/question/viz-settings.tsx:869"
+      "components/app/question/viz-settings.tsx:792",
+      "components/app/question/viz-settings.tsx:801",
+      "components/app/question/viz-settings.tsx:926"
     ]
   },
   "Polices": {
@@ -7816,12 +8031,12 @@
   },
   "Polices, couleurs, palette et logo du tableau de bord et de son PDF. Par défaut, celui de son dossier.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:109"
+      "app/(app)/dashboard/[id]/page.tsx:111"
     ]
   },
   "Port": {
     "where": [
-      "components/app/data/source-form.tsx:34",
+      "components/app/data/source-form.tsx:36",
       "packages/contracts/src/domain.ts:101"
     ]
   },
@@ -7868,17 +8083,17 @@
   },
   "Pour des catégories ordonnées (tranches, niveaux) : du plus clair au plus foncé, 5 au plus.": {
     "where": [
-      "components/app/question/viz-settings.tsx:559"
+      "components/app/question/viz-settings.tsx:616"
     ]
   },
   "Pour des valeurs d’ordres de grandeur très différents": {
     "where": [
-      "components/app/question/viz-settings.tsx:793"
+      "components/app/question/viz-settings.tsx:850"
     ]
   },
   "Pourcentage": {
     "where": [
-      "components/app/question/viz-settings.tsx:896",
+      "components/app/question/viz-settings.tsx:953",
       "components/app/structure/column-bits.tsx:62",
       "components/app/structure/format-editor.tsx:21"
     ]
@@ -7895,7 +8110,7 @@
   },
   "Préchargé": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:135"
+      "app/(app)/dashboard/[id]/page.tsx:137"
     ]
   },
   "Précisez au moins un jour.": {
@@ -7905,8 +8120,13 @@
   },
   "Préfixe": {
     "where": [
-      "components/app/question/viz-settings.tsx:916",
+      "components/app/question/viz-settings.tsx:973",
       "components/app/structure/format-editor.tsx:199"
+    ]
+  },
+  "Première page": {
+    "where": [
+      "components/app/table-parts.tsx:274"
     ]
   },
   "Premiers pas": {
@@ -7916,7 +8136,7 @@
   },
   "Prendre la valeur choisie": {
     "where": [
-      "components/app/dashboard/view.tsx:599"
+      "components/app/dashboard/view.tsx:604"
     ]
   },
   "Préparation des graphiques…": {
@@ -7988,7 +8208,7 @@
   "Prolonger la tendance de": {
     "where": [
       "components/app/login-stage.tsx:612",
-      "components/app/question/viz-settings.tsx:650"
+      "components/app/question/viz-settings.tsx:707"
     ]
   },
   "Proposition": {
@@ -8016,19 +8236,24 @@
   },
   "Propriété": {
     "where": [
-      "components/app/data/source-form.tsx:415"
+      "components/app/data/source-form.tsx:470"
     ]
   },
   "Propriétés": {
     "where": [
-      "components/app/data/source-form.tsx:49",
+      "components/app/data/source-form.tsx:51",
       "packages/contracts/src/domain.ts:330"
+    ]
+  },
+  "Propriétés copiées en JSON.": {
+    "where": [
+      "components/app/data/source-form.tsx:452"
     ]
   },
   "Propriétés du catalogue Trino": {
     "where": [
-      "components/app/data/source-form.tsx:405",
-      "components/app/data/source-settings.tsx:95"
+      "components/app/data/source-form.tsx:442",
+      "components/app/data/source-settings.tsx:96"
     ]
   },
   "Propulsé par {product}": {
@@ -8110,23 +8335,23 @@
   "Question": {
     "where": [
       "app/(app)/history/page.tsx:25",
-      "components/app/dashboard/view.tsx:951",
+      "components/app/dashboard/view.tsx:956",
       "components/app/look.tsx:51"
     ]
   },
   "Question ajoutée à « {name} ».": {
     "where": [
-      "components/app/question/editor.tsx:253"
+      "components/app/question/editor.tsx:256"
     ]
   },
   "Question déplacée dans « {name} ».": {
     "where": [
-      "components/app/question/editor.tsx:686"
+      "components/app/question/editor.tsx:697"
     ]
   },
   "Question déplacée.": {
     "where": [
-      "components/app/question/editor.tsx:686"
+      "components/app/question/editor.tsx:697"
     ]
   },
   "Question en cours": {
@@ -8141,13 +8366,13 @@
   },
   "Question enregistrée.": {
     "where": [
-      "components/app/question/editor.tsx:257"
+      "components/app/question/editor.tsx:260"
     ]
   },
   "Question sans titre": {
     "where": [
-      "components/app/dashboard/view.tsx:809",
-      "components/app/question/editor.tsx:353"
+      "components/app/dashboard/view.tsx:814",
+      "components/app/question/editor.tsx:356"
     ]
   },
   "Questions": {
@@ -8189,8 +8414,8 @@
   },
   "Rafraîchir": {
     "where": [
-      "components/app/dashboard/view.tsx:308",
-      "components/app/dashboard/view.tsx:990"
+      "components/app/dashboard/view.tsx:311",
+      "components/app/dashboard/view.tsx:995"
     ]
   },
   "Rafraîchissement automatique": {
@@ -8215,7 +8440,7 @@
   },
   "Rapide": {
     "where": [
-      "components/app/question/viz-settings.tsx:582"
+      "components/app/question/viz-settings.tsx:639"
     ]
   },
   "Réactiver": {
@@ -8241,6 +8466,11 @@
       "components/app/sql-editor.tsx:123"
     ]
   },
+  "Rechercher dans la table": {
+    "where": [
+      "components/app/visualization.tsx:541"
+    ]
+  },
   "Rechercher dans le dossier…": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:631"
@@ -8254,6 +8484,11 @@
   "Rechercher un endpoint…": {
     "where": [
       "components/app/docs/nav.tsx:87"
+    ]
+  },
+  "Rechercher un schéma…": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:97"
     ]
   },
   "Rechercher un tableau de bord…": {
@@ -8280,7 +8515,7 @@
   },
   "Rechercher une question, un modèle, une métrique…": {
     "where": [
-      "components/app/dashboard/view.tsx:433"
+      "components/app/dashboard/view.tsx:438"
     ]
   },
   "Rechercher une source ou une table…": {
@@ -8295,14 +8530,15 @@
   },
   "Rechercher une valeur…": {
     "where": [
-      "components/app/pivot-axis.tsx:67"
+      "components/app/pivot-axis.tsx:67",
+      "components/app/table-parts.tsx:115"
     ]
   },
   "Rechercher…": {
     "where": [
       "components/app/login-stage.tsx:293",
       "components/app/topbar.tsx:95",
-      "components/ui/combobox.tsx:98"
+      "components/app/visualization.tsx:541"
     ]
   },
   "Redimensionner le volet (double-clic : taille par défaut)": {
@@ -8339,20 +8575,20 @@
   },
   "Région Glue": {
     "where": [
-      "components/app/data/source-form.tsx:67",
+      "components/app/data/source-form.tsx:69",
       "packages/contracts/src/domain.ts:187"
     ]
   },
   "Région S3": {
     "where": [
-      "components/app/data/source-form.tsx:70",
+      "components/app/data/source-form.tsx:72",
       "packages/contracts/src/domain.ts:195"
     ]
   },
   "Réglage de l’instance": {
     "where": [
-      "components/app/data/source-form.tsx:382",
-      "components/app/data/source-settings.tsx:84"
+      "components/app/data/source-form.tsx:418",
+      "components/app/data/source-settings.tsx:85"
     ]
   },
   "Réglages": {
@@ -8369,7 +8605,7 @@
   },
   "Réglages du tableau de bord": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:80"
+      "app/(app)/dashboard/[id]/page.tsx:82"
     ]
   },
   "Règle de lignes enregistrée": {
@@ -8397,6 +8633,11 @@
       "components/app/docs/mcp-tools.ts:78"
     ]
   },
+  "Réinitialiser la mise en page": {
+    "where": [
+      "components/app/visualization.tsx:561"
+    ]
+  },
   "Réinitialiser le tri et le filtre": {
     "where": [
       "components/app/pivot-axis.tsx:91"
@@ -8404,7 +8645,7 @@
   },
   "Réinitialiser les filtres": {
     "where": [
-      "components/app/dashboard/view.tsx:905"
+      "components/app/dashboard/view.tsx:910"
     ]
   },
   "Rejoindre eodia insights": {
@@ -8414,7 +8655,7 @@
   },
   "Rejouer": {
     "where": [
-      "components/app/visualization.tsx:191"
+      "components/app/visualization.tsx:215"
     ]
   },
   "Relancer": {
@@ -8425,7 +8666,7 @@
   "Relation": {
     "where": [
       "components/app/period-picker.tsx:158",
-      "components/app/question/viz-settings.tsx:214"
+      "components/app/question/viz-settings.tsx:271"
     ]
   },
   "Relation ajoutée.": {
@@ -8450,12 +8691,12 @@
   },
   "Relier « {label} » à": {
     "where": [
-      "components/app/dashboard/view.tsx:194"
+      "components/app/dashboard/view.tsx:195"
     ]
   },
   "Relier toutes les cartes": {
     "where": [
-      "components/app/dashboard/view.tsx:553"
+      "components/app/dashboard/view.tsx:558"
     ]
   },
   "Remise": {
@@ -8474,21 +8715,26 @@
       "components/app/sql-editor.tsx:124"
     ]
   },
+  "Remplacer les propriétés": {
+    "where": [
+      "components/app/data/source-form.tsx:515"
+    ]
+  },
   "Remplacez ensuite les valeurs d’exemple par celles de votre catalogue.": {
     "where": [
-      "components/app/data/source-form.tsx:336"
+      "components/app/data/source-form.tsx:372"
     ]
   },
   "Remplissage des barres": {
     "where": [
       "app/(app)/admin/themes/page.tsx:502",
       "app/(app)/admin/themes/page.tsx:511",
-      "components/app/question/viz-settings.tsx:969"
+      "components/app/question/viz-settings.tsx:1026"
     ]
   },
   "Rendre toutes les couleurs à la palette": {
     "where": [
-      "components/app/question/viz-settings.tsx:460"
+      "components/app/question/viz-settings.tsx:517"
     ]
   },
   "Renommer": {
@@ -8505,7 +8751,7 @@
   },
   "Répartition": {
     "where": [
-      "components/app/question/viz-settings.tsx:213"
+      "components/app/question/viz-settings.tsx:270"
     ]
   },
   "Replier": {
@@ -8538,7 +8784,7 @@
   "Requête": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:487",
-      "components/app/question/editor.tsx:642"
+      "components/app/question/editor.tsx:653"
     ]
   },
   "Requête {n}": {
@@ -8553,6 +8799,7 @@
   },
   "Requête SQL": {
     "where": [
+      "app/(app)/sql/page.tsx:431",
       "components/app/home/sections.tsx:74",
       "components/app/topbar.tsx:72"
     ]
@@ -8593,17 +8840,17 @@
   "Résultat": {
     "where": [
       "app/(app)/sql/page.tsx:383",
-      "components/app/question/viz-settings.tsx:694"
+      "components/app/question/viz-settings.tsx:751"
     ]
   },
   "résultat du {when}": {
     "where": [
-      "components/app/visualization.tsx:548"
+      "components/app/visualization.tsx:715"
     ]
   },
   "resultat||nom du fichier exporté, sans accent": {
     "where": [
-      "components/app/question/editor.tsx:286"
+      "components/app/question/editor.tsx:289"
     ]
   },
   "Résultats en cache": {
@@ -8683,18 +8930,28 @@
   },
   "Retirer la période": {
     "where": [
-      "components/app/question/viz-settings.tsx:493"
+      "components/app/question/viz-settings.tsx:550"
     ]
   },
   "Retirer la valeur par défaut": {
     "where": [
-      "components/app/dashboard/view.tsx:593"
+      "components/app/dashboard/view.tsx:598"
+    ]
+  },
+  "Retirer le filtre": {
+    "where": [
+      "components/app/table-parts.tsx:147"
+    ]
+  },
+  "Retirer le filtre (contient « {text} »)": {
+    "where": [
+      "components/app/table-parts.tsx:147"
     ]
   },
   "Retour": {
     "where": [
       "app/not-found.tsx:25",
-      "components/app/data/source-form.tsx:458"
+      "components/app/data/source-form.tsx:543"
     ]
   },
   "Retour au tableau de bord": {
@@ -8714,7 +8971,7 @@
   },
   "Revenir à la couleur de la palette": {
     "where": [
-      "components/app/question/viz-settings.tsx:418"
+      "components/app/question/viz-settings.tsx:475"
     ]
   },
   "Révoquer": {
@@ -8737,13 +8994,13 @@
   },
   "Rien": {
     "where": [
-      "components/app/question/viz-settings.tsx:618",
-      "components/app/question/viz-settings.tsx:895"
+      "components/app/question/viz-settings.tsx:675",
+      "components/app/question/viz-settings.tsx:952"
     ]
   },
   "Rôle": {
     "where": [
-      "components/app/data/source-form.tsx:45",
+      "components/app/data/source-form.tsx:47",
       "packages/contracts/src/domain.ts:287"
     ]
   },
@@ -8774,13 +9031,13 @@
   },
   "Sa valeur à l’ouverture": {
     "where": [
-      "components/app/dashboard/view.tsx:589"
+      "components/app/dashboard/view.tsx:594"
     ]
   },
   "Saison": {
     "where": [
       "components/app/login-stage.tsx:630",
-      "components/app/question/viz-settings.tsx:672"
+      "components/app/question/viz-settings.tsx:729"
     ]
   },
   "Sans début": {
@@ -8832,7 +9089,12 @@
   "Schéma": {
     "where": [
       "app/(app)/sql/page.tsx:273",
-      "components/app/data/sync-panel.tsx:18"
+      "components/app/data/sync-panel.tsx:19"
+    ]
+  },
+  "Schéma système": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:126"
     ]
   },
   "schéma.table": {
@@ -8843,13 +9105,24 @@
   },
   "Schémas": {
     "where": [
-      "components/app/data/source-settings.tsx:221",
-      "components/app/data/sync-panel.tsx:69"
+      "components/app/data/schemas-panel.tsx:34",
+      "components/app/data/source-settings.tsx:223",
+      "components/app/data/sync-panel.tsx:70"
+    ]
+  },
+  "Schémas de « {name} »": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:85"
+    ]
+  },
+  "Schémas enregistrés : la structure se synchronise.": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:72"
     ]
   },
   "Schémas, tables, colonnes, clés et commentaires.": {
     "where": [
-      "components/app/data/sync-panel.tsx:18"
+      "components/app/data/sync-panel.tsx:19"
     ]
   },
   "Score": {
@@ -8935,7 +9208,7 @@
   },
   "Selon le nombre de points : affichés jusqu’à 24": {
     "where": [
-      "components/app/question/viz-settings.tsx:740"
+      "components/app/question/viz-settings.tsx:797"
     ]
   },
   "sem. du {day}": {
@@ -9027,12 +9300,12 @@
   },
   "Seulement les premières (le reste devient « Autres »)": {
     "where": [
-      "components/app/question/viz-settings.tsx:701"
+      "components/app/question/viz-settings.tsx:758"
     ]
   },
   "Seules ces bases sont exposées, séparées par des virgules ; vide, toutes celles que l’utilisateur voit.": {
     "where": [
-      "components/app/data/source-form.tsx:38",
+      "components/app/data/source-form.tsx:40",
       "packages/contracts/src/domain.ts:236"
     ]
   },
@@ -9078,13 +9351,13 @@
   },
   "Son nom": {
     "where": [
-      "components/app/dashboard/view.tsx:523"
+      "components/app/dashboard/view.tsx:528"
     ]
   },
   "Source": {
     "where": [
       "components/app/admin/permission-matrix.tsx:318",
-      "components/app/data/source-form.tsx:283",
+      "components/app/data/source-form.tsx:319",
       "components/app/question/notebook.tsx:143"
     ]
   },
@@ -9100,7 +9373,7 @@
   },
   "Source supprimée.": {
     "where": [
-      "components/app/data/source-settings.tsx:261"
+      "components/app/data/source-settings.tsx:263"
     ]
   },
   "Sources": {
@@ -9135,19 +9408,19 @@
   },
   "SQL exécuté": {
     "where": [
-      "components/app/question/editor.tsx:507"
+      "components/app/question/editor.tsx:510"
     ]
   },
   "SQL natif": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:492",
       "components/app/admin/common.tsx:56",
-      "components/app/data/source-settings.tsx:83"
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "SQL natif : envoyé tel quel à la source via system.query, réservé aux personnes sans restriction.": {
     "where": [
-      "components/app/question/editor.tsx:497"
+      "components/app/question/editor.tsx:500"
     ]
   },
   "SQL natif · {name}": {
@@ -9163,7 +9436,7 @@
   "SQL Trino": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:491",
-      "components/app/question/editor.tsx:643"
+      "components/app/question/editor.tsx:654"
     ]
   },
   "SSL": {
@@ -9218,13 +9491,13 @@
   },
   "Suffixe": {
     "where": [
-      "components/app/question/viz-settings.tsx:919",
+      "components/app/question/viz-settings.tsx:976",
       "components/app/structure/format-editor.tsx:202"
     ]
   },
   "suggérée": {
     "where": [
-      "components/app/dashboard/view.tsx:570"
+      "components/app/dashboard/view.tsx:575"
     ]
   },
   "suivant": {
@@ -9241,7 +9514,7 @@
   "Supprimer": {
     "where": [
       "app/(app)/admin/themes/page.tsx:657",
-      "app/(app)/dashboard/[id]/page.tsx:350",
+      "app/(app)/dashboard/[id]/page.tsx:371",
       "components/app/assistant/history.tsx:119"
     ]
   },
@@ -9249,7 +9522,7 @@
     "where": [
       "app/(app)/admin/groups/page.tsx:339",
       "app/(app)/admin/themes/page.tsx:669",
-      "app/(app)/dashboard/[id]/page.tsx:372"
+      "app/(app)/dashboard/[id]/page.tsx:430"
     ]
   },
   "Supprimer (Suppr)": {
@@ -9273,7 +9546,7 @@
   },
   "Supprimer l’onglet": {
     "where": [
-      "components/app/dashboard/view.tsx:1051"
+      "components/app/dashboard/view.tsx:1056"
     ]
   },
   "Supprimer la règle": {
@@ -9289,12 +9562,12 @@
   },
   "Supprimer la source": {
     "where": [
-      "components/app/data/source-settings.tsx:241"
+      "components/app/data/source-settings.tsx:243"
     ]
   },
   "Supprimer la source retire son catalogue de Trino, ses métadonnées et ses permissions. Les questions qui l’utilisent ne fonctionneront plus.": {
     "where": [
-      "components/app/data/source-settings.tsx:239"
+      "components/app/data/source-settings.tsx:241"
     ]
   },
   "Supprimer le compte": {
@@ -9336,18 +9609,18 @@
   },
   "Sur chaque part": {
     "where": [
-      "components/app/question/viz-settings.tsx:890",
-      "components/app/question/viz-settings.tsx:902"
+      "components/app/question/viz-settings.tsx:947",
+      "components/app/question/viz-settings.tsx:959"
     ]
   },
   "Sur deux axes": {
     "where": [
-      "components/app/question/viz-settings.tsx:992"
+      "components/app/question/viz-settings.tsx:1049"
     ]
   },
   "Sur deux axes s’il y a deux mesures, en grappe sinon": {
     "where": [
-      "components/app/question/viz-settings.tsx:991"
+      "components/app/question/viz-settings.tsx:1048"
     ]
   },
   "Surfaces autorisées": {
@@ -9357,13 +9630,18 @@
   },
   "Synchronisation": {
     "where": [
-      "components/app/data/source-settings.tsx:232"
+      "components/app/data/source-settings.tsx:234"
+    ]
+  },
+  "Synchronisation arrêtée : relancez-la quand vous voulez.": {
+    "where": [
+      "components/app/data/sync-panel.tsx:113"
     ]
   },
   "Synchronisation du schéma": {
     "where": [
-      "components/app/data/source-form.tsx:368",
-      "components/app/data/source-form.tsx:372"
+      "components/app/data/source-form.tsx:404",
+      "components/app/data/source-form.tsx:408"
     ]
   },
   "Synchronisation en cours": {
@@ -9371,14 +9649,19 @@
       "components/app/data/source-look.tsx:40"
     ]
   },
+  "Synchronisation en cours…": {
+    "where": [
+      "components/app/data/sync-panel.tsx:199"
+    ]
+  },
   "Synchronisation et options": {
     "where": [
-      "components/app/data/source-form.tsx:365"
+      "components/app/data/source-form.tsx:401"
     ]
   },
   "Synchronisation terminée": {
     "where": [
-      "components/app/data/sync-panel.tsx:188"
+      "components/app/data/sync-panel.tsx:220"
     ]
   },
   "Synchronisation…": {
@@ -9398,7 +9681,7 @@
   },
   "Synchroniser le schéma de la base de données": {
     "where": [
-      "components/app/data/sync-panel.tsx:178"
+      "components/app/data/sync-panel.tsx:209"
     ]
   },
   "Système": {
@@ -9440,9 +9723,14 @@
       "components/app/docs/mcp-tools.ts:118"
     ]
   },
+  "Tableau de bord copié en JSON : collez-le dans « Coller un JSON » pour en créer un autre.": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:347"
+    ]
+  },
   "Tableau de bord enregistré.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:295"
+      "app/(app)/dashboard/[id]/page.tsx:300"
     ]
   },
   "Tableaux": {
@@ -9453,7 +9741,7 @@
   "Tableaux de bord": {
     "where": [
       "app/(app)/admin/audit/page.tsx:43",
-      "app/(app)/dashboard/[id]/page.tsx:183",
+      "app/(app)/dashboard/[id]/page.tsx:188",
       "components/app/docs/openapi.ts:99"
     ]
   },
@@ -9471,7 +9759,7 @@
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:94",
       "app/(app)/data/[[...path]]/page.tsx:171",
-      "components/app/data/source-settings.tsx:222"
+      "components/app/data/source-settings.tsx:224"
     ]
   },
   "Tables Iceberg sur S3 ou MinIO : metastore Hive, catalogue REST ou Glue.": {
@@ -9516,24 +9804,24 @@
   },
   "Tendance": {
     "where": [
-      "components/app/question/viz-settings.tsx:934",
+      "components/app/question/viz-settings.tsx:991",
       "lib/viz.ts:204"
     ]
   },
   "Tendance et saison (Holt-Winters)": {
     "where": [
-      "components/app/question/viz-settings.tsx:672"
+      "components/app/question/viz-settings.tsx:729"
     ]
   },
   "Tendance lissée (Holt)": {
     "where": [
-      "components/app/question/viz-settings.tsx:671"
+      "components/app/question/viz-settings.tsx:728"
     ]
   },
   "Terminé": {
     "where": [
       "app/(app)/admin/people/page.tsx:464",
-      "components/app/dashboard/view.tsx:518",
+      "components/app/dashboard/view.tsx:523",
       "components/app/docs/token-dialog.tsx:202"
     ]
   },
@@ -9544,12 +9832,12 @@
   },
   "Test de la connexion et création du catalogue Trino…": {
     "where": [
-      "components/app/data/source-form.tsx:477"
+      "components/app/data/source-form.tsx:562"
     ]
   },
   "Tester la connexion": {
     "where": [
-      "components/app/data/source-form.tsx:463"
+      "components/app/data/source-form.tsx:548"
     ]
   },
   "texte": {
@@ -9561,12 +9849,12 @@
     "where": [
       "app/(app)/admin/themes/page.tsx:391",
       "components/app/dashboard/parameters.tsx:51",
-      "components/app/dashboard/view.tsx:957"
+      "components/app/dashboard/view.tsx:962"
     ]
   },
   "Texte en Markdown ; citez un filtre par son nom, entre doubles accolades : {{Région}}": {
     "where": [
-      "components/app/dashboard/view.tsx:376"
+      "components/app/dashboard/view.tsx:379"
     ]
   },
   "Texte et graphiques": {
@@ -9579,9 +9867,14 @@
       "components/app/docs/mcp-tools.ts:89"
     ]
   },
+  "Texte sur plusieurs lignes": {
+    "where": [
+      "components/app/question/viz-settings.tsx:1107"
+    ]
+  },
   "Thème": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:100",
+      "app/(app)/dashboard/[id]/page.tsx:102",
       "components/app/folder-menu.tsx:94",
       "components/app/theme-picker.tsx:196"
     ]
@@ -9635,7 +9928,7 @@
   },
   "Titre": {
     "where": [
-      "components/app/dashboard/view.tsx:954",
+      "components/app/dashboard/view.tsx:959",
       "components/app/structure/column-bits.tsx:34",
       "packages/contracts/src/metadata.ts:68"
     ]
@@ -9645,6 +9938,11 @@
       "components/app/docs/mcp-tools.ts:135"
     ]
   },
+  "Titre de « {column} »": {
+    "where": [
+      "components/app/question/viz-settings.tsx:169"
+    ]
+  },
   "Titre de la conversation": {
     "where": [
       "components/app/assistant/history.tsx:92"
@@ -9652,7 +9950,7 @@
   },
   "Titre de section": {
     "where": [
-      "components/app/dashboard/view.tsx:254"
+      "components/app/dashboard/view.tsx:257"
     ]
   },
   "Titres": {
@@ -9664,18 +9962,18 @@
   "Total": {
     "where": [
       "components/app/home/exploration.tsx:209",
-      "components/app/visualization.tsx:580",
-      "components/app/visualization.tsx:609"
+      "components/app/visualization.tsx:690",
+      "components/app/visualization.tsx:747"
     ]
   },
   "Total au centre": {
     "where": [
-      "components/app/question/viz-settings.tsx:887"
+      "components/app/question/viz-settings.tsx:944"
     ]
   },
   "Total au-dessus des piles": {
     "where": [
-      "components/app/question/viz-settings.tsx:770"
+      "components/app/question/viz-settings.tsx:827"
     ]
   },
   "Total croissant": {
@@ -9690,12 +9988,12 @@
   },
   "Totaux": {
     "where": [
-      "components/app/question/viz-settings.tsx:1066"
+      "components/app/question/viz-settings.tsx:1151"
     ]
   },
   "Toujours": {
     "where": [
-      "components/app/question/viz-settings.tsx:741"
+      "components/app/question/viz-settings.tsx:798"
     ]
   },
   "Tous les chiffres, l’administration et les droits, en lecture.": {
@@ -9715,8 +10013,13 @@
   },
   "Tous les jours": {
     "where": [
-      "components/app/data/source-form.tsx:375",
+      "components/app/data/source-form.tsx:411",
       "components/app/data/source-look.tsx:59"
+    ]
+  },
+  "Tous les schémas sont affichés, hors schémas système.": {
+    "where": [
+      "components/app/data/schemas-panel.tsx:42"
     ]
   },
   "Tous les utilisateurs": {
@@ -9752,12 +10055,16 @@
   },
   "Tout cocher": {
     "where": [
-      "components/app/pivot-axis.tsx:72"
+      "components/app/data/schemas-panel.tsx:100",
+      "components/app/pivot-axis.tsx:72",
+      "components/app/table-parts.tsx:128"
     ]
   },
   "Tout décocher": {
     "where": [
-      "components/app/pivot-axis.tsx:75"
+      "components/app/data/schemas-panel.tsx:103",
+      "components/app/pivot-axis.tsx:75",
+      "components/app/table-parts.tsx:131"
     ]
   },
   "Tout désélectionner": {
@@ -9821,7 +10128,7 @@
     "where": [
       "components/app/home/sections.tsx:240",
       "components/app/question/notebook.tsx:306",
-      "components/app/question/viz-settings.tsx:702"
+      "components/app/question/viz-settings.tsx:759"
     ]
   },
   "Toutes les {seconds} secondes": {
@@ -9862,7 +10169,7 @@
   "Toutes les heures": {
     "where": [
       "components/app/dashboard/refresh-timer.tsx:23",
-      "components/app/data/source-form.tsx:374",
+      "components/app/data/source-form.tsx:410",
       "components/app/data/source-look.tsx:58"
     ]
   },
@@ -9918,18 +10225,18 @@
   },
   "Tracé": {
     "where": [
-      "components/app/question/viz-settings.tsx:723",
-      "components/app/question/viz-settings.tsx:732"
+      "components/app/question/viz-settings.tsx:780",
+      "components/app/question/viz-settings.tsx:789"
     ]
   },
   "Transformer en métrique": {
     "where": [
-      "components/app/question/editor.tsx:448"
+      "components/app/question/editor.tsx:451"
     ]
   },
   "Transformer en modèle": {
     "where": [
-      "components/app/question/editor.tsx:445"
+      "components/app/question/editor.tsx:448"
     ]
   },
   "Transmettez ce lien à {email} : il n’est montré qu’une fois et reste valable 7 jours.": {
@@ -9944,12 +10251,12 @@
   },
   "Tri et filtre à l’ouverture": {
     "where": [
-      "components/app/question/viz-settings.tsx:1047"
+      "components/app/question/viz-settings.tsx:1132"
     ]
   },
   "Tri et regroupement": {
     "where": [
-      "components/app/question/viz-settings.tsx:688"
+      "components/app/question/viz-settings.tsx:745"
     ]
   },
   "Trier": {
@@ -10088,7 +10395,7 @@
   },
   "Un modèle sert de source à d’autres questions, comme une table, et le copilote le voit comme tel.": {
     "where": [
-      "components/app/question/editor.tsx:651"
+      "components/app/question/editor.tsx:662"
     ]
   },
   "Un mot cherché dans une colonne de texte : un nom, une référence…": {
@@ -10096,9 +10403,14 @@
       "components/app/dashboard/parameters.tsx:52"
     ]
   },
+  "Un objet JSON { \"clé\": \"valeur\" }, ou des lignes clé=valeur comme dans un fichier de catalogue. Elles remplacent les propriétés actuelles.": {
+    "where": [
+      "components/app/data/source-form.tsx:494"
+    ]
+  },
   "Un point par jour, d’autant plus grand que la valeur": {
     "where": [
-      "components/app/question/viz-settings.tsx:869"
+      "components/app/question/viz-settings.tsx:926"
     ]
   },
   "Un seuil ou une fourchette : un montant, une quantité, une note…": {
@@ -10111,24 +10423,29 @@
       "app/(app)/sql/page.tsx:157"
     ]
   },
+  "Un titre vide garde le nom de la colonne. Les colonnes se déplacent aussi en glissant leur en-tête dans la table.": {
+    "where": [
+      "components/app/question/viz-settings.tsx:181"
+    ]
+  },
   "Une agrégation nommée, réutilisable partout": {
     "where": [
-      "components/app/question/editor.tsx:635"
+      "components/app/question/editor.tsx:646"
     ]
   },
   "Une baisse est une bonne nouvelle": {
     "where": [
-      "components/app/question/viz-settings.tsx:948"
+      "components/app/question/viz-settings.tsx:1005"
     ]
   },
   "Une barre par catégorie, qui part du centre": {
     "where": [
-      "components/app/question/viz-settings.tsx:841"
+      "components/app/question/viz-settings.tsx:898"
     ]
   },
   "Une barre par catégorie, qui tourne autour du centre": {
     "where": [
-      "components/app/question/viz-settings.tsx:840"
+      "components/app/question/viz-settings.tsx:897"
     ]
   },
   "Une boutique en ligne, ses bases PostgreSQL et MongoDB, trois ans d’historique — et tout ce qu’on en tire.": {
@@ -10138,7 +10455,7 @@
   },
   "Une bulle par catégorie, aussi grosse que sa valeur": {
     "where": [
-      "components/app/question/viz-settings.tsx:993"
+      "components/app/question/viz-settings.tsx:1050"
     ]
   },
   "Une colonne porte déjà ce nom.": {
@@ -10153,7 +10470,7 @@
   },
   "Une demi-seconde par période": {
     "where": [
-      "components/app/question/viz-settings.tsx:582"
+      "components/app/question/viz-settings.tsx:639"
     ]
   },
   "une des formes": {
@@ -10203,12 +10520,12 @@
   },
   "Une métrique est réutilisable dans le builder, les cartes de tableau de bord, le copilote et la MCP : « Résumer → Métriques ».": {
     "where": [
-      "components/app/question/editor.tsx:650"
+      "components/app/question/editor.tsx:661"
     ]
   },
   "Une période colorée et nommée sur la courbe : une promotion, une grève, un confinement…": {
     "where": [
-      "components/app/question/viz-settings.tsx:486"
+      "components/app/question/viz-settings.tsx:543"
     ]
   },
   "Une personne reçoit l’union des droits de tous ses groupes, « Tous les utilisateurs » compris.": {
@@ -10218,13 +10535,13 @@
   },
   "Une propriété par ligne, au format clé=valeur : le fichier du catalogue, sans connector.name. Une valeur laissée vide est ignorée.": {
     "where": [
-      "components/app/data/source-form.tsx:51",
+      "components/app/data/source-form.tsx:53",
       "packages/contracts/src/domain.ts:334"
     ]
   },
   "Une question : un résultat à lire": {
     "where": [
-      "components/app/question/editor.tsx:633"
+      "components/app/question/editor.tsx:644"
     ]
   },
   "Une question, sans une ligne de SQL.": {
@@ -10234,7 +10551,7 @@
   },
   "Une seconde par période": {
     "where": [
-      "components/app/question/viz-settings.tsx:581"
+      "components/app/question/viz-settings.tsx:638"
     ]
   },
   "Une seule période entière : le mois d’il y a 2 mois, l’année d’il y a 1 an…": {
@@ -10249,7 +10566,7 @@
   },
   "Une table virtuelle, réutilisable comme source": {
     "where": [
-      "components/app/question/editor.tsx:634"
+      "components/app/question/editor.tsx:645"
     ]
   },
   "Une valeur ou {{user.region}}": {
@@ -10281,13 +10598,13 @@
   },
   "URI du catalogue REST": {
     "where": [
-      "components/app/data/source-form.tsx:60",
+      "components/app/data/source-form.tsx:62",
       "packages/contracts/src/domain.ts:165"
     ]
   },
   "URI du metastore": {
     "where": [
-      "components/app/data/source-form.tsx:58",
+      "components/app/data/source-form.tsx:60",
       "packages/contracts/src/domain.ts:156"
     ]
   },
@@ -10310,7 +10627,7 @@
   },
   "Utilisateur": {
     "where": [
-      "components/app/data/source-form.tsx:35",
+      "components/app/data/source-form.tsx:37",
       "packages/contracts/src/domain.ts:207"
     ]
   },
@@ -10347,8 +10664,8 @@
   "Valeur": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:218",
-      "components/app/data/source-form.tsx:423",
-      "components/app/question/viz-settings.tsx:897"
+      "components/app/data/source-form.tsx:478",
+      "components/app/question/viz-settings.tsx:954"
     ]
   },
   "Valeur 1, valeur 2… ou {{user.region}}": {
@@ -10368,9 +10685,9 @@
   },
   "Valeurs": {
     "where": [
-      "components/app/data/sync-panel.tsx:20",
-      "components/app/data/sync-panel.tsx:73",
-      "components/app/question/viz-settings.tsx:1045"
+      "components/app/data/sync-panel.tsx:21",
+      "components/app/data/sync-panel.tsx:74",
+      "components/app/question/viz-settings.tsx:1130"
     ]
   },
   "Valeurs des variables d'une question SQL, par nom.": {
@@ -10386,7 +10703,7 @@
   },
   "Valeurs distinctes des colonnes catégorielles.": {
     "where": [
-      "components/app/data/sync-panel.tsx:20"
+      "components/app/data/sync-panel.tsx:21"
     ]
   },
   "Valeurs enregistrées.": {
@@ -10401,8 +10718,8 @@
   },
   "Valeurs sur les marques": {
     "where": [
-      "components/app/question/viz-settings.tsx:769",
-      "components/app/question/viz-settings.tsx:857"
+      "components/app/question/viz-settings.tsx:826",
+      "components/app/question/viz-settings.tsx:914"
     ]
   },
   "Variables de la question, par nom.": {
@@ -10434,23 +10751,23 @@
   },
   "ventes, crm": {
     "where": [
-      "components/app/data/source-form.tsx:39",
+      "components/app/data/source-form.tsx:41",
       "packages/contracts/src/domain.ts:235"
     ]
   },
   "Ventiler par…": {
     "where": [
-      "components/app/question/editor.tsx:568"
+      "components/app/question/editor.tsx:579"
     ]
   },
   "Vers l’onglet": {
     "where": [
-      "components/app/dashboard/view.tsx:327"
+      "components/app/dashboard/view.tsx:330"
     ]
   },
   "Vers un autre tableau de bord…": {
     "where": [
-      "components/app/dashboard/view.tsx:340"
+      "components/app/dashboard/view.tsx:343"
     ]
   },
   "Version": {
@@ -10465,12 +10782,12 @@
   },
   "Verticaux": {
     "where": [
-      "components/app/question/viz-settings.tsx:813"
+      "components/app/question/viz-settings.tsx:870"
     ]
   },
   "Vide pour AWS ; sinon l’adresse de MinIO, Ceph, Scality…": {
     "where": [
-      "components/app/data/source-form.tsx:69",
+      "components/app/data/source-form.tsx:71",
       "packages/contracts/src/domain.ts:193"
     ]
   },
@@ -10509,9 +10826,9 @@
   },
   "Visualisation": {
     "where": [
-      "components/app/dashboard/view.tsx:362",
-      "components/app/question/editor.tsx:507",
-      "components/app/question/editor.tsx:595"
+      "components/app/dashboard/view.tsx:365",
+      "components/app/question/editor.tsx:510",
+      "components/app/question/editor.tsx:606"
     ]
   },
   "Visualiser": {
@@ -10522,8 +10839,8 @@
   },
   "Vitesse": {
     "where": [
-      "components/app/question/viz-settings.tsx:575",
-      "components/app/question/viz-settings.tsx:584"
+      "components/app/question/viz-settings.tsx:632",
+      "components/app/question/viz-settings.tsx:641"
     ]
   },
   "Vive": {
@@ -10540,13 +10857,20 @@
     "one": "Voir l’autre",
     "other": "Voir les {count} autres",
     "where": [
-      "components/app/question/viz-settings.tsx:451"
+      "components/app/question/viz-settings.tsx:508"
+    ]
+  },
+  "Voir les {count} schémas système, toujours masqués": {
+    "one": "Voir le schéma système, toujours masqué",
+    "other": "Voir les {count} schémas système, toujours masqués",
+    "where": [
+      "components/app/data/schemas-panel.tsx:142"
     ]
   },
   "Voir les enregistrements": {
     "where": [
-      "components/app/dashboard/view.tsx:1185",
-      "components/app/question/editor.tsx:547"
+      "components/app/dashboard/view.tsx:1190",
+      "components/app/question/editor.tsx:558"
     ]
   },
   "Vos chiffres clés sont calculés à chaque visite, sous vos droits, dans les tables que vous pouvez lire.": {
@@ -10621,12 +10945,12 @@
   },
   "vs {period}": {
     "where": [
-      "components/app/visualization.tsx:327"
+      "components/app/visualization.tsx:351"
     ]
   },
   "vs {period} · {value}": {
     "where": [
-      "components/app/visualization.tsx:302"
+      "components/app/visualization.tsx:326"
     ]
   },
   "vs mois précédent": {
@@ -10637,12 +10961,12 @@
   "Vue d’ensemble": {
     "where": [
       "app/(app)/admin/themes/page.tsx:236",
-      "components/app/dashboard/view.tsx:1067"
+      "components/app/dashboard/view.tsx:1072"
     ]
   },
   "x et y les deux premières mesures, la taille la troisième": {
     "where": [
-      "components/app/question/viz-settings.tsx:992"
+      "components/app/question/viz-settings.tsx:1049"
     ]
   },
   "xy12345.eu-west-1": {
@@ -10653,7 +10977,7 @@
   "Zone sensible": {
     "where": [
       "app/(app)/admin/people/page.tsx:258",
-      "components/app/data/source-settings.tsx:238"
+      "components/app/data/source-settings.tsx:240"
     ]
   }
 }

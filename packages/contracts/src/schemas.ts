@@ -232,11 +232,34 @@ export const DatasourceInputSchema = z.object({
       timezone: z.string().max(60).optional(),
       trino_properties: z.record(z.string(), z.string().max(400)).optional(),
       excluded_schemas: z.array(z.string().max(200)).max(200).optional(),
+      schemas: z.array(z.string().max(200)).max(500).optional(),
+      schema_labels: z.record(z.string().max(200), z.string().max(120)).optional(),
       cache_ttl: z.number().int().min(0).max(31_536_000).nullable().optional(),
     })
     .optional(),
   schedule: z.enum(['hourly', 'daily', 'manual']).optional(),
 })
+
+/** The schemas a source shows, and their names: an empty list shows them all. */
+export const SourceSchemasInputSchema = z.object({
+  schemas: z.array(z.string().max(200)).max(500),
+  labels: z.record(z.string().max(200), z.string().max(120)),
+})
+
+/** A dashboard copied as JSON (« Copier en JSON »), to paste in a new one. */
+export const DASHBOARD_FORMAT = 'eodia-insights/dashboard'
+export const DashboardImportSchema = z.object({
+  format: z.literal(DASHBOARD_FORMAT),
+  version: z.literal(1),
+  name,
+  description: z.string().max(5000).nullable().optional(),
+  tabs: z.array(z.object({ id: z.string().max(60), label: z.string().max(80) })).max(12).optional(),
+  cards: z.array(z.record(z.string(), z.unknown())).max(60),
+  parameters: z.array(z.record(z.string(), z.unknown())).max(16).optional(),
+  auto_refresh: z.number().int().min(0).max(86_400).nullable().optional(),
+  cache_ttl: z.number().int().min(0).max(31_536_000).nullable().optional(),
+})
+export const DashboardPasteSchema = z.object({ folder: id.nullable().optional(), dashboard: z.unknown() })
 
 export const FolderInputSchema = z.object({
   name,

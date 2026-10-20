@@ -58,12 +58,23 @@ export const SYSTEM_SCHEMAS: Readonly<Record<Engine, readonly string[]>> = {
   postgresql: ['pg_catalog', 'information_schema', 'pg_toast'],
   mysql: ['mysql', 'information_schema', 'performance_schema', 'sys'],
   sqlserver: ['sys', 'information_schema', 'guest', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter'],
-  oracle: ['sys', 'system', 'outln', 'xdb', 'mdsys', 'ctxsys', 'ordsys', 'wmsys', 'appqossys', 'dbsnmp', 'gsmadmin_internal', 'lbacsys', 'ojvmsys', 'olapsys', 'dvsys', 'audsys'],
+  oracle: [
+    'sys', 'system', 'outln', 'xdb', 'mdsys', 'ctxsys', 'ordsys', 'wmsys', 'appqossys', 'dbsnmp', 'gsmadmin_internal', 'lbacsys', 'ojvmsys', 'olapsys', 'dvsys', 'audsys',
+    'dbsfwuser', 'orddata', 'ordplugins', 'si_informtn_schema', 'remote_scheduler_agent', 'gsmuser', 'gsmcatuser', 'gsmrootuser', 'dip', 'xs$null', 'anonymous',
+    'sysbackup', 'sysdg', 'syskm', 'sysrac', 'sys$umf', 'ggsys', 'dgpdb_int', 'dvf', 'mddata', 'spatial_csw_admin_usr', 'spatial_wfs_admin_usr', 'flows_files',
+    'apex_public_user', 'apex_rest_public_user', 'apex_listener', 'ords_metadata', 'ords_public_user', 'oracle_ocm', 'xdbext', 'xdbpm', 'mgmt_view', 'olapsys', 'owbsys', 'owbsys_audit',
+  ],
   snowflake: ['information_schema'],
   mongodb: ['admin', 'local', 'config', 'information_schema'],
   // Iceberg's own `system` schema lists the tables of the catalog (`iceberg_tables`).
   iceberg: ['information_schema', 'system'],
   trino: ['information_schema'],
+}
+
+/** Whether a schema holds the engine's own machinery — Oracle's APEX ones carry a version. */
+export function isSystemSchema(engine: Engine, name: string): boolean {
+  const n = name.toLowerCase()
+  return SYSTEM_SCHEMAS[engine].includes(n) || (engine === 'oracle' && /^apex_\d/.test(n))
 }
 
 function errorText(err: unknown): string {
@@ -239,6 +250,11 @@ async function oracleConn(st: Settings) {
     password: s(st.password),
     connectString: `${s(st.host)}:${n(st.port, 1521)}/${s(st.service)}`,
     connectTimeout: TIMEOUT_MS / 1000,
+  }).then((c) => {
+    // Every call has a deadline, as on the other engines: the introspection of a large
+    // dictionary no longer hangs a sync forever.
+    c.callTimeout = 120_000
+    return c
   })
 }
 

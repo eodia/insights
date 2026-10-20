@@ -192,6 +192,8 @@ async function compileQuery(
       text = expandSnippets(text, (n) => byName.get(n))
     }
     const rendered = cleanStatement(renderSql(text, query.variables ?? [], parameters, { today: today() }, constraints))
+    let sql = rendered
+    let datasource: string | undefined
     if (query.kind === 'native') {
       const ds = snap.datasources.get(query.datasource)
       if (!ds) throw new AppError('NOT_FOUND', 'Source introuvable.')
@@ -199,9 +201,19 @@ async function compileQuery(
       if (!nativeAllowed(snap, principalOf(actor), ds.id)) {
         throw new AppError('DATA_ACCESS_DENIED', 'Le SQL natif est réservé aux personnes sans restriction de ligne ni de colonne sur cette source.')
       }
-      return { sql: nativeSql(ds.catalog, rendered), columns: null, datasource: ds.id }
+      sql = nativeSql(ds.catalog, rendered)
+      datasource = ds.id
     }
-    return { sql: rendered, columns: null }
+    // A dashboard filter tied to one of its result columns: the statement becomes the source of a
+    // question that filters it, as a question built on a SQL question would — same rules.
+    const onColumns = constraints.filter((c) => 'column' in c.target && !c.target.column.join)
+    if (onColumns.length) {
+      const inner = '__sql'
+      const scoped: Prepared = { ...prepared, questions: new Map(prepared.questions).set(inner, { sql, label: '', columns: await describe(core, principalOf(actor), sql) }) }
+      const out = compileBuilder(applyConstraints({ kind: 'builder', source: { kind: 'question', id: inner } }, onColumns), contextOf(scoped, true))
+      sql = out.sql
+    }
+    return { sql, columns: null, ...(datasource ? { datasource } : {}) }
   } catch (err) {
     if (err instanceof CompileError) throw new AppError('INVALID_INPUT', err.message)
     throw err
@@ -390,6 +402,12 @@ async function logExecution(core: Core, actor: Actor, input: RunInput, sql: stri
 
 // ── Questions et cartes ─────────────────────────────────────────────────────
 
+/** The rows a question reads, as its table's « Limite de lignes » sets them; none: the instance's. */
+export function rowLimitOf(visualization: unknown): number | undefined {
+  const n = Number((visualization as { settings?: { max_rows?: unknown } } | null | undefined)?.settings?.max_rows)
+  return Number.isInteger(n) && n > 0 ? Math.min(n, 100_000) : undefined
+}
+
 export async function runQuestion(
   core: Core,
   actor: Actor,
@@ -407,7 +425,7 @@ export async function runQuestion(
     ...(opts.fresh ? { fresh: true } : {}),
     ...(opts.dashboardId ? { dashboardId: opts.dashboardId } : {}),
     ...(opts.executionId ? { executionId: opts.executionId } : {}),
-    ...(opts.limit ? { limit: opts.limit } : {}),
+    ...(opts.limit ?? rowLimitOf(q.visualization) ? { limit: opts.limit ?? rowLimitOf(q.visualization) } : {}),
     cacheTtl: q.cache_ttl,
     // A model's column metadata, or a saved question's own (labels and formats of its SQL).
     columnsMeta: (q.columns_meta as RunInput['columnsMeta']) ?? null,
@@ -434,8 +452,10 @@ export async function runCard(
   const common = { origin: opts.origin ?? ('card' as const), dashboardId, constraints, ...(opts.fresh ? { fresh: true } : {}) }
   if (card.question) {
     const q = await getQuestion(core, actor, card.question)
+    const limit = rowLimitOf(card.visualization ?? q.visualization)
     return runQuery(core, actor, {
       ...common,
+      ...(limit ? { limit } : {}),
       query: q.query,
       adhoc: false,
       questionId: q.id,
@@ -444,7 +464,8 @@ export async function runCard(
     })
   }
   if (!card.query) throw new AppError('NOT_FOUND', 'Carte sans question.')
-  return runQuery(core, actor, { ...common, query: card.query, adhoc: false, cacheTtl: d.cache_ttl })
+  const limit = rowLimitOf(card.visualization)
+  return runQuery(core, actor, { ...common, ...(limit ? { limit } : {}), query: card.query, adhoc: false, cacheTtl: d.cache_ttl })
 }
 
 /** Warms the cache of the dashboards marked « préchargés », as their author. */

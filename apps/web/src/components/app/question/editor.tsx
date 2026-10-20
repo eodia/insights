@@ -184,8 +184,10 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
     setDraft((d) => (d.query.kind === 'builder' ? d : { ...d, query: { ...d.query, variables: next } }))
   }, [draft.query.kind === 'builder' ? '' : draft.query.sql])
 
+  const maxRows = Number((draft.visualization.settings as { max_rows?: number } | undefined)?.max_rows) || undefined
   const run = useCallback(
     async (override?: QuestionQuery) => {
+      const limit = maxRows
       const query = override ?? draft.query
       if (query.kind === 'builder' && !query.source.id) return
       if (query.kind !== 'builder' && !query.sql.trim()) return
@@ -195,7 +197,8 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
       setError(null)
       try {
         const parameters = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''))
-        const res = await api.post<RunResult>('/v1/query', { query, parameters, execution_id: id, fresh: true, ...(draft.id ? { question: draft.id } : {}) })
+        // The rows the question reads: its table's « Limite de lignes », as when it runs saved.
+        const res = await api.post<RunResult>('/v1/query', { query, parameters, execution_id: id, fresh: true, ...(limit ? { limit } : {}), ...(draft.id ? { question: draft.id } : {}) })
         if (execution.current !== id) return
         setResult(res)
         // A new question takes the visualization its first result suggests.
@@ -206,7 +209,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         if (execution.current === id) setRunning(false)
       }
     },
-    [draft.query, draft.id, values],
+    [draft.query, draft.id, values, maxRows],
   )
   const dirtyViz = useRef(!!initial.id)
 
@@ -530,10 +533,18 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
             ) : result ? (
               view === 'viz' ? (
                 <ThemeScope theme={saved?.resolved_theme} className="h-full">
-                  <Visualization result={result} viz={draft.visualization} onPointClick={builder ? setPoint : undefined} onPointMenu={setPoint} />
+                  <Visualization
+                    result={result}
+                    viz={draft.visualization}
+                    onPointClick={builder ? setPoint : undefined}
+                    onPointMenu={setPoint}
+                    persistKey={`question:${draft.id ?? 'new'}`}
+                    onSettingsChange={(patch) => update({ visualization: { ...draft.visualization, settings: { ...(draft.visualization.settings ?? {}), ...patch } } })}
+                    exportName={draft.name}
+                  />
                 </ThemeScope>
               ) : view === 'table' ? (
-                <DataTable result={result} looks={result.looks} onRowMenu={setPoint} />
+                <DataTable result={result} looks={result.looks} onRowMenu={setPoint} exportName={draft.name} />
               ) : (
                 <pre className="h-full overflow-auto rounded-xl bg-code p-4 font-mono text-xs text-code-foreground">{result.sql}</pre>
               )

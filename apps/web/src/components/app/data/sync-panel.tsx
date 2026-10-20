@@ -8,7 +8,8 @@ import { $t, $tp, intlLocale, msg } from '@/lib/i18n'
 import { keys } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Loader2, RefreshCw, XCircle } from 'lucide-react'
+import { CheckCircle2, Loader2, RefreshCw, Square, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 import { SCHEDULE_LABELS, SYNC_LABELS, SyncDot, syncSummary } from './source-look'
 
@@ -98,6 +99,24 @@ export function SyncPanel({ source, canSync }: { source: Datasource; canSync: bo
   const [error, setError] = useState<string | null>(null)
   const state = useJob(job)
   const running = starting || (job !== null && (!state || state.status === 'queued' || state.status === 'running'))
+  // A sync started elsewhere, or before a reload — maybe stuck: it can be stopped all the same.
+  const busy = running || (job === null && (source.sync.status === 'running' || source.sync.status === 'queued'))
+  const [stopping, setStopping] = useState(false)
+  const stop = async () => {
+    setStopping(true)
+    setError(null)
+    try {
+      await api.post(`/v1/datasources/${source.id}/sync/stop`, {})
+      setJob(null)
+      await qc.invalidateQueries({ queryKey: keys.datasources })
+      await qc.invalidateQueries({ queryKey: ['datasource', source.id] })
+      toast.success($t('Synchronisation arrêtée : relancez-la quand vous voulez.'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setStopping(false)
+    }
+  }
 
   const status = state?.status
   useEffect(() => {
@@ -130,8 +149,8 @@ export function SyncPanel({ source, canSync }: { source: Datasource; canSync: bo
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm">
-        <SyncDot status={running ? 'running' : source.sync.status} />
-        <span className="font-medium">{running ? $t(SYNC_LABELS.running) : syncSummary(source)}</span>
+        <SyncDot status={busy ? 'running' : source.sync.status} />
+        <span className="font-medium">{busy ? $t(SYNC_LABELS.running) : syncSummary(source)}</span>
       </div>
       <dl className="space-y-2 text-sm">
         <div className="flex gap-3">
@@ -156,7 +175,7 @@ export function SyncPanel({ source, canSync }: { source: Datasource; canSync: bo
                   id={`sync-pass-${p.key}`}
                   className="mt-0.5"
                   checked={passes.has(p.key)}
-                  disabled={running}
+                  disabled={busy}
                   onCheckedChange={(on) =>
                     setPasses((s) => {
                       const next = new Set(s)
@@ -173,10 +192,23 @@ export function SyncPanel({ source, canSync }: { source: Datasource; canSync: bo
               </label>
             ))}
           </div>
-          <Button className="h-auto min-h-9 w-full py-2 leading-snug whitespace-normal" onClick={start} disabled={running || passes.size === 0}>
-            {running ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-            {$t('Synchroniser le schéma de la base de données')}
-          </Button>
+          {busy ? (
+            <div className="flex gap-2">
+              <Button className="h-auto min-h-9 flex-1 py-2 leading-snug whitespace-normal" disabled>
+                <Loader2 className="animate-spin" />
+                {$t('Synchronisation en cours…')}
+              </Button>
+              <Button variant="outline" className="h-auto min-h-9 shrink-0 py-2 text-destructive hover:text-destructive" onClick={stop} disabled={stopping || starting}>
+                {stopping ? <Loader2 className="animate-spin" /> : <Square className="fill-current" />}
+                {$t('Arrêter')}
+              </Button>
+            </div>
+          ) : (
+            <Button className="h-auto min-h-9 w-full py-2 leading-snug whitespace-normal" onClick={start} disabled={passes.size === 0}>
+              <RefreshCw />
+              {$t('Synchroniser le schéma de la base de données')}
+            </Button>
+          )}
         </>
       ) : null}
       {error ? <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p> : null}

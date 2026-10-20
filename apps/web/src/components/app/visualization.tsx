@@ -16,8 +16,13 @@ import { useChartTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowDown, ArrowUp, ArrowUpDown, Minus, RotateCcw } from 'lucide-react'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, Download, Minus, RotateCcw, Search } from 'lucide-react'
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { type ColumnFilter, HeaderCell, Pager, exportTable, fold, keepsRow, useTableLayout } from '@/components/app/table-parts'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Hint } from '@/components/ui/tooltip'
 
 export interface PointClick {
   readonly column: ResultColumn
@@ -76,9 +81,18 @@ export function Visualization({
   onPointMenu,
   compact = false,
   selected,
+  persistKey,
+  onSettingsChange,
+  exportName,
 }: {
   result: RunResult | Result
   viz: Viz
+  /** A table: where this browser keeps its widths and order. */
+  persistKey?: string
+  /** A table whose question can be changed here: its moved columns change its order. */
+  onSettingsChange?: (patch: Partial<VisualizationSettings>) => void
+  /** A table: the name of its exported files. */
+  exportName?: string
   onPointClick?: (p: PointClick) => void
   /** A right click on a point, or on a row of a grouped table. */
   onPointMenu?: (p: PointClick) => void
@@ -114,7 +128,17 @@ export function Visualization({
   }
   switch (viz.type) {
     case 'table':
-      return <DataTable result={result} settings={settings} looks={'looks' in result ? (result as RunResult).looks : undefined} onRowMenu={onPointMenu} />
+      return (
+        <DataTable
+          result={result}
+          settings={settings}
+          looks={'looks' in result ? (result as RunResult).looks : undefined}
+          onRowMenu={onPointMenu}
+          {...(persistKey ? { persistKey } : {})}
+          {...(onSettingsChange ? { onSettingsChange } : {})}
+          {...(exportName ? { exportName } : {})}
+        />
+      )
     case 'scalar':
       return <Scalar result={result} settings={settings} compact={compact} />
     case 'trend':
@@ -410,6 +434,9 @@ export function DataTable({
   className,
   onCellClick,
   onRowMenu,
+  persistKey,
+  onSettingsChange,
+  exportName,
 }: {
   result: Result
   settings?: VisualizationSettings
@@ -418,29 +445,72 @@ export function DataTable({
   onCellClick?: (col: ResultColumn, value: unknown, at: { x: number; y: number }) => void
   /** A right click on a row of a grouped result: its groupings, the one clicked first. */
   onRowMenu?: (p: PointClick) => void
+  /** Where this browser keeps the table's widths and order (a question, a card); none: forgotten. */
+  persistKey?: string
+  /** The question's settings, when they can be changed here: a column moved changes its order. */
+  onSettingsChange?: (patch: Partial<VisualizationSettings>) => void
+  /** The name its exported files take. */
+  exportName?: string
 }) {
   const parent = useRef<HTMLDivElement>(null)
   const [sort, setSort] = useState<{ index: number; desc: boolean } | null>(null)
+  const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search)
+  const [filters, setFilters] = useState<Record<string, ColumnFilter>>({})
+  const [page, setPage] = useState(0)
+  const { layout, setWidth, setOrder, reset, custom } = useTableLayout(persistKey)
+  const toolbar = settings.table_toolbar !== false
+  const label = (c: ResultColumn) => settings.column_labels?.[c.name] || c.label
+
   const columns = useMemo(() => {
     const visible = result.columns.map((c, i) => ({ c, i })).filter(({ c }) => !c.hidden)
-    if (!settings.columns?.length) return visible
-    const order = settings.columns
-    return order.map((n) => visible.find((v) => v.c.name === n)).filter((v): v is { c: ResultColumn; i: number } => !!v)
-  }, [result.columns, settings.columns])
+    const chosen = settings.columns?.length ? settings.columns.map((n) => visible.find((v) => v.c.name === n)).filter((v): v is { c: ResultColumn; i: number } => !!v) : visible
+    // The order this browser gave, where the question's own cannot be changed from here.
+    if (onSettingsChange || !layout.order) return chosen
+    const at = new Map(layout.order.map((n, k) => [n, k]))
+    return [...chosen].sort((a, b) => (at.get(a.c.name) ?? Number.MAX_SAFE_INTEGER) - (at.get(b.c.name) ?? Number.MAX_SAFE_INTEGER))
+  }, [result.columns, settings.columns, layout.order, onSettingsChange])
+
+  const moveColumn = (dragged: string, before: string) => {
+    const names = columns.map(({ c }) => c.name).filter((n) => n !== dragged)
+    names.splice(names.indexOf(before), 0, dragged)
+    if (onSettingsChange) onSettingsChange({ columns: names })
+    else setOrder(names)
+  }
+
   const rows = useMemo(() => {
-    if (!sort) return result.rows
-    const copy = [...result.rows]
-    copy.sort((a, b) => {
-      const x = a[sort.index]
-      const y = b[sort.index]
-      if (x === y) return 0
-      if (x === null || x === undefined) return 1
-      if (y === null || y === undefined) return -1
-      const cmp = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), intlLocale(), { numeric: true })
-      return sort.desc ? -cmp : cmp
-    })
-    return copy
-  }, [result.rows, sort])
+    let list: readonly (readonly unknown[])[] = result.rows
+    const active = Object.entries(filters)
+    if (active.length) {
+      const at = active.map(([name, f]) => ({ f, i: result.columns.findIndex((c) => c.name === name) })).filter((x) => x.i >= 0)
+      list = list.filter((r) => at.every(({ f, i }) => keepsRow(f, r[i], result.columns[i] as ResultColumn)))
+    }
+    const q = fold(deferredSearch.trim())
+    if (q) list = list.filter((r) => columns.some(({ c, i }) => fold(formatValue(r[i], c)).includes(q)))
+    if (sort) {
+      list = [...list].sort((a, b) => {
+        const x = a[sort.index]
+        const y = b[sort.index]
+        if (x === y) return 0
+        if (x === null || x === undefined) return 1
+        if (y === null || y === undefined) return -1
+        const cmp = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), intlLocale(), { numeric: true })
+        return sort.desc ? -cmp : cmp
+      })
+    }
+    return list
+  }, [result.rows, result.columns, filters, deferredSearch, columns, sort])
+  // A new filter, search or order starts back at the first page.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the page follows the rows
+  useEffect(() => setPage(0), [rows])
+
+  const paged = settings.pagination !== 'scroll'
+  const pageSize = Math.max(10, Math.min(settings.page_size ?? 100, 5000))
+  const pages = paged ? Math.max(1, Math.ceil(rows.length / pageSize)) : 1
+  const current = Math.min(page, pages - 1)
+  const shown = paged ? rows.slice(current * pageSize, (current + 1) * pageSize) : rows
+  const offset = paged ? current * pageSize : 0
+
   const maxes = useMemo(() => {
     const out = new Map<number, number>()
     for (const name of settings.cell_bars ?? []) {
@@ -449,92 +519,189 @@ export function DataTable({
     }
     return out
   }, [result, settings.cell_bars])
+  const totals = useMemo(() => {
+    if (!settings.totals_row) return null
+    return columns.map(({ c, i }) => (c.type === 'number' && !c.unit ? rows.reduce((s, r) => s + (Number(r[i]) || 0), 0) : null))
+  }, [settings.totals_row, columns, rows])
   const groupings = useMemo(() => result.columns.map((c, i) => ({ c, i })).filter(({ c }) => c.role === 'dimension'), [result.columns])
   const density = settings.density ?? 'normal'
   const rowHeight = density === 'compact' ? 30 : density === 'comfortable' ? 44 : 36
-  const virtualizer = useVirtualizer({ count: rows.length, getScrollElement: () => parent.current, estimateSize: () => rowHeight, overscan: 12 })
+  const wrap = settings.wrap_text === true
+  const virtualizer = useVirtualizer({ count: shown.length, getScrollElement: () => parent.current, estimateSize: () => rowHeight, overscan: 12 })
+  const filtered = Object.keys(filters).length > 0 || deferredSearch.trim() !== ''
+  const exported = columns.map(({ c, i }) => ({ col: c, label: label(c), index: i }))
+  const freeze = settings.freeze_first === true
 
   return (
-    <div ref={parent} className={cn('relative h-full overflow-auto text-sm', className)}>
-      <table className="w-max min-w-full border-separate border-spacing-0">
-        <thead className="sticky top-0 z-10 bg-background">
-          <tr>
-            {settings.row_numbers ? <th className="w-10 border-b px-3 py-2 text-right text-xs font-medium text-muted-foreground">#</th> : null}
-            {columns.map(({ c, i }) => {
-              const numeric = c.type === 'number' && !c.unit
+    <div className={cn('flex h-full min-h-0 flex-col text-sm', className)}>
+      {toolbar ? (
+        <div className="flex shrink-0 items-center gap-2 px-1 pb-1.5">
+          <div className="relative w-56 max-w-[50%]">
+            <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher…')} className="h-7 pl-7 text-xs" aria-label={$t('Rechercher dans la table')} />
+          </div>
+          {filtered ? (
+            <>
+              <span className="text-xs text-muted-foreground tabular-nums">{$t('{kept} sur {all}', { kept: formatCount(rows.length), all: formatCount(result.rows.length) })}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters({})
+                  setSearch('')
+                }}
+                className="text-xs text-primary hover:underline"
+              >
+                {$t('Effacer les filtres')}
+              </button>
+            </>
+          ) : null}
+          <span className="flex-1" />
+          {custom && !onSettingsChange ? (
+            <Hint label={$t('Largeurs et ordre des colonnes d’origine')}>
+              <button type="button" onClick={reset} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Réinitialiser la mise en page')}>
+                <RotateCcw className="size-3.5" />
+              </button>
+            </Hint>
+          ) : null}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground">
+                <Download className="size-3.5" /> {$t('Exporter')}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => void exportTable('csv', exportName ?? '', exported, rows).catch(exportFailed)}>{$t('CSV')}</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => void exportTable('xlsx', exportName ?? '', exported, rows).catch(exportFailed)}>{$t('Excel (.xlsx)')}</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ) : null}
+      <div ref={parent} className="relative min-h-0 flex-1 overflow-auto">
+        <table className="w-max min-w-full border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr>
+              {settings.row_numbers ? <th className="w-10 border-b px-3 py-2 text-right text-xs font-medium text-muted-foreground">#</th> : null}
+              {columns.map(({ c, i }, k) => (
+                <HeaderCell
+                  key={c.name}
+                  col={c}
+                  label={label(c)}
+                  numeric={c.type === 'number' && !c.unit}
+                  sort={sort?.index === i ? (sort.desc ? 'desc' : 'asc') : null}
+                  onSort={() => setSort((s) => (s?.index === i ? (s.desc ? null : { index: i, desc: true }) : { index: i, desc: false }))}
+                  width={layout.widths[c.name]}
+                  onWidth={(w) => setWidth(c.name, w)}
+                  onDrop={(dragged) => moveColumn(dragged, c.name)}
+                  values={result.rows.map((r) => r[i])}
+                  filter={filters[c.name]}
+                  onFilter={(f) =>
+                    setFilters((x) => {
+                      const next = { ...x }
+                      if (f) next[c.name] = f
+                      else delete next[c.name]
+                      return next
+                    })
+                  }
+                  sticky={freeze && k === 0}
+                  filters={toolbar}
+                />
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {virtualizer.getVirtualItems().length > 0 ? <tr style={{ height: virtualizer.getVirtualItems()[0]?.start ?? 0 }} /> : null}
+            {virtualizer.getVirtualItems().map((v) => {
+              const row = shown[v.index] as readonly unknown[]
+              const rowColor = (settings.rules ?? []).filter((r) => r.row).map((r) => ruleColor([r], r.column, row[result.columns.findIndex((c) => c.name === r.column)])).find(Boolean)
+              const stripe = settings.zebra && (offset + v.index) % 2 === 1
               return (
-                <th key={c.name} className={cn('border-b px-3 py-2 text-xs font-medium whitespace-nowrap text-muted-foreground', numeric ? 'text-right' : 'text-left')}>
-                  <button
-                    type="button"
-                    onClick={() => setSort((s) => (s?.index === i ? (s.desc ? null : { index: i, desc: true }) : { index: i, desc: false }))}
-                    className={cn('inline-flex items-center gap-1 hover:text-foreground', numeric && 'flex-row-reverse')}
-                  >
-                    {settings.column_labels?.[c.name] ?? c.label}
-                    {sort?.index === i ? sort.desc ? <ArrowDown className="size-3" /> : <ArrowUp className="size-3" /> : <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-40" />}
-                  </button>
-                </th>
+                <tr
+                  key={v.key}
+                  data-index={v.index}
+                  ref={wrap ? virtualizer.measureElement : undefined}
+                  style={{ ...(wrap ? { minHeight: rowHeight } : { height: rowHeight }), ...(rowColor ? { background: `${rowColor}1f` } : {}) }}
+                  className={cn('hover:bg-muted/50', stripe && 'bg-muted/30')}
+                >
+                  {settings.row_numbers ? <td className="border-b px-3 text-right text-xs text-muted-foreground tabular-nums">{offset + v.index + 1}</td> : null}
+                  {columns.map(({ c, i }, k) => {
+                    const value = row[i]
+                    const numeric = c.type === 'number' && !c.unit
+                    const color = (settings.rules ?? []).filter((r) => !r.row && r.column === c.name).length ? ruleColor(settings.rules?.filter((r) => !r.row), c.name, value) : null
+                    const max = maxes.get(i)
+                    const width = layout.widths[c.name]
+                    return (
+                      <td
+                        key={c.name}
+                        onClick={onCellClick ? (e) => onCellClick(c, value, { x: e.clientX, y: e.clientY }) : undefined}
+                        onContextMenu={
+                          onRowMenu && groupings.length
+                            ? (e) => {
+                                e.preventDefault()
+                                const first = groupings.find((g) => g.c === c) ?? (groupings[0] as { c: ResultColumn; i: number })
+                                onRowMenu({
+                                  column: first.c,
+                                  value: row[first.i],
+                                  also: groupings.filter((g) => g !== first).map((g) => ({ column: g.c, value: row[g.i] })),
+                                  at: { x: e.clientX, y: e.clientY },
+                                  additive: false,
+                                })
+                              }
+                            : undefined
+                        }
+                        className={cn(
+                          'border-b px-3',
+                          wrap ? 'py-1.5 break-words whitespace-normal' : 'truncate whitespace-nowrap',
+                          !width && 'max-w-[420px]',
+                          numeric && 'text-right tabular-nums',
+                          onCellClick && 'cursor-pointer',
+                          freeze && k === 0 && 'sticky left-0 z-[1] bg-background',
+                        )}
+                        style={{ ...(width ? { width, minWidth: width, maxWidth: width } : {}), ...(color ? { color, fontWeight: 600 } : {}) }}
+                      >
+                        {max !== undefined && typeof value === 'number' ? (
+                          <span className="relative inline-flex w-full min-w-[120px] items-center justify-end">
+                            <span className="absolute inset-y-1 left-0 rounded-sm bg-primary/15" style={{ width: `${(Math.abs(value) / max) * 100}%` }} />
+                            <span className="relative">{formatValue(value, c)}</span>
+                          </span>
+                        ) : (
+                          <ValueCell value={value} col={c} looks={looks} />
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
               )
             })}
-          </tr>
-        </thead>
-        <tbody>
-          {virtualizer.getVirtualItems().length > 0 ? (
-            <tr style={{ height: virtualizer.getVirtualItems()[0]?.start ?? 0 }} />
-          ) : null}
-          {virtualizer.getVirtualItems().map((v) => {
-            const row = rows[v.index] as readonly unknown[]
-            const rowColor = (settings.rules ?? []).filter((r) => r.row).map((r) => ruleColor([r], r.column, row[result.columns.findIndex((c) => c.name === r.column)])).find(Boolean)
-            return (
-              <tr key={v.key} style={{ height: rowHeight, ...(rowColor ? { background: `${rowColor}1f` } : {}) }} className="hover:bg-muted/50">
-                {settings.row_numbers ? <td className="border-b px-3 text-right text-xs text-muted-foreground tabular-nums">{v.index + 1}</td> : null}
-                {columns.map(({ c, i }) => {
-                  const value = row[i]
-                  const numeric = c.type === 'number' && !c.unit
-                  const color = (settings.rules ?? []).filter((r) => !r.row && r.column === c.name).length ? ruleColor(settings.rules?.filter((r) => !r.row), c.name, value) : null
-                  const max = maxes.get(i)
-                  return (
-                    <td
-                      key={c.name}
-                      onClick={onCellClick ? (e) => onCellClick(c, value, { x: e.clientX, y: e.clientY }) : undefined}
-                      onContextMenu={
-                        onRowMenu && groupings.length
-                          ? (e) => {
-                              e.preventDefault()
-                              const first = groupings.find((g) => g.c === c) ?? (groupings[0] as { c: ResultColumn; i: number })
-                              onRowMenu({
-                                column: first.c,
-                                value: row[first.i],
-                                also: groupings.filter((g) => g !== first).map((g) => ({ column: g.c, value: row[g.i] })),
-                                at: { x: e.clientX, y: e.clientY },
-                                additive: false,
-                              })
-                            }
-                          : undefined
-                      }
-                      className={cn('max-w-[420px] truncate border-b px-3 whitespace-nowrap', numeric && 'text-right tabular-nums', onCellClick && 'cursor-pointer')}
-                      style={color ? { color, fontWeight: 600 } : undefined}
-                    >
-                      {max !== undefined && typeof value === 'number' ? (
-                        <span className="relative inline-flex w-full min-w-[120px] items-center justify-end">
-                          <span className="absolute inset-y-1 left-0 rounded-sm bg-primary/15" style={{ width: `${(Math.abs(value) / max) * 100}%` }} />
-                          <span className="relative">{formatValue(value, c)}</span>
-                        </span>
-                      ) : (
-                        <ValueCell value={value} col={c} looks={looks} />
-                      )}
-                    </td>
-                  )
-                })}
+            {virtualizer.getVirtualItems().length > 0 ? <tr style={{ height: virtualizer.getTotalSize() - (virtualizer.getVirtualItems().at(-1)?.end ?? 0) }} /> : null}
+            {shown.length === 0 && result.rows.length > 0 ? (
+              <tr>
+                <td colSpan={columns.length + (settings.row_numbers ? 1 : 0)} className="px-3 py-6 text-center text-xs text-muted-foreground">
+                  {$t('Aucune ligne ne correspond à la recherche ou aux filtres.')}
+                </td>
               </tr>
-            )
-          })}
-          {virtualizer.getVirtualItems().length > 0 ? (
-            <tr style={{ height: virtualizer.getTotalSize() - (virtualizer.getVirtualItems().at(-1)?.end ?? 0) }} />
+            ) : null}
+          </tbody>
+          {totals ? (
+            <tfoot className="sticky bottom-0 z-10 bg-background">
+              <tr>
+                {settings.row_numbers ? <td className="border-t" /> : null}
+                {columns.map(({ c }, k) => (
+                  <td key={c.name} className={cn('border-t px-3 py-1.5 font-semibold whitespace-nowrap', totals[k] !== null && 'text-right tabular-nums', freeze && k === 0 && 'sticky left-0 bg-background')}>
+                    {totals[k] !== null ? formatValue(totals[k], c) : k === 0 ? $t('Total') : ''}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
           ) : null}
-        </tbody>
-      </table>
+        </table>
+      </div>
+      {paged && rows.length > pageSize ? <Pager page={current} pages={pages} from={offset + 1} to={offset + shown.length} total={rows.length} onPage={setPage} /> : null}
     </div>
   )
+}
+
+function exportFailed(err: unknown) {
+  toast.error(err instanceof Error ? err.message : String(err))
 }
 
 /** « 2 000 lignes · 120 ms », under a result. */

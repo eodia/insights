@@ -175,10 +175,11 @@ function candidates(parameter: DashboardParameter, cards: readonly DashboardCard
   return [...out.entries()].map(([key, v]) => ({ key, ...v })).sort((a, b) => b.cards.size - a.cards.size || a.label.localeCompare(b.label))
 }
 
-function MappingSelect({ card, result, parameter, onChange, variables, sourceColumns }: { card: DashboardCard; result?: RunResult; parameter: DashboardParameter; onChange: (m: CardMapping[]) => void; variables: readonly string[]; sourceColumns: readonly ColumnOption[] }) {
+function MappingSelect({ card, result, parameter, onChange, variables, sourceColumns, sqlCard }: { card: DashboardCard; result?: RunResult; parameter: DashboardParameter; onChange: (m: CardMapping[]) => void; variables: readonly string[]; sourceColumns: readonly ColumnOption[]; sqlCard: boolean }) {
   const current = (card.mappings ?? []).find((m) => m.parameter === parameter.id)
   const value = current ? ('column' in current.target ? `c:${refKey(current.target.column)}` : `v:${current.target.variable}`) : 'none'
-  const cols = (result?.columns ?? []).filter((c) => c.source && fitsParameter(parameter, c))
+  // A SQL result's columns have no source, but its statement is filtered by their name.
+  const cols = (result?.columns ?? []).filter((c) => (c.source || (sqlCard && !c.name.includes('.') && !c.name.includes('#'))) && fitsParameter(parameter, c))
   const fitsKind = (k: string) =>
     parameter.type === 'date' || parameter.type === 'temporal_unit' ? k === 'date' || k === 'datetime' : parameter.type === 'number' ? k === 'number' : ['text', 'number', 'boolean'].includes(k)
   const options = [
@@ -244,6 +245,8 @@ function CardFrame(props: CardProps) {
     // A joined column is offered only when the question already has that join: a filter cannot add one.
     return columnOptions(map.get(builderQuery.source.id) ?? null, map, builderQuery).filter((o) => !o.join || (builderQuery.joins ?? []).some((j) => j.alias === o.join?.alias))
   }, [builderQuery, tables])
+  // A SQL card's result columns can take a filter too: the server wraps its statement.
+  const sqlCard = (question?.query.kind ?? card.query?.kind ?? 'builder') !== 'builder'
   const variables = question && question.query.kind !== 'builder' ? (question.query.variables ?? []).map((v) => v.name) : card.query && card.query.kind !== 'builder' ? (card.query.variables ?? []).map((v) => v.name) : []
 
   if (card.kind === 'heading') {
@@ -397,13 +400,15 @@ function CardFrame(props: CardProps) {
             onPointClick={(p) => onPoint(card, p)}
             {...(editing ? {} : { onPointMenu: (p: PointClick) => onPointMenu(card, p, values, title) })}
             {...(selection?.values.length ? { selected: selection.values } : {})}
+            persistKey={`card:${props.dashboardId}:${card.id}`}
+            exportName={title}
           />
         ) : (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="size-5 animate-spin text-muted-foreground/60" />
           </div>
         )}
-        {editing && selectedParameter && isQuestion ? <MappingSelect card={card} result={run.data} parameter={selectedParameter} variables={variables} sourceColumns={sourceColumns} onChange={(mappings) => onChange({ mappings })} /> : null}
+        {editing && selectedParameter && isQuestion ? <MappingSelect card={card} result={run.data} parameter={selectedParameter} variables={variables} sourceColumns={sourceColumns} sqlCard={sqlCard} onChange={(mappings) => onChange({ mappings })} /> : null}
       </div>
     </div>
   )

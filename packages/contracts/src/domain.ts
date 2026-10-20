@@ -461,8 +461,23 @@ export interface DatasourceOptions {
   readonly trino_properties?: Readonly<Record<string, string>>
   /** Schemas the sync skips. */
   readonly excluded_schemas?: readonly string[]
+  /** The only schemas shown and synchronised (all the others are left out); absent: all. */
+  readonly schemas?: readonly string[]
+  /** Names to show for schemas: `p1_iid_eurus_bd` → « Eurus ». */
+  readonly schema_labels?: Readonly<Record<string, string>>
   /** Cache TTL in seconds for the results read from this source; null: the instance's. */
   readonly cache_ttl?: number | null
+}
+
+/** A schema of a source as its settings list it: shown or not, and its name to show. */
+export interface SourceSchema {
+  readonly name: string
+  readonly shown: boolean
+  /** A schema of the engine's own machinery: hidden whatever is chosen. */
+  readonly system: boolean
+  readonly label: string | null
+  /** Its synchronised tables. */
+  readonly tables: number
 }
 
 // ── Structure ───────────────────────────────────────────────────────────────
