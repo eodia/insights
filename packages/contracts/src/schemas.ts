@@ -240,6 +240,11 @@ export const DatasourceInputSchema = z.object({
   schedule: z.enum(['hourly', 'daily', 'manual']).optional(),
 })
 
+/** The technical catalogs a source depends on (their ids). */
+export const DependenciesInputSchema = z.object({ ids: z.array(id).max(20) })
+/** A source made the technical catalog of another one. */
+export const MakeDependencySchema = z.object({ main: id })
+
 /** The owners of views allowed to read a source's catalog. */
 export const ViewOwnersInputSchema = z.object({ owners: z.array(z.string().min(1).max(200)).max(50) })
 

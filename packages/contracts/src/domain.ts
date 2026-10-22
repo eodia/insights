@@ -486,8 +486,25 @@ export interface DatasourceOptions {
    * catalog: a view runs with its owner's rights by default (SECURITY DEFINER).
    */
   readonly view_owners?: readonly string[]
+  /**
+   * A technical catalog: in Trino for the views of the sources that depend on it, never shown
+   * as a source, never synchronised, read by no one directly — only by those views' owners.
+   */
+  readonly internal?: boolean
+  /** The technical catalogs this source's views read (their ids). */
+  readonly dependencies?: readonly string[]
   /** Cache TTL in seconds for the results read from this source; null: the instance's. */
   readonly cache_ttl?: number | null
+}
+
+/** A technical catalog a source depends on, as its settings list it. */
+export interface SourceDependency {
+  readonly id: string
+  readonly name: string
+  readonly catalog: string
+  readonly engine: Engine
+  /** The other sources depending on it too. */
+  readonly shared_with: readonly string[]
 }
 
 /** A schema of a source as its settings list it: shown or not, and its name to show. */

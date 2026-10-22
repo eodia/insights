@@ -26,7 +26,7 @@
   "Ce lien de partage n’existe pas ou a été désactivé.": "packages/core/src/sharing/links.ts",
   "Cette action demande un droit d’administration.": "apps/api/src/http.ts",
   "Cette personne a déjà un compte.": "packages/core/src/auth/users.ts",
-  "Cette vue lit le catalogue « {1} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans la source « {2} », onglet Connexion, « Propriétaires de vues ».": "packages/core/src/query/run.ts",
+  "Cette vue lit le catalogue « {1} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans « Propriétaires de vues » de la source qui contient la vue (onglet Connexion) — et, si « {2} » n’est pas encore là, ajoutez-le comme catalogue technique de cette source.": "packages/core/src/query/run.ts",
   "Choisissez un dossier.": "packages/core/src/content/items.ts",
   "Coller une configuration JSON": "apps/api/src/routes/sources.ts",
   "Colonne cachée ou masquée pour un groupe": "apps/api/src/routes/admin.ts",

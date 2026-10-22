@@ -36,6 +36,11 @@
       "app/(app)/admin/workspaces/page.tsx:26"
     ]
   },
+  "« {name} » est désormais un catalogue technique.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:205"
+    ]
+  },
   "« {name} » est rouvert": {
     "where": [
       "app/(app)/admin/workspaces/page.tsx:26"
@@ -49,6 +54,16 @@
   "« {name} » peut lire ce catalogue pour ses vues.": {
     "where": [
       "components/app/data/view-owners-panel.tsx:47"
+    ]
+  },
+  "« {name} » rattaché.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:97"
+    ]
+  },
+  "« {name} » retiré.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:143"
     ]
   },
   "« Lecture » l’emporte sur « Restreint » : si un autre groupe de la personne lit la table en entier, les règles de colonnes et de lignes de ce groupe ne s’appliquent pas.": {
@@ -581,7 +596,7 @@
   },
   "{n} s": {
     "where": [
-      "components/app/data/source-settings.tsx:86"
+      "components/app/data/source-settings.tsx:87"
     ]
   },
   "{name} (groupe)": {
@@ -1124,12 +1139,13 @@
   },
   "Ajoutées aux réglages par défaut du connecteur : cache des métadonnées, pushdown, délais…": {
     "where": [
-      "components/app/data/source-form.tsx:461"
+      "components/app/data/source-form.tsx:475"
     ]
   },
   "Ajouter": {
     "where": [
       "app/(app)/admin/workspace/page.tsx:162",
+      "components/app/data/dependencies-panel.tsx:59",
       "components/app/question/notebook.tsx:385"
     ]
   },
@@ -1151,7 +1167,7 @@
   },
   "Ajouter et synchroniser": {
     "where": [
-      "components/app/data/source-form.tsx:558"
+      "components/app/data/source-form.tsx:572"
     ]
   },
   "Ajouter le filtre": {
@@ -1207,7 +1223,7 @@
   },
   "Ajouter une propriété": {
     "where": [
-      "components/app/data/source-form.tsx:486"
+      "components/app/data/source-form.tsx:500"
     ]
   },
   "Ajouter une question": {
@@ -1796,6 +1812,11 @@
       "components/app/period-picker.tsx:165"
     ]
   },
+  "aussi cité par {sources}": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:74"
+    ]
+  },
   "Auteur": {
     "where": [
       "app/(app)/admin/audit/page.tsx:111",
@@ -1843,7 +1864,7 @@
   },
   "Autorisé": {
     "where": [
-      "components/app/data/source-settings.tsx:85"
+      "components/app/data/source-settings.tsx:86"
     ]
   },
   "Autoriser": {
@@ -1859,8 +1880,8 @@
   },
   "Autoriser le SQL natif": {
     "where": [
-      "components/app/data/source-form.tsx:422",
-      "components/app/data/source-form.tsx:431"
+      "components/app/data/source-form.tsx:436",
+      "components/app/data/source-form.tsx:445"
     ]
   },
   "Autre couleur": {
@@ -1877,7 +1898,7 @@
   },
   "Avancé": {
     "where": [
-      "components/app/data/source-form.tsx:437"
+      "components/app/data/source-form.tsx:451"
     ]
   },
   "Avant": {
@@ -2065,7 +2086,7 @@
   },
   "Boutique, Entrepôt…": {
     "where": [
-      "components/app/data/source-form.tsx:326"
+      "components/app/data/source-form.tsx:335"
     ]
   },
   "Brancher un assistant": {
@@ -2098,12 +2119,12 @@
   "Cache des résultats": {
     "where": [
       "app/(app)/admin/settings/page.tsx:80",
-      "components/app/data/source-settings.tsx:86"
+      "components/app/data/source-settings.tsx:87"
     ]
   },
   "Cache des résultats (secondes)": {
     "where": [
-      "components/app/data/source-form.tsx:417"
+      "components/app/data/source-form.tsx:431"
     ]
   },
   "Cachée": {
@@ -2225,14 +2246,34 @@
       "packages/contracts/src/domain.ts:150"
     ]
   },
+  "Catalogue technique": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:215"
+    ]
+  },
+  "Catalogue technique « {name} »": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:119"
+    ]
+  },
+  "Catalogue technique créé dans Trino.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:113"
+    ]
+  },
   "Catalogue Trino": {
     "where": [
-      "components/app/data/source-settings.tsx:83"
+      "components/app/data/source-settings.tsx:84"
     ]
   },
   "Catalogues": {
     "where": [
       "app/(app)/admin/settings/page.tsx:349"
+    ]
+  },
+  "Catalogues techniques": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:56"
     ]
   },
   "Catégorie": {
@@ -2276,7 +2317,7 @@
   },
   "Ce moteur n’accepte pas de requête native : seul le SQL Trino est possible.": {
     "where": [
-      "components/app/data/source-form.tsx:428"
+      "components/app/data/source-form.tsx:442"
     ]
   },
   "Ce que contient la colonne, pour les analystes et le copilot.": {
@@ -2403,6 +2444,11 @@
       "lib/periods.ts:41"
     ]
   },
+  "Cette source ne sert qu’aux vues d’une autre ? Faites-en un catalogue technique de celle-ci : elle disparaît des listes, et plus personne ne la lit directement.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:216"
+    ]
+  },
   "Chaîne de connexion": {
     "where": [
       "components/app/data/source-form.tsx:48",
@@ -2461,12 +2507,12 @@
   },
   "Chaque heure": {
     "where": [
-      "components/app/data/source-form.tsx:410"
+      "components/app/data/source-form.tsx:424"
     ]
   },
   "Chaque jour": {
     "where": [
-      "components/app/data/source-form.tsx:411"
+      "components/app/data/source-form.tsx:425"
     ]
   },
   "Chaque jour, dessiner": {
@@ -2627,6 +2673,11 @@
       "components/app/docs/token-dialog.tsx:176"
     ]
   },
+  "Choisissez la source dont les vues lisent ce catalogue. Ses tables quittent l’explorateur ; ses propriétaires de vues s’ajoutent à ceux de la source choisie.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:224"
+    ]
+  },
   "Choisissez le moteur de la base à connecter. Toutes les requêtes passeront par Trino.": {
     "where": [
       "components/app/data/new-source-dialog.tsx:57"
@@ -2767,13 +2818,13 @@
   },
   "Coller": {
     "where": [
-      "components/app/data/source-form.tsx:458",
+      "components/app/data/source-form.tsx:472",
       "components/app/structure/json-tools.tsx:89"
     ]
   },
   "Coller des propriétés": {
     "where": [
-      "components/app/data/source-form.tsx:493"
+      "components/app/data/source-form.tsx:507"
     ]
   },
   "Coller la configuration d’une colonne": {
@@ -2850,7 +2901,7 @@
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:129",
       "components/app/admin/permission-matrix.tsx:196",
-      "components/app/data/source-settings.tsx:227"
+      "components/app/data/source-settings.tsx:229"
     ]
   },
   "Colonnes : {column}": {
@@ -3040,6 +3091,7 @@
   },
   "Connecteur Trino (avancé)": {
     "where": [
+      "components/app/data/dependencies-panel.tsx:173",
       "components/app/data/source-form.tsx:33",
       "packages/contracts/src/domain.ts:331"
     ]
@@ -3058,17 +3110,18 @@
   },
   "Connexion {engine}": {
     "where": [
-      "components/app/data/source-form.tsx:351"
+      "components/app/data/source-form.tsx:365"
     ]
   },
   "Connexion enregistrée.": {
     "where": [
-      "components/app/data/source-settings.tsx:42"
+      "components/app/data/dependencies-panel.tsx:125",
+      "components/app/data/source-settings.tsx:43"
     ]
   },
   "Connexion impossible": {
     "where": [
-      "components/app/data/source-form.tsx:531"
+      "components/app/data/source-form.tsx:545"
     ]
   },
   "Connexion impossible.": {
@@ -3078,7 +3131,7 @@
   },
   "Connexion réussie": {
     "where": [
-      "components/app/data/source-form.tsx:531"
+      "components/app/data/source-form.tsx:545"
     ]
   },
   "Connexions": {
@@ -3163,7 +3216,7 @@
   "Copier en JSON": {
     "where": [
       "app/(app)/dashboard/[id]/page.tsx:353",
-      "components/app/data/source-form.tsx:455"
+      "components/app/data/source-form.tsx:469"
     ]
   },
   "Copier la configuration": {
@@ -4180,7 +4233,7 @@
   },
   "En développement, Trino tourne dans Docker : « localhost » est traduit automatiquement en « host.docker.internal » pour que Trino joigne votre base.": {
     "where": [
-      "components/app/data/source-form.tsx:393"
+      "components/app/data/source-form.tsx:407"
     ]
   },
   "En erreur": {
@@ -4301,7 +4354,7 @@
   },
   "Enregistrer les partages": {
     "where": [
-      "components/app/data/source-settings.tsx:176"
+      "components/app/data/source-settings.tsx:177"
     ]
   },
   "Enregistrer les valeurs": {
@@ -4575,6 +4628,11 @@
       "components/app/dashboard/view.tsx:532"
     ]
   },
+  "Exactement celui que citent les vues, « iceberg-raw » par exemple.": {
+    "where": [
+      "components/app/data/source-form.tsx:352"
+    ]
+  },
   "Excel (.xlsx)": {
     "where": [
       "components/app/visualization.tsx:574"
@@ -4743,7 +4801,7 @@
   },
   "Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.": {
     "where": [
-      "components/app/data/source-form.tsx:339"
+      "components/app/data/source-form.tsx:353"
     ]
   },
   "Facultatif : un catalogue ouvert n’en demande pas.": {
@@ -4763,7 +4821,7 @@
   },
   "Facultative": {
     "where": [
-      "components/app/data/source-form.tsx:344",
+      "components/app/data/source-form.tsx:358",
       "components/app/dialogs.tsx:106",
       "components/app/folder-menu.tsx:150"
     ]
@@ -4772,6 +4830,11 @@
     "where": [
       "components/app/data/source-form.tsx:43",
       "packages/contracts/src/domain.ts:270"
+    ]
+  },
+  "Faire de « {name} » un catalogue technique": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:223"
     ]
   },
   "Faire ressortir": {
@@ -5408,7 +5471,7 @@
   },
   "Ils la lisent avec les droits de leurs propres groupes ; sa connexion, sa synchronisation et ses descriptions restent gérées ici.": {
     "where": [
-      "components/app/data/source-settings.tsx:135"
+      "components/app/data/source-settings.tsx:136"
     ]
   },
   "Image": {
@@ -5455,7 +5518,7 @@
   },
   "Indisponible quand la source se limite à certaines bases : une requête native atteindrait les autres.": {
     "where": [
-      "components/app/data/source-form.tsx:427"
+      "components/app/data/source-form.tsx:441"
     ]
   },
   "Injoignable": {
@@ -5512,7 +5575,7 @@
   },
   "Interdit": {
     "where": [
-      "components/app/data/source-settings.tsx:85"
+      "components/app/data/source-settings.tsx:86"
     ]
   },
   "Interne": {
@@ -6040,7 +6103,7 @@
   },
   "Le catalogue « {catalog} » sera retiré de Trino. Cette action est définitive.": {
     "where": [
-      "components/app/data/source-settings.tsx:255"
+      "components/app/data/source-settings.tsx:258"
     ]
   },
   "Le catalogue est créé dans Trino, ce qui teste la connexion, puis la structure est synchronisée.": {
@@ -6050,7 +6113,7 @@
   },
   "Le catalogue ne change pas : le SQL le cite.": {
     "where": [
-      "components/app/data/source-form.tsx:338"
+      "components/app/data/source-form.tsx:350"
     ]
   },
   "Le catalogue REST délivre les accès aux fichiers (vended credentials) : les clés S3 deviennent inutiles.": {
@@ -6255,6 +6318,11 @@
       "components/app/dashboard/view.tsx:547"
     ]
   },
+  "Les catalogues que lisent les vues de cette source, sans être exposés : créés dans Trino, jamais synchronisés ni montrés, lus seulement par ces vues sous le nom de leurs propriétaires.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:63"
+    ]
+  },
   "Les couleurs {a} et {b} se confondent pour un daltonien.": {
     "where": [
       "components/app/question/viz-settings.tsx:403"
@@ -6372,7 +6440,7 @@
   },
   "Les personnes autorisées peuvent écrire des requêtes dans le dialecte de la base, transmises telles quelles.": {
     "where": [
-      "components/app/data/source-form.tsx:425"
+      "components/app/data/source-form.tsx:439"
     ]
   },
   "Les prochaines requêtes interrogeront à nouveau les sources.": {
@@ -6435,6 +6503,16 @@
   "Les visiteurs intégrés lisent les données avec les droits de ce groupe, et ses règles de lignes s’appliquent à leurs attributs.": {
     "where": [
       "app/(app)/admin/settings/page.tsx:279"
+    ]
+  },
+  "Les vues de cette source ne le liront plus ; il reste en place pour les autres sources qui le citent.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:135"
+    ]
+  },
+  "Les vues de cette source ne le liront plus, et aucune autre source ne le cite : il est supprimé de Trino.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:136"
     ]
   },
   "Lettres, chiffres et _ ; pas de chiffre au début.": {
@@ -6675,13 +6753,13 @@
   },
   "Manuelle": {
     "where": [
-      "components/app/data/source-form.tsx:412",
+      "components/app/data/source-form.tsx:426",
       "components/app/data/source-look.tsx:60"
     ]
   },
   "Manuelle uniquement": {
     "where": [
-      "components/app/data/source-form.tsx:412"
+      "components/app/data/source-form.tsx:426"
     ]
   },
   "Marches": {
@@ -6869,7 +6947,7 @@
   },
   "Minuscules, chiffres, _ et - ; commence par une lettre.": {
     "where": [
-      "components/app/data/source-form.tsx:249"
+      "components/app/data/source-form.tsx:258"
     ]
   },
   "Minute": {
@@ -6932,7 +7010,12 @@
     "where": [
       "components/app/admin/row-rule-editor.tsx:152",
       "components/app/dashboard/view.tsx:989",
-      "components/app/data/source-settings.tsx:76"
+      "components/app/data/source-settings.tsx:77"
+    ]
+  },
+  "Modifier « {name} »": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:77"
     ]
   },
   "Modifier la question": {
@@ -7053,7 +7136,8 @@
   },
   "Moteur": {
     "where": [
-      "components/app/data/source-settings.tsx:82"
+      "components/app/data/dependencies-panel.tsx:169",
+      "components/app/data/source-settings.tsx:83"
     ]
   },
   "Moteur Trino": {
@@ -7148,7 +7232,7 @@
   },
   "Ni un objet JSON de textes, ni des lignes clé=valeur.": {
     "where": [
-      "components/app/data/source-form.tsx:507"
+      "components/app/data/source-form.tsx:521"
     ]
   },
   "nom": {
@@ -7212,7 +7296,7 @@
   },
   "Nom du catalogue": {
     "where": [
-      "components/app/data/source-form.tsx:329"
+      "components/app/data/source-form.tsx:339"
     ]
   },
   "Nom du client": {
@@ -7286,7 +7370,7 @@
   },
   "Non": {
     "where": [
-      "components/app/data/source-settings.tsx:62",
+      "components/app/data/source-settings.tsx:63",
       "lib/format.ts:193"
     ]
   },
@@ -7345,6 +7429,11 @@
       "components/app/home/sections.tsx:218",
       "components/app/login-stage.tsx:214",
       "components/app/login-stage.tsx:289"
+    ]
+  },
+  "Nouveau catalogue technique": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:107"
     ]
   },
   "Nouveau dossier": {
@@ -7623,7 +7712,7 @@
   },
   "Oui": {
     "where": [
-      "components/app/data/source-settings.tsx:61",
+      "components/app/data/source-settings.tsx:62",
       "lib/format.ts:193"
     ]
   },
@@ -7769,7 +7858,7 @@
   },
   "Paramètres de connexion": {
     "where": [
-      "components/app/data/source-settings.tsx:73"
+      "components/app/data/source-settings.tsx:74"
     ]
   },
   "Paramètres de l’espace": {
@@ -7816,7 +7905,7 @@
   },
   "Partagée par l’espace « {name} » : sa connexion, sa synchronisation et ses descriptions se gèrent là-bas. Ici, vos groupes décident qui la lit, dans Permissions.": {
     "where": [
-      "components/app/data/source-settings.tsx:211"
+      "components/app/data/source-settings.tsx:212"
     ]
   },
   "Partager": {
@@ -7833,7 +7922,7 @@
   },
   "Partager avec d’autres espaces": {
     "where": [
-      "components/app/data/source-settings.tsx:133"
+      "components/app/data/source-settings.tsx:134"
     ]
   },
   "Partages": {
@@ -7843,12 +7932,12 @@
   },
   "Partages enregistrés.": {
     "where": [
-      "components/app/data/source-settings.tsx:168"
+      "components/app/data/source-settings.tsx:169"
     ]
   },
   "Partir d’un modèle :": {
     "where": [
-      "components/app/data/source-form.tsx:355"
+      "components/app/data/source-form.tsx:369"
     ]
   },
   "Parts au plus (le reste devient « Autres »)": {
@@ -8309,7 +8398,7 @@
   },
   "Propriété": {
     "where": [
-      "components/app/data/source-form.tsx:470"
+      "components/app/data/source-form.tsx:484"
     ]
   },
   "Propriétés": {
@@ -8320,13 +8409,13 @@
   },
   "Propriétés copiées en JSON.": {
     "where": [
-      "components/app/data/source-form.tsx:452"
+      "components/app/data/source-form.tsx:466"
     ]
   },
   "Propriétés du catalogue Trino": {
     "where": [
-      "components/app/data/source-form.tsx:442",
-      "components/app/data/source-settings.tsx:97"
+      "components/app/data/source-form.tsx:456",
+      "components/app/data/source-settings.tsx:98"
     ]
   },
   "Propulsé par {product}": {
@@ -8516,6 +8605,21 @@
       "components/app/question/viz-settings.tsx:639"
     ]
   },
+  "Rattacher": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:248"
+    ]
+  },
+  "Rattacher à une autre source…": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:218"
+    ]
+  },
+  "Rattacher un catalogue de l’espace :": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:89"
+    ]
+  },
   "Réactiver": {
     "where": [
       "app/(app)/admin/people/page.tsx:86"
@@ -8660,8 +8764,8 @@
   },
   "Réglage de l’instance": {
     "where": [
-      "components/app/data/source-form.tsx:418",
-      "components/app/data/source-settings.tsx:86"
+      "components/app/data/source-form.tsx:432",
+      "components/app/data/source-settings.tsx:87"
     ]
   },
   "Réglages": {
@@ -8790,12 +8894,12 @@
   },
   "Remplacer les propriétés": {
     "where": [
-      "components/app/data/source-form.tsx:515"
+      "components/app/data/source-form.tsx:529"
     ]
   },
   "Remplacez ensuite les valeurs d’exemple par celles de votre catalogue.": {
     "where": [
-      "components/app/data/source-form.tsx:372"
+      "components/app/data/source-form.tsx:386"
     ]
   },
   "Remplissage des barres": {
@@ -8974,7 +9078,13 @@
   },
   "Retirer « {name} »": {
     "where": [
+      "components/app/data/dependencies-panel.tsx:80",
       "components/app/data/view-owners-panel.tsx:70"
+    ]
+  },
+  "Retirer « {name} » ?": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:132"
     ]
   },
   "Retirer {name}": {
@@ -9039,7 +9149,7 @@
   "Retour": {
     "where": [
       "app/not-found.tsx:25",
-      "components/app/data/source-form.tsx:543"
+      "components/app/data/source-form.tsx:557"
     ]
   },
   "Retour au tableau de bord": {
@@ -9115,6 +9225,11 @@
   "run_sql est en lecture seule et s’exécute dans Trino : permissions de tables, colonnes masquées et règles de ligne s’appliquent.": {
     "where": [
       "components/app/docs/mcp.tsx:83"
+    ]
+  },
+  "Sa connexion, comme une source ; il ne sera ni montré ni synchronisé.": {
+    "where": [
+      "components/app/data/dependencies-panel.tsx:163"
     ]
   },
   "Sa valeur à l’ouverture": {
@@ -9194,7 +9309,7 @@
   "Schémas": {
     "where": [
       "components/app/data/schemas-panel.tsx:34",
-      "components/app/data/source-settings.tsx:225",
+      "components/app/data/source-settings.tsx:227",
       "components/app/data/sync-panel.tsx:70"
     ]
   },
@@ -9450,7 +9565,7 @@
   "Source": {
     "where": [
       "components/app/admin/permission-matrix.tsx:318",
-      "components/app/data/source-form.tsx:319",
+      "components/app/data/source-form.tsx:328",
       "components/app/question/notebook.tsx:143"
     ]
   },
@@ -9466,7 +9581,7 @@
   },
   "Source supprimée.": {
     "where": [
-      "components/app/data/source-settings.tsx:265"
+      "components/app/data/source-settings.tsx:268"
     ]
   },
   "Sources": {
@@ -9508,7 +9623,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:495",
       "components/app/admin/common.tsx:56",
-      "components/app/data/source-settings.tsx:85"
+      "components/app/data/source-settings.tsx:86"
     ]
   },
   "SQL natif : envoyé tel quel à la source via system.query, réservé aux personnes sans restriction.": {
@@ -9655,12 +9770,12 @@
   },
   "Supprimer la source": {
     "where": [
-      "components/app/data/source-settings.tsx:245"
+      "components/app/data/source-settings.tsx:248"
     ]
   },
   "Supprimer la source retire son catalogue de Trino, ses métadonnées et ses permissions. Les questions qui l’utilisent ne fonctionneront plus.": {
     "where": [
-      "components/app/data/source-settings.tsx:243"
+      "components/app/data/source-settings.tsx:246"
     ]
   },
   "Supprimer le compte": {
@@ -9723,7 +9838,7 @@
   },
   "Synchronisation": {
     "where": [
-      "components/app/data/source-settings.tsx:236"
+      "components/app/data/source-settings.tsx:238"
     ]
   },
   "Synchronisation arrêtée : relancez-la quand vous voulez.": {
@@ -9733,8 +9848,8 @@
   },
   "Synchronisation du schéma": {
     "where": [
-      "components/app/data/source-form.tsx:404",
-      "components/app/data/source-form.tsx:408"
+      "components/app/data/source-form.tsx:418",
+      "components/app/data/source-form.tsx:422"
     ]
   },
   "Synchronisation en cours": {
@@ -9749,7 +9864,7 @@
   },
   "Synchronisation et options": {
     "where": [
-      "components/app/data/source-form.tsx:401"
+      "components/app/data/source-form.tsx:415"
     ]
   },
   "Synchronisation terminée": {
@@ -9852,7 +9967,7 @@
     "where": [
       "app/(app)/data/[[...path]]/page.tsx:94",
       "app/(app)/data/[[...path]]/page.tsx:171",
-      "components/app/data/source-settings.tsx:226"
+      "components/app/data/source-settings.tsx:228"
     ]
   },
   "Tables Iceberg sur S3 ou MinIO : metastore Hive, catalogue REST ou Glue.": {
@@ -9925,12 +10040,12 @@
   },
   "Test de la connexion et création du catalogue Trino…": {
     "where": [
-      "components/app/data/source-form.tsx:562"
+      "components/app/data/source-form.tsx:576"
     ]
   },
   "Tester la connexion": {
     "where": [
-      "components/app/data/source-form.tsx:548"
+      "components/app/data/source-form.tsx:562"
     ]
   },
   "texte": {
@@ -10106,7 +10221,7 @@
   },
   "Tous les jours": {
     "where": [
-      "components/app/data/source-form.tsx:411",
+      "components/app/data/source-form.tsx:425",
       "components/app/data/source-look.tsx:59"
     ]
   },
@@ -10262,7 +10377,7 @@
   "Toutes les heures": {
     "where": [
       "components/app/dashboard/refresh-timer.tsx:23",
-      "components/app/data/source-form.tsx:410",
+      "components/app/data/source-form.tsx:424",
       "components/app/data/source-look.tsx:58"
     ]
   },
@@ -10498,7 +10613,7 @@
   },
   "Un objet JSON { \"clé\": \"valeur\" }, ou des lignes clé=valeur comme dans un fichier de catalogue. Elles remplacent les propriétés actuelles.": {
     "where": [
-      "components/app/data/source-form.tsx:494"
+      "components/app/data/source-form.tsx:508"
     ]
   },
   "Un point par jour, d’autant plus grand que la valeur": {
@@ -10672,7 +10787,7 @@
       "components/app/admin/row-rule-editor.tsx:107"
     ]
   },
-  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires dont les vues lisent ce catalogue : ils ne peuvent que lire, seulement les catalogues qui les autorisent, et jamais lancer de requête eux-mêmes.": {
+  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires des vues de cette source : ils lisent ce catalogue et ses catalogues techniques, rien d’autre, et ne lancent jamais de requête eux-mêmes.": {
     "where": [
       "components/app/data/view-owners-panel.tsx:59"
     ]
@@ -10762,7 +10877,7 @@
   "Valeur": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:218",
-      "components/app/data/source-form.tsx:478",
+      "components/app/data/source-form.tsx:492",
       "components/app/question/viz-settings.tsx:954"
     ]
   },
@@ -11075,7 +11190,7 @@
   "Zone sensible": {
     "where": [
       "app/(app)/admin/people/page.tsx:258",
-      "components/app/data/source-settings.tsx:242"
+      "components/app/data/source-settings.tsx:245"
     ]
   }
 }

@@ -56,7 +56,7 @@ export function ViewOwnersPanel({ source }: { source: Datasource }) {
         {isLoading || busy ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
       </div>
       <p className="text-xs text-muted-foreground">
-        {$t('Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires dont les vues lisent ce catalogue : ils ne peuvent que lire, seulement les catalogues qui les autorisent, et jamais lancer de requête eux-mêmes.')}
+        {$t('Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires des vues de cette source : ils lisent ce catalogue et ses catalogues techniques, rien d’autre, et ne lancent jamais de requête eux-mêmes.')}
       </p>
       {owners.length ? (
         <div className="flex flex-wrap gap-1.5">

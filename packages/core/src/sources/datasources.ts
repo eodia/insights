@@ -6,6 +6,7 @@ import {
   type Datasource,
   type DatasourceInput,
   type DatasourceOptions,
+  type SourceDependency,
   type SourceSchema,
   ENGINE_SPECS,
   type Engine,
@@ -58,6 +59,8 @@ const SELECT = `
 
 /** The sources a space reads: its own, and those shared with it. */
 const IN_SPACE = `(d.workspace_id = $1 OR EXISTS (SELECT 1 FROM datasource_share sh WHERE sh.datasource_id = d.id AND sh.workspace_id = $1))`
+/** A source shown as one: not a technical catalog. */
+const SHOWN = `NOT COALESCE((d.options->>'internal')::boolean, false)`
 
 /** A source as a space sees it: managed there if it is its own, read only if shared with it. */
 function toDto(r: DatasourceRow, workspaceId: string): Datasource {
@@ -88,7 +91,7 @@ function toDto(r: DatasourceRow, workspaceId: string): Datasource {
 
 /** The sources of the actor's space, and those shared with it. */
 export async function listDatasources(core: Core, actor: Actor): Promise<Datasource[]> {
-  return (await core.db.many<DatasourceRow>(`${SELECT} WHERE ${IN_SPACE} ORDER BY d.name`, [actor.workspaceId])).map((r) => toDto(r, actor.workspaceId))
+  return (await core.db.many<DatasourceRow>(`${SELECT} WHERE ${IN_SPACE} AND ${SHOWN} ORDER BY d.name`, [actor.workspaceId])).map((r) => toDto(r, actor.workspaceId))
 }
 
 export async function getDatasource(core: Core, actor: Actor, id: string): Promise<Datasource> {
@@ -225,7 +228,8 @@ export async function createDatasource(core: Core, actor: Actor, input: Datasour
   })
   core.changed()
   await audit(core, actor, 'datasource.create', { kind: 'datasource', id }, { engine: input.engine, catalog })
-  await requestSync(core, id, actor.userId)
+  // A technical catalog has no structure to show: it is not synchronised.
+  if (!options.internal) await requestSync(core, id, actor.userId)
   return getDatasource(core, actor, id)
 }
 
@@ -337,11 +341,124 @@ export async function deleteDatasource(core: Core, actor: Actor, id: string): Pr
   await core.db.exec('DELETE FROM datasource WHERE id = $1', [id])
   // Trino can take a while to unload a catalog: the person does not wait for it.
   void core.engine.dropCatalog(row.catalog).catch(() => undefined)
+  // No source cites it any more; its technical catalogs no other source uses go with it.
+  await unlinkEverywhere(core, id)
+  for (const dep of row.options?.dependencies ?? []) {
+    if (!(await dependents(core, dep)).length) {
+      const gone = await core.db.one<{ catalog: string }>(`DELETE FROM datasource WHERE id = $1 AND COALESCE((options->>'internal')::boolean, false) RETURNING catalog`, [dep])
+      if (gone) void core.engine.dropCatalog(gone.catalog).catch(() => undefined)
+    }
+  }
   core.changed()
   await audit(core, actor, 'datasource.delete', { kind: 'datasource', id }, { name: row.name })
 }
 
+// ── Catalogues techniques ───────────────────────────────────────────────────
+
+/** The sources that cite `dep` among their technical catalogs. */
+async function dependents(core: Core, dep: string): Promise<{ id: string; name: string }[]> {
+  return core.db.many<{ id: string; name: string }>(`SELECT id, name FROM datasource WHERE options->'dependencies' ? $1 ORDER BY name`, [dep])
+}
+
+async function unlinkEverywhere(core: Core, dep: string): Promise<void> {
+  await core.db.exec(`UPDATE datasource SET options = jsonb_set(options, '{dependencies}', (options->'dependencies') - $1) WHERE options->'dependencies' ? $1`, [dep])
+}
+
+async function setLinks(core: Core, mainId: string, ids: readonly string[]): Promise<void> {
+  await core.db.exec(`UPDATE datasource SET options = jsonb_set(options, '{dependencies}', $2::jsonb), updated_at = now() WHERE id = $1`, [mainId, JSON.stringify([...new Set(ids)])])
+}
+
+/** A source shown as one, of the actor's space: what technical catalogs hang from. */
+async function mainSource(core: Core, actor: Actor, id: string): Promise<DatasourceRow> {
+  await assertOwnSource(core, actor, id)
+  const { row } = await settingsOf(core, id)
+  if (row.options?.internal) throw invalid('Un catalogue technique ne dépend pas d’un autre : choisissez la source qui le cite.')
+  return row
+}
+
+/**
+ * The technical catalogs a source depends on, and the space's others, free to attach: shared
+ * catalogs are declared once and cited by several sources.
+ */
+export async function listDependencies(core: Core, actor: Actor, mainId: string): Promise<{ dependencies: SourceDependency[]; available: SourceDependency[] }> {
+  const main = await mainSource(core, actor, mainId)
+  const linked = new Set(main.options?.dependencies ?? [])
+  const rows = await core.db.many<{ id: string; name: string; catalog: string; engine: Engine }>(
+    `SELECT id, name, catalog, engine FROM datasource WHERE workspace_id = $1 AND COALESCE((options->>'internal')::boolean, false) ORDER BY name`,
+    [actor.workspaceId],
+  )
+  const out = await Promise.all(
+    rows.map(async (r) => ({ ...r, shared_with: (await dependents(core, r.id)).filter((d) => d.id !== mainId).map((d) => d.name) })),
+  )
+  return { dependencies: out.filter((d) => linked.has(d.id)), available: out.filter((d) => !linked.has(d.id)) }
+}
+
+/** The technical catalogs a source cites: those detached and cited by no other source are deleted. */
+export async function setDependencies(core: Core, actor: Actor, mainId: string, ids: readonly string[]): Promise<void> {
+  const main = await mainSource(core, actor, mainId)
+  const ok = await core.db.many<{ id: string }>(
+    `SELECT id FROM datasource WHERE id = ANY($1) AND workspace_id = $2 AND COALESCE((options->>'internal')::boolean, false)`,
+    [[...ids], actor.workspaceId],
+  )
+  if (ok.length !== new Set(ids).size) throw invalid('Seul un catalogue technique de cet espace peut être cité.')
+  await setLinks(core, mainId, ids)
+  for (const dropped of (main.options?.dependencies ?? []).filter((d) => !ids.includes(d))) {
+    if (!(await dependents(core, dropped)).length) await deleteDatasource(core, actor, dropped)
+  }
+  core.changed()
+  await audit(core, actor, 'datasource.dependencies', { kind: 'datasource', id: mainId }, { ids })
+}
+
+/** A new technical catalog, cited by `mainId`: created in Trino, never synchronised. */
+export async function createDependency(core: Core, actor: Actor, mainId: string, input: DatasourceInput): Promise<Datasource> {
+  const main = await mainSource(core, actor, mainId)
+  if (!input.catalog) throw invalid('Nommez le catalogue comme les vues le citent.')
+  // `internal` is not an input a request may set: only here is a source made technical.
+  const options = { ...(input.options ?? {}), native_sql: false, internal: true } as DatasourceInput['options']
+  const ds = await createDatasource(core, actor, { ...input, schedule: 'manual', ...(options ? { options } : {}) })
+  await setLinks(core, mainId, [...(main.options?.dependencies ?? []), ds.id])
+  core.changed()
+  return ds
+}
+
+/**
+ * A source becomes a technical catalog of `mainId` — a catalog of raw tables added as a source
+ * to make views work: it leaves the lists, its structure is no longer synchronised, and no one
+ * reads it directly any more.
+ */
+export async function makeDependency(core: Core, actor: Actor, id: string, mainId: string): Promise<void> {
+  if (id === mainId) throw invalid('Une source ne dépend pas d’elle-même.')
+  const main = await mainSource(core, actor, mainId)
+  await assertOwnSource(core, actor, id)
+  const { row } = await settingsOf(core, id)
+  if (row.options?.dependencies?.length) throw invalid('Cette source cite elle-même des catalogues techniques : elle reste une source.')
+  const options: DatasourceOptions = { ...row.options, internal: true, native_sql: false }
+  await core.db.exec(`UPDATE datasource SET options = $2, schedule = 'manual', updated_at = now() WHERE id = $1`, [id, options])
+  await setLinks(core, mainId, [...(main.options?.dependencies ?? []), id])
+  // The owners it allowed go on the source citing it: they read it, and that source's catalog.
+  const owners = [...new Set([...(main.options?.view_owners ?? []), ...(row.options?.view_owners ?? [])])]
+  if (owners.length !== (main.options?.view_owners ?? []).length) {
+    await core.db.exec(`UPDATE datasource SET options = jsonb_set(options, '{view_owners}', $2::jsonb) WHERE id = $1`, [mainId, JSON.stringify(owners)])
+  }
+  core.changed()
+  await audit(core, actor, 'datasource.internal', { kind: 'datasource', id }, { main: mainId })
+}
+
+/** A technical catalog shown as a source again: no source cites it any more, it is synchronised. */
+export async function makeVisible(core: Core, actor: Actor, id: string): Promise<void> {
+  await assertOwnSource(core, actor, id)
+  const { row } = await settingsOf(core, id)
+  const { internal: _internal, ...options } = row.options ?? {}
+  await core.db.exec(`UPDATE datasource SET options = $2, schedule = 'daily', updated_at = now() WHERE id = $1`, [id, options])
+  await unlinkEverywhere(core, id)
+  core.changed()
+  await audit(core, actor, 'datasource.visible', { kind: 'datasource', id })
+  await requestSync(core, id, actor.userId)
+}
+
 export async function requestSync(core: Core, id: string, userId: string | null, passes: readonly string[] = ['schema', 'fingerprint', 'values']): Promise<string> {
+  const internal = await core.db.one(`SELECT 1 FROM datasource WHERE id = $1 AND COALESCE((options->>'internal')::boolean, false)`, [id])
+  if (internal) throw invalid('Un catalogue technique ne se synchronise pas : seule la source qui le cite est explorée.')
   await core.db.exec(`UPDATE datasource SET sync_status = 'queued' WHERE id = $1 AND sync_status <> 'running'`, [id])
   return enqueue(core, 'sync', { datasource: id, passes }, { dedupe: `sync:${id}`, createdBy: userId })
 }
@@ -406,10 +523,13 @@ export async function viewOwnersOf(core: Core, actor: Actor, id: string): Promis
   await assertOwnSource(core, actor, id)
   const { row } = await settingsOf(core, id)
   const owners = [...(row.options?.view_owners ?? [])]
-  const refused = refusedIdentities(row.catalog)
-    .filter((r) => !owners.includes(r.user))
-    .map((r) => ({ user: r.user, at: r.at }))
-  return { owners, refused }
+  // Its technical catalogs are read under its owners' names too: their refusals show here.
+  const deps = await core.db.many<{ catalog: string }>('SELECT catalog FROM datasource WHERE id = ANY($1)', [[...(row.options?.dependencies ?? [])]])
+  const seen = new Map<string, string>()
+  for (const catalog of [row.catalog, ...deps.map((d) => d.catalog)]) {
+    for (const r of refusedIdentities(catalog)) if (!owners.includes(r.user) && (seen.get(r.user) ?? '') < r.at) seen.set(r.user, r.at)
+  }
+  return { owners, refused: [...seen.entries()].map(([user, at]) => ({ user, at })) }
 }
 
 export async function setViewOwners(core: Core, actor: Actor, id: string, owners: readonly string[]): Promise<void> {
@@ -452,7 +572,7 @@ export async function ensureCatalogs(core: Core): Promise<{ created: string[]; f
 /** Sources whose scheduled sync is due. */
 export async function scheduleDueSyncs(core: Core): Promise<void> {
   const due = await core.db.many<{ id: string }>(
-    `SELECT id FROM datasource WHERE sync_status NOT IN ('queued', 'running') AND (
+    `SELECT id FROM datasource WHERE sync_status NOT IN ('queued', 'running') AND NOT COALESCE((options->>'internal')::boolean, false) AND (
        last_sync_at IS NULL AND sync_status = 'never'
        OR schedule = 'hourly' AND last_sync_at < now() - interval '1 hour'
        OR schedule = 'daily' AND last_sync_at < now() - interval '1 day')`,

@@ -45,8 +45,13 @@ export interface SnapDatasource {
   readonly nativeSql: boolean
   /** The only schemas it exposes, lower-cased (`sourceSchemas`); null: all of them. */
   readonly schemas: ReadonlySet<string> | null
-  /** Owners of views whose views may read its catalog (`options.view_owners`). */
+  /**
+   * Owners of views whose views may read its catalog: its own (`options.view_owners`), and, for
+   * a technical catalog, those of the sources depending on it.
+   */
   readonly viewOwners: ReadonlySet<string>
+  /** A technical catalog (`options.internal`): no person reads it directly. */
+  readonly internal: boolean
   /** The space it belongs to. */
   readonly workspace: string
   /** The spaces it can be read from: its own, and those it is shared with. */
@@ -128,7 +133,7 @@ export async function loadSnapshot(db: Db, version: number): Promise<Snapshot> {
       db.many<{ group_id: string; user_id: string }>('SELECT group_id, user_id FROM group_member'),
       db.many<{ user_id: string; key: string; value: string }>('SELECT user_id, key, value FROM user_attribute'),
       db.many<{ group_id: string; right_name: AdminRight }>('SELECT group_id, right_name FROM admin_right'),
-      db.many<{ id: string; catalog: string; engine: Engine; config: Record<string, unknown>; options: { native_sql?: boolean; view_owners?: string[] }; workspace_id: string }>(
+      db.many<{ id: string; catalog: string; engine: Engine; config: Record<string, unknown>; options: { native_sql?: boolean; view_owners?: string[]; internal?: boolean; dependencies?: string[] }; workspace_id: string }>(
         'SELECT id, catalog, engine, config, options, workspace_id FROM datasource',
       ),
       db.many<{ id: string; datasource_id: string; schema_name: string; name: string }>(
@@ -196,11 +201,19 @@ export async function loadSnapshot(db: Db, version: number): Promise<Snapshot> {
       nativeSql: s.options?.native_sql !== false,
       schemas: sourceSchemas(s.engine, s.config ?? {}),
       viewOwners: new Set(s.options?.view_owners ?? []),
+      internal: s.options?.internal === true,
       workspace: s.workspace_id,
       workspaces: new Set([s.workspace_id, ...(sharedWith.get(s.id) ?? [])]),
     }
     datasources.set(s.id, d)
     byCatalog.set(s.catalog, d)
+  }
+  // The owners a source allows read its technical catalogs too: its views go through them.
+  for (const s of sources) {
+    for (const dep of s.options?.dependencies ?? []) {
+      const target = datasources.get(dep)
+      if (target?.internal) for (const o of s.options?.view_owners ?? []) (target.viewOwners as Set<string>).add(o)
+    }
   }
 
   const colsOf = groupBy(columns, (c) => c.table_id, (c) => c)

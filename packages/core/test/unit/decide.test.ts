@@ -20,7 +20,7 @@ const table: SnapTable = {
 const in_ = (user: string, space = 'w1') => `${user}@${space}`
 
 /** The source `ds` belongs to `w1`; `shared` adds the spaces it is shared with. */
-const source = (shared: string[] = []): SnapDatasource => ({ id: 'ds', catalog: 'boutique', engine: 'postgresql', nativeSql: true, schemas: null, viewOwners: new Set(), workspace: 'w1', workspaces: new Set(['w1', ...shared]) })
+const source = (shared: string[] = []): SnapDatasource => ({ id: 'ds', catalog: 'boutique', engine: 'postgresql', nativeSql: true, schemas: null, viewOwners: new Set(), internal: false, workspace: 'w1', workspaces: new Set(['w1', ...shared]) })
 
 function snapshot(over: Partial<Snapshot> = {}): Snapshot {
   const ds = over.datasources?.get('ds') ?? source()
@@ -168,6 +168,28 @@ describe('owners of views', () => {
   it('refuses an identity no source lists, and remembers it to be allowed', () => {
     expect(opa.allow({ context: ctx('someone_else'), action: { operation: 'AccessCatalog', resource: { catalog: { name: 'boutique' } } } })).toBe(false)
     expect(refusedIdentities('boutique').map((r) => r.user)).toContain('someone_else')
+  })
+})
+
+describe('technical catalogs', () => {
+  // `boutique` is the technical catalog of a source whose views `ggv_owner` owns.
+  const raw: SnapDatasource = { ...source(), internal: true, viewOwners: new Set(['ggv_owner']) }
+  const snap = snapshot({ datasources: new Map([['ds', raw]]), byCatalog: new Map([['boutique', raw]]) })
+  const opa = new OpaDecider(snap, 'eodia-service')
+  const ctx = (user: string) => ({ identity: { user } })
+  const tableRes = { catalogName: 'boutique', schemaName: 'public', tableName: 'clients' }
+
+  it('is read by no person directly, an administrator neither', () => {
+    expect(tableAccess(snap, in_('admin'), 'ds', 'public', 't-clients').access).toBe('none')
+    expect(tableAccess(snap, in_('bob'), 'ds', 'public', 't-clients').access).toBe('none')
+    expect(opa.allow({ context: ctx(in_('admin')), action: { operation: 'AccessCatalog', resource: { catalog: { name: 'boutique' } } } })).toBe(false)
+    expect(opa.batch({ context: ctx(in_('admin')), action: { operation: 'FilterCatalogs', filterResources: [{ catalog: { name: 'boutique' } }] } })).toEqual([])
+    expect(nativeAllowed(snap, in_('admin'), 'ds')).toBe(false)
+  })
+
+  it('is read by the views of the source depending on it, under their owner’s name', () => {
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'SelectFromColumns', resource: { table: { ...tableRes, columns: ['region'] } } } })).toBe(true)
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'ExecuteQuery' } })).toBe(false)
   })
 })
 

@@ -4,6 +4,8 @@ import {
   ColumnValueSchema,
   DatasourceInputSchema,
   ENGINE_SPECS,
+  DependenciesInputSchema,
+  MakeDependencySchema,
   SourceSchemasInputSchema,
   ViewOwnersInputSchema,
   TablePatchSchema,
@@ -27,7 +29,12 @@ import {
   patchColumn,
   patchTable,
   putColumnValues,
+  createDependency,
+  listDependencies,
   listSourceSchemas,
+  makeDependency,
+  makeVisible,
+  setDependencies,
   requestSync,
   setSourceSchemas,
   setViewOwners,
@@ -111,6 +118,25 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'put', path: '/api/v1/datasources/:id/schemas', tags, summary: 'Choisir les schémas affichés et les renommer (relance la synchronisation)', body: SourceSchemasInputSchema }, async (c) => {
     const job = await setSourceSchemas(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id'), bodyOf(c, SourceSchemasInputSchema))
     return ok(c, { job })
+  })
+  // Technical catalogs: in Trino for a source's views, never shown as sources.
+  route(app, { method: 'get', path: '/api/v1/datasources/:id/dependencies', tags, summary: 'Catalogues techniques dont dépend la source, et ceux de l’espace à rattacher' }, async (c) => {
+    return ok(c, await listDependencies(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id')))
+  })
+  route(app, { method: 'post', path: '/api/v1/datasources/:id/dependencies', tags, summary: 'Créer un catalogue technique dont dépend la source', body: DatasourceInputSchema }, async (c) => {
+    return ok(c, await createDependency(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), bodyOf(c, DatasourceInputSchema)))
+  })
+  route(app, { method: 'put', path: '/api/v1/datasources/:id/dependencies', tags, summary: 'Les catalogues techniques que cite la source (un retiré et cité par aucune autre est supprimé)', body: DependenciesInputSchema }, async (c) => {
+    await setDependencies(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), bodyOf(c, DependenciesInputSchema).ids)
+    return ok(c)
+  })
+  route(app, { method: 'post', path: '/api/v1/datasources/:id/internal', tags, summary: 'Faire de cette source un catalogue technique d’une autre', body: MakeDependencySchema }, async (c) => {
+    await makeDependency(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), bodyOf(c, MakeDependencySchema).main)
+    return ok(c)
+  })
+  route(app, { method: 'post', path: '/api/v1/datasources/:id/visible', tags, summary: 'Montrer de nouveau un catalogue technique comme une source' }, async (c) => {
+    await makeVisible(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'))
+    return ok(c)
   })
   route(app, { method: 'get', path: '/api/v1/datasources/:id/view-owners', tags, summary: 'Propriétaires de vues autorisés à lire la source, et identités refusées récemment' }, async (c) => {
     return ok(c, await viewOwnersOf(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id')))

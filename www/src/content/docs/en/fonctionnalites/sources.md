@@ -40,6 +40,15 @@ by name, or in one click among the identities recently refused. An allowed owner
 only the catalogs that allow it, and never runs a query itself; the person querying the view
 keeps their own rights on it.
 
+When those views read **another catalog** (`"iceberg-raw".schema.table`), there is no need to
+make it a source: under **Technical catalogs**, add it with the exact name the views cite. It is
+created in Trino but never shown nor synchronized — its raw tables do not duplicate the views in
+the explorer, the SQL editor or the copilot — and no one, administrators included, reads it
+directly: only the source's views, under the names of the owners it allows. A technical catalog
+can serve several sources; removed from the last one citing it, or with it, it is deleted. A
+source already added for that purpose is attached as a technical catalog from its settings,
+without being recreated.
+
 Neither plugs into an existing Trino: each creates the catalog in eodia insights' own Trino,
 the only one that applies the permissions. To bring over a catalog from another
 Trino, copy its `etc/catalog/<name>.properties` file: `connector.name` into **Connector**, the

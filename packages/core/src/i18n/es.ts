@@ -108,7 +108,7 @@ export default {
   "Vous ne pouvez pas supprimer votre propre compte.": "No puede eliminar su propia cuenta.",
   "Gardez au moins un schéma.": "Conserve al menos un esquema.",
   "Ce JSON n’est pas un tableau de bord copié depuis eodia insights.": "Este JSON no es un panel copiado desde eodia insights.",
-  "Cette vue lit le catalogue « {1} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans la source « {2} », onglet Connexion, « Propriétaires de vues ».": "Esta vista lee el catálogo «{1}» con los derechos de su propietario, desconocido aquí: autorícelo en la fuente «{2}», pestaña Conexión, «Propietarios de vistas».",
+  "Cette vue lit le catalogue « {1} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans « Propriétaires de vues » de la source qui contient la vue (onglet Connexion) — et, si « {2} » n’est pas encore là, ajoutez-le comme catalogue technique de cette source.": "Esta vista lee el catálogo «{1}» con los derechos de su propietario, desconocido aquí: autorícelo en «Propietarios de vistas» de la fuente que contiene la vista (pestaña Conexión) — y, si «{2}» aún no está, añádalo como catálogo técnico de esa fuente.",
   "Le catalogue « {1} » existe déjà.": "El catálogo «{1}» ya existe.",
   "Le champ « {1} » est obligatoire.": "El campo «{1}» es obligatorio.",
   "Le connecteur « {1} » exige la propriété « {2} ».": "El conector «{1}» exige la propiedad «{2}».",

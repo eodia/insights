@@ -40,6 +40,15 @@ de vues** l’autorise — par son nom, ou d’un clic parmi les identités refu
 propriétaire autorisé ne fait que lire, seulement les catalogues qui l’autorisent, et ne lance
 jamais de requête lui-même ; la personne qui interroge la vue garde ses propres droits sur elle.
 
+Quand ces vues lisent un **autre catalogue** (`"iceberg-raw".schéma.table`), inutile d’en faire
+une source : dans **Catalogues techniques**, ajoutez-le sous le nom exact que citent les vues. Il
+est créé dans Trino, mais jamais montré ni synchronisé — ses tables brutes ne doublonnent pas les
+vues dans l’explorateur, l’éditeur SQL ou le copilote — et personne, administrateurs compris, ne
+le lit directement : seules les vues de la source, sous le nom des propriétaires qu’elle autorise.
+Un catalogue technique peut servir à plusieurs sources ; retiré de la dernière qui le cite, ou
+avec elle, il est supprimé. Une source déjà ajoutée pour cela se rattache comme catalogue technique
+depuis ses réglages, sans être recréée.
+
 Ni l’un ni l’autre ne se branche sur un Trino existant : chacun crée le catalogue dans le Trino
 d’eodia insights, qui seul applique les permissions. Pour reprendre un catalogue d’un autre
 Trino, recopiez son fichier `etc/catalog/<nom>.properties` : `connector.name` dans

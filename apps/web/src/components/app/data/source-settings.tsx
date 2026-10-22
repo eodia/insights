@@ -8,6 +8,7 @@ import { CatalogName } from '@/components/app/data/source-look'
 import { SyncPanel } from '@/components/app/data/sync-panel'
 import { SchemasPanel } from '@/components/app/data/schemas-panel'
 import { ViewOwnersPanel } from '@/components/app/data/view-owners-panel'
+import { DependenciesPanel, MakeTechnicalPanel } from '@/components/app/data/dependencies-panel'
 import { ConfirmDialog } from '@/components/app/dialogs'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -82,7 +83,7 @@ function ConnectionView({ source, canEdit }: { source: Datasource; canEdit: bool
             [$t('Moteur'), $t(spec.label)],
             [$t('Catalogue Trino'), <CatalogName key="c" catalog={source.catalog} />],
             ...rows,
-            [$t('SQL natif'), source.options.native_sql ? $t('Autorisé') : $t('Interdit')],
+            [$t('SQL natif'), source.options.native_sql && spec.nativeQuery ? $t('Autorisé') : $t('Interdit')],
             [$t('Cache des résultats'), source.options.cache_ttl != null ? $t('{n} s', { n: source.options.cache_ttl }) : $t('Réglage de l’instance')],
           ].map(([k, v]) => (
             <div key={k as string} className="flex gap-4 px-4 py-2.5">
@@ -217,6 +218,7 @@ export function SourceSettings({ id }: { id: string }) {
         {source.description ? <p className="text-sm">{source.description}</p> : null}
         <ConnectionView source={source} canEdit={canSources} />
         <SchemasPanel source={source} canEdit={!!me?.can.manage_metadata && own} />
+        {canSources && (source.engine === 'iceberg' || source.engine === 'trino') ? <DependenciesPanel source={source} /> : null}
         {canSources && (source.engine === 'iceberg' || source.engine === 'trino') ? <ViewOwnersPanel source={source} /> : null}
       </div>
       <div className="space-y-6">
@@ -237,6 +239,7 @@ export function SourceSettings({ id }: { id: string }) {
           <SyncPanel source={source} canSync={!!me?.can.manage_metadata && own} />
         </div>
         {canSources ? <SharePanel source={source} /> : null}
+        {canSources && !source.options.dependencies?.length ? <MakeTechnicalPanel source={source} /> : null}
         {canSources ? (
           <div className="space-y-2 border-t pt-5">
             <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{$t('Zone sensible')}</div>

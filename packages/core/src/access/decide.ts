@@ -76,7 +76,11 @@ export function isInstanceAdmin(snap: Snapshot, userId: string): boolean {
 
 /** Whether a source can be read from the identity's space: its own, or one shared with it. */
 function reachable(snap: Snapshot, u: SnapUser, datasource: string): boolean {
-  return u.workspace !== undefined && (snap.datasources.get(datasource)?.workspaces.has(u.workspace) ?? false)
+  const ds = snap.datasources.get(datasource)
+  // A technical catalog is read only through the views that need it, under their owner's name:
+  // no person — an administrator neither — reads it directly.
+  if (!ds || ds.internal) return false
+  return u.workspace !== undefined && ds.workspaces.has(u.workspace)
 }
 
 /** Whether a source exposes this schema: one outside its « Base de données » is no one's. */

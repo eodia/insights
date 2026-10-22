@@ -217,12 +217,21 @@ export function SourceForm({
   onSaved,
   onCancel,
   onBack,
+  createPath = '/v1/datasources',
+  technical = false,
 }: {
   spec: EngineSpec
   source?: Datasource
   onSaved: (ds: Datasource) => void
   onCancel?: () => void
   onBack?: () => void
+  /** Where a new source is created: a source's technical catalogs have their own. */
+  createPath?: string
+  /**
+   * A technical catalog: named as the views cite it, never synchronised, no options of its own
+   * to read — its connection, and its Trino properties.
+   */
+  technical?: boolean
 }) {
   const editing = !!source
   const [name, setName] = useState(source?.name ?? '')
@@ -252,7 +261,7 @@ export function SourceForm({
   const native = spec.nativeQuery && sourceSchemas(spec.engine, config) === null
   const missing = fields.filter((f) => f.required && !(f.secret && source?.secrets.includes(f.key)) && (config[f.key] === '' || config[f.key] === undefined))
   const ttlInvalid = cacheTtl !== '' && !(Number.isInteger(Number(cacheTtl)) && Number(cacheTtl) >= 0)
-  const valid = name.trim() !== '' && missing.length === 0 && !catalogError && !ttlInvalid
+  const valid = name.trim() !== '' && missing.length === 0 && !catalogError && !ttlInvalid && (!technical || editing || catalog.trim() !== '')
 
   const build = (): DatasourceInput => {
     const cfg: Record<string, ConfigValue> = {}
@@ -297,7 +306,7 @@ export function SourceForm({
     setError(null)
     try {
       const input = build()
-      const ds = source ? await api.put<Datasource>(`/v1/datasources/${source.id}`, input) : await api.post<Datasource>('/v1/datasources', input)
+      const ds = source ? await api.put<Datasource>(`/v1/datasources/${source.id}`, input) : await api.post<Datasource>(createPath, input)
       onSaved(ds)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -326,7 +335,10 @@ export function SourceForm({
             <Input id={nameId} value={name} onChange={(e) => setName(e.target.value)} placeholder={$t('Boutique, Entrepôt…')} autoFocus={!editing} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor={catId}>{$t('Nom du catalogue')}</Label>
+            <Label htmlFor={catId}>
+              {$t('Nom du catalogue')}
+              {technical && !editing ? <span className="text-destructive">*</span> : null}
+            </Label>
             {editing ? (
               <div className="flex h-9 items-center rounded-md border bg-muted/50 px-3 font-mono text-sm text-muted-foreground">{source.catalog}</div>
             ) : (
@@ -336,7 +348,9 @@ export function SourceForm({
               {catalogError ??
                 (editing
                   ? $t('Le catalogue ne change pas : le SQL le cite.')
-                  : $t('Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.'))}
+                  : technical
+                    ? $t('Exactement celui que citent les vues, « iceberg-raw » par exemple.')
+                    : $t('Facultatif : dérivé du nom. Le SQL cite les tables en catalogue.schéma.table.'))}
             </p>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
@@ -398,8 +412,8 @@ export function SourceForm({
 
       {/* Synchronisation et options */}
       <div className="space-y-3">
-        <SectionTitle>{$t('Synchronisation et options')}</SectionTitle>
-        <div className="grid gap-3 sm:grid-cols-2">
+        {technical ? null : <SectionTitle>{$t('Synchronisation et options')}</SectionTitle>}
+        <div className={cn('grid gap-3 sm:grid-cols-2', technical && 'hidden')}>
           <div className="space-y-1.5">
             <Label>{$t('Synchronisation du schéma')}</Label>
             <Segmented

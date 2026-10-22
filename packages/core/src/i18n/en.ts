@@ -108,7 +108,7 @@ export default {
   "Vous ne pouvez pas supprimer votre propre compte.": "You cannot delete your own account.",
   "Gardez au moins un schéma.": "Keep at least one schema.",
   "Ce JSON n’est pas un tableau de bord copié depuis eodia insights.": "This JSON is not a dashboard copied from eodia insights.",
-  "Cette vue lit le catalogue « {1} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans la source « {2} », onglet Connexion, « Propriétaires de vues ».": "This view reads the catalog “{1}” with the rights of its owner, unknown here: allow them in the source “{2}”, Connection tab, “View owners”.",
+  "Cette vue lit le catalogue « {1} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans « Propriétaires de vues » de la source qui contient la vue (onglet Connexion) — et, si « {2} » n’est pas encore là, ajoutez-le comme catalogue technique de cette source.": "This view reads the catalog “{1}” with the rights of its owner, unknown here: allow them in “View owners” of the source holding the view (Connection tab) — and, if “{2}” is not there yet, add it as a technical catalog of that source.",
   "Le catalogue « {1} » existe déjà.": "The catalog “{1}” already exists.",
   "Le champ « {1} » est obligatoire.": "The field “{1}” is required.",
   "Le connecteur « {1} » exige la propriété « {2} ».": "The “{1}” connector requires the property “{2}”.",

@@ -370,7 +370,7 @@ function mapError(err: unknown, timeoutMs: number): AppError {
     const owner = /View owner does not have sufficient privileges.*?(?:catalog ([\w-]+)|selects from ([\w-]+)\.)/i.exec(err.message)
     const read = owner?.[1] ?? owner?.[2]
     if (read) {
-      return new AppError('DATA_ACCESS_DENIED', `Cette vue lit le catalogue « ${read} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans la source « ${read} », onglet Connexion, « Propriétaires de vues ».`)
+      return new AppError('DATA_ACCESS_DENIED', `Cette vue lit le catalogue « ${read} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans « Propriétaires de vues » de la source qui contient la vue (onglet Connexion) — et, si « ${read} » n’est pas encore là, ajoutez-le comme catalogue technique de cette source.`)
     }
     if (/Access Denied/i.test(err.message)) {
       return new AppError('DATA_ACCESS_DENIED', `Accès aux données refusé : ${err.message.replace(/^Access Denied:\s*/i, '')}`)
