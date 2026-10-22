@@ -33,6 +33,13 @@ Une source **Apache Iceberg** lit des tables Iceberg sur S3 — AWS, MinIO, Ceph
 avec un jeton OAuth2 et des accès fournis par le catalogue, ou AWS Glue), puis l’endpoint, la
 région et les clés du stockage. Pour un S3 sur site, cochez les adresses de type chemin.
 
+Une **vue** créée dans un autre Trino lit ses tables avec les droits de son propriétaire, un
+utilisateur de ce Trino, inconnu ici : Trino refuse alors la lecture (« View owner does not have
+sufficient privileges »). Dans l’onglet **Connexion** de la source que la vue lit, **Propriétaires
+de vues** l’autorise — par son nom, ou d’un clic parmi les identités refusées récemment. Un
+propriétaire autorisé ne fait que lire, seulement les catalogues qui l’autorisent, et ne lance
+jamais de requête lui-même ; la personne qui interroge la vue garde ses propres droits sur elle.
+
 Ni l’un ni l’autre ne se branche sur un Trino existant : chacun crée le catalogue dans le Trino
 d’eodia insights, qui seul applique les permissions. Pour reprendre un catalogue d’un autre
 Trino, recopiez son fichier `etc/catalog/<nom>.properties` : `connector.name` dans

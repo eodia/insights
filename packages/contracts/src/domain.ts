@@ -170,11 +170,27 @@ const ICEBERG_FIELDS: EngineField[] = [
   },
   { key: 'warehouse', label: 'Entrepôt (warehouse)', type: 'text', placeholder: 'Facultatif', when: { key: 'catalog_type', is: ['rest'] } },
   {
+    key: 'rest_credential',
+    label: 'Identifiant OAuth2',
+    type: 'password',
+    secret: true,
+    placeholder: 'client_id:secret',
+    help: 'Facultatif : un catalogue ouvert n’en demande pas. Gardé chiffré, comme un mot de passe.',
+    when: { key: 'catalog_type', is: ['rest'] },
+  },
+  {
+    key: 'rest_scope',
+    label: 'Scope OAuth2',
+    type: 'text',
+    placeholder: 'PRINCIPAL_ROLE:ALL',
+    when: { key: 'catalog_type', is: ['rest'] },
+  },
+  {
     key: 'rest_token',
     label: 'Jeton OAuth2',
     type: 'password',
     secret: true,
-    help: 'Facultatif : un catalogue ouvert n’en demande pas.',
+    help: 'À la place de l’identifiant : un jeton déjà délivré.',
     when: { key: 'catalog_type', is: ['rest'] },
   },
   {
@@ -465,6 +481,11 @@ export interface DatasourceOptions {
   readonly schemas?: readonly string[]
   /** Names to show for schemas: `p1_iid_eurus_bd` → « Eurus ». */
   readonly schema_labels?: Readonly<Record<string, string>>
+  /**
+   * Owners of views (Trino users of the base the catalog comes from) whose views may read this
+   * catalog: a view runs with its owner's rights by default (SECURITY DEFINER).
+   */
+  readonly view_owners?: readonly string[]
   /** Cache TTL in seconds for the results read from this source; null: the instance's. */
   readonly cache_ttl?: number | null
 }

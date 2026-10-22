@@ -2297,5 +2297,24 @@
   "Voir les {count} schémas système, toujours masqués": {
     "one": "See the system schema, always hidden",
     "other": "See the {count} system schemas, always hidden"
-  }
+  },
+  "À la place de l’identifiant : un jeton déjà délivré.": "Instead of the credential: a token already issued.",
+  "client_id:secret": "client_id:secret",
+  "Dossier renommé.": "Folder renamed.",
+  "Facultatif : un catalogue ouvert n’en demande pas. Gardé chiffré, comme un mot de passe.": "Optional: an open catalog does not need one. Kept encrypted, like a password.",
+  "Identifiant OAuth2": "OAuth2 credential",
+  "Nouveau sous-dossier dans « {name} »": "New subfolder in “{name}”",
+  "Nouveau sous-dossier…": "New subfolder…",
+  "PRINCIPAL_ROLE:ALL": "PRINCIPAL_ROLE:ALL",
+  "Renommer le dossier": "Rename the folder",
+  "Renommer…": "Rename…",
+  "Scope OAuth2": "OAuth2 scope",
+  "« {name} » peut lire ce catalogue pour ses vues.": "“{name}” can read this catalog for its views.",
+  "« {name} » ne lit plus ce catalogue.": "“{name}” no longer reads this catalog.",
+  "Propriétaires de vues": "View owners",
+  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires dont les vues lisent ce catalogue : ils ne peuvent que lire, seulement les catalogues qui les autorisent, et jamais lancer de requête eux-mêmes.": "A view created in another Trino reads its tables with its owner's rights. Allow here the owners whose views read this catalog: they can only read, only the catalogs that allow them, and never run a query themselves.",
+  "Retirer « {name} »": "Remove “{name}”",
+  "Nom de l’utilisateur Trino": "Trino user name",
+  "Autoriser": "Allow",
+  "Identités refusées récemment sur ce catalogue": "Identities recently refused on this catalog"
 }

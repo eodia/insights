@@ -33,6 +33,13 @@ writing properties: pick the catalog (Hive metastore, REST catalog, possibly wit
 token and access provided by the catalog, or AWS Glue), then the storage endpoint, region and
 keys. For on-premises S3, tick path-style addresses.
 
+A **view** created in another Trino reads its tables with its owner's rights — a user of that
+Trino, unknown here — so Trino refuses the read (“View owner does not have sufficient
+privileges”). In the **Connection** tab of the source the view reads, **View owners** allows it —
+by name, or in one click among the identities recently refused. An allowed owner only reads,
+only the catalogs that allow it, and never runs a query itself; the person querying the view
+keeps their own rights on it.
+
 Neither plugs into an existing Trino: each creates the catalog in eodia insights' own Trino,
 the only one that applies the permissions. To bring over a catalog from another
 Trino, copy its `etc/catalog/<name>.properties` file: `connector.name` into **Connector**, the

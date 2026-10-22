@@ -5,6 +5,7 @@ import {
   DatasourceInputSchema,
   ENGINE_SPECS,
   SourceSchemasInputSchema,
+  ViewOwnersInputSchema,
   TablePatchSchema,
 } from '@eodia/contracts'
 import {
@@ -29,6 +30,8 @@ import {
   listSourceSchemas,
   requestSync,
   setSourceSchemas,
+  setViewOwners,
+  viewOwnersOf,
   stopSync,
   schemaTree,
   testDatasource,
@@ -108,6 +111,13 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'put', path: '/api/v1/datasources/:id/schemas', tags, summary: 'Choisir les schémas affichés et les renommer (relance la synchronisation)', body: SourceSchemasInputSchema }, async (c) => {
     const job = await setSourceSchemas(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id'), bodyOf(c, SourceSchemasInputSchema))
     return ok(c, { job })
+  })
+  route(app, { method: 'get', path: '/api/v1/datasources/:id/view-owners', tags, summary: 'Propriétaires de vues autorisés à lire la source, et identités refusées récemment' }, async (c) => {
+    return ok(c, await viewOwnersOf(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id')))
+  })
+  route(app, { method: 'put', path: '/api/v1/datasources/:id/view-owners', tags, summary: 'Autoriser des propriétaires de vues à lire la source', body: ViewOwnersInputSchema }, async (c) => {
+    await setViewOwners(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), bodyOf(c, ViewOwnersInputSchema).owners)
+    return ok(c)
   })
   route(app, { method: 'post', path: '/api/v1/datasources/:id/sync/stop', tags, summary: 'Arrêter la synchronisation en cours (bloquée, trop longue)' }, async (c) => {
     await stopSync(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id'))

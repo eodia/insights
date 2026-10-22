@@ -17,6 +17,7 @@ import {
   useTicks,
 } from '@/components/app/item-selection'
 import { ShareDialog } from '@/components/app/share-dialog'
+import { SaveDialog } from '@/components/app/dialogs'
 import { Hint } from '@/components/ui/tooltip'
 import { ResultFooter, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
@@ -32,9 +33,11 @@ import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowUpRight,
+  BarChart3,
   CornerLeftUp,
   FolderOpen,
   FolderPlus,
+  LayoutDashboard,
   Loader2,
   MoreHorizontal,
   PanelRight,
@@ -528,6 +531,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   const { folder: segments } = use(params)
   const folderId = segments?.[0] ?? 'root'
   const router = useRouter()
+  const [newDashboard, setNewDashboard] = useState(false)
   const { data: folders = [] } = useFolders()
   const { data: me } = useMe()
   const { data, isLoading } = useFolderItems(folderId)
@@ -779,10 +783,15 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
               <p>
                 {folderId === 'root' ? $t('Choisissez un dossier.') : $t('Ce dossier est vide.')}
               </p>
-              <div className="mt-4">
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => router.push('/question/new')}>
-                  {$t('Nouvelle question')}
+                  <BarChart3 /> {$t('Nouvelle question')}
                 </Button>
+                {canCreate ? (
+                  <Button size="sm" variant="outline" onClick={() => setNewDashboard(true)}>
+                    <LayoutDashboard /> {$t('Nouveau tableau de bord')}
+                  </Button>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -812,6 +821,16 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
                     'Parcourez vos dossiers : chaque dossier porte ses droits, et chaque élément peut aussi être partagé avec une personne ou un groupe.',
                   )}
             </p>
+            {folder && canCreate ? (
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => router.push('/question/new')}>
+                  <BarChart3 /> {$t('Nouvelle question')}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setNewDashboard(true)}>
+                  <LayoutDashboard /> {$t('Nouveau tableau de bord')}
+                </Button>
+              </div>
+            ) : null}
           </div>
         )}
       </section>
@@ -824,6 +843,18 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
           onBookmark={() => bookmark(current)}
         />
       ) : null}
+      <SaveDialog
+        open={newDashboard}
+        onOpenChange={setNewDashboard}
+        title={$t('Nouveau tableau de bord')}
+        initial={{ folder: folderId === 'root' ? null : folderId }}
+        submitLabel={$t('Créer')}
+        onSubmit={async (v) => {
+          const d = await api.post<{ id: string }>('/v1/dashboards', { name: v.name, description: v.description || null, folder: v.folder })
+          await qc.invalidateQueries({ queryKey: ['folder-items'] })
+          router.push(`/dashboard/${d.id}?edit=1`)
+        }}
+      />
       {share ? (
         <ShareDialog
           open

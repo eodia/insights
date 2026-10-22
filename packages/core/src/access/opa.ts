@@ -63,6 +63,37 @@ const READ_OPERATIONS = new Set([
 const SYSTEM_CATALOG = 'system'
 const INFO_SCHEMA = 'information_schema'
 
+/**
+ * Identities Trino asked about that are neither the service nor a person — the owner of a view
+ * made in another Trino, as a rule: kept a day, so its name can be allowed in the source's
+ * settings. In memory: the decision point runs in the API's process.
+ */
+const unknown = new Map<string, { readonly user: string; readonly catalogs: Set<string>; at: number }>()
+const UNKNOWN_KEPT_MS = 24 * 3600_000
+
+function noteUnknown(user: string, catalog: string | undefined) {
+  const now = Date.now()
+  for (const [k, v] of unknown) if (now - v.at > UNKNOWN_KEPT_MS) unknown.delete(k)
+  if (!unknown.has(user) && unknown.size >= 50) return
+  const entry = unknown.get(user) ?? { user, catalogs: new Set<string>(), at: now }
+  entry.at = now
+  if (catalog) entry.catalogs.add(catalog)
+  unknown.set(user, entry)
+}
+
+/** The unknown identities refused lately, those that tried `catalog` (all, without one). */
+export function refusedIdentities(catalog?: string): { user: string; catalogs: string[]; at: string }[] {
+  return [...unknown.values()]
+    .filter((e) => !catalog || e.catalogs.has(catalog) || e.catalogs.size === 0)
+    .sort((a, b) => b.at - a.at)
+    .map((e) => ({ user: e.user, catalogs: [...e.catalogs], at: new Date(e.at).toISOString() }))
+}
+
+/** The catalog an authorisation question is about, whatever its resource. */
+function catalogOf(r: Resource | undefined): string | undefined {
+  return r?.catalog?.name ?? r?.schema?.catalogName ?? r?.table?.catalogName ?? r?.column?.catalogName ?? r?.function?.catalogName
+}
+
 export class OpaDecider {
   constructor(
     private readonly snap: Snapshot,
@@ -76,6 +107,53 @@ export class OpaDecider {
   private userId(input: OpaInput): string | null {
     const u = input.context?.identity?.user
     return u && userOf(this.snap, u) ? u : null
+  }
+
+  /**
+   * The owner of a view, when the identity is one a source lists (`options.view_owners`): Trino
+   * checks a SECURITY DEFINER view's reads under its owner's name. Such an identity only reads,
+   * and only the catalogs that list it — and never runs a query itself: `ExecuteQuery` is asked
+   * for the person who runs it, so the name is no way in by itself.
+   */
+  private viewOwner(input: OpaInput): string | null {
+    const u = input.context?.identity?.user
+    if (!u || this.isService(input) || userOf(this.snap, u)) return null
+    for (const ds of this.snap.datasources.values()) if (ds.viewOwners.has(u)) return u
+    return null
+  }
+
+  private ownerReads(owner: string, catalog: string | undefined): boolean {
+    if (!catalog) return false
+    if (catalog === SYSTEM_CATALOG) return true
+    return this.snap.byCatalog.get(catalog)?.viewOwners.has(owner) ?? false
+  }
+
+  private ownerAllow(owner: string, op: string, r: Resource): boolean {
+    switch (op) {
+      case 'AccessCatalog':
+      case 'ShowSchemas':
+        return this.ownerReads(owner, r.catalog?.name)
+      case 'ShowTables':
+      case 'ShowCreateSchema':
+        return this.ownerReads(owner, r.schema?.catalogName)
+      case 'ShowColumns':
+      case 'ShowCreateTable':
+      case 'SelectFromColumns':
+      // What Trino asks of a SECURITY DEFINER view's owner: that its view may read the table.
+      // Nothing is created: it is the read, as the view's owner.
+      case 'CreateViewWithSelectFromColumns':
+        return this.ownerReads(owner, r.table?.catalogName)
+      case 'ExecuteFunction':
+      case 'ExecuteTableFunction': {
+        const f = r.function
+        // A view's functions: the built-in ones, or those of a catalog it may read — never
+        // `system.query`, which would send its text to a base untouched.
+        if (f?.schemaName === 'system' && f.functionName === 'query') return false
+        return f?.catalogName === undefined || f.catalogName === SYSTEM_CATALOG || this.ownerReads(owner, f.catalogName)
+      }
+      default:
+        return false
+    }
   }
 
   private table(t: TableResource | undefined): SnapTable | undefined {
@@ -120,8 +198,14 @@ export class OpaDecider {
   /** `opa.policy.uri`: one yes or no. */
   allow(input: OpaInput): boolean {
     if (this.isService(input)) return true
+    const owner = this.viewOwner(input)
+    if (owner) return this.ownerAllow(owner, input.action?.operation ?? '', input.action?.resource ?? {})
     const user = this.userId(input)
-    if (!user) return false
+    if (!user) {
+      const name = input.context?.identity?.user
+      if (name) noteUnknown(name, catalogOf(input.action?.resource))
+      return false
+    }
     const op = input.action?.operation ?? ''
     const r = input.action?.resource ?? {}
     switch (op) {
@@ -170,8 +254,19 @@ export class OpaDecider {
       }
       return resources.map((_, i) => i)
     }
+    const owner = this.viewOwner(input)
+    if (owner) {
+      if (op === 'FilterColumns' && resources.length === 1 && resources[0]?.table?.columns) {
+        return this.ownerReads(owner, resources[0].table.catalogName) ? resources[0].table.columns.map((_, i) => i) : []
+      }
+      return resources.flatMap((r, i) => (op.startsWith('Filter') && op !== 'FilterViewQueryOwnedBy' && this.ownerReads(owner, catalogOf(r)) ? [i] : []))
+    }
     const user = this.userId(input)
-    if (!user) return []
+    if (!user) {
+      const name = input.context?.identity?.user
+      if (name) noteUnknown(name, catalogOf(resources[0]))
+      return []
+    }
     // FilterColumns batches the columns of one table: the indexes are those of the columns.
     if (op === 'FilterColumns' && resources.length === 1 && resources[0]?.table?.columns) {
       const t = resources[0].table
@@ -213,6 +308,8 @@ export class OpaDecider {
   /** `opa.policy.row-filters-uri`: the conditions Trino adds to every read of a table. */
   rowFilters(input: OpaInput): { expression: string }[] {
     if (this.isService(input)) return []
+    // A view's owner reads its tables whole: the person's own rules apply to the view itself.
+    if (this.viewOwner(input)) return []
     const user = this.userId(input)
     if (!user) return [{ expression: 'FALSE' }]
     const known = this.table(input.action?.resource?.table)
@@ -224,6 +321,7 @@ export class OpaDecider {
   /** `opa.policy.batch-column-masking-uri`: the masked columns and what replaces them. */
   columnMasks(input: OpaInput): { index: number; viewExpression: { expression: string } }[] {
     if (this.isService(input)) return []
+    if (this.viewOwner(input)) return []
     const user = this.userId(input)
     const out: { index: number; viewExpression: { expression: string } }[] = []
     ;(input.action?.filterResources ?? []).forEach((r, index) => {

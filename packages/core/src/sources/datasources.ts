@@ -14,6 +14,7 @@ import {
 } from '@eodia/contracts'
 import { type Settings, isSystemSchema, testConnection } from '@eodia/drivers'
 import { type CatalogDefinition, catalogNameFor, connectorOf } from '@eodia/engine'
+import { refusedIdentities } from '../access/opa'
 import { audit } from '../audit'
 import { type Actor, type Core, principalOf } from '../context'
 import { decrypt, encrypt } from '../crypto'
@@ -395,6 +396,30 @@ export async function setSourceSchemas(core: Core, actor: Actor, id: string, inp
   await audit(core, actor, 'datasource.schemas', { kind: 'datasource', id }, { schemas: options.schemas })
   // The schemas left out go now, those added come in: the structure follows at once.
   return requestSync(core, id, actor.userId, ['schema'])
+}
+
+/**
+ * The owners of views allowed to read the source's catalog, and the identities Trino asked about
+ * on it lately and was refused — the owner of a view made elsewhere, to allow in one click.
+ */
+export async function viewOwnersOf(core: Core, actor: Actor, id: string): Promise<{ owners: string[]; refused: { user: string; at: string }[] }> {
+  await assertOwnSource(core, actor, id)
+  const { row } = await settingsOf(core, id)
+  const owners = [...(row.options?.view_owners ?? [])]
+  const refused = refusedIdentities(row.catalog)
+    .filter((r) => !owners.includes(r.user))
+    .map((r) => ({ user: r.user, at: r.at }))
+  return { owners, refused }
+}
+
+export async function setViewOwners(core: Core, actor: Actor, id: string, owners: readonly string[]): Promise<void> {
+  await assertOwnSource(core, actor, id)
+  const { row } = await settingsOf(core, id)
+  const clean = [...new Set(owners.map((o) => o.trim()).filter(Boolean))]
+  const options: DatasourceOptions = { ...row.options, view_owners: clean }
+  await core.db.exec('UPDATE datasource SET options = $2, updated_at = now() WHERE id = $1', [id, options])
+  core.changed()
+  await audit(core, actor, 'datasource.view_owners', { kind: 'datasource', id }, { owners: clean })
 }
 
 /**

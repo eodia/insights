@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { QueryLevel } from '@eodia/contracts'
 import { columnAccess, isAdmin, nativeAllowed, queryLevel, rowFilter, tableAccess, userOf } from '../../src/access/decide'
-import { OpaDecider } from '../../src/access/opa'
+import { OpaDecider, refusedIdentities } from '../../src/access/opa'
 import type { SnapDataPermission, SnapDatasource, SnapTable, SnapUser, Snapshot } from '../../src/access/snapshot'
 
 const table: SnapTable = {
@@ -20,7 +20,7 @@ const table: SnapTable = {
 const in_ = (user: string, space = 'w1') => `${user}@${space}`
 
 /** The source `ds` belongs to `w1`; `shared` adds the spaces it is shared with. */
-const source = (shared: string[] = []): SnapDatasource => ({ id: 'ds', catalog: 'boutique', engine: 'postgresql', nativeSql: true, schemas: null, workspace: 'w1', workspaces: new Set(['w1', ...shared]) })
+const source = (shared: string[] = []): SnapDatasource => ({ id: 'ds', catalog: 'boutique', engine: 'postgresql', nativeSql: true, schemas: null, viewOwners: new Set(), workspace: 'w1', workspaces: new Set(['w1', ...shared]) })
 
 function snapshot(over: Partial<Snapshot> = {}): Snapshot {
   const ds = over.datasources?.get('ds') ?? source()
@@ -136,6 +136,38 @@ describe('a source kept to some schemas', () => {
   it('refuses native SQL, which would reach the other databases', () => {
     expect(nativeAllowed(snap, in_('admin'), 'ds')).toBe(false)
     expect(nativeAllowed(snap, in_('bob'), 'ds')).toBe(false)
+  })
+})
+
+describe('owners of views', () => {
+  // `boutique` lists `ggv_owner`: its views, made in another Trino, run under that name.
+  const listing: SnapDatasource = { ...source(), viewOwners: new Set(['ggv_owner']) }
+  const snap = snapshot({ datasources: new Map([['ds', listing]]), byCatalog: new Map([['boutique', listing]]) })
+  const opa = new OpaDecider(snap, 'eodia-service')
+  const ctx = (user: string) => ({ identity: { user } })
+  const tableRes = { catalogName: 'boutique', schemaName: 'public', tableName: 'clients' }
+
+  it('lets a listed owner read the catalogs that list it, and nothing else', () => {
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'AccessCatalog', resource: { catalog: { name: 'boutique' } } } })).toBe(true)
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'SelectFromColumns', resource: { table: { ...tableRes, columns: ['email'] } } } })).toBe(true)
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'CreateViewWithSelectFromColumns', resource: { table: { ...tableRes, columns: ['email'] } } } })).toBe(true)
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'CreateView', resource: { table: tableRes } } })).toBe(false)
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'AccessCatalog', resource: { catalog: { name: 'support' } } } })).toBe(false)
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'InsertIntoTable', resource: { table: tableRes } } })).toBe(false)
+    expect(opa.rowFilters({ context: ctx('ggv_owner'), action: { operation: 'GetRowFilters', resource: { table: tableRes } } })).toEqual([])
+    const tables = { operation: 'FilterTables', filterResources: [{ table: tableRes }, { table: { catalogName: 'support', schemaName: 'public', tableName: 'tickets' } }] }
+    expect(opa.batch({ context: ctx('ggv_owner'), action: tables })).toEqual([0])
+  })
+
+  it('never lets the owner’s name run a query, nor native SQL', () => {
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'ExecuteQuery' } })).toBe(false)
+    const fn = { function: { catalogName: 'boutique', schemaName: 'system', functionName: 'query' } }
+    expect(opa.allow({ context: ctx('ggv_owner'), action: { operation: 'ExecuteTableFunction', resource: fn } })).toBe(false)
+  })
+
+  it('refuses an identity no source lists, and remembers it to be allowed', () => {
+    expect(opa.allow({ context: ctx('someone_else'), action: { operation: 'AccessCatalog', resource: { catalog: { name: 'boutique' } } } })).toBe(false)
+    expect(refusedIdentities('boutique').map((r) => r.user)).toContain('someone_else')
   })
 })
 

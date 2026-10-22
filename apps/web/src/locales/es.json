@@ -2378,5 +2378,24 @@
     "one": "Ver el esquema del sistema, siempre oculto",
     "many": "Ver los {count} esquemas del sistema, siempre ocultos",
     "other": "Ver los {count} esquemas del sistema, siempre ocultos"
-  }
+  },
+  "À la place de l’identifiant : un jeton déjà délivré.": "En lugar del identificador: un token ya emitido.",
+  "client_id:secret": "client_id:secret",
+  "Dossier renommé.": "Carpeta renombrada.",
+  "Facultatif : un catalogue ouvert n’en demande pas. Gardé chiffré, comme un mot de passe.": "Opcional: un catálogo abierto no lo necesita. Se guarda cifrado, como una contraseña.",
+  "Identifiant OAuth2": "Credencial OAuth2",
+  "Nouveau sous-dossier dans « {name} »": "Nueva subcarpeta en «{name}»",
+  "Nouveau sous-dossier…": "Nueva subcarpeta…",
+  "PRINCIPAL_ROLE:ALL": "PRINCIPAL_ROLE:ALL",
+  "Renommer le dossier": "Renombrar la carpeta",
+  "Renommer…": "Renombrar…",
+  "Scope OAuth2": "Scope OAuth2",
+  "« {name} » peut lire ce catalogue pour ses vues.": "«{name}» puede leer este catálogo para sus vistas.",
+  "« {name} » ne lit plus ce catalogue.": "«{name}» ya no lee este catálogo.",
+  "Propriétaires de vues": "Propietarios de vistas",
+  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires dont les vues lisent ce catalogue : ils ne peuvent que lire, seulement les catalogues qui les autorisent, et jamais lancer de requête eux-mêmes.": "Una vista creada en otro Trino lee sus tablas con los derechos de su propietario. Autorice aquí a los propietarios cuyas vistas leen este catálogo: solo pueden leer, solo los catálogos que los autorizan, y nunca lanzar una consulta ellos mismos.",
+  "Retirer « {name} »": "Quitar «{name}»",
+  "Nom de l’utilisateur Trino": "Nombre del usuario de Trino",
+  "Autoriser": "Autorizar",
+  "Identités refusées récemment sur ce catalogue": "Identidades rechazadas recientemente en este catálogo"
 }

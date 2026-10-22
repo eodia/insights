@@ -240,6 +240,9 @@ export const DatasourceInputSchema = z.object({
   schedule: z.enum(['hourly', 'daily', 'manual']).optional(),
 })
 
+/** The owners of views allowed to read a source's catalog. */
+export const ViewOwnersInputSchema = z.object({ owners: z.array(z.string().min(1).max(200)).max(50) })
+
 /** The schemas a source shows, and their names: an empty list shows them all. */
 export const SourceSchemasInputSchema = z.object({
   schemas: z.array(z.string().max(200)).max(500),

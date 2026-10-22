@@ -125,9 +125,13 @@ function icebergProperties(def: CatalogDefinition): Record<string, string> {
   if (type === 'rest') {
     props['iceberg.rest-catalog.uri'] = aliasUrls(def, str(s.rest_uri).trim())
     props['iceberg.rest-catalog.warehouse'] = str(s.warehouse).trim()
-    if (str(s.rest_token)) {
+    // OAuth2 by a client's credential (`client_id:secret`, a token asked for each time) or by
+    // a token already issued; the credential's scope with it.
+    if (str(s.rest_credential) || str(s.rest_token)) {
       props['iceberg.rest-catalog.security'] = 'OAUTH2'
-      props['iceberg.rest-catalog.oauth2.token'] = str(s.rest_token)
+      if (str(s.rest_credential)) props['iceberg.rest-catalog.oauth2.credential'] = str(s.rest_credential)
+      else props['iceberg.rest-catalog.oauth2.token'] = str(s.rest_token)
+      if (str(s.rest_scope).trim()) props['iceberg.rest-catalog.oauth2.scope'] = str(s.rest_scope).trim()
     }
     if (bool(s.vended_credentials)) props['iceberg.rest-catalog.vended-credentials-enabled'] = 'true'
   }

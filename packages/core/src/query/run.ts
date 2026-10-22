@@ -366,6 +366,12 @@ function mapError(err: unknown, timeoutMs: number): AppError {
   if (err instanceof AppError) return err
   if (err instanceof TrinoCancelled) return new AppError('QUERY_CANCELLED', 'Requête annulée.')
   if (err instanceof TrinoQueryError) {
+    // A view made in another Trino reads under its owner's name, unknown here until allowed.
+    const owner = /View owner does not have sufficient privileges.*?(?:catalog ([\w-]+)|selects from ([\w-]+)\.)/i.exec(err.message)
+    const read = owner?.[1] ?? owner?.[2]
+    if (read) {
+      return new AppError('DATA_ACCESS_DENIED', `Cette vue lit le catalogue « ${read} » avec les droits de son propriétaire, inconnu ici : autorisez-le dans la source « ${read} », onglet Connexion, « Propriétaires de vues ».`)
+    }
     if (/Access Denied/i.test(err.message)) {
       return new AppError('DATA_ACCESS_DENIED', `Accès aux données refusé : ${err.message.replace(/^Access Denied:\s*/i, '')}`)
     }
