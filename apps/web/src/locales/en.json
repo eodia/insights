@@ -2247,7 +2247,6 @@
   "Dernière page": "Last page",
   "Descendre": "Move down",
   "Effacer les filtres": "Clear the filters",
-  "Excel (.xlsx)": "Excel (.xlsx)",
   "Figer la première colonne": "Freeze the first column",
   "Filtrer « {column} »": "Filter “{column}”",
   "Garder les lignes qui contiennent « {text} »": "Keep the rows containing “{text}”",
@@ -2338,5 +2337,13 @@
   "Rattacher un catalogue de l’espace :": "Attach a catalog of the space:",
   "Retirer « {name} » ?": "Remove “{name}”?",
   "Sa connexion, comme une source ; il ne sera ni montré ni synchronisé.": "Its connection, as a source; it will be neither shown nor synchronized.",
-  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires des vues de cette source : ils lisent ce catalogue et ses catalogues techniques, rien d’autre, et ne lancent jamais de requête eux-mêmes.": "A view created in another Trino reads its tables with its owner's rights. Allow here the owners of this source's views: they read this catalog and its technical catalogs, nothing else, and never run a query themselves."
+  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires des vues de cette source : ils lisent ce catalogue et ses catalogues techniques, rien d’autre, et ne lancent jamais de requête eux-mêmes.": "A view created in another Trino reads its tables with its owner's rights. Allow here the owners of this source's views: they read this catalog and its technical catalogs, nothing else, and never run a query themselves.",
+  "Copier la ligne": "Copy the row",
+  "Dans cette table": "In this table",
+  "Effacer la recherche et les filtres": "Clear the search and filters",
+  "Excel": "Excel",
+  "La ligne": "The row",
+  "Masquer cette valeur": "Hide this value",
+  "N’afficher que cette valeur": "Show only this value",
+  "Voir la ligne": "View the row"
 }

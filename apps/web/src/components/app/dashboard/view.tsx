@@ -22,8 +22,7 @@ import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
 import { ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
-import { copy } from '@/components/app/admin/common'
-import { PointMenu, openRecords, recordPicks, valueText } from '@/components/app/point-menu'
+import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -120,6 +119,8 @@ interface CardProps {
   runner: Runner
   selectedParameter: DashboardParameter | null
   onResult: (cardId: string, r: RunResult, viz: Viz) => void
+  /** The catalog column each filter tied to the card restricts, read off its question. */
+  onColumns?: (cardId: string, columns: Readonly<Record<string, string>>) => void
   onPoint: (card: DashboardCard, p: PointClick) => void
   /** A right click on a point: with the values the card was run with, to read its rows by. */
   onPointMenu: (card: DashboardCard, p: PointClick, values: Values, title: string) => void
@@ -215,7 +216,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onEditQuestion, selection } = props
+  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onColumns, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onEditQuestion, selection } = props
   const isQuestion = card.kind === 'question'
   // The card a selection was clicked on keeps all its categories: one can add to it.
   const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
@@ -237,6 +238,7 @@ function CardFrame(props: CardProps) {
   }, [run.data, card.id, onResult, viz])
   const title = card.title || question?.name || ''
   const [editingTitle, setEditingTitle] = useState(false)
+  const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null)
   const builderQuery = question?.query.kind === 'builder' ? question.query : card.query?.kind === 'builder' ? card.query : null
   const { data: tables = [] } = useTables(undefined, true)
   const sourceColumns = useMemo(() => {
@@ -245,6 +247,19 @@ function CardFrame(props: CardProps) {
     // A joined column is offered only when the question already has that join: a filter cannot add one.
     return columnOptions(map.get(builderQuery.source.id) ?? null, map, builderQuery).filter((o) => !o.join || (builderQuery.joins ?? []).some((j) => j.alias === o.join?.alias))
   }, [builderQuery, tables])
+  // The column a filter restricts, from the question itself: a count shows none of its columns,
+  // and a filter tied to it still lists its values.
+  useEffect(() => {
+    if (!onColumns || !sourceColumns.length) return
+    const ids: Record<string, string> = {}
+    for (const m of card.mappings ?? []) {
+      if (!('column' in m.target)) continue
+      const key = refKey(m.target.column)
+      const id = sourceColumns.find((o) => refKey(o.ref) === key)?.columnId
+      if (id) ids[m.parameter] = id
+    }
+    onColumns(card.id, ids)
+  }, [onColumns, sourceColumns, card.id, card.mappings])
   // A SQL card's result columns can take a filter too: the server wraps its statement.
   const sqlCard = (question?.query.kind ?? card.query?.kind ?? 'builder') !== 'builder'
   const variables = question && question.query.kind !== 'builder' ? (question.query.variables ?? []).map((v) => v.name) : card.query && card.query.kind !== 'builder' ? (card.query.variables ?? []).map((v) => v.name) : []
@@ -298,6 +313,8 @@ function CardFrame(props: CardProps) {
               )}
             </h3>
           )}
+          {/* A table's search, here rather than on a line of its own. */}
+          {isQuestion ? <div ref={setToolbarSlot} className="card-still flex min-w-0 items-center gap-1.5 empty:hidden" /> : null}
           {run.isFetching ? <Loader2 className="size-3.5 animate-spin text-muted-foreground" /> : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -402,6 +419,7 @@ function CardFrame(props: CardProps) {
             {...(selection?.values.length ? { selected: selection.values } : {})}
             persistKey={`card:${props.dashboardId}:${card.id}`}
             exportName={title}
+            toolbarSlot={toolbarSlot}
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -670,6 +688,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const [fullscreenCard, setFullscreenCard] = useState<DashboardCard | null>(null)
   const [saving, setSaving] = useState(false)
   const results = useRef(new Map<string, RunResult>())
+  const columnIds = useRef(new Map<string, Readonly<Record<string, string>>>())
   const vizs = useRef(new Map<string, Viz>())
   const [, force] = useState(0)
   const { width, containerRef, mounted } = useContainerWidth()
@@ -704,8 +723,16 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     if (!had) force((x) => x + 1)
   }, [])
 
+  const onColumns = useCallback((id: string, cols: Readonly<Record<string, string>>) => {
+    const before = JSON.stringify(columnIds.current.get(id) ?? {})
+    columnIds.current.set(id, cols)
+    if (before !== JSON.stringify(cols)) force((x) => x + 1)
+  }, [])
+
   const columnFor = (paramId: string) => {
     for (const c of draft.cards) {
+      const known = columnIds.current.get(c.id)?.[paramId]
+      if (known && (c.mappings ?? []).some((m) => m.parameter === paramId)) return known
       const m = (c.mappings ?? []).find((x) => x.parameter === paramId && 'column' in x.target)
       if (!m || !('column' in m.target)) continue
       const target = m.target.column
@@ -1133,6 +1160,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   runner={runner}
                   selectedParameter={selectedParameter}
                   onResult={onResult}
+                  onColumns={onColumns}
                   onPoint={onPoint}
                   onPointMenu={(c, point, v, title) => setMenu({ card: c, point, values: v, title })}
                   onChange={(patch) => setCard(card.id, patch)}
@@ -1195,10 +1223,6 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               <FilterIcon /> {$t('Filtrer le tableau de bord sur cette valeur')}
             </DropdownMenuItem>
           ) : null}
-          {(readsRecords && recordPicks(menu.point)) || parameterFor(menu.card, menu.point) ? <DropdownMenuSeparator /> : null}
-          <DropdownMenuItem onSelect={() => void copy(valueText(menu.point.value, menu.point.column))}>
-            <Copy /> {$t('Copier la valeur')}
-          </DropdownMenuItem>
         </PointMenu>
       ) : null}
       <Dialog open={!!fullscreenCard} onOpenChange={(o) => !o && setFullscreenCard(null)}>

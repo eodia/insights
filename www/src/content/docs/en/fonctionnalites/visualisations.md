@@ -116,3 +116,17 @@ Choices among four options or fewer are made with one click, on illustrated butt
 In a dashboard, clicking a bar or a slice filters the dashboard, and **Shift** + click
 adds more categories: see [Dashboards](/insights/en/fonctionnalites/tableaux-de-bord/#click-a-chart-to-filter).
 In the editor, it offers to filter the question on the value, or to exclude it.
+
+## Right-clicking a table
+
+A right click on a cell opens the table's menu, arranged in groups:
+
+- **View the row**: all its columns, one per line, to read or copy; for a grouped table,
+  **View the records** also opens the rows behind that group;
+- what the screen offers: filter the dashboard, or the question, on this value;
+- **In this table**: show only this value, hide it, clear the search and filters — nothing is
+  saved, only the table changes;
+- **Copy the value**, **Copy the row** (with its headers, to paste into a spreadsheet);
+- **Export** to **CSV** or **Excel** the rows the search and filters keep.
+
+On a card, the table's search sits in the header, between the title and the ⋯ menu.

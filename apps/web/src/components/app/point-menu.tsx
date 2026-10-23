@@ -2,11 +2,13 @@
 
 import { type Filter, type Question, type QuestionQuery, type RecordPick, type ResultColumn, recordsQuery, soleMetric } from '@eodia/contracts'
 import type { PointClick } from '@/components/app/visualization'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { copy } from '@/components/app/admin/common'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { api } from '@/lib/api'
-import { formatValue } from '@/lib/format'
-import { $t } from '@/lib/i18n'
-import type { ReactNode } from 'react'
+import { formatCount, formatValue } from '@/lib/format'
+import { $t, $tp } from '@/lib/i18n'
+import { ClipboardList, Copy, EyeOff, FileSpreadsheet, FileText, FilterX, ListFilter, PanelRight } from 'lucide-react'
+import { Children, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 
@@ -35,6 +37,8 @@ const PERIODS = new Set(['day', 'week', 'month', 'quarter', 'year'])
  * a total, a rank of a date.
  */
 export function recordPicks(p: PointClick): RecordPick[] | null {
+  // A row of a table not grouped is a record already: « Voir la ligne » shows it.
+  if (p.table && !p.table.grouped) return null
   const picks: RecordPick[] = []
   for (const { column, value } of [{ column: p.column, value: p.value }, ...(p.also ?? [])]) {
     if (column.role === 'metric' || (column.role === 'field' && !column.source)) return null
@@ -93,9 +97,16 @@ export function openRecords(point: PointClick, title: string | undefined, queryO
   })()
 }
 
-/** The menu, opened where the click was; it closes on Escape, on a choice or a click elsewhere. */
-export function PointMenu({ point, onClose, children }: { point: PointClick | null; onClose: () => void; children: ReactNode }) {
+/**
+ * The menu, opened where the click was; it closes on Escape, on a choice or a click elsewhere.
+ * The screen gives its own entries (the records, its filters); a table adds its row, its own
+ * filters and its export, each group apart; the value is copied everywhere.
+ */
+export function PointMenu({ point, onClose, children }: { point: PointClick | null; onClose: () => void; children?: ReactNode }) {
   if (!point) return null
+  const table = point.table
+  const cell = table?.cell ?? { column: point.column, value: point.value }
+  const own = Children.toArray(children)
   return (
     <DropdownMenu key={`${point.at.x}:${point.at.y}`} open modal={false} onOpenChange={(open) => !open && onClose()}>
       {/* An anchor of no size at the click, out of any card that would move it. */}
@@ -105,10 +116,72 @@ export function PointMenu({ point, onClose, children }: { point: PointClick | nu
         </DropdownMenuTrigger>,
         document.body,
       )}
-      <DropdownMenuContent align="start" className="w-64" onCloseAutoFocus={(e) => e.preventDefault()}>
+      <DropdownMenuContent align="start" className="w-72" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DropdownMenuLabel className="line-clamp-2 text-xs font-normal text-muted-foreground">{pointText(point)}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {children}
+        {table || own.length ? (
+          <DropdownMenuGroup>
+            {table ? (
+              <DropdownMenuItem onSelect={table.showRow}>
+                <PanelRight /> {$t('Voir la ligne')}
+              </DropdownMenuItem>
+            ) : null}
+            {own}
+          </DropdownMenuGroup>
+        ) : null}
+        {table?.filter || table?.clear ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{$t('Dans cette table')}</DropdownMenuLabel>
+              {table.filter ? (
+                <>
+                  <DropdownMenuItem onSelect={() => table.filter?.(true)}>
+                    <ListFilter /> {$t('N’afficher que cette valeur')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => table.filter?.(false)}>
+                    <EyeOff /> {$t('Masquer cette valeur')}
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+              {table.clear ? (
+                <DropdownMenuItem onSelect={table.clear}>
+                  <FilterX /> {$t('Effacer la recherche et les filtres')}
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuGroup>
+          </>
+        ) : null}
+        {table || own.length ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          <DropdownMenuItem onSelect={() => void copy(valueText(cell.value, cell.column))}>
+            <Copy /> {$t('Copier la valeur')}
+          </DropdownMenuItem>
+          {table ? (
+            <DropdownMenuItem onSelect={table.copyRow}>
+              <ClipboardList /> {$t('Copier la ligne')}
+            </DropdownMenuItem>
+          ) : null}
+        </DropdownMenuGroup>
+        {table ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="flex items-center text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                {$t('Exporter')}
+                <span className="ml-auto font-normal tracking-normal normal-case tabular-nums">{$tp(table.rows, '{count} ligne', '{count} lignes', { count: formatCount(table.rows) })}</span>
+              </DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => table.export('csv')}>
+                <FileText /> {$t('CSV')}
+                <span className="ml-auto font-mono text-[11px] text-muted-foreground">.csv</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => table.export('xlsx')}>
+                <FileSpreadsheet /> {$t('Excel')}
+                <span className="ml-auto font-mono text-[11px] text-muted-foreground">.xlsx</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )

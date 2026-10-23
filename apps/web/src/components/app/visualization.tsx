@@ -16,11 +16,15 @@ import { useChartTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowDown, ArrowUp, Download, Minus, RotateCcw, Search } from 'lucide-react'
-import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, Copy, FilterX, Minus, RotateCcw, Search } from 'lucide-react'
+import { type MouseEvent, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
-import { type ColumnFilter, HeaderCell, Pager, exportTable, fold, keepsRow, useTableLayout } from '@/components/app/table-parts'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { copy } from '@/components/app/admin/common'
+import { PointMenu } from '@/components/app/point-menu'
+import { type ColumnFilter, HeaderCell, Pager, exportTable, fold, keepsRow, useTableLayout, valueKey } from '@/components/app/table-parts'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Hint } from '@/components/ui/tooltip'
 
@@ -32,6 +36,25 @@ export interface PointClick {
   readonly at: { x: number; y: number }
   /** Shift, Ctrl or ⌘ held: the value adds to (or leaves) the selection rather than replace it. */
   readonly additive: boolean
+  /** A right click in a table: what the table itself does with the row, after the screen's entries. */
+  readonly table?: TableActions
+}
+
+/** What a table offers on a right click: its row, its own filters, a copy, an export. */
+export interface TableActions {
+  /** The cell clicked — a point of a grouped row is read by its groupings, whatever the cell. */
+  readonly cell: { readonly column: ResultColumn; readonly value: unknown }
+  /** A row of a grouped result: the records behind it can be read. */
+  readonly grouped: boolean
+  readonly showRow: () => void
+  readonly copyRow: () => void
+  /** Only this value in the table, or every other: absent when the table filters nothing. */
+  readonly filter?: (only: boolean) => void
+  /** Clears the table's search and filters, when there are some. */
+  readonly clear?: () => void
+  /** The rows an export writes: those the search and the filters keep. */
+  readonly rows: number
+  readonly export: (format: 'csv' | 'xlsx') => void
 }
 
 const FADED = 0.28
@@ -84,9 +107,12 @@ export function Visualization({
   persistKey,
   onSettingsChange,
   exportName,
+  toolbarSlot,
 }: {
   result: RunResult | Result
   viz: Viz
+  /** A table: where its search goes — a card's header —, rather than a line of its own. */
+  toolbarSlot?: HTMLElement | null
   /** A table: where this browser keeps its widths and order. */
   persistKey?: string
   /** A table whose question can be changed here: its moved columns change its order. */
@@ -137,6 +163,7 @@ export function Visualization({
           {...(persistKey ? { persistKey } : {})}
           {...(onSettingsChange ? { onSettingsChange } : {})}
           {...(exportName ? { exportName } : {})}
+          {...(toolbarSlot ? { toolbarSlot } : {})}
         />
       )
     case 'scalar':
@@ -437,13 +464,17 @@ export function DataTable({
   persistKey,
   onSettingsChange,
   exportName,
+  toolbarSlot,
 }: {
   result: Result
   settings?: VisualizationSettings
   looks?: Looks
   className?: string
   onCellClick?: (col: ResultColumn, value: unknown, at: { x: number; y: number }) => void
-  /** A right click on a row of a grouped result: its groupings, the one clicked first. */
+  /**
+   * A right click on a cell, for the screen to add its own entries: a row of a grouped result is
+   * read by its groupings, the one clicked first. Without it, the table opens its menu itself.
+   */
   onRowMenu?: (p: PointClick) => void
   /** Where this browser keeps the table's widths and order (a question, a card); none: forgotten. */
   persistKey?: string
@@ -451,6 +482,8 @@ export function DataTable({
   onSettingsChange?: (patch: Partial<VisualizationSettings>) => void
   /** The name its exported files take. */
   exportName?: string
+  /** Where its search goes, a card's header, rather than a line above the table. */
+  toolbarSlot?: HTMLElement | null
 }) {
   const parent = useRef<HTMLDivElement>(null)
   const [sort, setSort] = useState<{ index: number; desc: boolean } | null>(null)
@@ -531,51 +564,104 @@ export function DataTable({
   const filtered = Object.keys(filters).length > 0 || deferredSearch.trim() !== ''
   const exported = columns.map(({ c, i }) => ({ col: c, label: label(c), index: i }))
   const freeze = settings.freeze_first === true
+  const [menu, setMenu] = useState<PointClick | null>(null)
+  const [detail, setDetail] = useState<readonly unknown[] | null>(null)
+  const exportRows = (format: 'csv' | 'xlsx') => void exportTable(format, exportName ?? '', exported, rows).catch(exportFailed)
+  const rowText = (row: readonly unknown[]) => `${columns.map(({ c }) => label(c)).join('\t')}\n${columns.map(({ c, i }) => formatValue(row[i], c)).join('\t')}`
 
-  return (
-    <div className={cn('flex h-full min-h-0 flex-col text-sm', className)}>
-      {toolbar ? (
-        <div className="flex shrink-0 items-center gap-2 px-1 pb-1.5">
-          <div className="relative w-56 max-w-[50%]">
-            <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher…')} className="h-7 pl-7 text-xs" aria-label={$t('Rechercher dans la table')} />
-          </div>
-          {filtered ? (
-            <>
-              <span className="text-xs text-muted-foreground tabular-nums">{$t('{kept} sur {all}', { kept: formatCount(rows.length), all: formatCount(result.rows.length) })}</span>
+  const openMenu = (e: MouseEvent, row: readonly unknown[], c: ResultColumn, i: number) => {
+    e.preventDefault()
+    const first = groupings.find((g) => g.c === c) ?? groupings[0]
+    const key = valueKey(row[i])
+    const point: PointClick = {
+      ...(first
+        ? { column: first.c, value: row[first.i], also: groupings.filter((g) => g !== first).map((g) => ({ column: g.c, value: row[g.i] })) }
+        : { column: c, value: row[i] }),
+      at: { x: e.clientX, y: e.clientY },
+      additive: false,
+      table: {
+        cell: { column: c, value: row[i] },
+        grouped: !!first,
+        showRow: () => setDetail(row),
+        copyRow: () => void copy(rowText(row)),
+        ...(toolbar
+          ? {
+              filter: (only: boolean) =>
+                setFilters((x) => {
+                  const prev = x[c.name]?.values
+                  const all = [...new Set(result.rows.map((r) => valueKey(r[i])))]
+                  const values = only ? [key] : all.filter((k) => k !== key && (!prev || prev.includes(k)))
+                  return { ...x, [c.name]: { values } }
+                }),
+            }
+          : {}),
+        ...(filtered
+          ? {
+              clear: () => {
+                setFilters({})
+                setSearch('')
+              },
+            }
+          : {}),
+        rows: rows.length,
+        export: exportRows,
+      },
+    }
+    if (onRowMenu) onRowMenu(point)
+    else setMenu(point)
+  }
+
+  const tools = toolbar ? (
+    <>
+      <div className={cn('relative', toolbarSlot ? 'w-44 min-w-24 shrink' : 'w-56 max-w-[50%]')}>
+        <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher…')} className="h-7 pl-7 text-xs" aria-label={$t('Rechercher dans la table')} />
+      </div>
+      {filtered ? (
+        <>
+          <span className="shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums">{$t('{kept} sur {all}', { kept: formatCount(rows.length), all: formatCount(result.rows.length) })}</span>
+          {toolbarSlot ? (
+            <Hint label={$t('Effacer les filtres')}>
               <button
                 type="button"
                 onClick={() => {
                   setFilters({})
                   setSearch('')
                 }}
-                className="text-xs text-primary hover:underline"
+                className="rounded p-1 text-primary hover:bg-accent"
+                aria-label={$t('Effacer les filtres')}
               >
-                {$t('Effacer les filtres')}
-              </button>
-            </>
-          ) : null}
-          <span className="flex-1" />
-          {custom && !onSettingsChange ? (
-            <Hint label={$t('Largeurs et ordre des colonnes d’origine')}>
-              <button type="button" onClick={reset} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Réinitialiser la mise en page')}>
-                <RotateCcw className="size-3.5" />
+                <FilterX className="size-3.5" />
               </button>
             </Hint>
-          ) : null}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground">
-                <Download className="size-3.5" /> {$t('Exporter')}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => void exportTable('csv', exportName ?? '', exported, rows).catch(exportFailed)}>{$t('CSV')}</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => void exportTable('xlsx', exportName ?? '', exported, rows).catch(exportFailed)}>{$t('Excel (.xlsx)')}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setFilters({})
+                setSearch('')
+              }}
+              className="text-xs text-primary hover:underline"
+            >
+              {$t('Effacer les filtres')}
+            </button>
+          )}
+        </>
       ) : null}
+      {toolbarSlot ? null : <span className="flex-1" />}
+      {custom && !onSettingsChange ? (
+        <Hint label={$t('Largeurs et ordre des colonnes d’origine')}>
+          <button type="button" onClick={reset} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Réinitialiser la mise en page')}>
+            <RotateCcw className="size-3.5" />
+          </button>
+        </Hint>
+      ) : null}
+    </>
+  ) : null
+
+  return (
+    <div className={cn('flex h-full min-h-0 flex-col text-sm', className)}>
+      {tools && toolbarSlot ? createPortal(tools, toolbarSlot) : tools ? <div className="flex shrink-0 items-center gap-2 px-1 pb-1.5">{tools}</div> : null}
       <div ref={parent} className="relative min-h-0 flex-1 overflow-auto">
         <table className="w-max min-w-full border-separate border-spacing-0">
           <thead className="sticky top-0 z-10 bg-background">
@@ -633,21 +719,7 @@ export function DataTable({
                       <td
                         key={c.name}
                         onClick={onCellClick ? (e) => onCellClick(c, value, { x: e.clientX, y: e.clientY }) : undefined}
-                        onContextMenu={
-                          onRowMenu && groupings.length
-                            ? (e) => {
-                                e.preventDefault()
-                                const first = groupings.find((g) => g.c === c) ?? (groupings[0] as { c: ResultColumn; i: number })
-                                onRowMenu({
-                                  column: first.c,
-                                  value: row[first.i],
-                                  also: groupings.filter((g) => g !== first).map((g) => ({ column: g.c, value: row[g.i] })),
-                                  at: { x: e.clientX, y: e.clientY },
-                                  additive: false,
-                                })
-                              }
-                            : undefined
-                        }
+                        onContextMenu={(e) => openMenu(e, row, c, i)}
                         className={cn(
                           'border-b px-3',
                           wrap ? 'py-1.5 break-words whitespace-normal' : 'truncate whitespace-nowrap',
@@ -696,6 +768,32 @@ export function DataTable({
         </table>
       </div>
       {paged && rows.length > pageSize ? <Pager page={current} pages={pages} from={offset + 1} to={offset + shown.length} total={rows.length} onPage={setPage} /> : null}
+      <PointMenu point={menu} onClose={() => setMenu(null)} />
+      <Dialog open={detail !== null} onOpenChange={(o) => !o && setDetail(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{exportName || $t('La ligne')}</DialogTitle>
+            <DialogDescription>{$tp(columns.length, '{count} colonne', '{count} colonnes')}</DialogDescription>
+          </DialogHeader>
+          {detail ? (
+            <dl className="divide-y rounded-lg border text-sm">
+              {columns.map(({ c, i }) => (
+                <div key={c.name} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 px-3 py-2">
+                  <dt className="truncate text-muted-foreground">{label(c)}</dt>
+                  <dd className="break-words select-text">
+                    <ValueCell value={detail[i]} col={c} looks={looks} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => detail && void copy(rowText(detail))}>
+              <Copy /> {$t('Copier la ligne')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

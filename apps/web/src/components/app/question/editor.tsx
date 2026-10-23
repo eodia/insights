@@ -2,8 +2,7 @@
 
 import type { BuilderQuery, Dashboard, Filter, ItemSummary, Question, QuestionQuery, ResultColumn, SqlVariable, Visualization as Viz, VisualizationType } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, SQL_VARIABLE_TYPES, cardSize, finerUnit, periodExpression, placedAfter, resultNames, sqlVariableNames } from '@eodia/contracts'
-import { copy } from '@/components/app/admin/common'
-import { PointMenu, openRecords, recordPicks, valueText } from '@/components/app/point-menu'
+import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu'
 import { ConfirmDialog, SaveDialog } from '@/components/app/dialogs'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { ShareDialog } from '@/components/app/share-dialog'
@@ -588,10 +587,6 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                     </DropdownMenuSubContent>
                   </DropdownMenuSub>
                 ) : null}
-                {builder ? <DropdownMenuSeparator /> : null}
-                <DropdownMenuItem onSelect={() => void copy(valueText(point.value, point.column))}>
-                  <Copy /> {$t('Copier la valeur')}
-                </DropdownMenuItem>
               </PointMenu>
             ) : null}
           </div>

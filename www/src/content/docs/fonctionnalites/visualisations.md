@@ -120,3 +120,17 @@ Les choix de quatre options au plus se font d’un clic, sur des boutons illustr
 Dans un tableau de bord, un clic sur une barre ou une part filtre le tableau, et **Maj** + clic
 ajoute d’autres catégories : voir [Tableaux de bord](/insights/fonctionnalites/tableaux-de-bord/#cliquer-sur-un-graphique-pour-filtrer).
 Dans l’éditeur, il propose de filtrer la question sur la valeur, ou de l’exclure.
+
+## Le clic droit dans un tableau
+
+Un clic droit sur une cellule ouvre le menu du tableau, rangé par groupes :
+
+- **Voir la ligne** : toutes ses colonnes, une par ligne, à lire ou à copier ; pour un tableau
+  regroupé, **Voir les enregistrements** ouvre en plus les lignes derrière ce groupe ;
+- ce que propose l’écran : filtrer le tableau de bord, ou la question, sur cette valeur ;
+- **Dans cette table** : n’afficher que cette valeur, la masquer, effacer la recherche et les
+  filtres — rien n’est enregistré, la table seule change ;
+- **Copier la valeur**, **Copier la ligne** (avec ses en-têtes, à coller dans un tableur) ;
+- **Exporter** en **CSV** ou en **Excel** les lignes que gardent la recherche et les filtres.
+
+Sur une carte, la recherche de la table prend place dans l’en-tête, entre le titre et le menu ⋯.

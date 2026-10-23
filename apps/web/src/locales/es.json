@@ -2325,7 +2325,6 @@
   "Dernière page": "Última página",
   "Descendre": "Bajar",
   "Effacer les filtres": "Borrar los filtros",
-  "Excel (.xlsx)": "Excel (.xlsx)",
   "Figer la première colonne": "Fijar la primera columna",
   "Filtrer « {column} »": "Filtrar «{column}»",
   "Garder les lignes qui contiennent « {text} »": "Conservar las filas que contienen «{text}»",
@@ -2419,5 +2418,13 @@
   "Rattacher un catalogue de l’espace :": "Vincular un catálogo del espacio:",
   "Retirer « {name} » ?": "¿Quitar «{name}»?",
   "Sa connexion, comme une source ; il ne sera ni montré ni synchronisé.": "Su conexión, como una fuente; no se mostrará ni se sincronizará.",
-  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires des vues de cette source : ils lisent ce catalogue et ses catalogues techniques, rien d’autre, et ne lancent jamais de requête eux-mêmes.": "Una vista creada en otro Trino lee sus tablas con los derechos de su propietario. Autorice aquí a los propietarios de las vistas de esta fuente: leen este catálogo y sus catálogos técnicos, nada más, y nunca lanzan una consulta ellos mismos."
+  "Une vue créée dans un autre Trino lit ses tables avec les droits de son propriétaire. Autorisez ici les propriétaires des vues de cette source : ils lisent ce catalogue et ses catalogues techniques, rien d’autre, et ne lancent jamais de requête eux-mêmes.": "Una vista creada en otro Trino lee sus tablas con los derechos de su propietario. Autorice aquí a los propietarios de las vistas de esta fuente: leen este catálogo y sus catálogos técnicos, nada más, y nunca lanzan una consulta ellos mismos.",
+  "Copier la ligne": "Copiar la fila",
+  "Dans cette table": "En esta tabla",
+  "Effacer la recherche et les filtres": "Borrar la búsqueda y los filtros",
+  "Excel": "Excel",
+  "La ligne": "La fila",
+  "Masquer cette valeur": "Ocultar este valor",
+  "N’afficher que cette valeur": "Mostrar solo este valor",
+  "Voir la ligne": "Ver la fila"
 }
