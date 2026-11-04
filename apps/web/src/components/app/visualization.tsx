@@ -156,13 +156,15 @@ export function Visualization({
       live = false
     }
   }, [textFont])
+  // The selection by its values: a new array with the same ones draws nothing anew.
+  const selectedKey = JSON.stringify(selected ?? [])
   const model = useMemo(() => {
     void fontsLoaded
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
     const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
     const chosen = m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
     return chosen && annotations?.length ? withAnnotations(chosen, annotations, dark) : chosen
-  }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations])
+  }, [viz.type, result, settings, dark, selectedKey, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations])
 
   if (result.rows.length === 0) {
     return (

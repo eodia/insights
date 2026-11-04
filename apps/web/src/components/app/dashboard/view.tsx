@@ -1281,23 +1281,30 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           .map((e) => e.target as HTMLElement)
           .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left)
         if (!reached.length) return
+        for (const el of reached) {
+          io.unobserve(el)
+          if (el.dataset.cardId) seen.add(el.dataset.cardId)
+        }
         setRevealed((cur) => {
+          const fresh = reached.map((el) => el.dataset.cardId).filter((id): id is string => !!id && !cur.has(id))
+          // Nothing new: the same map, so nothing renders again.
+          if (!fresh.length) return cur
           const next = new Map(cur)
-          let i = 0
-          for (const el of reached) {
-            const id = el.dataset.cardId
-            if (id && !next.has(id)) next.set(id, Math.min(i++ * 70, 560))
-            io.unobserve(el)
-          }
+          fresh.forEach((id, i) => next.set(id, Math.min(i * 70, 560)))
           return next
         })
       },
       { root: grid, rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
     )
+    // Cards already reached are not watched again: a chart redrawing in one would otherwise
+    // set the whole dashboard rendering anew, its charts redrawn, and so on.
+    const seen = new Set<string>()
     let queued = 0
     const watch = () => {
       queued = 0
-      grid.querySelectorAll<HTMLElement>('[data-card-id]').forEach((el) => io.observe(el))
+      grid.querySelectorAll<HTMLElement>('[data-card-id]').forEach((el) => {
+        if (!seen.has(el.dataset.cardId ?? '')) io.observe(el)
+      })
     }
     watch()
     // Cards placed later (a tab opened, the grid measured) are watched too — once a frame at most.
