@@ -1,5 +1,6 @@
 'use client'
 
+import { DashboardArt, QuestionArt, SqlArt } from '@/components/app/illustrations'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import { $t } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Code2, Database, FolderPlus, LayoutDashboard, PanelLeft, Plus, Search, Sparkles, BarChart3 } from 'lucide-react'
+import { Database, FolderPlus, PanelLeft, Plus, Search, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Fragment, useEffect } from 'react'
@@ -74,26 +75,31 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
             <Plus className="size-4" /> {$t('Nouveau')}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onSelect={() => router.push('/question/new')}>
-            <BarChart3 /> {$t('Question')}
-          </DropdownMenuItem>
-          {me?.can.use_sql ? (
-            <DropdownMenuItem onSelect={() => router.push('/sql')}>
-              <Code2 /> {$t('Requête SQL')}
+        <DropdownMenuContent align="end" className="w-[min(600px,calc(100vw-2rem))] p-2">
+          {/* What each opens, drawn as on the home page; then the smaller things to create. */}
+          <div className={cn('grid gap-2', me?.can.use_sql ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
+            <NewTile title={$t('Question')} text={$t('Explorer une table sans écrire de SQL')} onSelect={() => router.push('/question/new')}>
+              <QuestionArt className="px-3.5" />
+            </NewTile>
+            {me?.can.use_sql ? (
+              <NewTile title={$t('Requête SQL')} text={$t('Trino SQL sur toutes vos sources')} onSelect={() => router.push('/sql')}>
+                <SqlArt className="px-3.5 text-[11px]" />
+              </NewTile>
+            ) : null}
+            <NewTile title={$t('Tableau de bord')} text={$t('Des cartes à placer sur une grille')} onSelect={onNewDashboard}>
+              <DashboardArt className="px-3.5 py-3" />
+            </NewTile>
+          </div>
+          <div className="mt-2 flex gap-1 border-t pt-2">
+            <DropdownMenuItem onSelect={onNewFolder} className="flex-1">
+              <FolderPlus /> {$t('Dossier')}
             </DropdownMenuItem>
-          ) : null}
-          <DropdownMenuItem onSelect={onNewDashboard}>
-            <LayoutDashboard /> {$t('Tableau de bord')}
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={onNewFolder}>
-            <FolderPlus /> {$t('Dossier')}
-          </DropdownMenuItem>
-          {me?.can.manage_sources ? (
-            <DropdownMenuItem onSelect={() => router.push('/data?new=1')}>
-              <Database /> {$t('Source de données')}
-            </DropdownMenuItem>
-          ) : null}
+            {me?.can.manage_sources ? (
+              <DropdownMenuItem onSelect={() => router.push('/data?new=1')} className="flex-1">
+                <Database /> {$t('Source de données')}
+              </DropdownMenuItem>
+            ) : null}
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -113,5 +119,21 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
         </button>
       ) : null}
     </header>
+  )
+}
+
+/** A thing to create, drawn as what it opens. */
+function NewTile({ title, text, onSelect, children }: { title: string; text: string; onSelect: () => void; children: React.ReactNode }) {
+  return (
+    <DropdownMenuItem
+      onSelect={onSelect}
+      className="group flex-col items-stretch gap-0 overflow-hidden rounded-xl border p-0 transition-[box-shadow,border-color] focus:border-primary/40 focus:bg-card focus:shadow-[0_14px_30px_-18px_rgba(31,138,58,0.5)]"
+    >
+      <div className="h-24 border-b">{children}</div>
+      <div className="px-3 py-2.5">
+        <div className="text-[13.5px] font-semibold tracking-tight">{title}</div>
+        <div className="mt-0.5 text-xs leading-snug text-muted-foreground">{text}</div>
+      </div>
+    </DropdownMenuItem>
   )
 }
