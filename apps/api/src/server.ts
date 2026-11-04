@@ -10,6 +10,7 @@ import { identify, newApp } from './http'
 import { adminRoutes } from './routes/admin'
 import { authRoutes } from './routes/auth'
 import { contentRoutes } from './routes/content'
+import { deliveryRoutes } from './routes/delivery'
 import { sharingRoutes } from './routes/sharing'
 import { sourceRoutes } from './routes/sources'
 import { workspaceRoutes } from './routes/workspaces'
@@ -100,6 +101,7 @@ export async function createApp() {
   contentRoutes(app)
   adminRoutes(app)
   sharingRoutes(app)
+  deliveryRoutes(app)
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'jeton', {
     type: 'http',

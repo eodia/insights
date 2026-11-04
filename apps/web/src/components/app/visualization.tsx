@@ -629,7 +629,7 @@ export function DataTable({
 
   const tools = toolbar ? (
     <>
-      <div className={cn('relative', toolbarSlot ? 'w-44 min-w-24 shrink' : 'w-56 max-w-[50%]')}>
+      <div className={cn('table-search relative', toolbarSlot ? 'w-44 min-w-24 shrink' : 'w-56 max-w-[50%]')}>
         <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher…')} className="h-7 pl-7 text-xs" aria-label={$t('Rechercher dans la table')} />
       </div>

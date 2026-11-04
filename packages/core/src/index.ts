@@ -1,6 +1,8 @@
 import type { Config } from './config'
 import { needsSetup } from './auth/users'
 import { Core } from './context'
+import { checkAlert, purgeDeliveries, scheduleDueAlerts } from './delivery/alerts'
+import { deliverSubscription, scheduleDueSubscriptions } from './delivery/subscriptions'
 import { demoContent, seedDemo } from './demo'
 import { Worker } from './jobs'
 import { cachePurgeExpired } from './query/cache'
@@ -26,6 +28,10 @@ export * from './content/comments'
 export * from './content/themes'
 export * from './context'
 export * from './crypto'
+export * from './delivery/alerts'
+export * from './delivery/channels'
+export * from './delivery/render'
+export * from './delivery/subscriptions'
 export * from './demo'
 export * from './env'
 export * from './errors'
@@ -51,9 +57,13 @@ export const JOB_HANDLERS = {
   demo_content: (core: Core, payload: Record<string, unknown>) => demoContent(core, payload),
   prewarm: (core: Core) => prewarmDashboards(core),
   refresh_view: (core: Core, payload: Record<string, unknown>) => refreshViewJob(core, payload),
+  deliver_subscription: (core: Core, payload: Record<string, unknown>) =>
+    deliverSubscription(core, String(payload.id), typeof payload.only_to === 'string' ? { onlyTo: payload.only_to } : {}),
+  check_alert: (core: Core, payload: Record<string, unknown>) => checkAlert(core, String(payload.id), { force: payload.force === true }),
 }
 
 let lastHousekeeping = 0
+let lastPurge = 0
 
 /** What the worker does between jobs: due syncs, cache expiry, preloaded dashboards. */
 export async function housekeeping(core: Core): Promise<void> {
@@ -63,7 +73,15 @@ export async function housekeeping(core: Core): Promise<void> {
   await cachePurgeExpired(core)
   // Catalogs lost by a Trino restart come back without waiting for a query to miss them.
   await ensureCatalogs(core).catch(() => undefined)
+  // Subscriptions and alerts whose time has come: checked every minute.
+  await scheduleDueSubscriptions(core).catch(() => undefined)
+  await scheduleDueAlerts(core).catch(() => undefined)
   const minute = new Date().getMinutes()
+  // Old deliveries and channel pictures: a few times a day is plenty.
+  if (Date.now() - lastPurge > 6 * 3_600_000) {
+    lastPurge = Date.now()
+    await purgeDeliveries(core).catch(() => undefined)
+  }
   // Materialized views refreshed on a schedule: checked every five minutes.
   if (minute % 5 === 0) await refreshDueViews(core).catch(() => undefined)
   if (minute % 15 === 0) {

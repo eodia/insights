@@ -45,7 +45,7 @@ import { ensureCatalogs } from '../sources/datasources'
 import { valueLooks } from '../sources/metadata'
 import { cacheGet, cacheKey, cachePut } from './cache'
 
-export type Origin = 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share' | 'home'
+export type Origin = 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share' | 'home' | 'subscription' | 'alert'
 
 export interface RunInput {
   readonly query: QuestionQuery

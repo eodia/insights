@@ -25,7 +25,7 @@ import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import {
-  BookOpen,
+  BellRing,
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
@@ -167,7 +167,7 @@ export function Sidebar() {
   const router = useRouter()
   const { data: me } = useMe()
   const { data: folders = [] } = useFolders()
-  const [admin, setAdmin] = useState(path.startsWith('/admin'))
+  const [admin, setAdmin] = useState(path.startsWith('/admin') || path.startsWith('/history'))
   const roots = folders.filter((f) => f.parent === null && (!f.personal || f.personal === me?.id))
   roots.sort((a, b) => (a.personal ? -1 : b.personal ? 1 : a.name.localeCompare(b.name)))
   const is = (prefix: string) => path === prefix || path.startsWith(`${prefix}/`)
@@ -193,11 +193,12 @@ export function Sidebar() {
         {roots.map((f) => (
           <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />
         ))}
-        <NavItem href="/data" icon={Database} label={$t('Sources de données')} active={is('/data')} />
-        <NavItem href="/history" icon={History} label={$t('Historique')} active={is('/history')} />
       </nav>
 
       <div className="border-t px-2 py-2">
+        <NavItem href="/data" icon={Database} label={$t('Sources de données')} active={is('/data')} />
+        {/* The history goes with the administration — down here for whoever has no such menu. */}
+        {me?.is_admin || me?.can.manage_permissions ? null : <NavItem href="/history" icon={History} label={$t('Historique')} active={is('/history')} />}
         {me?.is_admin || me?.can.manage_permissions ? (
           <>
             <button
@@ -216,13 +217,13 @@ export function Sidebar() {
                 <NavItem href="/admin/groups" icon={UsersRound} label={$t('Groupes')} active={is('/admin/groups')} sub />
                 <NavItem href="/admin/permissions" icon={Shield} label={$t('Permissions')} active={is('/admin/permissions')} sub />
                 <NavItem href="/admin/audit" icon={ScrollText} label={$t("Journal d'audit")} active={is('/admin/audit')} sub />
+                <NavItem href="/history" icon={History} label={$t('Historique')} active={is('/history')} sub />
                 <NavItem href="/admin/themes" icon={Palette} label={$t('Thèmes')} active={is('/admin/themes')} sub />
                 <NavItem href="/admin/settings" icon={SlidersHorizontal} label={$t('Réglages')} active={is('/admin/settings')} sub />
               </div>
             ) : null}
           </>
         ) : null}
-        <NavItem href="/docs" icon={BookOpen} label={$t('API et MCP')} active={is('/docs')} />
       </div>
 
       {/* Person */}
@@ -245,6 +246,9 @@ export function Sidebar() {
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => router.push('/account')}>
             <UserRound /> {$t('Mon profil')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push('/deliveries')}>
+            <BellRing /> {$t('Abonnements et alertes')}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push('/account?tab=tokens')}>
             <KeyRound /> {$t("Jetons d'intégration")}

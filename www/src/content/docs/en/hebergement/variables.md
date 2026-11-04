@@ -77,7 +77,19 @@ See [Single sign-on](/insights/en/hebergement/sso/).
 | `SMTP_URL` | — | the outgoing server, as an SMTP connection URL: `smtps://user:password@smtp.example.com:465` |
 | `SMTP_FROM` | `eodia insights <noreply@localhost>` | the sender |
 
-Without SMTP, no e-mail is sent: an invitation's link is displayed so it can be passed on by hand.
+Without SMTP, no e-mail is sent: an invitation's link is displayed so it can be passed on by hand,
+and [subscriptions and alerts](/insights/en/fonctionnalites/abonnements/) only go to Teams and Slack.
+
+## Rendering subscriptions
+
+| Variable | Default | Role |
+|---|---|---|
+| `RENDER_URL` | — | a [Gotenberg](https://gotenberg.dev) service: `http://render:3000` with the production compose's `render` profile |
+| `RENDER_PAGE_URL` | `PUBLIC_URL` | the interface's address as that service sees it: `http://web:3100` in the compose |
+
+Without a rendering service, a PDF or image subscription sends the dashboard's written summary
+instead (key figures, first rows). The service only opens the print page, with a token that
+reads one dashboard, as one person, for five minutes.
 
 ## Copilot
 

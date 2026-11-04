@@ -1,4 +1,4 @@
-import type { ColumnFormat } from './metadata'
+import type { ColumnFormat, LookColor } from './metadata'
 
 /**
  * Analyse : les questions posées aux sources, leur affichage, et les tableaux de bord qui
@@ -878,6 +878,12 @@ export const DASHBOARD_LIMITS = {
 export interface DashboardTab {
   readonly id: string
   readonly label: string
+  /** A pictogram before the name: a lucide name, `emoji:…` or `img:…`. */
+  readonly icon?: string
+  /** The pictogram's and the underline's colour. */
+  readonly color?: LookColor
+  /** Said when one hovers the tab, above the preview of its cards. */
+  readonly description?: string
   /** Shown only when it holds — a tab hidden from the row, its cards with it. */
   readonly condition?: DisplayCondition
 }

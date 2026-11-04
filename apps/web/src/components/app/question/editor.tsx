@@ -6,6 +6,7 @@ import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu
 import { ConfirmDialog, SaveDialog } from '@/components/app/dialogs'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { ShareDialog } from '@/components/app/share-dialog'
+import { AlertsDialog } from '@/components/app/delivery/alerts'
 import { type SqlError, SqlEditor } from '@/components/app/sql-editor'
 import { DataTable, type PointClick, ResultFooter, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Ban,
+  BellRing,
   Code2,
   Copy,
   Download,
@@ -140,6 +142,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const [saveOpen, setSaveOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [alerting, setAlerting] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [point, setPoint] = useState<PointClick | null>(null)
   const execution = useRef<string | null>(null)
@@ -467,6 +470,9 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                 >
                   <Copy /> {$t('Dupliquer')}
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setAlerting(true)}>
+                  <BellRing /> {$t('Alertes…')}
+                </DropdownMenuItem>
                 {canEdit ? (
                   <DropdownMenuItem className="text-destructive" onSelect={() => setDeleteOpen(true)}>
                     <Trash2 /> {$t('Supprimer')}
@@ -701,6 +707,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
           }}
         />
       ) : null}
+      {alerting && draft.id ? <AlertsDialog question={{ id: draft.id, name: draft.name }} onClose={() => setAlerting(false)} /> : null}
       {draft.id ? <ShareDialog open={shareOpen} onOpenChange={setShareOpen} kind={draft.type === 'question' ? 'question' : draft.type} id={draft.id} name={draft.name} /> : null}
       <ConfirmDialog
         open={deleteOpen}

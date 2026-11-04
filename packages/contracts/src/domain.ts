@@ -809,7 +809,7 @@ export interface QueryAdvice {
 export interface QueryExecution {
   readonly id: string
   readonly user: UserSummary | null
-  readonly origin: 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share' | 'home'
+  readonly origin: 'editor' | 'question' | 'card' | 'api' | 'mcp' | 'copilot' | 'share' | 'home' | 'subscription' | 'alert'
   readonly question: string | null
   readonly sql: string
   readonly duration_ms: number

@@ -51,10 +51,11 @@ import { useFolders, useMe, useModelColumns, useModels, useModelsColumns, useQue
 import { type ColumnOption, type ModelColumns, columnOptions } from '@/lib/builder'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowRightLeft,
+  BellRing,
   LayoutDashboard,
   BarChart3,
   Copy,
@@ -102,9 +103,11 @@ import { RefreshTimer } from './refresh-timer'
 import { createPortal } from 'react-dom'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { TabRow } from '@/components/ui/tab-row'
-import { Hint } from '@/components/ui/tooltip'
+import { Hint, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SavedViews } from './saved-views'
 import { AnnotateDialog, CommentsButton } from './comments'
+import { TabLabel, TabMark, TabPreview, TabSettingsDialog, pictureTab } from './tabs'
+import { AlertsDialog } from '@/components/app/delivery/alerts'
 import { CardCondition, ConditionDialog, type Runner, TabCondition, conditionSummary, useCardRun } from './conditions'
 import { ButtonsView, CardSettingsDialog, ClickDialog, carriedFilters, HeadingStyleButton, HeadingView, ImageView, LinkView, SeparatorStyleButton, SeparatorView, type Summarizer, SummaryView, VariableView } from './cards'
 
@@ -300,6 +303,7 @@ function CardFrame(props: CardProps) {
   const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
   const values = own
   const { data: question } = useQuestion(isQuestion && card.question && !publicMode ? card.question : null)
+  const [alerting, setAlerting] = useState(false)
   const run = useCardRun({ card, dashboardId: props.dashboardId, values, tick, fresh, draft, runner, enabled: isQuestion })
   const viz = card.visualization ?? question?.visualization ?? { type: 'table' as VisualizationType }
   useEffect(() => {
@@ -491,6 +495,11 @@ function CardFrame(props: CardProps) {
                   <ExternalLink /> {$t('Ouvrir la question')}
                 </DropdownMenuItem>
               ) : null}
+              {card.question && !publicMode && !editing ? (
+                <DropdownMenuItem onSelect={() => setAlerting(true)}>
+                  <BellRing /> {$t('Alertes…')}
+                </DropdownMenuItem>
+              ) : null}
               {onEditQuestion ? (
                 <DropdownMenuItem onSelect={onEditQuestion}>
                   <Pencil /> {$t('Modifier la question')}
@@ -638,6 +647,7 @@ function CardFrame(props: CardProps) {
           onApply={onChange}
         />
       ) : null}
+      {alerting && card.question ? <AlertsDialog question={{ id: card.question, name: question?.name ?? title }} onClose={() => setAlerting(false)} /> : null}
     </div>
   )
 }
@@ -969,6 +979,18 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const { data: comments = [] } = useQuery({ queryKey: commentsKey, queryFn: () => api.get<CardComment[]>(`/v1/dashboards/${dashboard.id}/comments`), enabled: talking })
   const { data: annotations = [] } = useQuery({ queryKey: annotationsKey, queryFn: () => api.get<Annotation[]>(`/v1/dashboards/${dashboard.id}/annotations`), enabled: talking })
   const [annotating, setAnnotating] = useState<{ card: DashboardCard; at: string } | null>(null)
+  const [tabSettings, setTabSettings] = useState<string | null>(null)
+  const [draggedTab, setDraggedTab] = useState<string | null>(null)
+  const [dropTab, setDropTab] = useState<{ id: string; after: boolean } | null>(null)
+  /** Puts a tab before — or after — another. */
+  const moveTab = (id: string, target: string, after: boolean) =>
+    setDraft((d) => {
+      const moving = d.tabs.find((x) => x.id === id)
+      if (!moving || id === target) return d
+      const rest = d.tabs.filter((x) => x.id !== id)
+      const at = rest.findIndex((x) => x.id === target) + (after ? 1 : 0)
+      return { ...d, tabs: [...rest.slice(0, at), moving, ...rest.slice(at)] }
+    })
   const talkOf = (card: DashboardCard) =>
     talking && card.kind === 'question'
       ? {
@@ -1328,6 +1350,21 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   // What a card added is: a question, a heading, a text, a page, a filter pane.
   const addFilterPane = () => addCards([{ id: newId('c'), kind: 'filter', parameter: (draft.parameters.find((x) => x.type === 'category') ?? draft.parameters[0])?.id ?? '', ...cardSize('filter') }])
 
+  const settingsTab = tabSettings ? draft.tabs.find((t) => t.id === tabSettings) : undefined
+  // The open tab is pictured once nothing loads any more — what its preview shows elsewhere.
+  const loading = useIsFetching() > 0
+  useEffect(() => {
+    if (!currentTab || editing || loading) return
+    const grid = containerRef.current
+    if (!grid) return
+    const key = `${dashboard.id}:${currentTab}`
+    const timer = setTimeout(() => {
+      const shoot = () => void pictureTab(key, grid).catch(() => undefined)
+      if ('requestIdleCallback' in window) window.requestIdleCallback(shoot, { timeout: 2000 })
+      else shoot()
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [currentTab, editing, loading, tick, dashboard.id, containerRef])
   // The filters' band: there are filters, views to apply, or filters to add.
   const band = draft.parameters.length > 0 || editing || (savedViews && !publicMode)
   // The dashboard's actions: refresh, the page's own, edit — or, while edited, cancel and save.
@@ -1511,41 +1548,93 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       {tabs.length > 0 || editing ? (
         <TabRow className="items-center gap-1 border-b px-6">
           {tabs.map((t: DashboardTab) => (
-            <div key={t.id} className={cn('relative flex items-center', currentTab === t.id && 'after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary')}>
-              {editing ? (
-                <input
-                  value={t.label}
-                  onFocus={() => setTab(t.id)}
-                  onChange={(e) => setDraft((d) => ({ ...d, tabs: d.tabs.map((x) => (x.id === t.id ? { ...x, label: e.target.value } : x)) }))}
-                  // As wide as its name: a long one is read whole, not cut.
-                  style={{ width: `calc(${Math.min(Math.max(t.label.length, 6), 40)}ch + 1.75rem)` }}
-                  aria-label={$t('Nom de l’onglet')}
-                  className={cn('bg-transparent px-3 py-2.5 text-sm outline-none', currentTab === t.id ? 'font-semibold' : 'text-muted-foreground')}
-                />
-              ) : (
-                <button type="button" onClick={() => setTab(t.id)} className={cn('px-3 py-2.5 text-sm', currentTab === t.id ? 'font-semibold' : 'text-muted-foreground hover:text-foreground')}>
-                  {t.label}
-                </button>
-              )}
-              {editing ? (
-                <Hint label={t.condition?.rules.length ? `${$t('Affiché si')} ${conditionSummary(t.condition, draft.parameters)}` : $t('Condition d’affichage…')}>
-                  <button type="button" aria-label={$t('Condition d’affichage…')} onClick={() => setConditionOf({ kind: 'tab', id: t.id })} className="mr-1.5">
-                    {t.condition?.rules.length ? (
-                      shown[t.id] === false ? (
-                        <EyeOff className="size-3 text-amber-600" />
-                      ) : (
-                        <Eye className="size-3 text-violet-600" />
-                      )
-                    ) : (
-                      <Eye className="size-3 text-muted-foreground/60" />
-                    )}
-                  </button>
+            <div
+              key={t.id}
+              className={cn('group/tab relative flex items-center', draggedTab === t.id && 'opacity-40')}
+              {...(editing && tabs.length > 1
+                ? {
+                    onDragOver: (e: React.DragEvent) => {
+                      if (!draggedTab) return
+                      e.preventDefault()
+                      e.dataTransfer.dropEffect = 'move'
+                      const box = e.currentTarget.getBoundingClientRect()
+                      const after = e.clientX > box.left + box.width / 2
+                      if (dropTab?.id !== t.id || dropTab.after !== after) setDropTab({ id: t.id, after })
+                    },
+                    onDrop: (e: React.DragEvent) => {
+                      e.preventDefault()
+                      if (draggedTab && dropTab && draggedTab !== dropTab.id) moveTab(draggedTab, dropTab.id, dropTab.after)
+                      setDraggedTab(null)
+                      setDropTab(null)
+                    },
+                    onDragEnd: () => {
+                      setDraggedTab(null)
+                      setDropTab(null)
+                    },
+                  }
+                : {})}
+            >
+              {dropTab?.id === t.id && draggedTab !== t.id ? <span className={cn('pointer-events-none absolute inset-y-2 w-0.5 rounded-full bg-primary', dropTab.after ? '-right-px' : '-left-px')} /> : null}
+              {currentTab === t.id ? <TabMark color={t.color} /> : null}
+              {/* The handle: what moves the tab — the tab itself stays a tab to click. */}
+              {editing && tabs.length > 1 ? (
+                <Hint label={$t('Glissez pour déplacer (ou Alt + flèches)')}>
+                  <span
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', t.id)
+                      e.dataTransfer.effectAllowed = 'move'
+                      const tabBox = e.currentTarget.parentElement
+                      if (tabBox) e.dataTransfer.setDragImage(tabBox, 12, tabBox.clientHeight / 2)
+                      setDraggedTab(t.id)
+                    }}
+                    onDragEnd={() => {
+                      setDraggedTab(null)
+                      setDropTab(null)
+                    }}
+                    aria-hidden="true"
+                    className="-mr-2 ml-0.5 inline-flex cursor-grab items-center rounded p-0.5 text-muted-foreground/60 hover:bg-accent hover:text-foreground active:cursor-grabbing"
+                  >
+                    <GripVertical className="size-3.5" />
+                  </span>
                 </Hint>
               ) : null}
-              {editing && tabs.length > 1 ? (
-                <button type="button" aria-label={$t('Supprimer l’onglet')} onClick={() => setDraft((d) => ({ ...d, tabs: d.tabs.filter((x) => x.id !== t.id), cards: d.cards.filter((c) => c.tab !== t.id) }))}>
-                  <Trash2 className="size-3 text-muted-foreground" />
-                </button>
+              {/* Hovered, a tab shows what it holds; open, it needs no preview. */}
+              <Tooltip delayDuration={350}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setTab(t.id)}
+                    onDoubleClick={() => (editing ? setTabSettings(t.id) : undefined)}
+                    onKeyDown={(e) => {
+                      if (!editing || !e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+                      e.preventDefault()
+                      const i = tabs.findIndex((x) => x.id === t.id)
+                      const target = tabs[e.key === 'ArrowLeft' ? i - 1 : i + 1]
+                      if (target) moveTab(t.id, target.id, e.key === 'ArrowRight')
+                    }}
+                    className={cn('px-3 py-2.5 text-sm', currentTab === t.id ? 'font-semibold' : 'text-muted-foreground hover:text-foreground', editing && 'pr-1')}
+                  >
+                    <TabLabel tab={t} className="max-w-64" />
+                  </button>
+                </TooltipTrigger>
+                {currentTab !== t.id || t.description ? (
+                  <TooltipContent side="bottom" align="start" className="max-w-none border bg-popover p-2 text-popover-foreground shadow-lg">
+                    <TabPreview tab={t} cards={draft.cards.filter((c) => c.tab === t.id)} columns={DASHBOARD_COLUMNS} names={!publicMode} shotKey={`${dashboard.id}:${t.id}`} />
+                  </TooltipContent>
+                ) : null}
+              </Tooltip>
+              {editing && t.condition?.rules.length ? (
+                <Hint label={`${$t('Affiché si')} ${conditionSummary(t.condition, draft.parameters)}`}>
+                  <span className="mr-0.5">{shown[t.id] === false ? <EyeOff className="size-3 text-amber-600" /> : <Eye className="size-3 text-violet-600" />}</span>
+                </Hint>
+              ) : null}
+              {editing ? (
+                <Hint label={$t('Réglages de l’onglet')}>
+                  <button type="button" aria-label={$t('Réglages de l’onglet')} onClick={() => setTabSettings(t.id)} className="mr-1.5 rounded p-0.5 text-muted-foreground opacity-60 hover:bg-accent hover:text-foreground hover:opacity-100 group-hover/tab:opacity-100">
+                    <Settings2 className="size-3.5" />
+                  </button>
+                </Hint>
               ) : null}
             </div>
           ))}
@@ -1655,6 +1744,26 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
         ) : null}
       </div>
 
+      {settingsTab ? (
+        <TabSettingsDialog
+          tab={settingsTab}
+          conditionLabel={settingsTab.condition?.rules.length ? conditionSummary(settingsTab.condition, draft.parameters) : undefined}
+          canRemove={tabs.length > 1}
+          onSave={(patch) =>
+            setDraft((d) => ({
+              ...d,
+              tabs: d.tabs.map((x) => {
+                if (x.id !== settingsTab.id) return x
+                const { icon: _i, color: _c, description: _d, ...rest } = x
+                return { ...rest, label: patch.label, ...(patch.icon ? { icon: patch.icon } : {}), ...(patch.color ? { color: patch.color } : {}), ...(patch.description ? { description: patch.description } : {}) }
+              }),
+            }))
+          }
+          onCondition={() => setConditionOf({ kind: 'tab', id: settingsTab.id })}
+          onRemove={() => setDraft((d) => ({ ...d, tabs: d.tabs.filter((x) => x.id !== settingsTab.id), cards: d.cards.filter((c) => c.tab !== settingsTab.id) }))}
+          onClose={() => setTabSettings(null)}
+        />
+      ) : null}
       {annotating ? (
         <AnnotateDialog
           at={annotating.at}

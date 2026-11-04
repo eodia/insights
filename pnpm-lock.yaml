@@ -184,6 +184,9 @@ importers:
       lucide-react:
         specifier: ^1.47.0
         version: 1.51.0(@types/react@19.3.0)(react@19.3.0)
+      modern-screenshot:
+        specifier: 4.7.0
+        version: 4.7.0
       next:
         specifier: ^16.0.0
         version: 16.3.8(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -3184,6 +3187,9 @@ packages:
 
   minimalistic-assert@1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
+
+  modern-screenshot@4.7.0:
+    resolution: {integrity: sha512-9YxN+ddPSMMlhylOv25VHzXrl9u67QRxoh7+SEewGtgUw7t6hHTrjptSDJUSne9oG4Xk/h2cwG15nIt4Hc9ujg==}
 
   moment-timezone@0.5.48:
     resolution: {integrity: sha512-f22b8LV1gbTO2ms2j2z13MuPogNoh5UzxL3nzNAYKGraILnbGc9NEE6dyiiiLv46DGRb8A4kg8UKWLjPthxBHw==}
@@ -7052,6 +7058,8 @@ snapshots:
       mime-db: 1.54.0
 
   minimalistic-assert@1.0.1: {}
+
+  modern-screenshot@4.7.0: {}
 
   moment-timezone@0.5.48:
     dependencies:

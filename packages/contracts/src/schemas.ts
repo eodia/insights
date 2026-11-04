@@ -152,7 +152,14 @@ export const DisplayConditionSchema = z.object({
     .max(CONDITION_LIMITS.rules),
 })
 
-const TabSchema = z.object({ id: z.string().max(60), label: z.string().max(120), condition: DisplayConditionSchema.optional() })
+const TabSchema = z.object({
+  id: z.string().max(60),
+  label: z.string().max(120),
+  icon: z.string().max(200_000).optional(),
+  color: z.enum(LOOK_COLORS).optional(),
+  description: z.string().max(300).optional(),
+  condition: DisplayConditionSchema.optional(),
+})
 
 export const SqlQuerySchema = z.object({
   kind: z.literal('sql'),

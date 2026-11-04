@@ -41,6 +41,16 @@ const workspaceHeader = (): Record<string, string> => {
   return id ? { 'x-eodia-workspace': id } : {}
 }
 
+/**
+ * The print page opened by the renderer (a subscription's PDF or image) carries a render token
+ * in its address: it reads that one dashboard as that one person, without a session.
+ */
+const renderHeader = (): Record<string, string> => {
+  if (typeof window === 'undefined' || !window.location.pathname.startsWith('/print/')) return {}
+  const token = new URLSearchParams(window.location.search).get('render')
+  return token ? { authorization: `Bearer ${token}` } : {}
+}
+
 async function request<T>(method: string, path: string, body?: unknown, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
     method,
@@ -49,6 +59,7 @@ async function request<T>(method: string, path: string, body?: unknown, init: Re
       ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       ...(method === 'GET' ? {} : { 'x-eodia-csrf': '1' }),
       ...workspaceHeader(),
+      ...renderHeader(),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     ...init,

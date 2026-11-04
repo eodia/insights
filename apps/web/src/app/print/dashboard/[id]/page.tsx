@@ -1,11 +1,13 @@
 'use client'
 
+import { valueLabel } from '@/components/app/dashboard/parameters'
 import { substitute } from '@/components/app/dashboard/view'
 import { LookIcon } from '@/components/app/look'
 import { Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { type RunResult, api } from '@/lib/api'
 import { $t, intlLocale } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 import { useDashboard } from '@/lib/queries'
 import { ThemeLogo, ThemeScope } from '@/lib/theme'
 import {
@@ -13,6 +15,8 @@ import {
   DASHBOARD_ROW_HEIGHT,
   type Dashboard,
   type DashboardCard,
+  type ExportOptions,
+  type PaperSize,
   type ThemeSettings,
   type Visualization as Viz,
 } from '@eodia/contracts'
@@ -33,8 +37,22 @@ import remarkGfm from 'remark-gfm'
 
 type Values = Record<string, unknown>
 
-// A4 at 96 dpi, less 12 mm margins, less the footer.
-const PAGE = { landscape: { w: 1032, h: 640 }, portrait: { w: 703, h: 980 } } as const
+// Each paper at 96 dpi, less 12 mm margins, less the footer.
+const PAGES: Record<PaperSize, Record<'landscape' | 'portrait', { w: number; h: number }>> = {
+  A4: { landscape: { w: 1032, h: 640 }, portrait: { w: 703, h: 980 } },
+  A3: { landscape: { w: 1496, h: 969 }, portrait: { w: 1032, h: 1433 } },
+  Letter: { landscape: { w: 965, h: 662 }, portrait: { w: 725, h: 902 } },
+}
+
+/** What one clicks — filter panes, buttons, variables, links — and what only a screen shows. */
+const INTERACTIVE = new Set<DashboardCard['kind']>(['filter', 'buttons', 'variable', 'link', 'summary'])
+
+declare global {
+  interface Window {
+    /** Set once every card is drawn: the renderer waits for it before taking the picture. */
+    __eodiaReady?: boolean
+  }
+}
 const GAP = 12
 
 interface Band {
@@ -100,6 +118,19 @@ function PrintCard({
       </h2>
     )
   }
+  if (card.kind === 'separator') {
+    return (
+      <div className="flex h-full items-center">
+        <div className="h-px w-full bg-border" />
+      </div>
+    )
+  }
+  if (card.kind === 'image') {
+    const src = card.image?.url ?? ''
+    return /^(https?:\/\/|data:image\/)/i.test(src) ? (
+      <img src={src} alt={card.image?.alt ?? ''} className="h-full w-full rounded-xl" style={{ objectFit: card.image?.fit ?? 'contain' }} />
+    ) : null
+  }
   return (
     <div className="theme-card flex h-full flex-col overflow-hidden rounded-xl border bg-card">
       {title && card.kind !== 'text' ? (
@@ -145,7 +176,22 @@ function PrintScreen({ id }: { id: string }) {
       return {}
     }
   }, [params])
-  const onlyTab = params.get('tab')
+  // How the dashboard goes on paper: the export's choices (`options`), the theme's elsewhere.
+  const options = useMemo<ExportOptions>(() => {
+    try {
+      const parsed = JSON.parse(params.get('options') ?? '{}') as ExportOptions
+      const tab = params.get('tab')
+      return tab && !parsed.tabs ? { ...parsed, tabs: [tab] } : parsed
+    } catch {
+      return {}
+    }
+  }, [params])
+  const chosenTabs = options.tabs?.length ? new Set(options.tabs) : null
+  const inTabs = (c: DashboardCard) => !chosenTabs || !dashboard?.tabs.length || (c.tab !== null && chosenTabs.has(c.tab))
+  const shown = (c: DashboardCard) => inTabs(c) && (options.interactive || !INTERACTIVE.has(c.kind))
+  // Opened by the renderer: no toolbar, and for a picture, the pages as a screen shows them.
+  const rendering = params.has('render')
+  const screen = params.get('screen') === '1'
 
   // A printed page is light, whatever the screen's mode.
   useEffect(() => {
@@ -157,9 +203,7 @@ function PrintScreen({ id }: { id: string }) {
     }
   }, [])
 
-  const questionCards = (dashboard?.cards ?? []).filter(
-    (c) => c.kind === 'question' && (!onlyTab || c.tab === onlyTab),
-  )
+  const questionCards = (dashboard?.cards ?? []).filter((c) => c.kind === 'question' && shown(c))
   const runs = useQueries({
     queries: questionCards.map((card) => ({
       queryKey: ['print-card', id, card.id, values],
@@ -190,6 +234,7 @@ function PrintScreen({ id }: { id: string }) {
     if (!ready || printed.current) return
     const t = setTimeout(() => {
       setDrawn(true)
+      window.__eodiaReady = true
       if (params.get('auto') !== '0') {
         printed.current = true
         window.print()
@@ -204,24 +249,26 @@ function PrintScreen({ id }: { id: string }) {
 
   const theme = dashboard.resolved_theme
   const s: ThemeSettings = theme?.settings ?? {}
-  const orientation = s.pdf_orientation ?? 'landscape'
-  const page = PAGE[orientation]
+  const orientation = options.orientation ?? s.pdf_orientation ?? 'landscape'
+  const paper = options.paper ?? 'A4'
+  const page = PAGES[paper][orientation]
+  const cover = options.cover ?? s.pdf_cover !== false
+  const title = options.title?.trim() || dashboard.name
+  const tabTitles = options.tab_titles !== false
   const colPx = (page.w + GAP) / DASHBOARD_COLUMNS
   const rowPx = DASHBOARD_ROW_HEIGHT + 14
   const tabs = dashboard.tabs.length
-    ? dashboard.tabs.filter((t) => !onlyTab || t.id === onlyTab)
+    ? dashboard.tabs.filter((t) => !chosenTabs || chosenTabs.has(t.id)).map((t) => (tabTitles ? t : { ...t, label: '' }))
     : [{ id: null as string | null, label: '' }]
   const resultOf = new Map(questionCards.map((c, i) => [c.id, runs[i]]))
   const date = new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: 'long',
     timeStyle: 'short',
   }).format(new Date())
-  const filters = dashboard.parameters
+  const filters = (options.filters === false ? [] : dashboard.parameters)
     .filter((p) => values[p.id] !== null && values[p.id] !== undefined && values[p.id] !== '')
-    .map(
-      (p) =>
-        `${p.label} : ${Array.isArray(values[p.id]) ? (values[p.id] as unknown[]).join(', ') : String(values[p.id])}`,
-    )
+    // As the filter bar says them: « 12 derniers mois », not `past12months`.
+    .map((p) => `${p.label || p.id} : ${valueLabel(p, values[p.id] as never)}`)
   const footer = (s.pdf_footer ?? '').replace(/["\\]/g, '\\$&').replace(/\n/g, ' ')
   const font = s.font_body ? `'${s.font_body}', sans-serif` : 'sans-serif'
 
@@ -229,10 +276,10 @@ function PrintScreen({ id }: { id: string }) {
     <ThemeScope theme={theme} still className="min-h-screen bg-background">
       <style>{`
         @page {
-          size: A4 ${orientation};
+          size: ${paper} ${orientation};
           margin: 12mm 12mm 14mm;
-          @bottom-left { content: "${footer || dashboard.name.replace(/["\\]/g, '\\$&')}"; font: 8pt ${font}; color: #71717a; }
-          @bottom-right { content: counter(page) " / " counter(pages); font: 8pt ${font}; color: #71717a; }
+          @bottom-left { content: "${footer || title.replace(/["\\]/g, '\\$&')}"; font: 8pt ${font}; color: #71717a; }
+          ${options.page_numbers === false ? '' : `@bottom-right { content: counter(page) " / " counter(pages); font: 8pt ${font}; color: #71717a; }`}
         }
         @media print {
           html, body { background: ${s.background ?? '#ffffff'} !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -240,7 +287,10 @@ function PrintScreen({ id }: { id: string }) {
           .sheet { box-shadow: none !important; margin: 0 !important; }
         }
         .sheet { width: ${page.w}px; break-after: page; }
+        .sheet .table-search { display: none; }
         .sheet:last-child { break-after: auto; }
+        ${rendering ? '.screen-only { display: none !important; }' : ''}
+        ${screen ? '.sheet { box-shadow: none !important; }' : ''}
       `}</style>
 
       <div className="screen-only sticky top-0 z-10 flex items-center gap-3 border-b bg-background/90 px-6 py-3 backdrop-blur">
@@ -262,8 +312,8 @@ function PrintScreen({ id }: { id: string }) {
         </Button>
       </div>
 
-      <div className="flex flex-col items-center gap-8 py-8 print:block print:py-0">
-        {s.pdf_cover !== false ? (
+      <div className={cn('flex flex-col items-center print:block print:py-0', screen ? 'gap-0 py-4' : 'gap-8 py-8')}>
+        {cover ? (
           <section
             className="sheet flex flex-col justify-between rounded-sm bg-[var(--theme-bg,var(--background))] p-12 shadow-lg"
             style={{ height: page.h }}
@@ -274,25 +324,28 @@ function PrintScreen({ id }: { id: string }) {
             />
             <div className="space-y-4">
               <h1 className="theme-title text-5xl leading-tight font-semibold tracking-tight">
-                {dashboard.name}
+                {title}
               </h1>
               {dashboard.description ? (
                 <p className="max-w-2xl text-lg text-muted-foreground">{dashboard.description}</p>
               ) : null}
               <div className="h-1 w-24 rounded-full bg-primary" />
+              {options.note ? <p className="max-w-2xl pt-2 text-base whitespace-pre-wrap">{options.note}</p> : null}
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
               <p>{date}</p>
               {filters.length ? (
                 <p>{$t('Filtres : {filters}', { filters: filters.join(' · ') })}</p>
               ) : null}
-              {onlyTab ? <p>{dashboard.tabs.find((t) => t.id === onlyTab)?.label}</p> : null}
+              {chosenTabs && dashboard.tabs.length > 1 ? (
+                <p>{dashboard.tabs.filter((t) => chosenTabs.has(t.id)).map((t) => t.label).join(' · ')}</p>
+              ) : null}
             </div>
           </section>
         ) : null}
 
         {tabs.flatMap((tab, ti) => {
-          const cards = dashboard.cards.filter((c) => (tab.id ? c.tab === tab.id : true))
+          const cards = dashboard.cards.filter((c) => (tab.id ? c.tab === tab.id : true) && shown(c))
           return pages(bands(cards), rowPx, page.h - (tab.label ? 44 : 0)).map((group, pi) => {
             const top = group[0]?.top ?? 0
             const rows = (group[group.length - 1]?.bottom ?? 0) - top
@@ -311,11 +364,11 @@ function PrintScreen({ id }: { id: string }) {
                     {tab.label}
                   </h2>
                 ) : null}
-                {!tab.label && pi === 0 && ti === 0 && s.pdf_cover === false ? (
+                {pi === 0 && ti === 0 && !cover ? (
                   <div className="mb-4 flex items-center gap-3">
                     <ThemeLogo theme={s} className="object-contain" />
                     <h1 className="theme-title flex-1 text-2xl font-semibold tracking-tight">
-                      {dashboard.name}
+                      {title}
                     </h1>
                     <span className="text-xs text-muted-foreground">{date}</span>
                   </div>

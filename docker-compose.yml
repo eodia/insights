@@ -2,6 +2,11 @@
 # - catalog : la base applicative (utilisateurs, questions, tableaux de bord…)
 # - trino   : le moteur unique d'exécution ; ses catalogues sont recréés par l'API (catalog.store=memory)
 # - demo-pg / demo-mongo : deux sources d'exemple pour la démo inter-bases
+# - render / mail (profil « delivery ») : le rendu PDF et image des abonnements (Gotenberg) et une
+#   boîte de réception de test (Mailpit, http://localhost:58025) —
+#   `docker compose --profile delivery up -d`, puis dans .env :
+#   RENDER_URL=http://localhost:58300, RENDER_PAGE_URL=http://host.docker.internal:3100,
+#   SMTP_URL=smtp://localhost:51025
 name: eodia-insights
 
 services:
@@ -47,6 +52,19 @@ services:
     image: mongo:8
     ports: ['127.0.0.1:57017:27017']
     volumes: ['./docker/demo/mongo-init.js:/docker-entrypoint-initdb.d/01-init.js:ro']
+
+  render:
+    image: gotenberg/gotenberg:8.20.1
+    profiles: [delivery]
+    ports: ['127.0.0.1:58300:3000']
+    extra_hosts: ['host.docker.internal:host-gateway']
+    # The print page is on this machine: Chromium may reach it, nothing else is opened.
+    command: ['gotenberg', '--chromium-allow-list=^http://host\.docker\.internal(:[0-9]+)?/.*', '--api-timeout=90s']
+
+  mail:
+    image: axllent/mailpit:v1.27.10
+    profiles: [delivery]
+    ports: ['127.0.0.1:51025:1025', '127.0.0.1:58025:8025']
 
 volumes:
   catalog-data:

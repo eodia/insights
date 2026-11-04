@@ -208,7 +208,8 @@ version rather than following `latest`.
 | `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_LABEL` | sign-in through an identity provider |
 | `OIDC_ATTRIBUTE_CLAIMS`, `OIDC_GROUPS_CLAIM` | claims copied into user attributes (for row rules) and groups |
 | `PASSWORD_LOGIN` | `0` turns password sign-in off (SSO only) |
-| `SMTP_URL`, `SMTP_FROM` | invitations by e-mail |
+| `SMTP_URL`, `SMTP_FROM` | e-mail: invitations, subscriptions, alerts |
+| `RENDER_URL`, `RENDER_PAGE_URL` | subscriptions as PDF or image: a [Gotenberg](https://gotenberg.dev) service, and the interface's address as it sees it |
 | `MAX_ROWS`, `QUERY_TIMEOUT_MS`, `CACHE_TTL` | `2000` rows per interface query, `120000` ms per query, results cached `300` s |
 | `SESSION_DAYS` | session length (`14`) |
 | `TRINO_SERVICE_USER`, `TRINO_PASSWORD` | Trino identity of the service (`eodia-service`) |

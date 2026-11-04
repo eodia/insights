@@ -19,6 +19,9 @@ export function demoGuard(core: Core): MiddlewareHandler<Env> {
     if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next()
     const path = c.req.path
 
+    if (/^\/api\/v1\/(subscriptions|alerts)(\/|$)/.test(path)) {
+      throw new AppError('FORBIDDEN', 'Démo publique : les envois automatiques et les alertes ne se programment pas.')
+    }
     if (/^\/api\/v1\/(admin|permissions)\//.test(path)) {
       throw new AppError('FORBIDDEN', 'Démo publique : les personnes, les groupes et les droits se consultent mais ne se modifient pas.')
     }

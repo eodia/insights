@@ -4,6 +4,8 @@ import { DashboardView, type Runner } from '@/components/app/dashboard/view'
 import { FavoriteIcon } from '@/components/app/favorite-icon'
 import { ConfirmDialog, FolderPicker } from '@/components/app/dialogs'
 import { ShareDialog } from '@/components/app/share-dialog'
+import { ExportDialog } from '@/components/app/delivery/export'
+import { SubscriptionsDialog } from '@/components/app/delivery/subscriptions'
 import { ThemePicker } from '@/components/app/theme-picker'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
@@ -41,6 +43,7 @@ import { cn } from '@/lib/utils'
 import { cardConstraints, parseConditionCardId, savedConditionCard } from '@eodia/contracts'
 import { useQueryClient } from '@tanstack/react-query'
 import {
+  BellRing,
   Braces,
   ClipboardPaste,
   Copy,
@@ -192,6 +195,8 @@ function DashboardScreen({ id }: { id: string }) {
   const [pasted, setPasted] = useState('')
   const [pasteError, setPasteError] = useState<string | null>(null)
   const [settings, setSettings] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [subscribing, setSubscribing] = useState(false)
   const [remove, setRemove] = useState(false)
   const [refresh, setRefresh] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
@@ -347,13 +352,11 @@ function DashboardScreen({ id }: { id: string }) {
                       <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
                         <Maximize /> {$t('Plein écran')}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          const values = encodeURIComponent(JSON.stringify(filterValues.current))
-                          window.open(`/print/dashboard/${dashboard.id}?values=${values}`, '_blank')
-                        }}
-                      >
-                        <FileDown /> {$t('Exporter en PDF')}
+                      <DropdownMenuItem onSelect={() => setExporting(true)}>
+                        <FileDown /> {$t('Exporter en PDF…')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => setSubscribing(true)}>
+                        <BellRing /> {$t('Abonnements…')}
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
@@ -462,6 +465,8 @@ function DashboardScreen({ id }: { id: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {exporting ? <ExportDialog dashboard={dashboard} values={filterValues.current as Record<string, ParameterValue | null>} onClose={() => setExporting(false)} /> : null}
+      {subscribing ? <SubscriptionsDialog dashboard={dashboard} values={filterValues.current as Record<string, ParameterValue | null>} onClose={() => setSubscribing(false)} /> : null}
       <ShareDialog
         open={share}
         onOpenChange={setShare}

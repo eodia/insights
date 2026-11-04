@@ -34,6 +34,15 @@ export interface Config {
   }
   readonly passwordLogin: boolean
   readonly smtp?: { readonly url: string; readonly from: string }
+  /**
+   * A Gotenberg service (`RENDER_URL`): dashboards sent as PDF or image are pictured by it.
+   * Without it, a subscription sends the dashboard's figures written in the e-mail.
+   */
+  readonly render?: {
+    readonly url: string
+    /** Where the renderer reaches the interface (`RENDER_PAGE_URL`): the public address by default. */
+    readonly pageUrl: string
+  }
   readonly ai: {
     readonly provider: 'anthropic' | 'openai' | 'mistral' | 'openai-compatible' | 'none'
     readonly apiKey?: string
@@ -109,6 +118,9 @@ export function loadConfig(): Config {
         }
       : {}),
     passwordLogin: env('PASSWORD_LOGIN', '1') !== '0',
+    ...(env('RENDER_URL')
+      ? { render: { url: (env('RENDER_URL') as string).replace(/\/$/, ''), pageUrl: (env('RENDER_PAGE_URL', publicUrl) as string).replace(/\/$/, '') } }
+      : {}),
     ...(env('SMTP_URL')
       ? { smtp: { url: env('SMTP_URL') as string, from: env('SMTP_FROM', 'eodia insights <noreply@localhost>') as string } }
       : {}),

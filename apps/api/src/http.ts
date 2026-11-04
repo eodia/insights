@@ -17,7 +17,9 @@ import {
   actorFromToken,
   isAdmin,
   isInstanceAdmin,
+  isRenderToken,
   principalOf,
+  readRenderToken,
   rightsOf,
 } from '@eodia/core'
 import type { Context, MiddlewareHandler } from 'hono'
@@ -47,7 +49,19 @@ export function identify(core: Core): MiddlewareHandler<Env> {
     let actor: Actor | null = null
     const ip = clientIp(c)
     const auth = c.req.header('authorization')
-    if (auth?.startsWith('Bearer ')) {
+    if (auth?.startsWith('Bearer ') && isRenderToken(auth.slice(7).trim())) {
+      // The renderer, on the print page: one dashboard, read as one person, for a few minutes —
+      // the dashboard, its questions, its cards run, and nothing else.
+      const grant = readRenderToken(core, auth.slice(7).trim())
+      if (!grant) return c.json({ error: { code: 'UNAUTHENTICATED', message: 'Jeton de rendu invalide ou expiré.' } }, 401)
+      const path = c.req.path
+      const d = grant.dashboardId
+      const allowed =
+        (c.req.method === 'GET' && (path === `/api/v1/dashboards/${d}` || /^\/api\/v1\/questions\/[0-9a-f-]{36}$/.test(path) || path === '/api/v1/me')) ||
+        (c.req.method === 'POST' && path.startsWith(`/api/v1/dashboards/${d}/cards/`) && path.endsWith('/run'))
+      if (!allowed) return c.json({ error: { code: 'FORBIDDEN', message: 'Un jeton de rendu ne lit que son tableau de bord.' } }, 403)
+      actor = { userId: grant.userId, workspaceId: grant.workspaceId, via: 'render', ...(ip ? { ip } : {}) }
+    } else if (auth?.startsWith('Bearer ')) {
       // The MCP server relays its caller's token to this API and says so with this header, so a
       // token issued for MCP alone works through it. The surface limits what a token is meant
       // for; the rights it carries stay those of its owner whatever the surface.

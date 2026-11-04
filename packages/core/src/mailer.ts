@@ -1,4 +1,4 @@
-/** E-mails sortants (invitations). Sans SMTP configuré, rien ne part : le lien reste à copier. */
+/** E-mails sortants (invitations, abonnements, alertes). Sans SMTP configuré, rien ne part : le lien reste à copier. */
 import type { Core } from './context'
 
 let transport: { sendMail(m: Record<string, unknown>): Promise<unknown> } | null = null
@@ -7,14 +7,22 @@ export function mailEnabled(core: Core): boolean {
   return core.config.smtp !== undefined
 }
 
-export async function sendMail(core: Core, to: string, subject: string, text: string, html: string): Promise<boolean> {
+/** A file joined to an e-mail; with `cid`, an image the message's HTML shows inline. */
+export interface MailAttachment {
+  readonly filename: string
+  readonly content: Buffer
+  readonly contentType: string
+  readonly cid?: string
+}
+
+export async function sendMail(core: Core, to: string, subject: string, text: string, html: string, attachments: readonly MailAttachment[] = []): Promise<boolean> {
   const smtp = core.config.smtp
   if (!smtp) return false
   if (!transport) {
     const nodemailer = await import('nodemailer')
     transport = nodemailer.createTransport(smtp.url)
   }
-  await transport.sendMail({ from: smtp.from, to, subject, text, html })
+  await transport.sendMail({ from: smtp.from, to, subject, text, html, ...(attachments.length ? { attachments: [...attachments] } : {}) })
   return true
 }
 

@@ -24,6 +24,8 @@ const MCP = process.env.MCP_URL ?? 'http://localhost:4200'
 const config: NextConfig = {
   transpilePackages: ['@eodia/contracts'],
   devIndicators: { position: 'bottom-right' },
+  // In development, the renderer (Gotenberg, in Docker) opens the print page by this name.
+  allowedDevOrigins: ['host.docker.internal'],
   async rewrites() {
     return [
       { source: '/api/:path*', destination: `${API}/api/:path*` },

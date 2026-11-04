@@ -79,7 +79,19 @@ Voir [Authentification unique](/insights/hebergement/sso/).
 | `SMTP_URL` | — | le serveur d’envoi, en URL de connexion SMTP : `smtps://utilisateur:motdepasse@smtp.exemple.fr:465` |
 | `SMTP_FROM` | `eodia insights <noreply@localhost>` | l’expéditeur |
 
-Sans SMTP, aucun e-mail ne part : le lien d’une invitation s’affiche pour être transmis à la main.
+Sans SMTP, aucun e-mail ne part : le lien d’une invitation s’affiche pour être transmis à la main,
+et les [abonnements et alertes](/insights/fonctionnalites/abonnements/) ne partent que vers Teams et Slack.
+
+## Rendu des abonnements
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `RENDER_URL` | — | un service [Gotenberg](https://gotenberg.dev) : `http://render:3000` avec le profil `render` du compose de production |
+| `RENDER_PAGE_URL` | `PUBLIC_URL` | l’adresse de l’interface vue par ce service : `http://web:3100` dans le compose |
+
+Sans service de rendu, un abonnement en PDF ou en image envoie à la place le résumé écrit du
+tableau de bord (chiffres clés, premières lignes). Le service n’ouvre que la page d’impression,
+avec un jeton qui ne lit qu’un tableau de bord, sous l’identité d’une personne, cinq minutes.
 
 ## Copilot
 

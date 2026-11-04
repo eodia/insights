@@ -31,6 +31,8 @@ const ORIGINS: Record<QueryExecution['origin'], { label: string; color: LookColo
   copilot: { label: msg('Copilot'), color: 'pink' },
   share: { label: msg('Partage'), color: 'teal' },
   home: { label: msg('Accueil'), color: 'gray' },
+  subscription: { label: msg('Abonnement'), color: 'indigo' },
+  alert: { label: msg('Alerte'), color: 'orange' },
 }
 
 function duration(ms: number): string {

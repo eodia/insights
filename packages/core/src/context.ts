@@ -12,7 +12,8 @@ export interface Actor {
    * interface chose (`x-eodia-workspace`, checked), a token's is its own, a link's its item's.
    */
   readonly workspaceId: string
-  readonly via: 'session' | 'token' | 'share' | 'embed' | 'system'
+  /** `render`: the print page opened by the renderer, for one dashboard (`delivery/render.ts`). */
+  readonly via: 'session' | 'token' | 'share' | 'embed' | 'system' | 'render'
   /** For a token: the surfaces it may use. */
   readonly surfaces?: readonly string[]
   readonly sessionId?: string

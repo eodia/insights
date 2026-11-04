@@ -28,7 +28,11 @@
 #   OIDC_SCOPES, OIDC_ATTRIBUTE_CLAIMS, OIDC_GROUPS_CLAIM
 #                        SSO OpenID Connect (Keycloak, Entra ID…)
 #   SMTP_URL, SMTP_FROM
-#                        envoi des invitations par e-mail
+#                        e-mails : invitations, abonnements, alertes
+#   RENDER_URL, RENDER_PAGE_URL
+#                        abonnements en PDF ou en image : le service « render » (profil
+#                        render : docker compose --profile render up -d), avec
+#                        RENDER_URL=http://render:3000 et RENDER_PAGE_URL=http://web:3100
 #   AI_PROVIDER          anthropic | openai | mistral | openai-compatible | none
 #   AI_API_KEY (ou ANTHROPIC_API_KEY / OPENAI_API_KEY), AI_MODEL, AI_BASE_URL,
 #   AI_HOURLY_QUOTA (60) copilot
@@ -72,6 +76,8 @@ x-app: &app
     OIDC_GROUPS_CLAIM: ${OIDC_GROUPS_CLAIM:-}
     SMTP_URL: ${SMTP_URL:-}
     SMTP_FROM: ${SMTP_FROM:-}
+    RENDER_URL: ${RENDER_URL:-}
+    RENDER_PAGE_URL: ${RENDER_PAGE_URL:-}
     AI_PROVIDER: ${AI_PROVIDER:-}
     AI_API_KEY: ${AI_API_KEY:-}
     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
@@ -153,6 +159,14 @@ services:
       MCP_PORT: '4200'
     depends_on:
       api: { condition: service_healthy }
+
+  # Le rendu des abonnements en PDF ou en image (Gotenberg, un Chromium sans écran) : facultatif.
+  # Il n'ouvre que l'interface, sur le réseau de la pile : la page d'impression et ce qu'elle charge.
+  render:
+    image: gotenberg/gotenberg:8.20.1
+    profiles: [render]
+    restart: unless-stopped
+    command: ['gotenberg', '--chromium-allow-list=^http://web:3100/.*', '--api-timeout=90s', '--libreoffice-auto-start=false']
 
   caddy:
     image: caddy:2-alpine
