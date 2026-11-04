@@ -1806,7 +1806,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     >
       {/* Bar: the filters in a band, then — unless the page holds them by its title — the actions; tinted while edited. */}
       {band || !actionsSlot ? (
-        <div className={cn('dash-page-padded flex flex-wrap items-center gap-2 px-6 py-2.5 transition-colors', editing && 'bg-primary/[0.06]')}>
+        <div className={cn('dash-page-padded flex flex-wrap items-center gap-2 px-6 py-2.5 transition-colors', editing && surface && 'bg-primary/[0.06]')}>
           {band ? (
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-2xl bg-card p-1.5 shadow-[0_1px_2px_rgba(16,24,40,0.03),0_8px_24px_-20px_rgba(16,24,40,0.2)] dark:ring-1 dark:ring-border/60">
               <ParameterBar
