@@ -242,7 +242,7 @@ export function Sidebar({ rail = false }: { rail?: boolean }) {
       <WorkspaceMenu me={me} rail={rail} />
 
       {/* Searching, first: everything is a few letters away. */}
-      <div className={cn('pt-3', rail ? 'flex justify-center px-0' : 'px-3')}>
+      <div className={cn('pt-1', rail ? 'flex justify-center px-0' : 'px-3')}>
         {rail ? (
           <Hint label={`${$t('Rechercher…')} (Ctrl K)`} side="right">
             <button type="button" onClick={() => setPalette(true)} className="flex size-10 items-center justify-center rounded-lg border bg-background text-muted-foreground shadow-xs hover:text-foreground" aria-label={$t('Rechercher…')}>

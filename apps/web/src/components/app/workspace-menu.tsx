@@ -57,32 +57,45 @@ export function WorkspaceMenu({ me, rail = false }: { me: Me | undefined; /** Fo
 
   const face = (
     <>
-      {current ? <WorkspaceLogo workspace={current} className="size-10 text-sm" iconClassName="size-5" /> : <BrandMark size={40} className="size-10 shrink-0" />}
+      {current ? <WorkspaceLogo workspace={current} className="size-8 text-xs" iconClassName="size-4" /> : <BrandMark size={32} className="size-8 shrink-0" />}
       {/* A space with a face of its own names the project; « insights » steps below it. */}
       {rail ? null : current && ownIdentity(current) ? (
         <div className="min-w-0 flex-1 text-left leading-tight">
-          <div className="truncate text-[15px] font-semibold">{current.name}</div>
+          <div className="truncate text-sm font-semibold">{current.name}</div>
           <div className="truncate text-xs text-muted-foreground">insights</div>
         </div>
       ) : (
         <div className="min-w-0 flex-1 text-left leading-tight">
-          <div className="truncate text-[15px] font-semibold">eodia insights</div>
+          <div className="truncate text-sm font-semibold">eodia insights</div>
           <div className="truncate text-xs text-muted-foreground">{current?.name ?? $t('Toutes les sources')}</div>
         </div>
       )}
       {choosing && !rail ? <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" /> : null}
     </>
   )
-  if (!choosing) return <div className={cn('flex h-[76px] items-center gap-3 border-b', rail ? 'justify-center px-0' : 'px-4')}>{face}</div>
+  if (!choosing)
+    return (
+      <div className="p-2">
+        <div className={cn('flex h-12 items-center gap-2.5 rounded-lg', rail ? 'justify-center px-0' : 'px-2')}>{face}</div>
+      </div>
+    )
 
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button type="button" className={cn('flex h-[76px] w-full items-center gap-3 border-b transition-colors hover:bg-sidebar-accent/70 data-[state=open]:bg-sidebar-accent/70', rail ? 'justify-center px-0' : 'px-4')}>
-            {face}
-          </button>
-        </DropdownMenuTrigger>
+        <div className="p-2">
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                'flex h-12 w-full items-center gap-2.5 rounded-lg outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-sidebar-accent',
+                rail ? 'justify-center px-0' : 'px-2',
+              )}
+            >
+              {face}
+            </button>
+          </DropdownMenuTrigger>
+        </div>
         <DropdownMenuContent align="start" className="w-[248px]">
           <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">{$t('Espaces')}</DropdownMenuLabel>
           {spaces.map((w) => (
