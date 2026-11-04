@@ -101,6 +101,7 @@ import {
   Trash2,
   Type,
   X,
+  Pin,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
@@ -109,6 +110,7 @@ import { useRouter } from 'next/navigation'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
+import { pinToHome } from '@/lib/home'
 import { FILTER_ICONS, FILTER_TYPES, ParameterBar, ParameterEditor, type Values, filterName, filterType } from './parameters'
 import { ValueList } from './value-list'
 import { RefreshTimer } from './refresh-timer'
@@ -591,6 +593,18 @@ function CardFrame(props: CardProps) {
                     <ImageDown /> {$t('Copier en image')}
                   </DropdownMenuItem>
                 ) : null}
+                {isQuestion && card.question && !publicMode ? (
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      const figure = ['scalar', 'trend', 'progress'].includes(viz.type)
+                      void pinToHome(card.question as string, figure ? 'kpi' : 'question')
+                        .then(() => toast.success(figure ? $t('Indicateur épinglé à l’accueil.') : $t('Question ajoutée à l’accueil.')))
+                        .catch((err: unknown) => toast.error(err instanceof Error ? err.message : String(err)))
+                    }}
+                  >
+                    <Pin /> {$t('Épingler à l’accueil')}
+                  </DropdownMenuItem>
+                ) : null}
                 {isQuestion && !publicMode ? (
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
@@ -830,7 +844,7 @@ function CardFrame(props: CardProps) {
   )
 }
 
-function QuestionPicker({ open, onOpenChange, onPick, onNew }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (q: ItemSummary) => void; onNew?: () => void }) {
+export function QuestionPicker({ open, onOpenChange, onPick, onNew, title }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (q: ItemSummary) => void; onNew?: () => void; title?: string }) {
   const [q, setQ] = useState('')
   const { data } = useQuery({ queryKey: ['search', q, 'picker'], queryFn: () => api.get<{ items: ItemSummary[] }>(`/v1/search?q=${encodeURIComponent(q)}`), enabled: open })
   const items = (data?.items ?? []).filter((i) => i.kind !== 'dashboard')
@@ -847,7 +861,7 @@ function QuestionPicker({ open, onOpenChange, onPick, onNew }: { open: boolean; 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{$t('Ajouter une question')}</DialogTitle>
+          <DialogTitle>{title ?? $t('Ajouter une question')}</DialogTitle>
         </DialogHeader>
         <div className="relative">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />

@@ -451,3 +451,20 @@ export type RunQueryInput = z.infer<typeof RunQuerySchema>
 export type TablePatch = z.infer<typeof TablePatchSchema>
 export type ColumnPatch = z.infer<typeof ColumnPatchSchema>
 export type RowPolicyInput = z.infer<typeof RowPolicyInputSchema>
+
+/** A person's home page: its blocks on a 12-column grid. */
+export const HomeLayoutSchema = z.object({
+  widgets: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(64),
+        kind: z.enum(['kpi', 'question', 'favorites', 'alerts', 'recent', 'latest', 'shortcuts', 'tables', 'sources']),
+        question: z.string().uuid().optional(),
+        x: z.number().int().min(0).max(11),
+        y: z.number().int().min(0).max(1000),
+        w: z.number().int().min(1).max(12),
+        h: z.number().int().min(1).max(40),
+      }),
+    )
+    .max(48),
+})

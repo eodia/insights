@@ -1,6 +1,8 @@
 import { z } from '@hono/zod-openapi'
 import {
   DashboardInputSchema,
+  HomeLayoutSchema,
+  type HomeLayout,
   DashboardPasteSchema,
   FolderInputSchema,
   QuestionInputSchema,
@@ -16,6 +18,8 @@ import {
   AppError,
   cancelExecution,
   createDashboard,
+  getHomeLayout,
+  saveHomeLayout,
   createFolder,
   createQuestion,
   createTheme,
@@ -97,6 +101,7 @@ const PerformanceQuery = z.object({ days: z.string().optional(), all: z.enum(['0
 const AdviceInput = z.object({ sql: z.string().min(1).max(200_000) })
 const HistoryQuery = z.object({ all: z.enum(['0', '1']).optional(), origin: z.string().optional(), errors: z.enum(['0', '1']).optional(), before: z.string().optional() })
 const SnippetInput = z.object({ name: z.string().min(1).max(80), description: z.string().max(500).nullable().optional(), content: z.string().min(1).max(50_000) })
+const HomeLayoutPut = z.object({ layout: HomeLayoutSchema.nullable() })
 const Bookmark = z.object({ kind: z.enum(['question', 'model', 'metric', 'dashboard', 'folder']), id: z.string(), on: z.boolean() })
 const FolderPatch = FolderInputSchema.partial().extend({ archived: z.boolean().optional() })
 const QuestionPatch = QuestionInputSchema.partial().extend({ archived: z.boolean().optional() })
@@ -195,6 +200,12 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   // ── Dossiers ──
   const ftags = ['Dossiers']
   route(app, { method: 'get', path: '/api/v1/home', tags: ftags, summary: "Récents, favoris et nouveautés de l'accueil" }, async (c) => ok(c, await homeItems(c.get('core'), actorOf(c))))
+  route(app, { method: 'get', path: '/api/v1/home/layout', tags: ftags, summary: "La disposition de l'accueil de l'appelant (null : celle par défaut)" }, async (c) =>
+    ok(c, { layout: await getHomeLayout(c.get('core'), actorOf(c)) }),
+  )
+  route(app, { method: 'put', path: '/api/v1/home/layout', tags: ftags, summary: "Enregistrer la disposition de son accueil (null : revenir à celle par défaut)", body: HomeLayoutPut }, async (c) =>
+    ok(c, { layout: await saveHomeLayout(c.get('core'), actorOf(c), bodyOf(c, HomeLayoutPut).layout as HomeLayout | null) }),
+  )
   route(app, {
     method: 'get',
     path: '/api/v1/home/insights',

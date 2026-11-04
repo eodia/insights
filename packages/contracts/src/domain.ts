@@ -825,3 +825,26 @@ export interface QueryExecution {
 }
 
 export type { ColumnValue, ResultColumn }
+
+/** What a home page block shows. */
+export type HomeWidgetKind = 'kpi' | 'question' | 'favorites' | 'alerts' | 'recent' | 'latest' | 'shortcuts' | 'tables' | 'sources'
+
+/**
+ * A block of a person's home page, on a 12-column grid: a figure they pinned (`kpi`), a question
+ * shown as its chart (`question`), or one of the page's lists.
+ */
+export interface HomeWidget {
+  readonly id: string
+  readonly kind: HomeWidgetKind
+  /** The saved question shown, for a `kpi` or a `question`. */
+  readonly question?: string
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
+}
+
+/** A person's home page, as they arranged it. */
+export interface HomeLayout {
+  readonly widgets: readonly HomeWidget[]
+}

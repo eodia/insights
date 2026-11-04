@@ -613,3 +613,19 @@
   max-width: var(--dash-page-padded, none);
   margin-inline: auto;
 }
+
+/* The home page's blocks rise into place when it opens, one after the other. */
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+.home-rise {
+  animation: home-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-rise {
+    animation: none;
+  }
+}
