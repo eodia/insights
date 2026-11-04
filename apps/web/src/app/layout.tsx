@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Serif, Inter, JetBrains_Mono } from 'next/font/google'
 import { I18nRoot } from '@/components/i18n-root'
 import { msg } from '@/lib/i18n'
 import { i18nScript, messagesOf, requestLocale, translate } from '@/lib/i18n-server'
@@ -8,6 +8,7 @@ import './globals.css'
 
 const sans = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' })
+const serif = Instrument_Serif({ subsets: ['latin'], weight: '400', style: ['normal', 'italic'], variable: '--font-serif', display: 'swap' })
 
 const OG_LOCALES = { fr: 'fr_FR', en: 'en_US', es: 'es_ES' } as const
 
@@ -43,7 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await requestLocale()
   const messages = await messagesOf(locale)
   return (
-    <html lang={locale} suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
       <head>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a constant script, the theme before paint */}
         <script dangerouslySetInnerHTML={{ __html: THEME }} />

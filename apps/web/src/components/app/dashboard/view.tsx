@@ -465,7 +465,7 @@ function CardFrame(props: CardProps) {
     <div
       ref={frameRef}
       className={cn(
-        'theme-card group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-18px_rgba(16,24,40,0.22)] transition-shadow duration-200 hover:shadow-[0_1px_2px_rgba(16,24,40,0.05),0_16px_36px_-18px_rgba(16,24,40,0.3)]',
+        'theme-card group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-transparent bg-card shadow-[0_1px_2px_rgba(16,24,40,0.03),0_10px_30px_-20px_rgba(16,24,40,0.18)] transition-shadow duration-200 hover:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_18px_40px_-20px_rgba(16,24,40,0.26)] dark:border-border/60',
         editing && 'ring-primary/30 hover:ring-2',
       )}
     >
@@ -1633,9 +1633,9 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     <div className="relative flex h-full flex-col">
       {/* Bar: the filters in a band, then — unless the page holds them by its title — the actions; tinted while edited. */}
       {band || !actionsSlot ? (
-        <div className={cn('flex flex-wrap items-center gap-2 border-b px-6 py-2.5 transition-colors', editing && 'border-primary/25 bg-primary/[0.06]')}>
+        <div className={cn('flex flex-wrap items-center gap-2 px-6 py-2.5 transition-colors', editing && 'bg-primary/[0.06]')}>
           {band ? (
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-xl border border-border/60 bg-muted/50 p-1">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-2xl bg-card p-1.5 shadow-[0_1px_2px_rgba(16,24,40,0.03),0_8px_24px_-20px_rgba(16,24,40,0.2)] dark:ring-1 dark:ring-border/60">
               <ParameterBar
                 parameters={draft.parameters}
                 values={values}
@@ -1778,13 +1778,13 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
 
       {/* Tabs */}
       {tabs.length > 0 || editing ? (
-        <TabRow className="items-center gap-1 border-b px-6 py-2">
+        <TabRow className="items-center gap-1 px-6 py-2">
           {tabs.map((t: DashboardTab) => (
             <div
               key={t.id}
               className={cn(
                 'group/tab relative flex items-center rounded-lg transition-all',
-                currentTab === t.id ? 'bg-background shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-accent' : 'hover:bg-muted/70',
+                currentTab === t.id ? 'bg-foreground text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] [&_button]:text-background' : 'hover:bg-background/80',
                 draggedTab === t.id && 'opacity-40',
               )}
               {...(editing && tabs.length > 1

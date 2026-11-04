@@ -1779,7 +1779,7 @@
   "Archivé": {
     "where": [
       "app/(app)/admin/workspaces/page.tsx:54",
-      "components/app/workspace-menu.tsx:93"
+      "components/app/workspace-menu.tsx:106"
     ]
   },
   "Archiver": {
@@ -1818,7 +1818,7 @@
   },
   "Assistant IA · interrogez vos données en français": {
     "where": [
-      "components/app/home/hero.tsx:39"
+      "components/app/home/hero.tsx:35"
     ]
   },
   "atteint au moins": {
@@ -2564,12 +2564,17 @@
       "components/app/docs/docs-viewer.tsx:93"
     ]
   },
+  "Bonjour": {
+    "where": [
+      "components/app/home/hero.tsx:23"
+    ]
+  },
   "Bonjour {name}": {
     "where": [
       "components/app/assistant/assistant.tsx:260"
     ]
   },
-  "Bonjour {name}.": {
+  "Bonsoir": {
     "where": [
       "components/app/home/hero.tsx:23"
     ]
@@ -2577,11 +2582,6 @@
   "Bonsoir {name}": {
     "where": [
       "components/app/assistant/assistant.tsx:260"
-    ]
-  },
-  "Bonsoir {name}.": {
-    "where": [
-      "components/app/home/hero.tsx:23"
     ]
   },
   "Booléen métier": {
@@ -4156,7 +4156,7 @@
   },
   "Création impossible.": {
     "where": [
-      "components/app/workspace-menu.tsx:139"
+      "components/app/workspace-menu.tsx:152"
     ]
   },
   "créé {when}": {
@@ -4193,7 +4193,7 @@
   },
   "Créer l’espace": {
     "where": [
-      "components/app/workspace-menu.tsx:165"
+      "components/app/workspace-menu.tsx:178"
     ]
   },
   "Créer la vue": {
@@ -4492,7 +4492,7 @@
   "Demandez n’importe quoi sur vos données…": {
     "where": [
       "components/app/assistant/assistant.tsx:194",
-      "components/app/home/hero.tsx:64",
+      "components/app/home/hero.tsx:59",
       "components/app/login-stage.tsx:461"
     ]
   },
@@ -5397,7 +5397,7 @@
   },
   "Entrée pour envoyer": {
     "where": [
-      "components/app/home/hero.tsx:72",
+      "components/app/home/hero.tsx:67",
       "components/app/login-stage.tsx:467"
     ]
   },
@@ -5452,7 +5452,7 @@
     "where": [
       "components/app/assistant/assistant.tsx:241",
       "components/app/copilot.tsx:342",
-      "components/app/home/hero.tsx:75"
+      "components/app/home/hero.tsx:70"
     ]
   },
   "Envoyer maintenant à tous": {
@@ -5795,7 +5795,7 @@
   },
   "Explorez vos données, posez vos questions et partagez vos tableaux de bord. Open source, avec un copilot IA.": {
     "where": [
-      "app/layout.tsx:31"
+      "app/layout.tsx:32"
     ]
   },
   "Export impossible.": {
@@ -6025,7 +6025,7 @@
   },
   "Finance, Filiale Nord…": {
     "where": [
-      "components/app/workspace-menu.tsx:153"
+      "components/app/workspace-menu.tsx:166"
     ]
   },
   "Fine": {
@@ -9074,8 +9074,8 @@
   "Nouvel espace": {
     "where": [
       "app/(app)/admin/workspaces/page.tsx:38",
-      "components/app/workspace-menu.tsx:114",
-      "components/app/workspace-menu.tsx:148"
+      "components/app/workspace-menu.tsx:127",
+      "components/app/workspace-menu.tsx:161"
     ]
   },
   "Nouvel onglet": {
@@ -9478,7 +9478,7 @@
   },
   "Paramètres de l’espace": {
     "where": [
-      "components/app/workspace-menu.tsx:102"
+      "components/app/workspace-menu.tsx:115"
     ]
   },
   "Paramètres de requête": {
@@ -9910,7 +9910,7 @@
   },
   "Posez votre question. L’assistant trouve les bonnes tables, écrit le SQL et vous répond en chiffres et en graphiques.": {
     "where": [
-      "components/app/home/hero.tsx:48"
+      "components/app/home/hero.tsx:44"
     ]
   },
   "Position": {
@@ -10189,7 +10189,7 @@
   },
   "Que voulez-vous savoir ?": {
     "where": [
-      "components/app/home/hero.tsx:44"
+      "components/app/home/hero.tsx:40"
     ]
   },
   "Quel canal a le meilleur panier moyen ce trimestre ?": {
@@ -11979,7 +11979,7 @@
   },
   "Tableaux de bord, questions et exploration de données, open source.": {
     "where": [
-      "app/layout.tsx:24"
+      "app/layout.tsx:25"
     ]
   },
   "Tableaux de bord, questions et sous-dossiers remontent d’un niveau ; seul le dossier disparaît.": {
@@ -12303,7 +12303,7 @@
   },
   "Tous les espaces": {
     "where": [
-      "components/app/workspace-menu.tsx:110"
+      "components/app/workspace-menu.tsx:123"
     ]
   },
   "Tous les jours": {
@@ -12537,7 +12537,7 @@
     "where": [
       "components/app/assistant/assistant.tsx:85",
       "components/app/assistant/assistant.tsx:112",
-      "components/app/home/hero.tsx:70"
+      "components/app/home/hero.tsx:65"
     ]
   },
   "toutes les valeurs": {
@@ -12892,7 +12892,7 @@
   },
   "Une équipe, une filiale : ses sources, ses dossiers et ses droits, à part. Vous en serez administrateur.": {
     "where": [
-      "components/app/workspace-menu.tsx:149"
+      "components/app/workspace-menu.tsx:162"
     ]
   },
   "Une erreur est survenue.": {
@@ -13385,7 +13385,7 @@
   },
   "Vos chiffres clés sont calculés à chaque visite, sous vos droits, dans les tables que vous pouvez lire.": {
     "where": [
-      "components/app/home/hero.tsx:49"
+      "components/app/home/hero.tsx:45"
     ]
   },
   "Vos conversations s’affichent ici : elles sont gardées pour vous seul.": {
@@ -13395,12 +13395,12 @@
   },
   "Vos données prennent du sens.": {
     "where": [
-      "app/layout.tsx:29"
+      "app/layout.tsx:30"
     ]
   },
   "Vos données, explorées pour vous": {
     "where": [
-      "components/app/home/hero.tsx:39"
+      "components/app/home/hero.tsx:35"
     ]
   },
   "Vos groupes": {
@@ -13430,7 +13430,7 @@
   },
   "Votre question": {
     "where": [
-      "components/app/home/hero.tsx:65"
+      "components/app/home/hero.tsx:60"
     ]
   },
   "vous": {

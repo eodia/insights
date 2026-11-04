@@ -2805,5 +2805,7 @@
   "Pictogramme": "Pictogram",
   "Mis à jour {when}": "Updated {when}",
   "Mis à jour {when} · {name}": "Updated {when} · {name}",
-  "Récents": "Recent"
+  "Récents": "Recent",
+  "Bonjour": "Good morning",
+  "Bonsoir": "Good evening"
 }

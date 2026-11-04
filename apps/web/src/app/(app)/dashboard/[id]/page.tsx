@@ -293,7 +293,7 @@ function DashboardScreen({ id }: { id: string }) {
 
   return (
     <div ref={root} className="h-full">
-      <ThemeScope theme={dashboard.resolved_theme} className="flex h-full flex-col bg-background">
+      <ThemeScope theme={dashboard.resolved_theme} className="theme-surface flex h-full flex-col bg-surface">
         <div className={cn('flex gap-3 px-6 transition-all duration-200', folded ? 'items-center pt-2.5 pb-0.5' : 'items-start pt-5 pb-1', editingNow && 'bg-primary/[0.06]')}>
           {dashboard.resolved_theme?.settings.logo_position !== 'right' ? (
             <ThemeLogo

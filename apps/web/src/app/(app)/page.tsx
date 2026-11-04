@@ -25,6 +25,7 @@ export default function HomePage() {
   const favorite = home?.bookmarks[0]
 
   return (
+    <div className="min-h-full bg-surface">
     <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-9 px-4 pt-7 pb-16 sm:px-6 lg:px-10">
       <HomeHero firstName={me?.name.split(' ')[0] ?? ''} ai={!!me?.ai_enabled} />
       <Shortcuts sql={!!me?.can.use_sql} table={starters[0]?.qualified ?? null} />
@@ -39,6 +40,7 @@ export default function HomePage() {
           <Sources sources={sources} />
         </div>
       </section>
+    </div>
     </div>
   )
 }
