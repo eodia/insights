@@ -49,6 +49,7 @@ import {
   Copy,
   Ellipsis,
   FileDown,
+  Link2,
   Loader2,
   Maximize,
   Plus,
@@ -204,9 +205,32 @@ function DashboardScreen({ id }: { id: string }) {
   const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null)
   // The filters as they stand: a print shows the dashboard as one sees it.
   const filterValues = useRef<Record<string, unknown>>({})
-  const onValuesChange = useCallback((v: Record<string, unknown>) => {
-    filterValues.current = v
-  }, [])
+  // The filters live in the address too (`?v=`, those that differ from the defaults): a link
+  // copied opens the dashboard as it was seen. Written in place, without a navigation.
+  const [linkValues] = useState(() => {
+    try {
+      const raw = params.get('v')
+      return raw ? (JSON.parse(raw) as Record<string, ParameterValue | null>) : null
+    } catch {
+      return null
+    }
+  })
+  const onValuesChange = useCallback(
+    (v: Record<string, unknown>) => {
+      filterValues.current = v
+      if (!dashboard) return
+      const changed = Object.fromEntries(
+        dashboard.parameters.filter((p) => JSON.stringify(v[p.id] ?? null) !== JSON.stringify(p.default ?? null)).map((p) => [p.id, v[p.id] ?? null]),
+      )
+      const url = new URL(window.location.href)
+      if (Object.keys(changed).length) url.searchParams.set('v', JSON.stringify(changed))
+      else url.searchParams.delete('v')
+      url.searchParams.delete('back')
+      url.searchParams.delete('filters')
+      if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url)
+    },
+    [dashboard],
+  )
   useCrumbs([
     {
       label: $t('Tableaux de bord'),
@@ -246,8 +270,12 @@ function DashboardScreen({ id }: { id: string }) {
   const editable = dashboard.access !== 'view'
   // The open tab lives in the address: a link opens it, and Back and Forward go from tab to tab.
   const tab = params.get('tab')
-  const dashboardHref = (t: string | null) =>
-    `/dashboard/${dashboard.id}${t ? `?tab=${encodeURIComponent(t)}` : ''}`
+  const dashboardHref = (t: string | null) => {
+    // The filters follow from tab to tab.
+    const v = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('v')
+    const q = new URLSearchParams({ ...(t ? { tab: t } : {}), ...(v ? { v } : {}) })
+    return `/dashboard/${dashboard.id}${q.size ? `?${q}` : ''}`
+  }
   const newQuestionHref = (t: string | null) =>
     `/question/new?dashboard=${dashboard.id}${t ? `&tab=${encodeURIComponent(t)}` : ''}`
 
@@ -299,6 +327,8 @@ function DashboardScreen({ id }: { id: string }) {
               api.post<SummaryText>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/summary`, { values, fresh, ...(draft ? { card } : {}) })
             }
             {...(carried ? { initialFilters: carried } : {})}
+            restoring={params.get('back') === '1'}
+            {...(linkValues ? { startValues: linkValues } : {})}
             tab={tab}
             onValuesChange={onValuesChange}
             onTabChange={(next) => router.push(dashboardHref(next), { scroll: false })}
@@ -354,6 +384,14 @@ function DashboardScreen({ id }: { id: string }) {
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setExporting(true)}>
                         <FileDown /> {$t('Exporter en PDF…')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={async () => {
+                          await navigator.clipboard.writeText(window.location.href)
+                          toast.success($t('Lien copié : il ouvre le tableau de bord avec ces filtres et cet onglet.'))
+                        }}
+                      >
+                        <Link2 /> {$t('Copier le lien de cette vue')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setSubscribing(true)}>
                         <BellRing /> {$t('Abonnements…')}

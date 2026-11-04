@@ -479,7 +479,7 @@ export async function runCard(
   dashboardId: string,
   cardId: string,
   values: Readonly<Record<string, ParameterValue | null>>,
-  opts: { fresh?: boolean; origin?: Origin; locked?: Readonly<Record<string, ParameterValue | null>> } = {},
+  opts: { fresh?: boolean; origin?: Origin; locked?: Readonly<Record<string, ParameterValue | null>>; /** An export's rows, rather than the card's own. */ limit?: number } = {},
 ): Promise<RunResult> {
   const d = await getDashboard(core, actor, dashboardId)
   // A query rule of a card's or a tab's display condition runs as a card of its own.
@@ -493,7 +493,7 @@ export async function runCard(
   const common = { origin: opts.origin ?? ('card' as const), dashboardId, constraints, ...(opts.fresh ? { fresh: true } : {}) }
   if (card.question) {
     const q = await getQuestion(core, actor, card.question)
-    const limit = rowLimitOf(card.visualization ?? q.visualization)
+    const limit = opts.limit ?? rowLimitOf(card.visualization ?? q.visualization)
     const compare = compareOf(card.visualization ?? q.visualization)
     return runQuery(core, actor, {
       ...common,
@@ -507,7 +507,7 @@ export async function runCard(
     })
   }
   if (!card.query) throw new AppError('NOT_FOUND', 'Carte sans question.')
-  const limit = rowLimitOf(card.visualization)
+  const limit = opts.limit ?? rowLimitOf(card.visualization)
   const compare = compareOf(card.visualization)
   return runQuery(core, actor, { ...common, ...(limit ? { limit } : {}), ...(compare ? { compare } : {}), query: card.query, adhoc: false, cacheTtl: d.cache_ttl })
 }

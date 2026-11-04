@@ -192,6 +192,58 @@ see [Forecasts](/insights/en/fonctionnalites/previsions/).
 - **Duplicate**, **Add to favorites**, **Share** (see
   [Sharing](/insights/en/fonctionnalites/partage/)).
 
+## Tabs
+
+In edit mode, a tab's **handle** ⋮⋮ moves it (or Alt + ← / →); its settings icon — or a
+double click, or a right click — opens its settings: its name, a **pictogram** and a **colour**
+(taken up by its underline), a **description**, its display condition. There you **duplicate** a
+tab, its cards with it, or delete it.
+
+Hovering a tab shows a **tooltip** with its description and a preview of what it holds: a
+picture of the tab as last seen, or else the map of its cards.
+
+In edit mode too, a **floating pill** at the bottom of the screen adds cards (question, title,
+text, filter pane, buttons…); **Undo** and **Redo** (Ctrl + Z, Ctrl + Shift + Z) take back and
+redo each change of the draft. A card added is brought into view and glows a moment.
+
+## Views, selections and links
+
+- **Previous / next selection**: the two arrows at the end of the filter band walk through the
+  selections made, as in Qlik.
+- **Saved views**: the **Views** menu keeps the chosen filters and the open tab under a name —
+  “Brittany, this month” —, for yourself or for everyone; one can open by default.
+- **A link that keeps everything**: the dashboard's address carries the tab and the filters
+  that differ from the defaults. **⋯ › Copy the link to this view** copies it; whoever opens it
+  sees the same (under their own permissions).
+- **Back from a question**: opened from a card's title or menu, a question shows a button that
+  brings you back to the dashboard, its tab, its filters and its position.
+
+## Comments and annotations
+
+A bubble in a card's header opens its **comments**: “drop due to the strike on the 12th”.
+Everyone who opens the dashboard reads them and answers; each person deletes their own.
+
+Right click on a point of a curve over time › **Annotate this point…**: a **dated marker** — or a
+period — with a label and a colour, drawn on the chart. Set on a saved question, it follows it
+wherever it shows.
+
+## Data cards
+
+A question card's ⋯ menu offers, besides refresh and expand:
+
+- **Export the data** as CSV, Excel or JSON, with the dashboard's filters (100,000 rows at most);
+- **View as table**: the figures behind the chart, for a glance;
+- **Copy as image**: the card in the clipboard, ready to paste in a message;
+- **Alerts…**: be told when the question crosses a threshold (see
+  [Subscriptions and alerts](/insights/en/fonctionnalites/abonnements/)).
+
+## Export and send
+
+**⋯ › Export as PDF…** picks the tabs, orientation, paper (A4, A3, Letter), cover page, a title
+and a note, then opens the preview. Each page carries the theme's logo and its number at the
+foot. **⋯ › Subscriptions…** sends the dashboard at set times: see
+[Subscriptions and alerts](/insights/en/fonctionnalites/abonnements/).
+
 ## Result caching
 
 Trino does not keep results: eodia insights does it for it. A card or question result is kept

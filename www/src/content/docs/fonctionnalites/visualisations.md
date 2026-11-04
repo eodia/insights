@@ -68,6 +68,19 @@ une course au total plutôt qu’à la valeur du mois, et le départ à l’ouve
 - **Remplissage des barres** : plein, hachuré ou en dégradé — pour un graphique, ou pour tous
   par le [thème](/insights/fonctionnalites/themes/), avec l’arrondi des barres.
 
+## Comparer à une autre période
+
+Dans les réglages d’un graphique (questions construites avec l’éditeur visuel), **Comparer**
+ajoute à chaque mesure sa valeur :
+
+- **Même période l’an dernier** : la courbe de l’an dernier, en pointillés, à côté de celle de
+  cette année ;
+- **Période précédente** : la période d’avant, de même durée — il faut un filtre de dates, sur
+  la question ou sur le tableau de bord.
+
+Les dates sont décalées pour que les deux périodes se superposent ; un tableau gagne une colonne
+« N-1 » par mesure.
+
 ## Les couleurs
 
 **Six palettes**, chacune un ordre de teintes : **eodia** (par défaut), **Vive**, **Océan**,
@@ -141,3 +154,18 @@ Un clic droit sur une cellule ouvre le menu du tableau, rangé par groupes :
 - **Exporter** en **CSV** ou en **Excel** les lignes que gardent la recherche et les filtres.
 
 Sur une carte, la recherche de la table prend place dans l’en-tête, entre le titre et le menu ⋯.
+
+## La mise en forme conditionnelle
+
+Dans les réglages d’une table, **Mise en forme conditionnelle** colore les cellules selon leur
+valeur :
+
+- une **règle** : une colonne, un test (inférieur à, au moins, entre…), une couleur ; elle
+  colore le texte ou **remplit la cellule**, ajoute un **pictogramme** au choix (une icône, un
+  emoji, une image) devant la valeur, et peut colorer **toute la ligne** ;
+- une **échelle de couleur** : du rouge au vert (ou l’inverse, ou en bleu), de la plus petite
+  valeur de la colonne à la plus grande ;
+- des **barres** dans les cellules, proportionnelles à la valeur.
+
+Au survol de l’en-tête d’une colonne, sa **description** (saisie dans Sources de données)
+s’affiche ; les colonnes décrites sont soulignées en pointillés.

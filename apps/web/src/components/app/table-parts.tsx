@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Hint } from '@/components/ui/tooltip'
 import { download } from '@/lib/api'
 import { formatCount, formatValue } from '@/lib/format'
 import { $t } from '@/lib/i18n'
@@ -171,9 +172,12 @@ export function HeaderCell({
   onFilter,
   sticky,
   filters,
+  description,
 }: {
   col: ResultColumn
   label: string
+  /** What the column holds, said on hover. */
+  description?: string | undefined
   numeric: boolean
   sort: 'asc' | 'desc' | null
   onSort: () => void
@@ -234,10 +238,19 @@ export function HeaderCell({
       )}
     >
       <span className={cn('inline-flex max-w-full items-center gap-1', numeric && 'flex-row-reverse')}>
-        <button type="button" onClick={onSort} className={cn('inline-flex min-w-0 items-center gap-1 hover:text-foreground', numeric && 'flex-row-reverse')} title={label}>
-          <span className="truncate">{label}</span>
-          {sort === 'desc' ? <ArrowDown className="size-3 shrink-0" /> : sort === 'asc' ? <ArrowUp className="size-3 shrink-0" /> : <ArrowUpDown className="size-3 shrink-0 opacity-0 group-hover/th:opacity-40" />}
-        </button>
+        <Hint
+          label={
+            <span className="block max-w-72 space-y-0.5 text-left font-normal normal-case">
+              <span className="block font-semibold">{label}</span>
+              {description ? <span className="block leading-snug opacity-90">{description}</span> : null}
+            </span>
+          }
+        >
+          <button type="button" onClick={onSort} className={cn('inline-flex min-w-0 items-center gap-1 hover:text-foreground', numeric && 'flex-row-reverse')}>
+            <span className={cn('truncate', description && 'underline decoration-muted-foreground/40 decoration-dotted underline-offset-4')}>{label}</span>
+            {sort === 'desc' ? <ArrowDown className="size-3 shrink-0" /> : sort === 'asc' ? <ArrowUp className="size-3 shrink-0" /> : <ArrowUpDown className="size-3 shrink-0 opacity-0 group-hover/th:opacity-40" />}
+          </button>
+        </Hint>
         {filters ? (
           <Popover>
             <PopoverTrigger asChild>

@@ -8,13 +8,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { LOOK_HEX } from '@/lib/format'
 import { $t, $tp } from '@/lib/i18n'
 import { keys } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQueries } from '@tanstack/react-query'
-import { BarChart3, Eye, type LucideIcon, Heading, ImageIcon, Link2, ListFilter, Minus, MousePointerClick, Smile, SlidersHorizontal, Sparkles, Trash2, Type } from 'lucide-react'
+import { BarChart3, Copy, Eye, type LucideIcon, Heading, ImageIcon, Link2, ListFilter, Minus, MousePointerClick, Smile, SlidersHorizontal, Sparkles, Trash2, Type } from 'lucide-react'
 import { domToJpeg } from 'modern-screenshot'
 import { useState, useSyncExternalStore } from 'react'
 
@@ -167,6 +168,7 @@ export function TabSettingsDialog({
   onSave,
   onCondition,
   onRemove,
+  onDuplicate,
   onClose,
 }: {
   tab: DashboardTab
@@ -176,6 +178,8 @@ export function TabSettingsDialog({
   onSave: (patch: Pick<DashboardTab, 'label'> & { icon: string | undefined; color: LookColor | undefined; description: string | undefined }) => void
   onCondition: () => void
   onRemove: () => void
+  /** A copy of the tab and its cards, just after it. */
+  onDuplicate: () => void
   onClose: () => void
 }) {
   const [label, setLabel] = useState(tab.label)
@@ -239,23 +243,41 @@ export function TabSettingsDialog({
               {conditionLabel ? $t('Modifier') : $t('Ajouter')}
             </Button>
           </div>
-          <DialogFooter className="sm:justify-between">
-            {canRemove ? (
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => {
-                  onRemove()
-                  onClose()
-                }}
-              >
-                <Trash2 /> {$t('Supprimer l’onglet')}
-              </Button>
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
+          <DialogFooter className="flex-row items-center sm:justify-between">
+            <div className="flex gap-1">
+              <Hint label={$t('Dupliquer l’onglet')}>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label={$t('Dupliquer l’onglet')}
+                  onClick={() => {
+                    onDuplicate()
+                    onClose()
+                  }}
+                >
+                  <Copy />
+                </Button>
+              </Hint>
+              {canRemove ? (
+                <Hint label={$t('Supprimer l’onglet')}>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={$t('Supprimer l’onglet')}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => {
+                      onRemove()
+                      onClose()
+                    }}
+                  >
+                    <Trash2 />
+                  </Button>
+                </Hint>
+              ) : null}
+            </div>
+            <div className="ml-auto flex gap-2">
               <Button type="button" variant="ghost" onClick={onClose}>
                 {$t('Annuler')}
               </Button>

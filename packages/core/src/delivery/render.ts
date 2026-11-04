@@ -72,6 +72,8 @@ export async function renderDashboard(
     endpoint = '/forms/chromium/convert/url'
     form.set('printBackground', 'true')
     form.set('preferCssPageSize', 'true')
+    // The page draws its own margins and foot (logo, numbers).
+    for (const side of ['marginTop', 'marginBottom', 'marginLeft', 'marginRight']) form.set(side, '0')
   } else {
     endpoint = '/forms/chromium/screenshot/url'
     form.set('format', 'png')

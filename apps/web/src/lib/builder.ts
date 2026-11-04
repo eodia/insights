@@ -27,6 +27,8 @@ export interface ColumnOption {
   readonly type: string
   readonly columnId?: string
   readonly semantic?: string | null
+  /** What the column holds, as described in Sources de données — said on hover. */
+  readonly description?: string | null
   readonly hasValues?: boolean
   /** The join that makes the column reachable, added when it is picked. */
   readonly join?: Join
@@ -59,6 +61,7 @@ export function columnOptions(
     type: c.type,
     columnId: c.id,
     semantic: c.semantic,
+    description: c.description,
     hasValues: c.has_values,
     ...(join ? { join } : {}),
   })

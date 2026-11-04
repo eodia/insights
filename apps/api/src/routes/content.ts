@@ -346,6 +346,21 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
     const input = bodyOf(c, CardRun)
     return ok(c, await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { ...(input.fresh ? { fresh: true } : {}) }))
   })
+  route(
+    app,
+    {
+      method: 'post',
+      path: '/api/v1/dashboards/:id/cards/:card/export',
+      tags: dtags,
+      summary: 'Exporter le résultat d’une carte avec les filtres du tableau de bord (CSV, JSON, XLSX)',
+      body: CardRun.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(200).optional() }),
+    },
+    async (c) => {
+      const input = bodyOf(c, CardRun.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(200).optional() }))
+      const result = await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { limit: 100_000 })
+      return download(c, input.format, input.name ?? '', result)
+    },
+  )
   route(app, { method: 'get', path: '/api/v1/dashboards/:id/comments', tags: dtags, summary: 'Commentaires des cartes du tableau de bord' }, async (c) =>
     ok(c, await listCardComments(c.get('core'), actorOf(c), param(c, 'id'))),
   )

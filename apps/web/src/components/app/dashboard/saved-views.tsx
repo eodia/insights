@@ -1,16 +1,18 @@
 'use client'
 
 import type { DashboardSavedView, ParameterValue } from '@eodia/contracts'
+import { ConfirmDialog } from '@/components/app/dialogs'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { Hint } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bookmark, BookmarkPlus, Check, Loader2, RefreshCw, Star, Trash2, Users } from 'lucide-react'
+import { Bookmark, BookmarkPlus, Check, Loader2, Replace, Star, Trash2, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { Values } from './parameters'
@@ -67,6 +69,7 @@ export function SavedViews({
       toast.error(err instanceof Error ? err.message : String(err))
     }
   }
+  const [replacing, setReplacing] = useState<DashboardSavedView | null>(null)
   const update = async (v: DashboardSavedView) => {
     try {
       await api.put(`/v1/dashboards/${dashboardId}/views/${v.id}`, { name: v.name, values, tab, shared: v.shared, is_default: v.is_default })
@@ -91,7 +94,7 @@ export function SavedViews({
         <DropdownMenuContent align="start" className="w-72">
           {mine.length ? <DropdownMenuLabel className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{$t('Mes vues')}</DropdownMenuLabel> : null}
           {mine.map((v) => (
-            <ViewItem key={v.id} view={v} active={current?.id === v.id} onApply={() => onApply(v.values as Values, v.tab)} onUpdate={() => void update(v)} onRemove={() => void remove(v)} />
+            <ViewItem key={v.id} view={v} active={current?.id === v.id} onApply={() => onApply(v.values as Values, v.tab)} onUpdate={() => setReplacing(v)} onRemove={() => void remove(v)} />
           ))}
           {shared.length ? (
             <>
@@ -109,6 +112,17 @@ export function SavedViews({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <ConfirmDialog
+        open={replacing !== null}
+        onOpenChange={(o) => !o && setReplacing(null)}
+        title={$t('Remplacer « {name} » ?', { name: replacing?.name ?? '' })}
+        description={$t('La vue garde son nom ; ses filtres et son onglet deviennent ceux affichés maintenant.')}
+        confirmLabel={$t('Remplacer')}
+        destructive={false}
+        onConfirm={async () => {
+          if (replacing) await update(replacing)
+        }}
+      />
       {saving ? <SaveViewDialog dashboardId={dashboardId} values={values} tab={tab} onClose={() => setSaving(null)} onSaved={() => void qc.invalidateQueries({ queryKey: key })} /> : null}
     </>
   )
@@ -121,32 +135,36 @@ function ViewItem({ view, active, onApply, onUpdate, onRemove }: { view: Dashboa
       <span className="min-w-0 flex-1 truncate">{view.name}</span>
       {!view.mine && view.author ? <span className="max-w-20 truncate text-[11px] text-muted-foreground">{view.author.name}</span> : null}
       {onUpdate ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            onUpdate()
-          }}
-          title={$t('Remplacer par les filtres actuels')}
-          className="rounded p-1 opacity-0 group-hover/view:opacity-100 hover:bg-background"
-        >
-          <RefreshCw className="size-3.5" />
-        </button>
+        <Hint label={$t('Remplacer par les filtres actuels')}>
+          <button
+            type="button"
+            aria-label={$t('Remplacer par les filtres actuels')}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onUpdate()
+            }}
+            className="rounded p-1 opacity-0 group-hover/view:opacity-100 hover:bg-background"
+          >
+            <Replace className="size-3.5" />
+          </button>
+        </Hint>
       ) : null}
       {onRemove ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            onRemove()
-          }}
-          title={$t('Supprimer')}
-          className="rounded p-1 text-destructive opacity-0 group-hover/view:opacity-100 hover:bg-destructive/10"
-        >
-          <Trash2 className="size-3.5 text-destructive" />
-        </button>
+        <Hint label={$t('Supprimer')}>
+          <button
+            type="button"
+            aria-label={$t('Supprimer')}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onRemove()
+            }}
+            className="rounded p-1 text-destructive opacity-0 group-hover/view:opacity-100 hover:bg-destructive/10"
+          >
+            <Trash2 className="size-3.5 text-destructive" />
+          </button>
+        </Hint>
       ) : null}
     </DropdownMenuItem>
   )

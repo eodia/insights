@@ -197,6 +197,61 @@ série, mise en avant, moyenne, tri, top N… — voir [Visualisations](/insight
 - **Dupliquer**, **Ajouter aux favoris**, **Partager** (voir
   [Partage](/insights/fonctionnalites/partage/)).
 
+## Les onglets
+
+En mode modification, la **poignée** ⋮⋮ d’un onglet le déplace (ou Alt + ← / →), l’icône de
+réglages — ou un double-clic, ou un clic droit — ouvre ses réglages : son nom, un
+**pictogramme** et une **couleur** (reprise par son soulignement), une **description**, sa
+condition d’affichage. On y **duplique** un onglet, ses cartes avec lui, ou on le supprime.
+
+Au survol d’un onglet, une **infobulle** montre sa description et un aperçu de ce qu’il
+contient : une capture de l’onglet tel qu’on l’a vu la dernière fois, ou à défaut le plan de ses
+cartes.
+
+En mode modification aussi, une **pilule flottante** en bas de l’écran ajoute des cartes
+(question, titre, texte, volet de filtre, boutons…) ; **Annuler** et **Rétablir** (Ctrl + Z,
+Ctrl + Maj + Z) défont et refont chaque changement du brouillon. Une carte ajoutée est amenée
+à l’écran et brille un instant.
+
+## Vues, sélections et liens
+
+- **Sélection précédente / suivante** : les deux flèches au bout du bandeau des filtres
+  parcourent les sélections faites, comme dans Qlik.
+- **Vues enregistrées** : le menu **Vues** garde les filtres choisis et l’onglet ouvert sous un
+  nom — « Bretagne, mois en cours » —, pour soi ou pour tous ; l’une peut s’ouvrir par défaut.
+- **Un lien qui garde tout** : l’adresse du tableau porte l’onglet et les filtres qui
+  diffèrent des valeurs par défaut. **⋯ › Copier le lien de cette vue** la copie ; qui l’ouvre
+  voit la même chose (sous ses propres droits).
+- **Retour depuis une question** : ouverte depuis le titre ou le menu d’une carte, une question
+  affiche un bouton qui ramène au tableau, à son onglet, ses filtres et sa position.
+
+## Commentaires et annotations
+
+Une bulle dans l’en-tête d’une carte ouvre ses **commentaires** : « baisse due à la grève du
+12 ». Tous ceux qui ouvrent le tableau les lisent et y répondent ; chacun supprime les siens.
+
+Clic droit sur un point d’une courbe dans le temps › **Annoter ce point…** : un **repère daté**
+— ou une période — avec un libellé et une couleur, tracé sur le graphique. Posé sur une question
+enregistrée, il la suit partout où elle s’affiche.
+
+## Les cartes de données
+
+Le menu ⋯ d’une carte de question propose, en plus de rafraîchir et agrandir :
+
+- **Exporter les données** en CSV, Excel ou JSON, avec les filtres du tableau (100 000 lignes
+  au plus) ;
+- **Voir en table** : les chiffres derrière le graphique, le temps d’un coup d’œil ;
+- **Copier en image** : la carte dans le presse-papiers, prête à coller dans un message ;
+- **Alertes…** : être prévenu quand la question franchit un seuil (voir
+  [Abonnements et alertes](/insights/fonctionnalites/abonnements/)).
+
+## Exporter et envoyer
+
+**⋯ › Exporter en PDF…** choisit les onglets, l’orientation, le papier (A4, A3, Letter), la page
+de garde, un titre et une note, puis ouvre l’aperçu. Chaque page porte en pied le logo du thème
+et son numéro. **⋯ › Abonnements…** envoie le tableau à heure fixe : voir
+[Abonnements et alertes](/insights/fonctionnalites/abonnements/).
+
 ## Le cache des résultats
 
 Trino ne garde pas de résultats : eodia insights le fait pour lui. Un résultat de carte ou de

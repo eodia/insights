@@ -361,4 +361,5 @@ export default {
   "Supprimer une alerte": "Eliminar una alerta",
   "Vérifier une alerte maintenant (et prévenir si elle tient)": "Comprobar una alerta ahora (y avisar si se cumple)",
   "Une image ou un PDF posté dans un canal (adresse à jeton, un mois)": "Una imagen o un PDF publicado en un canal (dirección con token, un mes)",
+  "Exporter le résultat d’une carte avec les filtres du tableau de bord (CSV, JSON, XLSX)": "Exportar el resultado de una tarjeta con los filtros del panel (CSV, JSON, XLSX)",
 } as Readonly<Record<string, string>>

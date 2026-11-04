@@ -62,6 +62,28 @@ export const useTables = (datasource?: string, columns = false) =>
   })
 export const useTable = (id: string | null | undefined) =>
   useQuery({ queryKey: keys.table(id ?? ''), queryFn: () => api.get<TableMeta & { columns: ColumnMeta[] }>(`/v1/tables/${id}?removed=1`), enabled: !!id })
+/**
+ * What the columns of a result hold, as described in Sources de données: by result name, read
+ * from the tables they come from (each one fetched once, then cached).
+ */
+/** A page read without a session — a shared link, an embed — where metadata is not to be asked for. */
+const publicPage = () => typeof window !== 'undefined' && /^\/(q|d|embed)\//.test(window.location.pathname)
+
+export function useColumnDescriptions(columns: readonly { name: string; source?: { table: string; column?: string; field: string } }[]): Map<string, string> {
+  const tables = [...new Set(columns.flatMap((c) => (c.source?.table ? [c.source.table] : [])))]
+  const metas = useQueries({
+    queries: tables.map((id) => ({ queryKey: keys.table(id), queryFn: () => api.get<TableMeta & { columns: ColumnMeta[] }>(`/v1/tables/${id}?removed=1`), staleTime: 300_000, retry: false, enabled: !publicPage() })),
+  })
+  const out = new Map<string, string>()
+  for (const c of columns) {
+    if (!c.source?.table) continue
+    const meta = metas[tables.indexOf(c.source.table)]?.data
+    const col = meta?.columns.find((x) => (c.source?.column ? x.id === c.source.column : x.name === c.source?.field))
+    const text = col?.description?.trim() || col?.native_comment?.trim()
+    if (text) out.set(c.name, text)
+  }
+  return out
+}
 export const useQuestion = (id: string | null | undefined) =>
   useQuery({ queryKey: keys.question(id ?? ''), queryFn: () => api.get<Question>(`/v1/questions/${id}`), enabled: !!id })
 export const useDashboard = (id: string | null) => useQuery({ queryKey: keys.dashboard(id ?? ''), queryFn: () => api.get<Dashboard>(`/v1/dashboards/${id}`), enabled: !!id })

@@ -64,6 +64,17 @@ rather than each month's value, and **Start the race on open**.
 - **Bar fill**: solid, hatched or gradient — for one chart, or for all of them through the
   [theme](/insights/en/fonctionnalites/themes/), along with the bar radius.
 
+## Compare to another period
+
+In a chart's settings (questions built with the visual editor), **Compare** adds each measure's
+value for:
+
+- **Same period last year**: last year's curve, dashed, beside this year's;
+- **Previous period**: the period before, of the same length — a date filter is needed, on the
+  question or on the dashboard.
+
+Dates are shifted so that both periods overlap; a table gains a “Last year” column per measure.
+
 ## Colors
 
 **Six palettes**, each an ordering of hues: **eodia** (default), **Vivid**, **Ocean**,
@@ -136,3 +147,17 @@ A right click on a cell opens the table's menu, arranged in groups:
 - **Export** to **CSV** or **Excel** the rows the search and filters keep.
 
 On a card, the table's search sits in the header, between the title and the ⋯ menu.
+
+## Conditional formatting
+
+In a table's settings, **Conditional formatting** colours cells by their value:
+
+- a **rule**: a column, a test (less than, at least, between…), a colour; it colours the text or
+  **fills the cell**, adds a **pictogram** of your choice (an icon, an emoji, an image) before the
+  value, and can colour **the whole row**;
+- a **colour scale**: red to green (or the reverse, or in blue), from the column's smallest value
+  to its largest;
+- **bars** in the cells, proportional to the value.
+
+Hovering a column header shows its **description** (entered in Data sources); described columns
+are underlined with dots.

@@ -497,6 +497,8 @@ export interface VisualizationSettings {
   readonly column_labels?: Readonly<Record<string, string>>
   /** Numbers drawn with a bar in their cell. */
   readonly cell_bars?: readonly string[]
+  /** Columns whose cells are coloured from their smallest value to their largest. */
+  readonly cell_scales?: readonly CellScale[]
   readonly density?: 'compact' | 'normal' | 'comfortable'
   /** A table: by pages (`page_size` rows each, 100 by default), or all of it scrolled. */
   readonly pagination?: 'pages' | 'scroll'
@@ -532,6 +534,47 @@ export interface ColorRule {
   readonly value2?: number
   readonly color: string
   readonly row?: boolean
+  /** In a table: the text coloured (`text`, by default) or the cell filled (`fill`). */
+  readonly style?: 'text' | 'fill'
+  /** In a table: a pictogram before the value — a lucide name, `emoji:…` or `img:…`. */
+  readonly icon?: string
+}
+
+/** The pictograms of the first rules, by their old short names: what each now draws. */
+export const RULE_ICON_NAMES: Readonly<Record<string, string>> = { up: 'arrow-up', down: 'arrow-down', dot: 'circle', warn: 'triangle-alert', check: 'check', flag: 'flag' }
+
+/** A table column's cells coloured from its smallest value to its largest. */
+export interface CellScale {
+  readonly column: string
+  readonly palette: ScalePalette
+}
+
+export const SCALE_PALETTES = {
+  green_red: ['#16a34a', '#facc15', '#dc2626'],
+  red_green: ['#dc2626', '#facc15', '#16a34a'],
+  blue: ['#eff6ff', '#60a5fa', '#1d4ed8'],
+} as const
+export type ScalePalette = keyof typeof SCALE_PALETTES
+
+/** The colour a share `t` (0 to 1) of the way through a palette takes. */
+export function scaleColor(palette: ScalePalette, t: number): string {
+  const stops = SCALE_PALETTES[palette] ?? SCALE_PALETTES.green_red
+  const x = Math.min(1, Math.max(0, Number.isFinite(t) ? t : 0)) * (stops.length - 1)
+  const i = Math.min(stops.length - 2, Math.floor(x))
+  const f = x - i
+  const hex = (c: string) => [1, 3, 5].map((k) => Number.parseInt(c.slice(k, k + 2), 16))
+  const a = hex(stops[i] as string)
+  const b = hex(stops[i + 1] as string)
+  return `#${a.map((v, k) => Math.round(v + ((b[k] as number) - v) * f).toString(16).padStart(2, '0')).join('')}`
+}
+
+/** The first rule of a column a value meets. */
+export function ruleFor(rules: readonly ColorRule[] | undefined, column: string, value: unknown): ColorRule | null {
+  for (const rule of rules ?? []) {
+    if (rule.row || (rule.column !== undefined && rule.column !== column)) continue
+    if (ruleHolds(rule, value)) return rule
+  }
+  return null
 }
 
 /** Whether a number meets a rule. */

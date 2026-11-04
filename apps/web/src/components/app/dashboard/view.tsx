@@ -31,7 +31,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -43,7 +45,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import type { RunResult } from '@/lib/api'
-import { api } from '@/lib/api'
+import { api, download } from '@/lib/api'
 import { valueLabel as valueLabelFor } from './parameters'
 import { $t, $tp, msg } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
@@ -54,10 +56,18 @@ import { cn } from '@/lib/utils'
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
   ArrowRightLeft,
   BellRing,
+  Braces,
+  Download,
+  FileSpreadsheet,
+  FileText,
   LayoutDashboard,
   BarChart3,
+  ImageDown,
+  Table2,
   Copy,
   Ellipsis,
   ExternalLink,
@@ -104,9 +114,11 @@ import { createPortal } from 'react-dom'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { TabRow } from '@/components/ui/tab-row'
 import { Hint, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { SavedViews } from './saved-views'
 import { AnnotateDialog, CommentsButton } from './comments'
 import { TabLabel, TabMark, TabPreview, TabSettingsDialog, pictureTab } from './tabs'
+import { leaveDashboard, takeReturnPoint } from '@/lib/return-point'
 import { AlertsDialog } from '@/components/app/delivery/alerts'
 import { CardCondition, ConditionDialog, type Runner, TabCondition, conditionSummary, useCardRun } from './conditions'
 import { ButtonsView, CardSettingsDialog, ClickDialog, carriedFilters, HeadingStyleButton, HeadingView, ImageView, LinkView, SeparatorStyleButton, SeparatorView, type Summarizer, SummaryView, VariableView } from './cards'
@@ -150,6 +162,9 @@ function withCondition<T extends { condition?: DashboardCard['condition'] }>(x: 
   const { condition: _gone, ...rest } = x
   return rest as T
 }
+
+/** A menu's group title, as the dashboard's own menu has them. */
+const MENU_LABEL = 'text-[11px] font-medium tracking-wide text-muted-foreground uppercase'
 
 const newId = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
 
@@ -199,6 +214,8 @@ interface CardProps {
   conditionShown?: boolean | undefined
   /** A filter pane: its filter, its value, where its values are read, and how it changes. */
   pane?: FilterPane
+  /** Leaving for the card's question: notes where one was, to come back to it. */
+  onLeave?: () => void
   /** The dashboard's cards — what a summary reads. */
   allCards?: readonly DashboardCard[]
   summarizer?: Summarizer
@@ -304,6 +321,40 @@ function CardFrame(props: CardProps) {
   const values = own
   const { data: question } = useQuestion(isQuestion && card.question && !publicMode ? card.question : null)
   const [alerting, setAlerting] = useState(false)
+  // A chart read as the table of its numbers, for a moment — the card itself unchanged.
+  const [asTable, setAsTable] = useState(false)
+  const frameRef = useRef<HTMLDivElement>(null)
+  /** The card as an image in the clipboard: to paste in a message, a slide. */
+  const copyImage = async () => {
+    const el = frameRef.current
+    if (!el) return
+    try {
+      const { domToBlob } = await import('modern-screenshot')
+      const style = getComputedStyle(el)
+      const blob = await domToBlob(el, {
+        scale: 2,
+        backgroundColor: style.backgroundColor || '#ffffff',
+        // The card's own buttons stay out of the picture.
+        filter: (node) => !(node instanceof HTMLElement && (node.matches('button[aria-label], [role="toolbar"]') || node.dataset.noshot !== undefined)),
+      })
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      toast.success($t('Carte copiée en image : collez-la où vous voulez.'))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+  const router = useRouter()
+  const openQuestion = () => {
+    props.onLeave?.()
+    if (card.question) router.push(`/question/${card.question}`)
+  }
+  const exportCard = async (format: 'csv' | 'xlsx' | 'json') => {
+    try {
+      await download(`/v1/dashboards/${props.dashboardId}/cards/${card.id}/export`, { values, format, name: title })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
   const run = useCardRun({ card, dashboardId: props.dashboardId, values, tick, fresh, draft, runner, enabled: isQuestion })
   const viz = card.visualization ?? question?.visualization ?? { type: 'table' as VisualizationType }
   useEffect(() => {
@@ -411,7 +462,7 @@ function CardFrame(props: CardProps) {
   }
 
   return (
-    <div className={cn('theme-card group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-xs', editing && 'ring-primary/30 hover:ring-2')}>
+    <div ref={frameRef} className={cn('theme-card group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-xs', editing && 'ring-primary/30 hover:ring-2')}>
       {(editing || isQuestion || (title && !['buttons', 'link', 'variable', 'image'].includes(card.kind))) && card.kind !== 'text' ? (
         <div className="flex h-11 shrink-0 items-center gap-2 px-4">
           {editing ? <GripVertical className="card-handle size-4 shrink-0 cursor-move text-muted-foreground" /> : null}
@@ -429,7 +480,7 @@ function CardFrame(props: CardProps) {
           ) : (
             <h3 className="theme-title min-w-0 flex-1 truncate text-[15px] font-semibold" onDoubleClick={() => editing && setEditingTitle(true)}>
               {card.question && !publicMode && !editing ? (
-                <Link href={`/question/${card.question}`} className="hover:text-primary hover:underline">
+                <Link href={`/question/${card.question}`} onClick={() => props.onLeave?.()} className="hover:text-primary hover:underline">
                   {title}
                 </Link>
               ) : onEditQuestion ? (
@@ -466,73 +517,140 @@ function CardFrame(props: CardProps) {
                 <Ellipsis className="size-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {isQuestion ? (
-                <DropdownMenuItem onSelect={() => void run.refetch()}>
-                  <RefreshCw /> {$t('Rafraîchir')}
+            <DropdownMenuContent align="end" className="w-64">
+              {/* The card: what one does with it, as one reads it. */}
+              <DropdownMenuLabel className={MENU_LABEL}>{$t('Carte')}</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                {isQuestion ? (
+                  <DropdownMenuItem onSelect={() => void run.refetch()}>
+                    <RefreshCw /> {$t('Rafraîchir')}
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem onSelect={onFullscreen}>
+                  <Maximize2 /> {$t('Agrandir')}
                 </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem onSelect={onFullscreen}>
-                <Maximize2 /> {$t('Agrandir')}
-              </DropdownMenuItem>
-              {editing && isQuestion ? (
-                <DropdownMenuItem onSelect={() => setClickOpen(true)}>
-                  <MousePointerClick /> {$t('Au clic sur un point…')}
-                </DropdownMenuItem>
-              ) : null}
-              {editing && ['buttons', 'link', 'variable', 'image', 'summary'].includes(card.kind) ? (
-                <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
-                  <Settings2 /> {$t('Réglages…')}
-                </DropdownMenuItem>
-              ) : null}
-              {editing && onCondition ? (
-                <DropdownMenuItem onSelect={onCondition}>
-                  <Eye /> {$t('Condition d’affichage…')}
-                </DropdownMenuItem>
-              ) : null}
-              {card.question && !publicMode ? (
-                <DropdownMenuItem onSelect={() => window.open(`/question/${card.question}`, '_self')}>
-                  <ExternalLink /> {$t('Ouvrir la question')}
-                </DropdownMenuItem>
-              ) : null}
-              {card.question && !publicMode && !editing ? (
-                <DropdownMenuItem onSelect={() => setAlerting(true)}>
-                  <BellRing /> {$t('Alertes…')}
-                </DropdownMenuItem>
-              ) : null}
-              {onEditQuestion ? (
-                <DropdownMenuItem onSelect={onEditQuestion}>
-                  <Pencil /> {$t('Modifier la question')}
-                </DropdownMenuItem>
-              ) : null}
-              {onMoveToTab && moveTabs.length > 0 ? (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <ArrowRightLeft className="size-4" /> {$t('Vers l’onglet')}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-52">
-                    {moveTabs.map((t) => (
-                      <DropdownMenuItem key={t.id} onSelect={() => onMoveToTab(t.id)}>
-                        {t.label}
+                {isQuestion && viz.type !== 'table' && viz.type !== 'pivot' ? (
+                  <DropdownMenuItem onSelect={() => setAsTable((v) => !v)}>
+                    {asTable ? <BarChart3 /> : <Table2 />} {asTable ? $t('Voir le graphique') : $t('Voir en table')}
+                  </DropdownMenuItem>
+                ) : null}
+                {isQuestion ? (
+                  <DropdownMenuItem onSelect={() => void copyImage()}>
+                    <ImageDown /> {$t('Copier en image')}
+                  </DropdownMenuItem>
+                ) : null}
+                {isQuestion && !publicMode ? (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Download className="size-4" /> {$t('Exporter les données')}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-44">
+                      <DropdownMenuItem onSelect={() => void exportCard('csv')}>
+                        <FileText /> CSV
                       </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                      <DropdownMenuItem onSelect={() => void exportCard('xlsx')}>
+                        <FileSpreadsheet /> Excel (XLSX)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => void exportCard('json')}>
+                        <Braces /> JSON
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ) : null}
+              </DropdownMenuGroup>
+              {/* The question behind it. */}
+              {card.question && !publicMode ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className={MENU_LABEL}>{$t('Question')}</DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onSelect={() => openQuestion()}>
+                      <ExternalLink /> {$t('Ouvrir la question')}
+                    </DropdownMenuItem>
+                    {onEditQuestion ? (
+                      <DropdownMenuItem onSelect={onEditQuestion}>
+                        <Pencil /> {$t('Modifier la question')}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {!editing ? (
+                      <DropdownMenuItem onSelect={() => setAlerting(true)}>
+                        <BellRing /> {$t('Alertes…')}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuGroup>
+                </>
+              ) : onEditQuestion ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={onEditQuestion}>
+                    <Pencil /> {$t('Modifier la question')}
+                  </DropdownMenuItem>
+                </>
               ) : null}
-              {onMoveElsewhere ? (
-                <DropdownMenuItem onSelect={onMoveElsewhere}>
-                  <LayoutDashboard /> {$t('Vers un autre tableau de bord…')}
-                </DropdownMenuItem>
+              {/* While editing: how it behaves. */}
+              {editing && (isQuestion || onCondition || ['buttons', 'link', 'variable', 'image', 'summary'].includes(card.kind)) ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className={MENU_LABEL}>{$t('Réglages')}</DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    {['buttons', 'link', 'variable', 'image', 'summary'].includes(card.kind) ? (
+                      <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
+                        <Settings2 /> {$t('Réglages…')}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {isQuestion ? (
+                      <DropdownMenuItem onSelect={() => setClickOpen(true)}>
+                        <MousePointerClick /> {$t('Au clic sur un point…')}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {onCondition ? (
+                      <DropdownMenuItem onSelect={onCondition}>
+                        <Eye /> {$t('Condition d’affichage…')}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuGroup>
+                </>
+              ) : null}
+              {/* Where it sits. */}
+              {(onMoveToTab && moveTabs.length > 0) || onMoveElsewhere ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className={MENU_LABEL}>{$t('Déplacer')}</DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    {onMoveToTab && moveTabs.length > 0 ? (
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowRightLeft className="size-4" /> {$t('Vers l’onglet')}
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="w-52">
+                          {moveTabs.map((t) => (
+                            <DropdownMenuItem key={t.id} onSelect={() => onMoveToTab(t.id)}>
+                              {t.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    ) : null}
+                    {onMoveElsewhere ? (
+                      <DropdownMenuItem onSelect={onMoveElsewhere}>
+                        <LayoutDashboard /> {$t('Vers un autre tableau de bord…')}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuGroup>
+                </>
               ) : null}
               {editing ? (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setEditingTitle(true)}>
-                    <Type /> {$t('Renommer')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={onDuplicate}>
-                    <Copy /> {$t('Dupliquer')}
-                  </DropdownMenuItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onSelect={() => setEditingTitle(true)}>
+                      <Type /> {$t('Renommer')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={onDuplicate}>
+                      <Copy /> {$t('Dupliquer')}
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-destructive" onSelect={onRemove}>
                     <Trash2 /> {$t('Retirer')}
                   </DropdownMenuItem>
@@ -618,7 +736,7 @@ function CardFrame(props: CardProps) {
         ) : run.data ? (
           <Visualization
             result={run.data}
-            viz={viz}
+            viz={asTable ? { ...viz, type: 'table' } : viz}
             compact
             onPointClick={(p) => onPoint(card, p)}
             {...(editing ? {} : { onPointMenu: (p: PointClick) => onPointMenu(card, p, values, title) })}
@@ -886,6 +1004,10 @@ export interface DashboardViewProps {
   summarizer?: Summarizer
   /** Filters' values brought by a link from another dashboard, by filter name. */
   initialFilters?: Readonly<Record<string, ParameterValue>>
+  /** Back from one of its questions (`?back=1`): the filters and the scroll one left are given back. */
+  restoring?: boolean
+  /** Filters by identifier, from a link that kept them (`?v=`). */
+  startValues?: Readonly<Record<string, ParameterValue | null>>
   /** Offers the saved views — Qlik's bookmarks — of the dashboard. */
   savedViews?: boolean
   /** Comments on the cards, annotations on the charts — not on a public page. */
@@ -898,7 +1020,7 @@ export interface DashboardViewProps {
   records?: boolean
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, more, actionsSlot, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, onEditingChange, summarizer, initialFilters, savedViews = false, collaborative = false, records: readsRecords = false }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, more, actionsSlot, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, onEditingChange, summarizer, initialFilters, restoring = false, startValues, savedViews = false, collaborative = false, records: readsRecords = false }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   useEffect(() => onEditingChange?.(editing), [editing, onEditingChange])
   const [draft, setDraftRaw] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
@@ -951,8 +1073,12 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     setSteps((n) => n + 1)
   }, [])
   const initialValues = useMemo(() => Object.fromEntries(dashboard.parameters.map((p) => [p.id, p.default ?? null])) as Values, [dashboard.parameters])
+  // Back from one of its questions: the filters, the tab and the scroll one left.
+  const [restored] = useState(() => (restoring ? takeReturnPoint(dashboard.id) : null))
   // Arrived by a link from another dashboard: its filters, by name, go to the filters of the same name.
   const [values, setValues] = useState<Values>(() => {
+    if (restored) return { ...initialValues, ...(restored.values as Values) }
+    if (startValues) return { ...initialValues, ...(Object.fromEntries(Object.entries(startValues).filter(([k]) => k in initialValues)) as Values) }
     if (!initialFilters) return initialValues
     const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
     const carried = new Map(Object.entries(initialFilters).map(([k, v]) => [fold(k), v]))
@@ -964,6 +1090,31 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     return out
   })
   useEffect(() => onValuesChange?.(values), [values, onValuesChange])
+  const selPast = useRef<Values[]>([])
+  const selFuture = useRef<Values[]>([])
+  const selLast = useRef(values)
+  const selMoving = useRef(false)
+  const [, setSelSteps] = useState(0)
+  useEffect(() => {
+    if (selLast.current === values) return
+    if (selMoving.current) selMoving.current = false
+    else {
+      selPast.current = [...selPast.current.slice(-49), selLast.current]
+      selFuture.current = []
+    }
+    selLast.current = values
+    setSelSteps((n) => n + 1)
+  }, [values])
+  const selectionStep = (back: boolean) => {
+    const from = back ? selPast.current : selFuture.current
+    const to = back ? selFuture.current : selPast.current
+    const next = from.pop()
+    if (!next) return
+    to.push(values)
+    selMoving.current = true
+    setValues(next)
+    setOrigins({})
+  }
   const [tabState, setTabState] = useState<string | null>(dashboard.tabs[0]?.id ?? null)
   const tab = tabProp !== undefined ? tabProp : tabState
   const setTab = (id: string) => {
@@ -982,6 +1133,46 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const [tabSettings, setTabSettings] = useState<string | null>(null)
   const [draggedTab, setDraggedTab] = useState<string | null>(null)
   const [dropTab, setDropTab] = useState<{ id: string; after: boolean } | null>(null)
+  /**
+   * A tab copied just after itself, its cards with it: what they cite of one another (a summary's
+   * cards, a text's variables) points at the copies.
+   */
+  const duplicateTab = (id: string) => {
+    const copyId = newId('t')
+    setDraft((d) => {
+      const source = d.tabs.find((x) => x.id === id)
+      if (!source) return d
+      const own = d.cards.filter((c) => c.tab === id)
+      const ids = new Map(own.map((c) => [c.id, newId('c')]))
+      const remap = (x: string) => ids.get(x) ?? x
+      const cards = own.map((c) => ({
+        ...c,
+        id: remap(c.id),
+        tab: copyId,
+        ...(c.summary ? { summary: { ...c.summary, cards: c.summary.cards.map(remap) } } : {}),
+        ...(c.variables ? { variables: c.variables.map((v) => ('card' in v ? { ...v, card: remap(v.card) } : v)) } : {}),
+      }))
+      const at = d.tabs.findIndex((x) => x.id === id) + 1
+      const copy = { ...source, id: copyId, label: $t('{name} (copie)', { name: source.label }) }
+      return { ...d, tabs: [...d.tabs.slice(0, at), copy, ...d.tabs.slice(at)], cards: [...d.cards, ...cards] }
+    })
+    setTab(copyId)
+  }
+  const removeTab = (id: string) => setDraft((d) => ({ ...d, tabs: d.tabs.filter((x) => x.id !== id), cards: d.cards.filter((c) => c.tab !== id) }))
+  /** A tab's menu acts on the draft: outside edit mode, it starts it — saving stays a choice. */
+  const tabAction = (act: () => void) => {
+    if (!editing) setEditing(true)
+    act()
+  }
+  /** Leaving for a card's question: where one is, to come back to it exactly. */
+  const leaveFor = (question: string) =>
+    leaveDashboard({ dashboard: dashboard.id, name: dashboard.name, tab: currentTab, values, scroll: containerRef.current?.scrollTop ?? 0, question })
+  useEffect(() => {
+    if (!restored?.scroll) return
+    // Once the cards have their height.
+    const t = setTimeout(() => containerRef.current?.scrollTo({ top: restored.scroll }), 700)
+    return () => clearTimeout(t)
+  }, [restored])
   /** Puts a tab before — or after — another. */
   const moveTab = (id: string, target: string, after: boolean) =>
     setDraft((d) => {
@@ -1475,6 +1666,24 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               </Popover>
             ) : null}
               <span className="flex-1" />
+              {!editing && draft.parameters.length ? (
+                <span className="inline-flex items-center">
+                  <Hint label={$t('Sélection précédente')}>
+                    <span>
+                      <button type="button" onClick={() => selectionStep(true)} disabled={!selPast.current.length} className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-background hover:text-foreground disabled:pointer-events-none disabled:opacity-35" aria-label={$t('Sélection précédente')}>
+                        <ArrowLeft className="size-4" />
+                      </button>
+                    </span>
+                  </Hint>
+                  <Hint label={$t('Sélection suivante')}>
+                    <span>
+                      <button type="button" onClick={() => selectionStep(false)} disabled={!selFuture.current.length} className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-background hover:text-foreground disabled:pointer-events-none disabled:opacity-35" aria-label={$t('Sélection suivante')}>
+                        <ArrowRight className="size-4" />
+                      </button>
+                    </span>
+                  </Hint>
+                </span>
+              ) : null}
               {savedViews && !editing && !publicMode ? <SavedViews dashboardId={dashboard.id} values={values} tab={currentTab} onApply={applyView} applyDefault={!initialFilters} /> : null}
               {!editing && activeFilters > 0 ? (
                 <Hint label={$t('Réinitialiser les filtres')}>
@@ -1599,8 +1808,10 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   </span>
                 </Hint>
               ) : null}
-              {/* Hovered, a tab shows what it holds; open, it needs no preview. */}
+              {/* Hovered, a tab shows what it holds; open, it needs no preview. Right-clicked, its menu. */}
+              <ContextMenu>
               <Tooltip delayDuration={350}>
+                <ContextMenuTrigger asChild disabled={!editing}>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
@@ -1618,12 +1829,30 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                     <TabLabel tab={t} className="max-w-64" />
                   </button>
                 </TooltipTrigger>
+                </ContextMenuTrigger>
                 {currentTab !== t.id || t.description ? (
                   <TooltipContent side="bottom" align="start" className="max-w-none border bg-popover p-2 text-popover-foreground shadow-lg">
                     <TabPreview tab={t} cards={draft.cards.filter((c) => c.tab === t.id)} columns={DASHBOARD_COLUMNS} names={!publicMode} shotKey={`${dashboard.id}:${t.id}`} />
                   </TooltipContent>
                 ) : null}
               </Tooltip>
+              <ContextMenuContent className="w-52">
+                <ContextMenuItem onSelect={() => tabAction(() => setTabSettings(t.id))}>
+                  <Settings2 /> {$t('Réglages de l’onglet')}
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => tabAction(() => duplicateTab(t.id))}>
+                  <Copy /> {$t('Dupliquer l’onglet')}
+                </ContextMenuItem>
+                {tabs.length > 1 ? (
+                  <>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem className="text-destructive" onSelect={() => tabAction(() => removeTab(t.id))}>
+                      <Trash2 /> {$t('Supprimer l’onglet')}
+                    </ContextMenuItem>
+                  </>
+                ) : null}
+              </ContextMenuContent>
+              </ContextMenu>
               {editing && t.condition?.rules.length ? (
                 <Hint label={`${$t('Affiché si')} ${conditionSummary(t.condition, draft.parameters)}`}>
                   <span className="mr-0.5">{shown[t.id] === false ? <EyeOff className="size-3 text-amber-600" /> : <Eye className="size-3 text-violet-600" />}</span>
@@ -1715,6 +1944,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   onColumns={onColumns}
                   onPoint={onPoint}
                   onPointMenu={(c, point, v, title) => setMenu({ card: c, point, values: v, title })}
+                  {...(card.question ? { onLeave: () => leaveFor(card.question as string) } : {})}
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
                   onDuplicate={() => addCards([{ ...card, id: newId('c') }])}
@@ -1760,7 +1990,8 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
             }))
           }
           onCondition={() => setConditionOf({ kind: 'tab', id: settingsTab.id })}
-          onRemove={() => setDraft((d) => ({ ...d, tabs: d.tabs.filter((x) => x.id !== settingsTab.id), cards: d.cards.filter((c) => c.tab !== settingsTab.id) }))}
+          onRemove={() => removeTab(settingsTab.id)}
+          onDuplicate={() => duplicateTab(settingsTab.id)}
           onClose={() => setTabSettings(null)}
         />
       ) : null}

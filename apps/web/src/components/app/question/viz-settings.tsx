@@ -1,5 +1,6 @@
 'use client'
 
+import { ConditionalFormats } from './conditional-formats'
 import type { ColorScheme, ResultColumn, TextSize, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import { TEXT_SIZES, THEME_FONTS, VISUALIZATIONS } from '@eodia/contracts'
 import { loadFont } from '@/lib/theme'
@@ -1188,6 +1189,15 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
             />
           </Field>
           <ColumnsPick label={$t('Barres dans les cellules')} columns={numeric} value={settings.cell_bars ?? []} onChange={(v) => set({ cell_bars: v })} />
+          <Field label={$t('Mise en forme conditionnelle')}>
+            <ConditionalFormats
+              columns={numeric}
+              rules={settings.rules ?? []}
+              scales={settings.cell_scales ?? []}
+              onRules={(rules) => set({ rules: rules.length ? rules : undefined })}
+              onScales={(cell_scales) => set({ cell_scales: cell_scales.length ? cell_scales : undefined })}
+            />
+          </Field>
         </>
       ) : null}
 

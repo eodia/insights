@@ -1,7 +1,7 @@
 'use client'
 
 import type { ResultColumn, Visualization as Viz, VisualizationSettings } from '@eodia/contracts'
-import { ruleColor } from '@eodia/contracts'
+import { RULE_ICON_NAMES, type ScalePalette, ruleColor, ruleFor, scaleColor } from '@eodia/contracts'
 import { EChart } from '@/components/app/echart'
 import type { ECElementEvent } from 'echarts'
 import { EmptyScene } from '@/components/app/empty-scene'
@@ -13,6 +13,7 @@ import { type ChartAnnotation, type ChartModel, OTHER_CATEGORY, type Result, VIZ
 import { type PivotAxes, axesOf, pivotModel } from '@/lib/pivot'
 import { PivotAxisHeader } from '@/components/app/pivot-axis'
 import { fontReady, useChartTheme } from '@/lib/theme'
+import { useColumnDescriptions } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -470,6 +471,15 @@ export function ValueCell({ value, col, looks }: { value: unknown; col: ResultCo
   return <>{formatValue(value, col)}</>
 }
 
+/** A rule's pictogram, before the value of a cell, in the rule's colour. */
+function RuleGlyph({ icon, color }: { icon: string; color: string }) {
+  return (
+    <span className="mr-1 inline-flex align-[-0.15em]" style={{ color }} aria-hidden="true">
+      <LookIcon name={RULE_ICON_NAMES[icon] ?? icon} className="size-3.5" />
+    </span>
+  )
+}
+
 export function DataTable({
   result,
   settings = {},
@@ -560,6 +570,18 @@ export function DataTable({
   const shown = paged ? rows.slice(current * pageSize, (current + 1) * pageSize) : rows
   const offset = paged ? current * pageSize : 0
 
+  const descriptions = useColumnDescriptions(result.columns)
+  // A colour scale: each column's smallest and largest value.
+  const scales = useMemo(() => {
+    const out = new Map<number, { palette: ScalePalette; min: number; max: number }>()
+    for (const sc of settings.cell_scales ?? []) {
+      const i = result.columns.findIndex((c) => c.name === sc.column)
+      if (i < 0) continue
+      const nums = result.rows.map((r) => Number(r[i])).filter((n) => Number.isFinite(n))
+      if (nums.length) out.set(i, { palette: sc.palette, min: Math.min(...nums), max: Math.max(...nums) })
+    }
+    return out
+  }, [settings.cell_scales, result])
   const maxes = useMemo(() => {
     const out = new Map<number, number>()
     for (const name of settings.cell_bars ?? []) {
@@ -706,6 +728,7 @@ export function DataTable({
                   }
                   sticky={freeze && k === 0}
                   filters={toolbar}
+                  description={descriptions.get(c.name)}
                 />
               ))}
             </tr>
@@ -728,7 +751,11 @@ export function DataTable({
                   {columns.map(({ c, i }, k) => {
                     const value = row[i]
                     const numeric = c.type === 'number' && !c.unit
-                    const color = (settings.rules ?? []).filter((r) => !r.row && r.column === c.name).length ? ruleColor(settings.rules?.filter((r) => !r.row), c.name, value) : null
+                    const rule = ruleFor(settings.rules, c.name, value)
+                    const scale = scales.get(i)
+                    const scaled = scale && typeof value === 'number' ? scaleColor(scale.palette, scale.max === scale.min ? 0.5 : (value - scale.min) / (scale.max - scale.min)) : null
+                    const fill = rule?.style === 'fill' ? rule.color : scaled
+                    const color = rule && rule.style !== 'fill' ? rule.color : null
                     const max = maxes.get(i)
                     const width = layout.widths[c.name]
                     return (
@@ -744,8 +771,9 @@ export function DataTable({
                           onCellClick && 'cursor-pointer',
                           freeze && k === 0 && 'sticky left-0 z-[1] bg-background',
                         )}
-                        style={{ ...(width ? { width, minWidth: width, maxWidth: width } : {}), ...(color ? { color, fontWeight: 600 } : {}) }}
+                        style={{ ...(width ? { width, minWidth: width, maxWidth: width } : {}), ...(color ? { color, fontWeight: 600 } : {}), ...(fill ? { background: `${fill}33`, fontWeight: 500 } : {}) }}
                       >
+                        {rule?.icon ? <RuleGlyph icon={rule.icon} color={rule.color} /> : null}
                         {max !== undefined && typeof value === 'number' ? (
                           <span className="relative inline-flex w-full min-w-[120px] items-center justify-end">
                             <span className="absolute inset-y-1 left-0 rounded-sm bg-primary/15" style={{ width: `${(Math.abs(value) / max) * 100}%` }} />

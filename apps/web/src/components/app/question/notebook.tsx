@@ -28,7 +28,8 @@ import { ArrowDownAZ, ArrowUpAZ, ChevronDown, Columns3, Database, Filter as Filt
 import { useEffect, useId, useState } from 'react'
 import { useModelColumns } from '@/lib/queries'
 import { JoinGlyph } from './join-glyph'
-import { ColumnList, FilterEditor, KindIcon, SearchBox, SourceList } from './pickers'
+import { ColumnList, FilterEditor, KindIcon, SearchBox, SourceList, described } from './pickers'
+import { Hint } from '@/components/ui/tooltip'
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
@@ -500,6 +501,7 @@ export function Notebook({
   const [sortOpen, setSortOpen] = useState(false)
   const [exprOpen, setExprOpen] = useState<number | 'new' | null>(null)
   const [joinOpen, setJoinOpen] = useState<string | 'new' | null>(null)
+  const [sourceOpen, setSourceOpen] = useState(false)
   const metricNames = new Map(metrics.map((m) => [m.id, m.name]))
   const sourceTable = query.source.kind === 'table' ? tables.find((t) => t.id === query.source.id) : undefined
   const grouped = (query.aggregations ?? []).length > 0 || (query.breakouts ?? []).length > 0
@@ -594,15 +596,24 @@ export function Notebook({
   return (
     <div className="space-y-5">
       <Step icon={Database} title={$t('Données')} tone={TONES.data}>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button type="button" className={cn('inline-flex h-8 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold', TONES.data)}>
-              {sourceTable?.icon ? <LookIcon name={sourceTable.icon} className="size-4" /> : query.source.kind === 'question' ? <ItemTile kind="model" className="size-5" /> : <Database className="size-4" />}
-              {sourceLabel}
-            </button>
-          </PopoverTrigger>
+        <Popover open={sourceOpen} onOpenChange={setSourceOpen}>
+          <Hint label={described(sourceLabel, sourceTable?.description ?? sourceTable?.native_comment)}>
+            <PopoverTrigger asChild>
+              <button type="button" className={cn('inline-flex h-8 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold', TONES.data)}>
+                {sourceTable?.icon ? <LookIcon name={sourceTable.icon} className="size-4" /> : query.source.kind === 'question' ? <ItemTile kind="model" className="size-5" /> : <Database className="size-4" />}
+                {sourceLabel}
+              </button>
+            </PopoverTrigger>
+          </Hint>
           <PopoverContent align="start" className="w-auto p-0">
-            <SourceList tables={tables} models={models} onPick={(ref) => onChange({ kind: 'builder', source: ref })} />
+            <SourceList
+              tables={tables}
+              models={models}
+              onPick={(ref) => {
+                setSourceOpen(false)
+                onChange({ kind: 'builder', source: ref })
+              }}
+            />
           </PopoverContent>
         </Popover>
         {(query.joins ?? []).map((j) =>

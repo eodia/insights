@@ -325,5 +325,6 @@
   "Modifier une alerte": "apps/api/src/routes/delivery.ts",
   "Supprimer une alerte": "apps/api/src/routes/delivery.ts",
   "Vérifier une alerte maintenant (et prévenir si elle tient)": "apps/api/src/routes/delivery.ts",
-  "Une image ou un PDF posté dans un canal (adresse à jeton, un mois)": "apps/api/src/routes/delivery.ts"
+  "Une image ou un PDF posté dans un canal (adresse à jeton, un mois)": "apps/api/src/routes/delivery.ts",
+  "Exporter le résultat d’une carte avec les filtres du tableau de bord (CSV, JSON, XLSX)": "apps/api/src/routes/content.ts"
 }

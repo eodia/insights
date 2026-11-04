@@ -7,6 +7,7 @@ import { ConfirmDialog, SaveDialog } from '@/components/app/dialogs'
 import { MoveDialog } from '@/components/app/move-dialog'
 import { ShareDialog } from '@/components/app/share-dialog'
 import { AlertsDialog } from '@/components/app/delivery/alerts'
+import { returnHref, returnPointFor } from '@/lib/return-point'
 import { type SqlError, SqlEditor } from '@/components/app/sql-editor'
 import { DataTable, type PointClick, ResultFooter, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ import { autoVisualization } from '@/lib/viz'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  ArrowLeft,
   Ban,
   BellRing,
   Code2,
@@ -143,6 +145,8 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const [shareOpen, setShareOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [alerting, setAlerting] = useState(false)
+  // Opened from a dashboard's card: the way back, to where one was.
+  const [back] = useState(() => returnPointFor(initial.id ?? undefined))
   const [moveOpen, setMoveOpen] = useState(false)
   const [point, setPoint] = useState<PointClick | null>(null)
   const execution = useRef<string | null>(null)
@@ -363,6 +367,13 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
+        {back ? (
+          <Hint label={$t('Revenir au tableau de bord, avec ses filtres, son onglet et sa position')}>
+            <Button size="sm" variant="outline" className="max-w-56 shrink-0" onClick={() => router.push(returnHref(back))}>
+              <ArrowLeft /> <span className="truncate">{back.name}</span>
+            </Button>
+          </Hint>
+        ) : null}
         <Input value={draft.name} onChange={(e) => update({ name: e.target.value })} placeholder={$t('Question sans titre')} className="h-9 max-w-md border-transparent text-lg font-semibold shadow-none hover:border-input focus-visible:border-input" />
         {draft.type !== 'question' ? <span className="rounded-md bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-950 dark:text-violet-300">{draft.type === 'model' ? $t('Modèle') : $t('Métrique')}</span> : null}
         {dirty ? <span className="text-xs text-muted-foreground">{$t('Modifications non enregistrées')}</span> : null}

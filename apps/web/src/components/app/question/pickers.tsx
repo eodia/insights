@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, CaseSensitive, Hash, Link2, Search, ToggleLeft, Braces } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Hint } from '@/components/ui/tooltip'
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
@@ -60,22 +61,34 @@ export function ColumnList({ options, onPick, filter }: { options: readonly Colu
               {group}
             </div>
             {list.map((o) => (
-              <button
-                key={`${o.ref.join ?? ''}.${o.ref.field}`}
-                type="button"
-                onClick={() => onPick(o)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
-              >
-                <KindIcon kind={o.kind} />
-                <span className="flex-1 truncate">{o.label}</span>
-                {o.semantic ? <span className="truncate text-[11px] text-muted-foreground">{semanticLabel(o.semantic)}</span> : null}
-              </button>
+              <Hint key={`${o.ref.join ?? ''}.${o.ref.field}`} label={described(o.label, o.description)} side="right">
+                <button
+                  type="button"
+                  onClick={() => onPick(o)}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
+                >
+                  <KindIcon kind={o.kind} />
+                  <span className="flex-1 truncate">{o.label}</span>
+                  {o.semantic ? <span className="truncate text-[11px] text-muted-foreground">{semanticLabel(o.semantic)}</span> : null}
+                </button>
+              </Hint>
             ))}
           </div>
         ))}
         {groups.length === 0 ? <p className="px-3 py-4 text-sm text-muted-foreground">{$t('Aucune colonne')}</p> : null}
       </div>
     </div>
+  )
+}
+
+/** A description on hover: the name in bold, then what it holds — nothing when there is nothing to say. */
+export function described(name: string, description: string | null | undefined): React.ReactNode {
+  if (!description?.trim()) return null
+  return (
+    <span className="block max-w-72 space-y-0.5">
+      <span className="block font-semibold">{name}</span>
+      <span className="block leading-snug opacity-90">{description}</span>
+    </span>
   )
 }
 
@@ -118,11 +131,13 @@ export function SourceList({ tables, models, onPick }: { tables: readonly TableM
           <div key={group} className="pb-1">
             <div className="px-2 pt-2 pb-1 font-mono text-[11px] text-muted-foreground">{group}</div>
             {list.map((t) => (
-              <button key={t.id} type="button" onClick={() => onPick({ kind: 'table', id: t.id })} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent">
+              <Hint key={t.id} label={described(t.label, t.description ?? t.native_comment)} side="right">
+              <button type="button" onClick={() => onPick({ kind: 'table', id: t.id })} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent">
                 {t.icon ? <LookIcon name={t.icon} color={t.color} className="size-4" /> : t.kind && t.kind !== 'table' ? <TableGlyph table={t} className="size-6" /> : <ItemTile kind="table" className="size-6" />}
                 <span className="flex-1 truncate">{t.label}</span>
                 {t.row_count ? <span className="text-[11px] text-muted-foreground tabular-nums">{formatCount(t.row_count)}</span> : null}
               </button>
+              </Hint>
             ))}
           </div>
         ))}

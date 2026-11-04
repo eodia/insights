@@ -54,6 +54,8 @@ declare global {
   }
 }
 const GAP = 12
+/** The foot of each page: its words, the logo, its number. */
+const FOOTER = 36
 
 interface Band {
   readonly top: number
@@ -193,6 +195,10 @@ function PrintScreen({ id }: { id: string }) {
   const rendering = params.has('render')
   const screen = params.get('screen') === '1'
 
+  useEffect(() => {
+    if (dashboard) document.title = options.title?.trim() || dashboard.name
+  }, [dashboard, options.title])
+
   // A printed page is light, whatever the screen's mode.
   useEffect(() => {
     const html = document.documentElement
@@ -269,7 +275,11 @@ function PrintScreen({ id }: { id: string }) {
     .filter((p) => values[p.id] !== null && values[p.id] !== undefined && values[p.id] !== '')
     // As the filter bar says them: « 12 derniers mois », not `past12months`.
     .map((p) => `${p.label || p.id} : ${valueLabel(p, values[p.id] as never)}`)
-  const footer = (s.pdf_footer ?? '').replace(/["\\]/g, '\\$&').replace(/\n/g, ' ')
+  // Every page, counted before any is drawn: its number, and how many there are.
+  const sheets = tabs.flatMap((tab, ti) => {
+    const cards = dashboard.cards.filter((c) => (tab.id ? c.tab === tab.id : true) && shown(c))
+    return pages(bands(cards), rowPx, page.h - (tab.label ? 44 : 0)).map((group, pi) => ({ tab, ti, pi, group }))
+  })
   const font = s.font_body ? `'${s.font_body}', sans-serif` : 'sans-serif'
 
   return (
@@ -277,14 +287,13 @@ function PrintScreen({ id }: { id: string }) {
       <style>{`
         @page {
           size: ${paper} ${orientation};
-          margin: 12mm 12mm 14mm;
-          @bottom-left { content: "${footer || title.replace(/["\\]/g, '\\$&')}"; font: 8pt ${font}; color: #71717a; }
-          ${options.page_numbers === false ? '' : `@bottom-right { content: counter(page) " / " counter(pages); font: 8pt ${font}; color: #71717a; }`}
+          /* No margin: the browser has nowhere to write its own header and footer (title, address). */
+          margin: 0;
         }
         @media print {
           html, body { background: ${s.background ?? '#ffffff'} !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .screen-only { display: none !important; }
-          .sheet { box-shadow: none !important; margin: 0 !important; }
+          .sheet { box-shadow: none !important; margin: 0 !important; padding: 12mm 12mm 10mm !important; box-sizing: content-box !important; border-radius: 0 !important; }
         }
         .sheet { width: ${page.w}px; break-after: page; }
         .sheet .table-search { display: none; }
@@ -344,9 +353,8 @@ function PrintScreen({ id }: { id: string }) {
           </section>
         ) : null}
 
-        {tabs.flatMap((tab, ti) => {
-          const cards = dashboard.cards.filter((c) => (tab.id ? c.tab === tab.id : true) && shown(c))
-          return pages(bands(cards), rowPx, page.h - (tab.label ? 44 : 0)).map((group, pi) => {
+        {sheets.map(({ tab, ti, pi, group }, k) => {
+          {
             const top = group[0]?.top ?? 0
             const rows = (group[group.length - 1]?.bottom ?? 0) - top
             // A band taller than the page is shrunk to fit it.
@@ -357,7 +365,8 @@ function PrintScreen({ id }: { id: string }) {
             return (
               <section
                 key={`${tab.id ?? 'all'}-${pi}`}
-                className="sheet rounded-sm bg-[var(--theme-bg,var(--background))] p-0 shadow-lg print:shadow-none"
+                className="sheet relative overflow-hidden rounded-sm bg-[var(--theme-bg,var(--background))] p-0 shadow-lg print:shadow-none"
+                style={{ height: page.h + FOOTER }}
               >
                 {tab.label && pi === 0 ? (
                   <h2 className="theme-title mb-4 text-2xl font-semibold tracking-tight">
@@ -406,9 +415,19 @@ function PrintScreen({ id }: { id: string }) {
                       )
                     })}
                 </div>
+                {/* The foot of the page: the theme's words on the left; its logo and the page's number on the right, on one line. */}
+                <footer className="absolute inset-x-0 bottom-0 flex items-center gap-3 text-[8pt] text-muted-foreground" style={{ height: FOOTER - 8, fontFamily: font }}>
+                  <span className="min-w-0 flex-1 truncate">{s.pdf_footer ?? ''}</span>
+                  {s.logo ? <img src={s.logo} alt="" className="h-4 w-auto object-contain" /> : null}
+                  {options.page_numbers !== false ? (
+                    <span className="tabular-nums">
+                      {k + 1 + (cover ? 1 : 0)} / {sheets.length + (cover ? 1 : 0)}
+                    </span>
+                  ) : null}
+                </footer>
               </section>
             )
-          })
+          }
         })}
       </div>
     </ThemeScope>
