@@ -1,8 +1,8 @@
 'use client'
 
-import type { Folder } from '@eodia/contracts'
+import type { Folder, ItemSummary } from '@eodia/contracts'
 import { WorkspaceMenu } from '@/components/app/workspace-menu'
-import { Avatar, LookIcon } from '@/components/app/look'
+import { Avatar, ItemTile, LookIcon } from '@/components/app/look'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +24,11 @@ import { FolderMenu } from '@/components/app/folder-menu'
 import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { useUi } from '@/lib/store'
 import {
   BellRing,
+  Search,
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
@@ -81,12 +84,15 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        'group flex items-center gap-3 rounded-lg text-[15px] transition-colors',
-        sub ? 'h-9 pl-10 pr-2 text-sm text-muted-foreground' : 'h-10 px-3 text-foreground',
-        active ? 'bg-sidebar-accent font-medium text-foreground' : 'hover:bg-sidebar-accent/70',
+        'group relative flex items-center gap-3 rounded-lg text-[14px] transition-all duration-150',
+        sub ? 'h-8 pl-10 pr-2 text-[13.5px] text-muted-foreground' : 'h-9 px-3 text-foreground/85',
+        // The page one is on: a sheet lifted off the sidebar, its pictogram in the brand's colour.
+        active
+          ? 'bg-background font-medium text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.04)] dark:bg-sidebar-accent'
+          : 'hover:bg-sidebar-accent hover:text-foreground',
       )}
     >
-      {children ?? (Icon ? <Icon className={cn('size-[18px] shrink-0', sub ? 'size-4' : '', active ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground')} /> : null)}
+      {children ?? (Icon ? <Icon className={cn('size-[18px] shrink-0 transition-colors', sub ? 'size-4' : '', active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} /> : null)}
       <span className="truncate">{label}</span>
       {badge ? <span className="ml-auto">{badge}</span> : null}
     </Link>
@@ -155,6 +161,40 @@ function FolderNode({ folder, folders, depth, path, me }: { folder: Folder; fold
   )
 }
 
+/** A short list of items, under a quiet title — folded once one has had enough of it. */
+function QuickList({ title, items, path }: { title: string; items: readonly ItemSummary[]; path: string }) {
+  const [open, setOpen] = useState(true)
+  if (!items.length) return null
+  const hrefOf = (i: ItemSummary) => (i.kind === 'dashboard' ? `/dashboard/${i.id}` : `/question/${i.id}`)
+  return (
+    <div className="pt-4">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="group flex w-full items-center gap-1 px-3 pb-1 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase hover:text-foreground">
+        <span className="flex-1 text-left">{title}</span>
+        <ChevronDown className={cn('size-3.5 opacity-0 transition-all group-hover:opacity-100', !open && '-rotate-90')} />
+      </button>
+      {open
+        ? items.slice(0, 5).map((i) => {
+            const href = hrefOf(i)
+            const active = path === href
+            return (
+              <Link
+                key={`${i.kind}-${i.id}`}
+                href={href}
+                className={cn(
+                  'flex h-8 items-center gap-2.5 rounded-lg px-3 text-[13.5px] transition-colors',
+                  active ? 'bg-background font-medium text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.04)] dark:bg-sidebar-accent' : 'text-foreground/80 hover:bg-sidebar-accent hover:text-foreground',
+                )}
+              >
+                <ItemTile kind={i.kind} className="size-5 rounded-md [&_svg]:size-3" />
+                <span className="truncate">{i.name}</span>
+              </Link>
+            )
+          })
+        : null}
+    </div>
+  )
+}
+
 export function setTheme(dark: boolean) {
   document.documentElement.classList.toggle('dark', dark)
   try {
@@ -167,6 +207,13 @@ export function Sidebar() {
   const router = useRouter()
   const { data: me } = useMe()
   const { data: folders = [] } = useFolders()
+  const setPalette = useUi((s) => s.setPalette)
+  // What one opens most: one's favourites, then what one opened last — the home page's lists.
+  const { data: home } = useQuery({
+    queryKey: ['home'],
+    queryFn: () => api.get<{ recent: ItemSummary[]; bookmarks: ItemSummary[]; latest: ItemSummary[] }>('/v1/home'),
+    staleTime: 60_000,
+  })
   const [admin, setAdmin] = useState(path.startsWith('/admin') || path.startsWith('/history'))
   const roots = folders.filter((f) => f.parent === null && (!f.personal || f.personal === me?.id))
   roots.sort((a, b) => (a.personal ? -1 : b.personal ? 1 : a.name.localeCompare(b.name)))
@@ -174,9 +221,22 @@ export function Sidebar() {
   const role = me?.is_admin ? $t('Administrateur') : me?.can.manage_metadata ? $t('Curateur') : $t('Analyste')
 
   return (
-    <aside className="flex h-full w-[264px] shrink-0 flex-col border-r bg-sidebar">
+    <aside className="flex h-full w-[256px] shrink-0 flex-col border-r bg-sidebar">
       {/* L'application, et l'espace où l'on travaille */}
       <WorkspaceMenu me={me} />
+
+      {/* Searching, first: everything is a few letters away. */}
+      <div className="px-3 pt-3">
+        <button
+          type="button"
+          onClick={() => setPalette(true)}
+          className="flex h-9 w-full items-center gap-2 rounded-lg border bg-background px-2.5 text-[13.5px] text-muted-foreground shadow-xs transition-colors hover:border-foreground/20 hover:text-foreground"
+        >
+          <Search className="size-4" />
+          <span className="flex-1 text-left">{$t('Rechercher…')}</span>
+          <kbd className="rounded border bg-muted px-1 font-mono text-[10px]">Ctrl K</kbd>
+        </button>
+      </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         <NavItem href="/" icon={Home} label={$t('Accueil')} active={path === '/'} />
@@ -193,6 +253,8 @@ export function Sidebar() {
         {roots.map((f) => (
           <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />
         ))}
+        <QuickList title={$t('Favoris')} items={home?.bookmarks ?? []} path={path} />
+        <QuickList title={$t('Récents')} items={(home?.recent ?? []).filter((r) => !(home?.bookmarks ?? []).some((b) => b.id === r.id))} path={path} />
       </nav>
 
       <div className="border-t px-2 py-2">

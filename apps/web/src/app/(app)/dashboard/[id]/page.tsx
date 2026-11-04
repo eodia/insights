@@ -32,16 +32,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { Hint } from '@/components/ui/tooltip'
 import { type RunResult, api } from '@/lib/api'
+import { formatAgo } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { keys, useDashboard } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
 import { ThemeLogo, ThemeScope } from '@/lib/theme'
-import type { Dashboard, ParameterValue } from '@eodia/contracts'
+import type { Dashboard, ItemSummary, ParameterValue } from '@eodia/contracts'
 import type { SummaryText } from '@/components/app/dashboard/cards'
 import { cn } from '@/lib/utils'
 import { cardConstraints, parseConditionCardId, savedConditionCard } from '@eodia/contracts'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   BellRing,
   Braces,
@@ -49,6 +51,7 @@ import {
   Copy,
   Ellipsis,
   FileDown,
+  LayoutDashboard,
   Link2,
   Loader2,
   Maximize,
@@ -201,6 +204,13 @@ function DashboardScreen({ id }: { id: string }) {
   const [remove, setRemove] = useState(false)
   const [refresh, setRefresh] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
+  // Starred: among one's favourites (the home page's list, shared with the sidebar).
+  const { data: home } = useQuery({
+    queryKey: ['home'],
+    queryFn: () => api.get<{ recent: ItemSummary[]; bookmarks: ItemSummary[]; latest: ItemSummary[] }>('/v1/home'),
+    staleTime: 60_000,
+  })
+  const starred = !!dashboard && (home?.bookmarks ?? []).some((b) => b.id === dashboard.id)
   // Where the dashboard puts its actions: on the title's line, so the filters have theirs to themselves.
   const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null)
   // The filters as they stand: a print shows the dashboard as one sees it.
@@ -289,13 +299,39 @@ function DashboardScreen({ id }: { id: string }) {
               className="mt-0.5 shrink-0 object-contain"
             />
           ) : null}
+          {dashboard.resolved_theme?.settings.logo && dashboard.resolved_theme.settings.logo_position !== 'right' ? null : (
+            <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/15">
+              <LayoutDashboard className="size-5" />
+            </span>
+          )}
           <div className="min-w-0 flex-1">
-            <h1 className="theme-title truncate text-2xl font-semibold tracking-tight">
-              {dashboard.name}
-            </h1>
-            {dashboard.description ? (
-              <p className="mt-0.5 text-sm text-muted-foreground">{dashboard.description}</p>
-            ) : null}
+            <div className="flex items-center gap-1.5">
+              <h1 className="theme-title truncate text-[26px] leading-tight font-semibold tracking-[-0.02em]">
+                {dashboard.name}
+              </h1>
+              <Hint label={starred ? $t('Retirer des favoris') : $t('Ajouter aux favoris')}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await api.post('/v1/bookmarks', { kind: 'dashboard', id: dashboard.id, on: !starred })
+                    await qc.invalidateQueries({ queryKey: ['home'] })
+                  }}
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-amber-500"
+                  aria-label={starred ? $t('Retirer des favoris') : $t('Ajouter aux favoris')}
+                >
+                  <FavoriteIcon active={starred} className="size-[18px]" />
+                </button>
+              </Hint>
+            </div>
+            <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+              {dashboard.description ? <span className="truncate">{dashboard.description}</span> : null}
+              {dashboard.description ? <span className="text-muted-foreground/50">·</span> : null}
+              <span className="shrink-0 text-xs">
+                {dashboard.created_by
+                  ? $t('Mis à jour {when} · {name}', { when: formatAgo(dashboard.updated_at), name: dashboard.created_by.name })
+                  : $t('Mis à jour {when}', { when: formatAgo(dashboard.updated_at) })}
+              </span>
+            </p>
           </div>
           <div ref={setActionsSlot} className="contents" />
           {dashboard.resolved_theme?.settings.logo_position === 'right' ? (

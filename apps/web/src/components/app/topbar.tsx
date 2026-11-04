@@ -86,16 +86,6 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <button
-        type="button"
-        onClick={() => setPalette(true)}
-        className="hidden h-9 w-[300px] items-center gap-2 rounded-lg border bg-background px-3 text-sm text-muted-foreground shadow-xs hover:bg-accent md:flex"
-      >
-        <Search className="size-4" />
-        <span className="flex-1 text-left">{$t('Rechercher…')}</span>
-        <kbd className="rounded border bg-muted px-1.5 font-mono text-[11px]">Ctrl</kbd>
-        <kbd className="rounded border bg-muted px-1.5 font-mono text-[11px]">K</kbd>
-      </button>
       {me?.ai_enabled ? (
         <Hint label={$t('Demander au copilote')}>
           <Button variant="ghost" size="icon-sm" onClick={() => openCopilot()} aria-label={$t('Copilote')}>

@@ -46,11 +46,11 @@
   --ring: oklch(0.627 0.195 141.6);
 
   /* The grid sits on a hair-darker ground than the panels, so its edges read. */
-  --surface: oklch(0.985 0.001 286.375);
+  --surface: oklch(0.975 0.002 286.35);
 
-  --sidebar: oklch(1 0 0);
+  --sidebar: oklch(0.982 0.002 286.35);
   --sidebar-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent: oklch(0.95 0.003 286.35);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
 
