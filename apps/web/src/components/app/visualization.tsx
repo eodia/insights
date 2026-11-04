@@ -276,10 +276,11 @@ function firstMetric(result: Result, settings: VisualizationSettings) {
 
 function Scalar({ result, settings, compact }: { result: Result; settings: VisualizationSettings; compact: boolean }) {
   const m = firstMetric(result, settings)
+  const value = m ? result.rows[0]?.[m.index] : undefined
+  const counted = useCountUp(value, compact)
   if (!m) return null
-  const value = result.rows[0]?.[m.index]
   const color = ruleColor(settings.rules, undefined, value) ?? settings.color
-  const shown = formatValue(value, m.col, { compact: settings.compact ?? (typeof value === 'number' && Math.abs(value) >= 1e7), decimals: settings.decimals ?? null, prefix: settings.prefix, suffix: settings.suffix })
+  const shown = formatValue(counted, m.col, { compact: settings.compact ?? (typeof value === 'number' && Math.abs(value) >= 1e7), decimals: settings.decimals ?? null, prefix: settings.prefix, suffix: settings.suffix })
   if (compact) {
     // On a dashboard: the figure on the left, heavy; beneath it, how it compares, as a pill.
     const pastIndex = result.columns.findIndex((c) => c.compared?.of === m.col.name)
@@ -318,6 +319,37 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
       {settings.caption ? <div className="text-sm text-muted-foreground">{settings.caption}</div> : null}
     </div>
   )
+}
+
+/**
+ * A figure counting up to its value when it appears (on a dashboard): 0.9 s, slowing down at the
+ * end. Still when asked for less motion, on a printed page, or for anything but a number.
+ */
+function useCountUp(target: unknown, enabled: boolean): unknown {
+  const [shown, setShown] = useState<unknown>(() => (enabled && typeof target === 'number' && Number.isFinite(target) ? 0 : target))
+  useEffect(() => {
+    if (!enabled || typeof target !== 'number' || !Number.isFinite(target)) {
+      setShown(target)
+      return
+    }
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.location.pathname.startsWith('/print/')
+    if (still) {
+      setShown(target)
+      return
+    }
+    const start = performance.now()
+    const decimals = Number.isInteger(target) ? 0 : 2
+    let frame = 0
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / 900)
+      const eased = 1 - (1 - t) ** 3
+      setShown(t === 1 ? target : Number((target * eased).toFixed(decimals)))
+      if (t < 1) frame = requestAnimationFrame(step)
+    }
+    frame = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(frame)
+  }, [target, enabled])
+  return shown
 }
 
 /** A small curve of the whole series, its last point marked: where the number comes from. */
@@ -378,9 +410,10 @@ function Spark({ values, kind, className }: { values: readonly number[]; kind: '
 function Trend({ result, settings }: { result: Result; settings: VisualizationSettings }) {
   const { dims } = roles(result, settings)
   const m = firstMetric(result, settings)
-  if (!m || result.rows.length === 0) return null
   const rows = result.rows
-  const last = Number(rows[rows.length - 1]?.[m.index])
+  const last = m ? Number(rows[rows.length - 1]?.[m.index]) : Number.NaN
+  const lastShown = Number(useCountUp(last, true))
+  if (!m || result.rows.length === 0) return null
   const prev = rows.length > 1 ? Number(rows[rows.length - 2]?.[m.index]) : null
   const change = prev !== null && prev !== 0 ? (last - prev) / Math.abs(prev) : null
   const good = change === null ? null : settings.invert ? change < 0 : change > 0
@@ -404,7 +437,7 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
   if (!spark) {
     return (
       <div className="@container flex h-full flex-col justify-center gap-1.5 px-1">
-        <div className="truncate text-[min(34px,13cqw)] leading-none font-bold tracking-[-0.035em] tabular-nums">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
+        <div className="truncate text-[min(34px,13cqw)] leading-none font-bold tracking-[-0.035em] tabular-nums">{formatValue(lastShown, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
         {delta}
         {period ? <div className="text-xs text-muted-foreground">{period}</div> : null}
       </div>
@@ -414,7 +447,7 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
   return (
     <div className="@container flex h-full flex-col justify-center gap-1 px-1">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 truncate text-2xl font-bold tracking-[-0.03em] tabular-nums @[16rem]:text-[32px]">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e4 })}</div>
+        <div className="min-w-0 truncate text-2xl font-bold tracking-[-0.03em] tabular-nums @[16rem]:text-[32px]">{formatValue(lastShown, m.col, { compact: Math.abs(last) >= 1e4 })}</div>
         <Spark values={series} kind={kind} className={cn('h-10 w-2/5 max-w-40 shrink-0', tone)} />
       </div>
       {change !== null ? (

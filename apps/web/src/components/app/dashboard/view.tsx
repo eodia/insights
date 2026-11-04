@@ -61,7 +61,6 @@ import {
   ArrowRightLeft,
   BellRing,
   Check,
-  Paintbrush,
   Palette,
   Braces,
   Download,
@@ -166,15 +165,11 @@ function withCondition<T extends { condition?: DashboardCard['condition'] }>(x: 
   return rest as T
 }
 
-/** A card's looks: plain, set off, dark — and how each shows in a menu. */
-const LOOKS = [
-  [undefined, msg('Normale'), 'bg-card ring-1 ring-border'],
-  ['accent', msg('Mise en valeur'), 'card-accent'],
-  ['dark', msg('Sombre'), 'bg-[#0f1110]'],
-] as const
-
 /** A menu's group title, as the dashboard's own menu has them. */
 const MENU_LABEL = 'text-[11px] font-medium tracking-wide text-muted-foreground uppercase'
+
+/** Where one was in a dashboard's grid when it was remounted (a save): to find it again. */
+const KEPT_SCROLL = new Map<string, { top: number; at: number }>()
 
 const newId = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
 
@@ -216,8 +211,6 @@ interface CardProps {
   /** The other tabs it can go to, and where else it can go — when it can move. */
   moveTabs?: readonly DashboardTab[]
   onMoveToTab?: (tab: string) => void
-  /** Outside edit mode, for whoever may edit: the card's look, saved at once. */
-  onLook?: (look: DashboardCard['look']) => void
   onMoveElsewhere?: () => void
   /** A card keeping its query to itself (the copilot's): it becomes a question to edit. */
   onEditQuestion?: () => void
@@ -228,6 +221,10 @@ interface CardProps {
   pane?: FilterPane
   /** Leaving for the card's question: notes where one was, to come back to it. */
   onLeave?: () => void
+  /** Reached on screen: the card rises into place, its chart draws itself. */
+  revealed?: boolean
+  /** Its turn in the wave of cards appearing together. */
+  revealDelay?: number
   /** The dashboard's cards — what a summary reads. */
   allCards?: readonly DashboardCard[]
   summarizer?: Summarizer
@@ -326,7 +323,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onColumns, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onLook, onEditQuestion, onCondition, conditionShown, pane, allCards, summarizer, talk, selection } = props
+  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onColumns, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onEditQuestion, onCondition, conditionShown, pane, allCards, summarizer, talk, selection } = props
   const isQuestion = card.kind === 'question'
   // The card a selection was clicked on keeps all its categories: one can add to it.
   const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
@@ -476,9 +473,14 @@ function CardFrame(props: CardProps) {
   return (
     <div
       ref={frameRef}
+      // The wave's delay for rising only: the shadow under the pointer stays immediate.
+      style={props.revealDelay ? { transitionDelay: `${props.revealDelay}ms, ${props.revealDelay}ms, 0ms` } : undefined}
       className={cn(
         'theme-card group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-transparent bg-card shadow-[0_1px_2px_rgba(16,24,40,0.03),0_10px_30px_-20px_rgba(16,24,40,0.18)] transition-shadow duration-200 hover:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_18px_40px_-20px_rgba(16,24,40,0.26)] dark:border-border/60',
         // Set off: the brand's colour, softly. Dark: a black card, its contents drawn for it.
+        // Not reached yet: low and transparent; reached, it rises into place.
+        props.revealed === false && 'translate-y-4 scale-[0.985] opacity-0',
+        props.revealed !== undefined && 'transition-[opacity,transform,box-shadow] duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
         card.look === 'accent' && 'card-accent',
         card.look === 'dark' && 'card-dark dark',
         editing && 'ring-primary/30 hover:ring-2',
@@ -559,22 +561,6 @@ function CardFrame(props: CardProps) {
                   <DropdownMenuItem onSelect={() => void copyImage()}>
                     <ImageDown /> {$t('Copier en image')}
                   </DropdownMenuItem>
-                ) : null}
-                {!editing && onLook ? (
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <Paintbrush className="size-4" /> {$t('Style de la carte')}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-52">
-                      {LOOKS.map(([look, label, swatch]) => (
-                        <DropdownMenuItem key={label} onSelect={() => onLook(look)}>
-                          <span className={cn('size-4 rounded-md', swatch)} />
-                          <span className="flex-1">{$t(label)}</span>
-                          {card.look === look ? <Check className="size-4" /> : null}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
                 ) : null}
                 {isQuestion && !publicMode ? (
                   <DropdownMenuSub>
@@ -660,8 +646,7 @@ function CardFrame(props: CardProps) {
                           <DropdownMenuItem
                             key={label}
                             onSelect={() => {
-                              const { look: _gone, ...rest } = card
-                              onChange(look ? { ...rest, look } : rest)
+                              onChange({ look: look ?? undefined } as Partial<DashboardCard>)
                             }}
                           >
                             <span className={cn('size-4 rounded-md', swatch)} />
@@ -733,43 +718,6 @@ function CardFrame(props: CardProps) {
               </PopoverContent>
             </Popover>
           ) : null}
-          {/* The card's look, at hand while editing: plain, set off, dark. */}
-          {editing ? (
-            <Popover>
-              <Hint label={$t('Style de la carte')}>
-                <PopoverTrigger asChild>
-                  <button type="button" className="card-still rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Style de la carte')}>
-                    <Paintbrush className="size-4" />
-                  </button>
-                </PopoverTrigger>
-              </Hint>
-              <PopoverContent align="end" className="w-auto p-2">
-                <p className="px-1 pb-2 text-xs font-medium text-muted-foreground">{$t('Style de la carte')}</p>
-                <div className="flex gap-2">
-                  {(
-                    [
-                      [undefined, $t('Normale'), 'bg-card ring-1 ring-border'],
-                      ['accent', $t('Mise en valeur'), 'card-accent'],
-                      ['dark', $t('Sombre'), 'bg-[#0f1110]'],
-                    ] as const
-                  ).map(([look, label, swatch]) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => {
-                        const { look: _gone, ...rest } = card
-                        onChange(look ? { ...rest, look } : rest)
-                      }}
-                      className={cn('flex w-20 flex-col items-center gap-1.5 rounded-lg p-1.5 text-[11px] transition-colors hover:bg-accent', card.look === look && 'bg-accent font-medium')}
-                    >
-                      <span className={cn('h-10 w-full rounded-md', swatch, card.look === look && 'ring-2 ring-primary ring-offset-1 ring-offset-popover')} />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          ) : null}
         </div>
       ) : null}
       <div className={cn('card-still relative min-h-0 flex-1', isQuestion ? 'px-3 pb-3' : card.kind === 'filter' || card.kind === 'summary' ? 'flex flex-col gap-2 px-3 pb-3' : ['buttons', 'link', 'variable'].includes(card.kind) ? 'flex flex-col px-3 py-2' : card.kind === 'image' ? 'p-2' : 'p-4')}>
@@ -833,7 +781,7 @@ function CardFrame(props: CardProps) {
           <div className="flex h-full items-center justify-center gap-2 px-4 text-center text-sm text-destructive">
             <AlertTriangle className="size-4 shrink-0" /> {(run.error as Error).message}
           </div>
-        ) : run.data ? (
+        ) : run.data && props.revealed !== false ? (
           <DarkSurface.Provider value={card.look === 'dark' ? true : null}>
           <Visualization
             result={run.data}
@@ -1331,6 +1279,78 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const vizs = useRef(new Map<string, Viz>())
   const [, force] = useState(0)
   const { width, containerRef, mounted } = useContainerWidth()
+  // Cards reached on screen, in waves: each wave rises left to right, a few dozen ms apart.
+  // In edit mode, asked for less motion, or once seen, a card simply is there.
+  const [revealed, setRevealed] = useState<ReadonlyMap<string, number>>(() => new Map())
+  const still = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
+  useEffect(() => {
+    const grid = containerRef.current
+    if (!grid || still) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const reached = entries
+          .filter((e) => e.isIntersecting)
+          .map((e) => e.target as HTMLElement)
+          .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left)
+        if (!reached.length) return
+        setRevealed((cur) => {
+          const next = new Map(cur)
+          let i = 0
+          for (const el of reached) {
+            const id = el.dataset.cardId
+            if (id && !next.has(id)) next.set(id, Math.min(i++ * 70, 560))
+            io.unobserve(el)
+          }
+          return next
+        })
+      },
+      { root: grid, rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
+    )
+    let queued = 0
+    const watch = () => {
+      queued = 0
+      grid.querySelectorAll<HTMLElement>('[data-card-id]').forEach((el) => io.observe(el))
+    }
+    watch()
+    // Cards placed later (a tab opened, the grid measured) are watched too — once a frame at most.
+    const mo = new MutationObserver(() => {
+      if (!queued) queued = requestAnimationFrame(watch)
+    })
+    mo.observe(grid, { childList: true, subtree: true })
+    return () => {
+      io.disconnect()
+      mo.disconnect()
+      cancelAnimationFrame(queued)
+    }
+  }, [containerRef, still])
+  // A save remounts the dashboard: where one was in the grid is kept for the next one.
+  useEffect(() => {
+    const grid = containerRef.current
+    if (!grid) return
+    const kept = KEPT_SCROLL.get(dashboard.id)
+    if (kept && Date.now() - kept.at < 5000) {
+      KEPT_SCROLL.delete(dashboard.id)
+      // The cards take their height as they are placed: try until the grid is tall enough (2 s).
+      const until = Date.now() + 2000
+      let t = 0
+      const tryScroll = () => {
+        if (grid.scrollHeight - grid.clientHeight >= kept.top || Date.now() > until) grid.scrollTo({ top: kept.top })
+        else t = window.setTimeout(tryScroll, 80)
+      }
+      t = window.setTimeout(tryScroll, 60)
+      const note = () => KEPT_SCROLL.set(dashboard.id, { top: grid.scrollTop, at: Date.now() })
+      grid.addEventListener('scroll', note, { passive: true })
+      return () => {
+        clearTimeout(t)
+        grid.removeEventListener('scroll', note)
+      }
+    }
+    // Noted as one scrolls: once the grid is taken off the page, it no longer knows.
+    const note = () => KEPT_SCROLL.set(dashboard.id, { top: grid.scrollTop, at: Date.now() })
+    grid.addEventListener('scroll', note, { passive: true })
+    return () => grid.removeEventListener('scroll', note)
+  }, [containerRef, dashboard.id])
+
   // The grid scrolled down: the page's head folds, to leave the cards the room.
   useEffect(() => {
     const grid = containerRef.current
@@ -1598,20 +1618,6 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     }
   }
 
-  /** A card's look changed outside edit mode: the dashboard saved with it, at once. */
-  const restyle = async (card: DashboardCard, look: DashboardCard['look']) => {
-    if (!onSave) return
-    const cards = draft.cards.map((c) => {
-      if (c.id !== card.id) return c
-      const { look: _gone, ...rest } = c
-      return look ? { ...rest, look } : rest
-    })
-    try {
-      await onSave(named({ ...draft, cards }))
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err))
-    }
-  }
   const save = async () => {
     if (!onSave) return
     setSaving(true)
@@ -2082,11 +2088,11 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   onColumns={onColumns}
                   onPoint={onPoint}
                   onPointMenu={(c, point, v, title) => setMenu({ card: c, point, values: v, title })}
+                  {...(editing || still || publicMode ? {} : { revealed: revealed.has(card.id), revealDelay: revealed.get(card.id) ?? 0 })}
                   {...(card.question ? { onLeave: () => leaveFor(card.question as string) } : {})}
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
                   onDuplicate={() => addCards([{ ...card, id: newId('c') }])}
-                  {...(editable && !publicMode && onSave ? { onLook: (look: DashboardCard['look']) => void restyle(card, look) } : {})}
                   {...(onMoveCard && editable && !publicMode && card.kind !== 'heading'
                     ? {
                         moveTabs: tabs.filter((t) => t.id !== currentTab),

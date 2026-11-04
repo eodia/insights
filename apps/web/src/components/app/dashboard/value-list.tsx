@@ -166,10 +166,15 @@ export function ValueList({
     if (all.data) onShare?.(share)
   }, [share, all.data, onShare])
 
+  // The active value kept in sight — by scrolling the list alone: `scrollIntoView` would scroll
+  // every container around it too, down to the dashboard's grid, which then jumps to this pane.
   useEffect(() => {
-    listRef.current
-      ?.querySelector<HTMLElement>(`[data-row="${active}"]`)
-      ?.scrollIntoView({ block: 'nearest' })
+    const list = listRef.current
+    const row = list?.querySelector<HTMLElement>(`[data-row="${active}"]`)
+    if (!list || !row) return
+    const top = row.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop
+    if (top < list.scrollTop) list.scrollTop = top
+    else if (top + row.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + row.offsetHeight - list.clientHeight
   }, [active])
 
   const click = (index: number, e: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => {
