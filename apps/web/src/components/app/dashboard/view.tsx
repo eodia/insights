@@ -713,7 +713,7 @@ function CardFrame(props: CardProps) {
             <Popover>
               <Hint label={$t('Style de la carte')}>
                 <PopoverTrigger asChild>
-                  <button type="button" className="card-still rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent data-[state=open]:opacity-100" aria-label={$t('Style de la carte')}>
+                  <button type="button" className="card-still rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Style de la carte')}>
                     <Paintbrush className="size-4" />
                   </button>
                 </PopoverTrigger>
