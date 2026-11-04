@@ -136,7 +136,8 @@ function FolderNode({ folder, folders, depth, path, me }: { folder: Folder; fold
           style={{ paddingLeft: 16 + depth * 14 }}
           className={cn(
             'group flex h-9 items-center gap-2 rounded-lg pr-2 text-sm text-muted-foreground transition-colors',
-            active ? 'bg-sidebar-accent font-medium text-foreground' : 'hover:bg-sidebar-accent/70',
+            // The folder open: the dark pill, as every page one is on.
+            active ? 'bg-foreground font-medium text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] [&_svg]:!text-background' : 'hover:bg-sidebar-accent/70',
             drop.over && 'bg-primary/10 text-foreground ring-2 ring-primary/40',
           )}
         >

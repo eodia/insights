@@ -34,15 +34,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowUpRight,
   BarChart3,
+  Box,
   CornerLeftUp,
   FolderOpen,
   FolderPlus,
   LayoutDashboard,
+  LayoutGrid,
   Loader2,
   MoreHorizontal,
   PanelRight,
   Search,
   Share2,
+  Sigma,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -646,29 +649,41 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
             onDelete={() => removal.ask(ticks.rows)}
           />
         ) : (
-          <TabRow className="gap-5 border-b px-4 text-sm">
-            {(['all', 'dashboard', 'question', 'model', 'metric'] as const).map((t) => (
+          <TabRow className="gap-1 px-3 py-2 text-[13px]">
+            {(
+              [
+                ['all', $t('Tout'), LayoutGrid],
+                ['dashboard', $t('Tableaux'), LayoutDashboard],
+                ['question', $t('Questions'), BarChart3],
+                ['model', $t('Modèles'), Box],
+                ['metric', $t('Métriques'), Sigma],
+              ] as const
+            )
+              // A kind the folder holds none of stays out of the way — unless it is the one open.
+              .filter(([t]) => t === 'all' || t === tab || (counts[t] ?? 0) > 0)
+              .map(([t, label, Icon]) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
+                aria-pressed={tab === t}
                 className={cn(
-                  'relative py-2.5 whitespace-nowrap',
+                  'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 whitespace-nowrap transition-colors',
                   tab === t
-                    ? 'font-semibold after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-foreground font-medium text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)]'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
                 )}
               >
-                {t === 'all'
-                  ? $t('Tout')
-                  : t === 'dashboard'
-                    ? $t('Tableaux')
-                    : t === 'question'
-                      ? $t('Questions')
-                      : t === 'model'
-                        ? $t('Modèles')
-                        : $t('Métriques')}{' '}
-                <span className="text-xs text-muted-foreground">{counts[t] ?? 0}</span>
+                <Icon className="size-3.5" />
+                {label}
+                <span
+                  className={cn(
+                    'min-w-5 rounded-full px-1.5 text-center text-[11px] tabular-nums',
+                    tab === t ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {counts[t] ?? 0}
+                </span>
               </button>
             ))}
           </TabRow>
