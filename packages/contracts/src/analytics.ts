@@ -1090,7 +1090,11 @@ export function conditionAllowsRun(condition: DisplayCondition | undefined, ctx:
   return answers.some((a) => a === undefined) ? undefined : true
 }
 
-export const CARD_KINDS = ['question', 'heading', 'text', 'embed', 'filter', 'buttons', 'link', 'variable', 'image', 'separator', 'summary'] as const
+export const CARD_KINDS = ['question', 'heading', 'text', 'embed', 'filter', 'buttons', 'link', 'variable', 'image', 'separator', 'summary', 'block'] as const
+
+/** The home page's own blocks, laid among its cards: its lists, drawn by the page itself. */
+export const HOME_BLOCKS = ['favorites', 'alerts', 'recent', 'latest', 'shortcuts', 'tables', 'sources'] as const
+export type HomeBlockKind = (typeof HOME_BLOCKS)[number]
 
 /** A heading's look: everything a section title may want, the theme's when left out. */
 export interface HeadingStyle {
@@ -1174,6 +1178,8 @@ export interface DashboardCard {
   readonly icon?: string
   /** How the card stands out: tinted with the brand's colour (`accent`), or dark (`dark`). */
   readonly look?: 'accent' | 'dark'
+  /** A `block` card: which of the home page's lists it shows. */
+  readonly block?: HomeBlockKind
   /** A colour of one's own for the card (`#rrggbb`), or `transparent`: it wins over `look`. */
   readonly background?: string
   /** A saved question, by identifier… */
@@ -1545,6 +1551,7 @@ export function cardSize(
   if (kind === 'image') return { w: 6, h: 5 }
   if (kind === 'separator') return { w: DASHBOARD_COLUMNS, h: 1 }
   if (kind === 'summary') return { w: 12, h: 6 }
+  if (kind === 'block') return { w: 12, h: 7 }
   switch (viz) {
     case 'scalar':
     case 'trend':

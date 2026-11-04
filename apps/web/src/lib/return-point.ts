@@ -38,7 +38,8 @@ export function returnPointFor(question: string | undefined): ReturnPoint | null
 }
 
 /** The address that brings one back: the dashboard, at its tab, asking for its filters back. */
-export const returnHref = (p: ReturnPoint) => `/dashboard/${p.dashboard}?${new URLSearchParams({ ...(p.tab ? { tab: p.tab } : {}), back: '1' })}`
+export const returnHref = (p: ReturnPoint) =>
+  `${p.dashboard === 'home' ? '/' : `/dashboard/${p.dashboard}`}?${new URLSearchParams({ ...(p.tab ? { tab: p.tab } : {}), back: '1' })}`
 
 /** Back on the dashboard: where one was, once. */
 export function takeReturnPoint(dashboard: string): ReturnPoint | null {

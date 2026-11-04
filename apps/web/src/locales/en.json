@@ -2857,5 +2857,9 @@
   "Une question et son graphique": "A question and its chart",
   "Vérifiée {when}": "Checked {when}",
   "Vos alertes, et les chiffres qui baissent": "Your alerts, and the figures going down",
-  "Votre accueil est vide.": "Your home page is empty."
+  "Votre accueil est vide.": "Your home page is empty.",
+  "Blocs": "Blocks",
+  "Déjà sur la page": "Already on the page",
+  "Gérer les alertes": "Manage alerts",
+  "Rechercher un tableau de bord, une question…": "Search a dashboard, a question…"
 }

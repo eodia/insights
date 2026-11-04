@@ -1,50 +1,22 @@
 'use client'
 
-import type { Alert, Datasource, HomeInsight, HomeWidget, HomeWidgetKind, ItemSummary, TableMeta } from '@eodia/contracts'
+import type { Alert, Datasource, HomeBlockKind, HomeInsight, ItemSummary, TableMeta } from '@eodia/contracts'
+import { FavoriteIcon } from '@/components/app/favorite-icon'
 import { DashboardArt, QuestionArt, SqlArt } from '@/components/app/illustrations'
 import { ItemTile, KIND_LABELS } from '@/components/app/look'
 import { itemHref } from '@/components/app/palette'
 import { Visualization } from '@/components/app/visualization'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { type RunResult, api } from '@/lib/api'
 import { formatAgo, formatCount, formatValue } from '@/lib/format'
-import { $t, intlLocale, msg } from '@/lib/i18n'
+import { $t, intlLocale } from '@/lib/i18n'
 import { useQuestion } from '@/lib/queries'
-import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
-import {
-  ArrowRight,
-  BellRing,
-  Clock3,
-  Database,
-  GripVertical,
-  LayoutGrid,
-  Loader2,
-  type LucideIcon,
-  Plus,
-  Sparkles,
-  Star,
-  Table2,
-  TrendingDown,
-  TrendingUp,
-  X,
-  Zap,
-} from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { ArrowRight, BellRing, Plus, Search, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
-
-/** How each block is named and drawn in the « add » menu and in its own head. */
-export const WIDGET_META: Record<HomeWidgetKind, { label: string; icon: LucideIcon; hint: string }> = {
-  kpi: { label: msg('Indicateur'), icon: Zap, hint: msg('Un chiffre clé épinglé, calculé à chaque visite') },
-  question: { label: msg('Question'), icon: LayoutGrid, hint: msg('Une question et son graphique') },
-  favorites: { label: msg('Mes favoris'), icon: Star, hint: msg('Les tableaux de bord et questions étoilés') },
-  alerts: { label: msg('À surveiller'), icon: BellRing, hint: msg('Vos alertes, et les chiffres qui baissent') },
-  recent: { label: msg('Consultés récemment'), icon: Clock3, hint: msg('Ce que vous avez ouvert en dernier') },
-  latest: { label: msg('Nouveautés'), icon: Sparkles, hint: msg('Ce qui a changé ces deux derniers mois') },
-  shortcuts: { label: msg('Raccourcis'), icon: Plus, hint: msg('Créer une question, une requête SQL, un tableau de bord') },
-  tables: { label: msg('Tables'), icon: Table2, hint: msg('Les plus grandes tables, à explorer') },
-  sources: { label: msg('Sources'), icon: Database, hint: msg('Les sources connectées et leur état') },
-}
+import { type ReactNode, useState } from 'react'
 
 /** The home page's data, fetched once and shared by its blocks. */
 export interface HomeData {
@@ -53,129 +25,53 @@ export interface HomeData {
   readonly latest: readonly ItemSummary[]
 }
 
-/**
- * A block's frame: white, borderless, rounded like a dashboard's cards. It rises into place when
- * the page opens, one after the other; while the page is arranged, it is moved by its handle.
- */
-export function Block({
-  title,
-  icon: Icon,
-  action,
-  badge,
-  editing,
-  onRemove,
-  delay = 0,
-  bare,
-  children,
-}: {
-  title?: ReactNode
-  icon?: LucideIcon
-  action?: ReactNode
-  badge?: ReactNode
-  editing: boolean
-  onRemove: () => void
-  delay?: number
-  /** No head: the block draws all of itself (a figure). */
-  bare?: boolean
-  children: ReactNode
-}) {
-  return (
-    <div
-      className={cn(
-        'home-rise group/block relative flex h-full flex-col overflow-hidden rounded-[22px] bg-card shadow-[0_1px_2px_rgba(16,24,40,0.03),0_10px_30px_-20px_rgba(16,24,40,0.18)] transition-shadow hover:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_18px_40px_-20px_rgba(16,24,40,0.26)] dark:ring-1 dark:ring-border/60',
-        editing && 'ring-1 ring-primary/25',
-      )}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      {title ? (
-        <div className="flex h-12 shrink-0 items-center gap-2 px-5">
-          {editing ? <GripVertical className="home-handle -ml-1.5 size-4 shrink-0 cursor-move text-muted-foreground" /> : null}
-          {Icon ? <Icon className="size-4 shrink-0 text-primary" /> : null}
-          <h2 className="min-w-0 truncate text-[15px] font-semibold tracking-tight">{title}</h2>
-          {badge}
-          <span className="flex-1" />
-          {editing ? null : action}
-        </div>
-      ) : editing && bare ? (
-        <GripVertical className="home-handle absolute top-3 left-2 z-10 size-4 cursor-move text-muted-foreground" />
-      ) : null}
-      {editing ? (
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={$t('Retirer de l’accueil')}
-          className="home-still absolute top-2.5 right-2.5 z-10 inline-flex size-7 items-center justify-center rounded-full bg-background/90 text-muted-foreground shadow-sm ring-1 ring-border transition-colors hover:text-destructive"
-        >
-          <X className="size-3.5" />
-        </button>
-      ) : null}
-      <div className="min-h-0 flex-1">{children}</div>
-    </div>
-  )
+/** What a block draws from, gathered by the page. */
+export interface BlockContext {
+  readonly home: HomeData | undefined
+  readonly tables: readonly TableMeta[]
+  readonly sources: readonly Datasource[]
+  readonly sql: boolean
+}
+
+/** One of the home page's own blocks, inside its card — the card gives it its frame and title. */
+export function HomeBlock({ kind, ctx }: { kind: HomeBlockKind; ctx: BlockContext }) {
+  switch (kind) {
+    case 'favorites':
+      return <Favorites items={ctx.home?.bookmarks ?? []} />
+    case 'alerts':
+      return <Watch />
+    case 'recent':
+      return <ItemList items={ctx.home?.recent ?? []} />
+    case 'latest':
+      return <ItemList items={ctx.home?.latest ?? []} when />
+    case 'shortcuts':
+      return <Shortcuts sql={ctx.sql} table={ctx.tables[0]?.qualified ?? null} />
+    case 'tables':
+      return <Tables tables={ctx.tables} />
+    case 'sources':
+      return <Sources sources={ctx.sources} />
+  }
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <div className="flex h-full items-center justify-center px-6 pb-4 text-center text-sm text-muted-foreground">{children}</div>
+  return <div className="flex h-full items-center justify-center px-6 pb-2 text-center text-sm text-muted-foreground">{children}</div>
 }
 
-// ── A question: a figure, or its chart ────────────────────────────────────────
-
-/** A saved question, run under the reader's rights, drawn as it is saved. */
-function useRun(id: string) {
-  const { data: question, error: qError } = useQuestion(id)
-  const run = useQuery({
-    queryKey: ['home-run', id],
-    queryFn: () => api.post<RunResult>(`/v1/questions/${id}/run`, {}),
-    staleTime: 60_000,
-    retry: false,
-  })
-  return { question, run, error: qError ?? run.error }
-}
-
-export function QuestionWidget({ widget, editing, onRemove, delay }: { widget: HomeWidget; editing: boolean; onRemove: () => void; delay: number }) {
-  const id = widget.question as string
-  const { question, run, error } = useRun(id)
-  const kpi = widget.kind === 'kpi'
-  const title = question ? (
-    <Link href={`/question/${id}`} className="hover:underline">
-      {question.name}
-    </Link>
-  ) : (
-    <span className="text-muted-foreground">…</span>
-  )
+/** A link at the block's foot: where the whole list lives. */
+function More({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Block
-      title={title}
-      icon={kpi ? undefined : WIDGET_META.question.icon}
-      editing={editing}
-      onRemove={onRemove}
-      delay={delay}
-      action={
-        <Link href={`/question/${id}`} aria-label={$t('Ouvrir')} className="inline-flex size-7 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-opacity group-hover/block:opacity-100 hover:bg-muted hover:text-foreground">
-          <ArrowRight className="size-4" />
-        </Link>
-      }
-    >
-      <div className={cn('h-full', kpi ? 'px-1 pb-2' : 'px-2 pb-3')}>
-        {error ? (
-          <Empty>{(error as Error).message}</Empty>
-        ) : run.data && question ? (
-          <Visualization result={run.data} viz={question.visualization} compact />
-        ) : (
-          <Empty>
-            <Loader2 className="size-4 animate-spin" />
-          </Empty>
-        )}
-      </div>
-    </Block>
+    <Link href={href} className="inline-flex items-center gap-1 text-[13px] font-medium text-primary hover:underline">
+      {children} <ArrowRight className="size-3.5" />
+    </Link>
   )
 }
 
 // ── Favourites ────────────────────────────────────────────────────────────────
 
-/** A favourite question, its figure or chart in small. */
+/** A favourite question, its figure or chart in small, run under the reader's rights. */
 function FavoriteChart({ id }: { id: string }) {
-  const { question, run } = useRun(id)
+  const { data: question } = useQuestion(id)
+  const run = useQuery({ queryKey: ['home-run', id], queryFn: () => api.post<RunResult>(`/v1/questions/${id}/run`, {}), staleTime: 60_000, retry: false })
   if (!run.data || !question) return <div className="h-full animate-pulse rounded-lg bg-muted/50" />
   return <Visualization result={run.data} viz={question.visualization} compact />
 }
@@ -195,28 +91,16 @@ function DashboardThumb() {
   )
 }
 
-export function FavoritesWidget({ home, editing, onRemove, delay }: { home: HomeData | undefined; editing: boolean; onRemove: () => void; delay: number }) {
-  const setPalette = useUi((s) => s.setPalette)
-  const items = home?.bookmarks ?? []
+function Favorites({ items }: { items: readonly ItemSummary[] }) {
+  const [picking, setPicking] = useState(false)
   return (
-    <Block
-      title={$t('Mes favoris')}
-      icon={Star}
-      editing={editing}
-      onRemove={onRemove}
-      delay={delay}
-      action={
-        <Link href="/browse" className="text-[13px] font-medium text-primary hover:underline">
-          {$t('Tous les tableaux de bord')}
-        </Link>
-      }
-    >
-      <div className="grid h-full auto-rows-[200px] content-start grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 overflow-y-auto px-5 pb-5">
+    <>
+      <div className="grid h-full auto-rows-[190px] grid-cols-[repeat(auto-fill,minmax(200px,1fr))] content-start gap-3 overflow-y-auto px-2 pb-1">
         {items.map((i) => (
           <Link
             key={i.id}
             href={itemHref(i)}
-            className="group/fav flex flex-col overflow-hidden rounded-2xl border bg-card transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_30px_-20px_rgba(31,138,58,0.45)]"
+            className="flex flex-col overflow-hidden rounded-2xl border bg-card transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_30px_-20px_rgba(31,138,58,0.45)]"
           >
             <div className="min-h-0 flex-1">{i.kind === 'dashboard' || i.kind === 'folder' ? <DashboardThumb /> : <FavoriteChart id={i.id} />}</div>
             <div className="border-t px-3.5 py-2.5">
@@ -230,7 +114,7 @@ export function FavoritesWidget({ home, editing, onRemove, delay }: { home: Home
         ))}
         <button
           type="button"
-          onClick={() => setPalette(true)}
+          onClick={() => setPicking(true)}
           className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           <span className="inline-flex size-8 items-center justify-center rounded-full border text-primary">
@@ -239,7 +123,45 @@ export function FavoritesWidget({ home, editing, onRemove, delay }: { home: Home
           {$t('Ajouter un favori')}
         </button>
       </div>
-    </Block>
+      {picking ? <FavoritePicker starred={items} onClose={() => setPicking(false)} /> : null}
+    </>
+  )
+}
+
+/** A dashboard or a question to star, found by its name. */
+function FavoritePicker({ starred, onClose }: { starred: readonly ItemSummary[]; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [q, setQ] = useState('')
+  const { data } = useQuery({ queryKey: ['search', q, 'favorite'], queryFn: () => api.get<{ items: ItemSummary[] }>(`/v1/search?q=${encodeURIComponent(q)}`) })
+  const on = new Set(starred.map((i) => i.id))
+  const toggle = async (i: ItemSummary) => {
+    await api.post('/v1/bookmarks', { kind: i.kind, id: i.id, on: !on.has(i.id) })
+    await qc.invalidateQueries({ queryKey: ['home'] })
+  }
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{$t('Ajouter un favori')}</DialogTitle>
+        </DialogHeader>
+        <div className="relative">
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={$t('Rechercher un tableau de bord, une question…')} className="pl-9" />
+        </div>
+        <div className="max-h-[380px] space-y-0.5 overflow-y-auto">
+          {(data?.items ?? []).map((i) => (
+            <button key={i.id} type="button" onClick={() => void toggle(i)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-accent">
+              <ItemTile kind={i.kind} className="size-8" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{i.name}</span>
+                <span className="block truncate text-xs text-muted-foreground">{$t(KIND_LABELS[i.kind])}</span>
+              </span>
+              <FavoriteIcon active={on.has(i.id)} className="size-4 shrink-0" />
+            </button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -247,37 +169,16 @@ export function FavoritesWidget({ home, editing, onRemove, delay }: { home: Home
 
 const pct = (r: number) => new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 1, signDisplay: 'always' }).format(r)
 
-/** The key figures the API found by itself, under the reader's identity. */
-const useInsights = () =>
-  useQuery({
-    queryKey: ['home-insights'],
-    queryFn: () => api.get<HomeInsight[]>('/v1/home/insights'),
-    staleTime: 300_000,
-  })
-
-export function AlertsWidget({ editing, onRemove, delay }: { editing: boolean; onRemove: () => void; delay: number }) {
+function Watch() {
   const { data: alerts = [] } = useQuery({ queryKey: ['alerts', 'mine'], queryFn: () => api.get<Alert[]>('/v1/alerts'), staleTime: 60_000 })
-  const { data: insights = [] } = useInsights()
+  const { data: insights = [] } = useQuery({ queryKey: ['home-insights'], queryFn: () => api.get<HomeInsight[]>('/v1/home/insights'), staleTime: 300_000 })
   // First what rang, then the figures falling the most, then the alerts that watch quietly.
   const rang = alerts.filter((a) => a.enabled && a.triggered)
   const quiet = alerts.filter((a) => a.enabled && !a.triggered)
   const falling = insights.filter((i) => i.delta !== null && i.delta < -0.005).sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0))
-  const count = rang.length + falling.length
   return (
-    <Block
-      title={$t('À surveiller')}
-      icon={BellRing}
-      badge={count ? <span className="rounded-full bg-red-500 px-1.5 text-[11px] leading-[18px] font-semibold text-white tabular-nums">{count}</span> : null}
-      editing={editing}
-      onRemove={onRemove}
-      delay={delay}
-      action={
-        <Link href="/deliveries" className="text-[13px] font-medium text-primary hover:underline">
-          {$t('Gérer')}
-        </Link>
-      }
-    >
-      <div className="flex h-full flex-col gap-2 overflow-y-auto px-4 pb-4">
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
         {rang.map((a) => (
           <Link key={a.id} href={`/question/${a.question}`} className="flex items-center gap-3 rounded-xl bg-red-500/[0.07] px-3 py-2.5 ring-1 ring-red-500/15 transition-colors hover:bg-red-500/10">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-red-600">
@@ -321,7 +222,10 @@ export function AlertsWidget({ editing, onRemove, delay }: { editing: boolean; o
         ))}
         {rang.length + falling.length + quiet.length === 0 ? <Empty>{$t('Rien à signaler : aucune alerte déclenchée, aucun chiffre en baisse.')}</Empty> : null}
       </div>
-    </Block>
+      <div className="px-1">
+        <More href="/deliveries">{$t('Gérer les alertes')}</More>
+      </div>
+    </div>
   )
 }
 
@@ -330,9 +234,9 @@ export function AlertsWidget({ editing, onRemove, delay }: { editing: boolean; o
 function ItemList({ items, when }: { items: readonly ItemSummary[]; when?: boolean }) {
   if (!items.length) return <Empty>{$t('Rien pour l’instant.')}</Empty>
   return (
-    <div className="grid h-full content-start gap-0.5 overflow-y-auto px-2 pb-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
+    <div className="grid h-full content-start gap-0.5 overflow-y-auto [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
       {items.map((i) => (
-        <Link key={i.id} href={itemHref(i)} className="flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-muted/60">
+        <Link key={i.id} href={itemHref(i)} className="flex items-center gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-muted/60">
           <ItemTile kind={i.kind} className="size-8.5 rounded-[10px]" />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[14px] font-medium">{i.name}</span>
@@ -347,106 +251,67 @@ function ItemList({ items, when }: { items: readonly ItemSummary[]; when?: boole
   )
 }
 
-export function RecentWidget({ home, editing, onRemove, delay }: { home: HomeData | undefined; editing: boolean; onRemove: () => void; delay: number }) {
-  return (
-    <Block title={$t('Consultés récemment')} icon={Clock3} editing={editing} onRemove={onRemove} delay={delay}>
-      <ItemList items={home?.recent ?? []} />
-    </Block>
-  )
-}
-
-export function LatestWidget({ home, editing, onRemove, delay }: { home: HomeData | undefined; editing: boolean; onRemove: () => void; delay: number }) {
-  return (
-    <Block title={$t('Nouveautés')} icon={Sparkles} editing={editing} onRemove={onRemove} delay={delay}>
-      <ItemList items={home?.latest ?? []} when />
-    </Block>
-  )
-}
-
 /** The three ways in, each drawn as what it opens. */
-export function ShortcutsWidget({ sql, table, editing, onRemove, delay }: { sql: boolean; table: string | null; editing: boolean; onRemove: () => void; delay: number }) {
+function Shortcuts({ sql, table }: { sql: boolean; table: string | null }) {
   const tiles = [
     { href: '/question/new', title: $t('Nouvelle question'), text: $t('Explorer une table sans écrire de SQL'), art: <QuestionArt /> },
     ...(sql ? [{ href: '/sql', title: $t('Requête SQL'), text: $t('Trino SQL sur toutes vos sources'), art: <SqlArt table={table} /> }] : []),
     { href: '/browse', title: $t('Tableaux de bord'), text: $t('Parcourir les dossiers partagés'), art: <DashboardArt /> },
   ]
   return (
-    <Block title={$t('Raccourcis')} icon={Plus} editing={editing} onRemove={onRemove} delay={delay}>
-      <div className="grid h-full gap-3 px-5 pb-5" style={{ gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))` }}>
-        {tiles.map((t) => (
-          <Link key={t.href} href={t.href} className="group/s flex min-h-0 flex-col overflow-hidden rounded-2xl border transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_30px_-20px_rgba(31,138,58,0.45)]">
-            <div className="min-h-0 flex-1 border-b">{t.art}</div>
-            <div className="flex items-center gap-2 px-4 py-2.5">
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14px] font-semibold">{t.title}</span>
-                <span className="block truncate text-xs text-muted-foreground">{t.text}</span>
-              </span>
-              <ArrowRight className="size-4 shrink-0 text-primary transition-transform group-hover/s:translate-x-0.5" />
-            </div>
-          </Link>
-        ))}
-      </div>
-    </Block>
-  )
-}
-
-export function TablesWidget({ tables, editing, onRemove, delay }: { tables: readonly TableMeta[]; editing: boolean; onRemove: () => void; delay: number }) {
-  const max = Math.max(...tables.map((t) => t.row_count ?? 0), 1)
-  return (
-    <Block
-      title={$t('Tables')}
-      icon={Table2}
-      editing={editing}
-      onRemove={onRemove}
-      delay={delay}
-      action={
-        <Link href="/data" className="text-[13px] font-medium text-primary hover:underline">
-          {$t('Toutes')}
+    <div className="grid h-full gap-3 px-1 pb-1" style={{ gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))` }}>
+      {tiles.map((t) => (
+        <Link key={t.href} href={t.href} className="group/s flex min-h-0 flex-col overflow-hidden rounded-2xl border transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_30px_-20px_rgba(31,138,58,0.45)]">
+          <div className="min-h-0 flex-1 border-b">{t.art}</div>
+          <div className="flex items-center gap-2 px-4 py-2.5">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-semibold">{t.title}</span>
+              <span className="block truncate text-xs text-muted-foreground">{t.text}</span>
+            </span>
+            <ArrowRight className="size-4 shrink-0 text-primary transition-transform group-hover/s:translate-x-0.5" />
+          </div>
         </Link>
-      }
-    >
-      {tables.length === 0 ? (
-        <Empty>{$t('Aucune table accessible pour l’instant.')}</Empty>
-      ) : (
-        <div className="flex h-full flex-col gap-0.5 overflow-y-auto px-2 pb-3">
-          {tables.map((t) => (
-            <Link key={t.id} href={`/question/new?table=${t.id}`} className="flex flex-col gap-1.5 rounded-xl px-3 py-2 transition-colors hover:bg-muted/60">
-              <span className="flex items-baseline gap-3">
-                <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{t.label}</span>
-                {t.row_count !== null ? <span className="font-mono text-[12.5px] text-muted-foreground tabular-nums">{formatCount(t.row_count)}</span> : null}
-              </span>
-              <span className="h-[3px] overflow-hidden rounded-full bg-muted">
-                <span className="viz-grow-x block h-full rounded-full bg-gradient-to-r from-emerald-400 to-violet-400" style={{ width: `${Math.round(((t.row_count ?? 0) / max) * 100)}%` }} />
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
-    </Block>
+      ))}
+    </div>
   )
 }
 
-export function SourcesWidget({ sources, editing, onRemove, delay }: { sources: readonly Datasource[]; editing: boolean; onRemove: () => void; delay: number }) {
+function Tables({ tables }: { tables: readonly TableMeta[] }) {
+  const max = Math.max(...tables.map((t) => t.row_count ?? 0), 1)
+  if (tables.length === 0) return <Empty>{$t('Aucune table accessible pour l’instant.')}</Empty>
   return (
-    <Block title={$t('Sources')} icon={Database} editing={editing} onRemove={onRemove} delay={delay}>
-      {sources.length === 0 ? (
-        <Empty>{$t('Aucune source connectée.')}</Empty>
-      ) : (
-        <div className="grid h-full content-start gap-2 overflow-y-auto px-4 pb-4 [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))]">
-          {sources.map((s) => {
-            const status = s.sync.status === 'ok' ? 'ok' : s.sync.status === 'failed' ? 'failed' : 'pending'
-            return (
-              <Link key={s.id} href={`/data/${s.id}`} className="flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors hover:border-primary/30">
-                <span className={cn('size-2 shrink-0 rounded-full', status === 'ok' ? 'bg-green-500' : status === 'failed' ? 'bg-red-500' : 'bg-amber-400')} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-semibold">{s.name}</span>
-                  <span className="block text-xs text-muted-foreground">{status === 'ok' ? $t('Connectée') : status === 'failed' ? $t('En erreur') : $t('Synchronisation…')}</span>
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-      )}
-    </Block>
+    <div className="flex h-full flex-col gap-0.5 overflow-y-auto">
+      {tables.map((t) => (
+        <Link key={t.id} href={`/question/new?table=${t.id}`} className="flex flex-col gap-1.5 rounded-xl px-2.5 py-2 transition-colors hover:bg-muted/60">
+          <span className="flex items-baseline gap-3">
+            <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{t.label}</span>
+            {t.row_count !== null ? <span className="font-mono text-[12.5px] text-muted-foreground tabular-nums">{formatCount(t.row_count)}</span> : null}
+          </span>
+          <span className="h-[3px] overflow-hidden rounded-full bg-muted">
+            <span className="viz-grow-x block h-full rounded-full bg-gradient-to-r from-emerald-400 to-violet-400" style={{ width: `${Math.round(((t.row_count ?? 0) / max) * 100)}%` }} />
+          </span>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+function Sources({ sources }: { sources: readonly Datasource[] }) {
+  if (sources.length === 0) return <Empty>{$t('Aucune source connectée.')}</Empty>
+  return (
+    <div className="grid h-full content-start gap-2 overflow-y-auto [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))]">
+      {sources.map((s) => {
+        const status = s.sync.status === 'ok' ? 'ok' : s.sync.status === 'failed' ? 'failed' : 'pending'
+        return (
+          <Link key={s.id} href={`/data/${s.id}`} className="flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors hover:border-primary/30">
+            <span className={cn('size-2 shrink-0 rounded-full', status === 'ok' ? 'bg-green-500' : status === 'failed' ? 'bg-red-500' : 'bg-amber-400')} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13.5px] font-semibold">{s.name}</span>
+              <span className="block text-xs text-muted-foreground">{status === 'ok' ? $t('Connectée') : status === 'failed' ? $t('En erreur') : $t('Synchronisation…')}</span>
+            </span>
+          </Link>
+        )
+      })}
+    </div>
   )
 }

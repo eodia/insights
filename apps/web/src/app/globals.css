@@ -629,3 +629,48 @@
     animation: none;
   }
 }
+
+/* The home page's lights: green on the left, violet on the right, drifting slowly. */
+.home-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+}
+.home-aurora-green {
+  top: -18%;
+  left: -8%;
+  width: 42%;
+  height: 46%;
+  background: color-mix(in oklch, var(--primary) 11%, transparent);
+  animation: home-drift-a 26s ease-in-out infinite alternate;
+}
+.home-aurora-violet {
+  top: -22%;
+  right: -10%;
+  width: 44%;
+  height: 50%;
+  background: rgba(124, 58, 237, 0.09);
+  animation: home-drift-b 32s ease-in-out infinite alternate;
+}
+.dark .home-aurora-green {
+  background: color-mix(in oklch, var(--primary) 22%, transparent);
+}
+.dark .home-aurora-violet {
+  background: rgba(124, 58, 237, 0.2);
+}
+@keyframes home-drift-a {
+  to {
+    transform: translate(12%, 8%) scale(1.08);
+  }
+}
+@keyframes home-drift-b {
+  to {
+    transform: translate(-10%, 10%) scale(1.1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-aurora {
+    animation: none;
+  }
+}

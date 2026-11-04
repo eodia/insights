@@ -2946,5 +2946,9 @@
   "Une question et son graphique": "Una pregunta y su gráfico",
   "Vérifiée {when}": "Comprobada {when}",
   "Vos alertes, et les chiffres qui baissent": "Sus alertas y las cifras que bajan",
-  "Votre accueil est vide.": "Su inicio está vacío."
+  "Votre accueil est vide.": "Su inicio está vacío.",
+  "Blocs": "Bloques",
+  "Déjà sur la page": "Ya en la página",
+  "Gérer les alertes": "Gestionar las alertas",
+  "Rechercher un tableau de bord, une question…": "Buscar un panel, una pregunta…"
 }

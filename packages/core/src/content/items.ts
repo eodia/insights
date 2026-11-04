@@ -369,7 +369,7 @@ export async function getDashboard(core: Core, actor: Actor, id: string): Promis
   }
 }
 
-function checkCards(input: Partial<DashboardInput>): void {
+export function checkCards(input: Pick<Partial<DashboardInput>, 'cards'>): void {
   for (const card of (input.cards ?? []) as unknown as DashboardCard[]) {
     if (typeof card.id !== 'string' || typeof card.kind !== 'string') throw invalid('Carte invalide.')
     if ((card.text ?? '').length > DASHBOARD_LIMITS.html) throw invalid('Texte de carte trop long.')

@@ -15,7 +15,7 @@ import { $t, $tp } from '@/lib/i18n'
 import { keys } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQueries } from '@tanstack/react-query'
-import { BarChart3, Copy, Eye, type LucideIcon, Heading, ImageIcon, Link2, ListFilter, Minus, MousePointerClick, Smile, SlidersHorizontal, Sparkles, Trash2, Type } from 'lucide-react'
+import { BarChart3, Copy, Eye, type LucideIcon, Heading, ImageIcon, Link2, ListFilter, Minus, MousePointerClick, Smile, SlidersHorizontal, Sparkles, Trash2, Type, LayoutGrid } from 'lucide-react'
 import { domToJpeg } from 'modern-screenshot'
 import { useState, useSyncExternalStore } from 'react'
 
@@ -104,6 +104,7 @@ const KIND_ICONS: Record<DashboardCard['kind'], LucideIcon> = {
   image: ImageIcon,
   separator: Minus,
   summary: Sparkles,
+  block: LayoutGrid,
 }
 
 /**

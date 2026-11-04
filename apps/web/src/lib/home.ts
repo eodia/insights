@@ -1,66 +1,99 @@
-import type { HomeLayout, HomeWidget, HomeWidgetKind } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, type Dashboard, type DashboardCard, type HomeBlockKind, type HomeLayout, type VisualizationType, cardSize } from '@eodia/contracts'
+import { BellRing, Clock3, Database, type LucideIcon, Plus, Sparkles, Star, Table2 } from 'lucide-react'
 import { api } from './api'
+import { $t, msg } from './i18n'
 
-/** The home page's grid: twelve columns, rows a little taller than a line of text. */
-export const HOME_COLUMNS = 12
-export const HOME_ROW_HEIGHT = 30
+/** The home page, drawn as a dashboard of the person's own: its identifier among them. */
+export const HOME_DASHBOARD = 'home'
 
-/** Each block's size when it is added: a figure is small, a list wider and taller. */
-export const WIDGET_SIZE: Record<HomeWidgetKind, { w: number; h: number }> = {
-  kpi: { w: 3, h: 4 },
-  question: { w: 6, h: 10 },
-  favorites: { w: 8, h: 10 },
-  alerts: { w: 4, h: 10 },
-  recent: { w: 6, h: 9 },
-  latest: { w: 6, h: 9 },
-  shortcuts: { w: 12, h: 7 },
-  tables: { w: 6, h: 10 },
-  sources: { w: 6, h: 6 },
+/** The home page's own blocks: how each is named, drawn and described in the editor's toolbar. */
+export const HOME_BLOCK_META: Record<HomeBlockKind, { label: string; icon: LucideIcon; hint: string }> = {
+  favorites: { label: msg('Mes favoris'), icon: Star, hint: msg('Les tableaux de bord et questions étoilés') },
+  alerts: { label: msg('À surveiller'), icon: BellRing, hint: msg('Vos alertes, et les chiffres qui baissent') },
+  recent: { label: msg('Consultés récemment'), icon: Clock3, hint: msg('Ce que vous avez ouvert en dernier') },
+  latest: { label: msg('Nouveautés'), icon: Sparkles, hint: msg('Ce qui a changé ces deux derniers mois') },
+  shortcuts: { label: msg('Raccourcis'), icon: Plus, hint: msg('Créer une question, une requête SQL, un tableau de bord') },
+  tables: { label: msg('Tables'), icon: Table2, hint: msg('Les plus grandes tables, à explorer') },
+  sources: { label: msg('Sources'), icon: Database, hint: msg('Les sources connectées et leur état') },
 }
 
-/** The blocks shown once at most: the page's own lists. */
-export const SINGLE_WIDGETS: readonly HomeWidgetKind[] = ['favorites', 'alerts', 'recent', 'latest', 'shortcuts', 'tables', 'sources']
+const blockLabel = (kind: HomeBlockKind) => $t(HOME_BLOCK_META[kind].label)
 
-const newId = () => Math.random().toString(36).slice(2, 10)
+const newId = () => `c${Math.random().toString(36).slice(2, 10)}`
+
+const block = (kind: HomeBlockKind, x: number, y: number, w: number, h: number): DashboardCard => ({
+  id: `home-${kind}`,
+  kind: 'block',
+  block: kind,
+  title: blockLabel(kind),
+  tab: null,
+  x,
+  y,
+  w,
+  h,
+})
 
 /** The page as it comes, before one arranges it: favourites and alerts, then what one saw last. */
-export function defaultWidgets(): HomeWidget[] {
+export function defaultCards(): DashboardCard[] {
   return [
-    { id: 'favorites', kind: 'favorites', x: 0, y: 0, w: 8, h: 10 },
-    { id: 'alerts', kind: 'alerts', x: 8, y: 0, w: 4, h: 10 },
-    { id: 'recent', kind: 'recent', x: 0, y: 10, w: 6, h: 9 },
-    { id: 'latest', kind: 'latest', x: 6, y: 10, w: 6, h: 9 },
-    { id: 'shortcuts', kind: 'shortcuts', x: 0, y: 19, w: 12, h: 7 },
+    block('favorites', 0, 0, 16, 7),
+    block('alerts', 16, 0, 8, 7),
+    block('recent', 0, 7, 12, 6),
+    block('latest', 12, 7, 12, 6),
+    block('shortcuts', 0, 13, 24, 5),
   ]
 }
 
-/**
- * A block added to the page. A figure joins the others along the top, or opens a new row there,
- * pushing the rest down; anything else goes at the bottom.
- */
-export function placeWidget(widgets: readonly HomeWidget[], kind: HomeWidgetKind, question?: string): HomeWidget[] {
-  const size = WIDGET_SIZE[kind]
-  const widget = (x: number, y: number): HomeWidget => ({ id: newId(), kind, ...(question ? { question } : {}), x, y, ...size })
-  if (kind === 'kpi') {
-    const top = widgets.filter((w) => w.kind === 'kpi' && w.y === 0)
-    const end = top.reduce((m, w) => Math.max(m, w.x + w.w), 0)
-    if (top.length && end + size.w <= HOME_COLUMNS) return [...widgets, widget(end, 0)]
-    return [widget(0, 0), ...widgets.map((w) => ({ ...w, y: w.y + size.h }))]
+/** The person's home page as a dashboard: theirs to arrange, with nothing of a shared one's. */
+export function homeDashboard(name: string, layout: HomeLayout): Dashboard {
+  const now = new Date().toISOString()
+  return {
+    id: HOME_DASHBOARD,
+    name,
+    description: null,
+    folder: null,
+    tabs: layout.tabs ?? [],
+    cards: layout.cards,
+    parameters: layout.parameters ?? [],
+    auto_refresh: null,
+    cache_ttl: null,
+    preload: false,
+    created_by: null,
+    created_at: now,
+    updated_at: now,
+    access: 'edit',
+    archived: false,
+    theme: null,
+    resolved_theme: null,
+    width: 'full',
   }
-  const bottom = widgets.reduce((m, w) => Math.max(m, w.y + w.h), 0)
-  return [...widgets, widget(0, bottom)]
 }
 
 export const homeLayoutKey = ['home-layout'] as const
 
 export const fetchHomeLayout = () => api.get<{ layout: HomeLayout | null }>('/v1/home/layout')
 
-export const saveHomeLayout = (widgets: readonly HomeWidget[] | null) =>
-  api.put<{ layout: HomeLayout | null }>('/v1/home/layout', { layout: widgets ? { widgets } : null })
+export const saveHomeLayout = (layout: HomeLayout | null) => api.put<{ layout: HomeLayout | null }>('/v1/home/layout', { layout })
 
-/** A question pinned to one's home page, from wherever it is shown: as a figure, or as its chart. */
-export async function pinToHome(question: string, kind: 'kpi' | 'question'): Promise<void> {
+/**
+ * A question pinned to one's home page, from wherever it is shown. A figure joins the others along
+ * the top, or opens a row there and pushes the rest down; a chart goes at the bottom.
+ */
+export async function pinToHome(question: string, viz: VisualizationType): Promise<void> {
   const { layout } = await fetchHomeLayout()
-  const widgets = layout?.widgets ?? defaultWidgets()
-  await saveHomeLayout(placeWidget(widgets, kind, question))
+  const cards = layout?.cards ?? defaultCards()
+  const size = cardSize('question', viz)
+  const figure = ['scalar', 'trend', 'progress'].includes(viz)
+  const card = (x: number, y: number, w: number, h: number): DashboardCard => ({ id: newId(), kind: 'question', question, tab: null, x, y, w, h })
+  let next: DashboardCard[]
+  if (figure) {
+    const w = 6
+    const top = cards.filter((c) => c.kind === 'question' && c.y === 0 && c.h === size.h)
+    const end = top.reduce((m, c) => Math.max(m, c.x + c.w), 0)
+    next = top.length && end + w <= DASHBOARD_COLUMNS ? [...cards, card(end, 0, w, size.h)] : [card(0, 0, w, size.h), ...cards.map((c) => ({ ...c, y: c.y + size.h }))]
+  } else {
+    const bottom = cards.reduce((m, c) => Math.max(m, c.y + c.h), 0)
+    next = [...cards, card(0, bottom, size.w, size.h)]
+  }
+  await saveHomeLayout({ ...(layout ?? {}), cards: next })
 }

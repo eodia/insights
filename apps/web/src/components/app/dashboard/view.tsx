@@ -17,6 +17,7 @@ import type {
   ResultColumn,
   VisualizationType,
   Visualization as Viz,
+  HomeBlockKind,
 } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, applyConstraints, cardConstraints, cardSize, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
 import { EmptyScene } from '@/components/app/empty-scene'
@@ -102,6 +103,7 @@ import {
   Type,
   X,
   Pin,
+  LayoutGrid,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
@@ -110,7 +112,7 @@ import { useRouter } from 'next/navigation'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
-import { pinToHome } from '@/lib/home'
+import { HOME_DASHBOARD, pinToHome } from '@/lib/home'
 import { FILTER_ICONS, FILTER_TYPES, ParameterBar, ParameterEditor, type Values, filterName, filterType } from './parameters'
 import { ValueList } from './value-list'
 import { RefreshTimer } from './refresh-timer'
@@ -195,6 +197,8 @@ export function substitute(text: string, parameters: readonly DashboardParameter
 
 interface CardProps {
   card: DashboardCard
+  /** Draws a `block` card: the page's own (the home page's lists). */
+  renderBlock?: ((card: DashboardCard) => React.ReactNode) | undefined
   dashboardId: string
   parameters: readonly DashboardParameter[]
   values: Values
@@ -593,11 +597,11 @@ function CardFrame(props: CardProps) {
                     <ImageDown /> {$t('Copier en image')}
                   </DropdownMenuItem>
                 ) : null}
-                {isQuestion && card.question && !publicMode ? (
+                {isQuestion && card.question && !publicMode && props.dashboardId !== HOME_DASHBOARD ? (
                   <DropdownMenuItem
                     onSelect={() => {
                       const figure = ['scalar', 'trend', 'progress'].includes(viz.type)
-                      void pinToHome(card.question as string, figure ? 'kpi' : 'question')
+                      void pinToHome(card.question as string, viz.type)
                         .then(() => toast.success(figure ? $t('Indicateur épinglé à l’accueil.') : $t('Question ajoutée à l’accueil.')))
                         .catch((err: unknown) => toast.error(err instanceof Error ? err.message : String(err)))
                     }}
@@ -741,8 +745,10 @@ function CardFrame(props: CardProps) {
           ) : null}
         </div>
       ) : null}
-      <div className={cn('card-still relative min-h-0 flex-1', isQuestion ? 'px-3 pb-3' : card.kind === 'filter' || card.kind === 'summary' ? 'flex flex-col gap-2 px-3 pb-3' : ['buttons', 'link', 'variable'].includes(card.kind) ? 'flex flex-col px-3 py-2' : card.kind === 'image' ? 'p-2' : 'p-4')}>
-        {card.kind === 'buttons' ? (
+      <div className={cn('card-still relative min-h-0 flex-1', isQuestion || card.kind === 'block' ? 'px-3 pb-3' : card.kind === 'filter' || card.kind === 'summary' ? 'flex flex-col gap-2 px-3 pb-3' : ['buttons', 'link', 'variable'].includes(card.kind) ? 'flex flex-col px-3 py-2' : card.kind === 'image' ? 'p-2' : 'p-4')}>
+        {card.kind === 'block' ? (
+          props.renderBlock?.(card) ?? null
+        ) : card.kind === 'buttons' ? (
           <ButtonsView card={card} parameter={pane?.parameter} value={pane?.value} columnId={pane?.columnId} linked={pane?.linked ?? []} onChange={(v) => pane?.onChange(v)} />
         ) : card.kind === 'variable' ? (
           <VariableView card={card} parameter={pane?.parameter} value={pane?.value} onChange={(v) => pane?.onChange(v)} />
@@ -1094,9 +1100,23 @@ export interface DashboardViewProps {
   onValuesChange?: (values: Readonly<Record<string, ParameterValue | null>>) => void
   /** A point's rows open as a new question: for whoever is signed in, not on a shared page. */
   records?: boolean
+  /** The page's own blocks (the home page's lists): how each is drawn, and those one may add. */
+  blocks?: DashboardBlocks
+  /** The edit button's word — « Personnaliser » on the home page. */
+  editLabel?: string
+  /** False: the grid lets the page's own background show through. */
+  surface?: boolean
+  /** The widest the grid goes, centred (px) — unless the dashboard is an A4 page. */
+  maxWidth?: number
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, more, actionsSlot, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, onEditingChange, summarizer, initialFilters, restoring = false, startValues, onScrolled, savedViews = false, collaborative = false, records: readsRecords = false }: DashboardViewProps) {
+/** Blocks a page draws itself among the cards, offered in the editor's toolbar. */
+export interface DashboardBlocks {
+  readonly render: (card: DashboardCard) => React.ReactNode
+  readonly menu: ReadonlyArray<{ readonly kind: HomeBlockKind; readonly label: string; readonly hint: string; readonly icon: React.ComponentType<{ className?: string }> }>
+}
+
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, more, actionsSlot, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, onEditingChange, summarizer, initialFilters, restoring = false, startValues, onScrolled, savedViews = false, collaborative = false, records: readsRecords = false, blocks, editLabel, surface = true, maxWidth }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   useEffect(() => onEditingChange?.(editing), [editing, onEditingChange])
   const [draft, setDraftRaw] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
@@ -1304,7 +1324,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const [, force] = useState(0)
   const { width, containerRef, mounted } = useContainerWidth()
   // An A4 page (landscape), centred: the grid, its filters and its tabs at its width.
-  const page = dashboard.width === 'a4' ? A4_WIDTH : null
+  const page = dashboard.width === 'a4' ? A4_WIDTH : (maxWidth ?? null)
   const gridWidth = page ? Math.min(width - 48, page) : width - 48
   // Cards reached on screen, in waves: each wave rises left to right, a few dozen ms apart.
   // In edit mode, asked for less motion, or once seen, a card simply is there.
@@ -1770,7 +1790,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           {toolbar}
           {editable ? (
             <Button size="sm" onClick={() => setEditing(true)}>
-              <Pencil /> {$t('Modifier')}
+              <Pencil /> {editLabel ?? $t('Modifier')}
             </Button>
           ) : null}
           {more}
@@ -2072,7 +2092,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       ) : null}
 
       {/* Grid */}
-      <div ref={containerRef} className={cn('theme-surface min-h-0 flex-1 overflow-y-auto bg-surface px-6 py-5', editing && 'pb-24')}>
+      <div ref={containerRef} className={cn('min-h-0 flex-1 overflow-y-auto px-6 py-5', surface && 'theme-surface bg-surface', editing && 'pb-24')}>
         <div className="dash-page">
         {cards.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-8 text-center text-sm text-muted-foreground">
@@ -2113,6 +2133,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               <div key={card.id} data-card-id={card.id} className={cn('rounded-xl', landing === card.id && 'card-landed')}>
                 <CardFrame
                   card={card}
+                  renderBlock={blocks?.render}
                   dashboardId={dashboard.id}
                   parameters={draft.parameters}
                   values={values}
@@ -2253,6 +2274,35 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {blocks ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button type="button" className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-sm font-medium hover:bg-primary-foreground/15 data-[state=open]:bg-primary-foreground/15">
+                    <LayoutGrid className="size-4" /> {$t('Blocs')}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top" align="end" className="w-80">
+                  {blocks.menu.map((b) => {
+                    const here = draft.cards.some((c) => c.kind === 'block' && c.block === b.kind)
+                    const Icon = b.icon
+                    return (
+                      <DropdownMenuItem
+                        key={b.kind}
+                        disabled={here}
+                        className="items-start"
+                        onSelect={() => addCards([{ id: newId('c'), kind: 'block', block: b.kind, title: b.label, ...cardSize('block') }])}
+                      >
+                        <Icon className="mt-0.5 text-primary" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-medium">{b.label}</span>
+                          <span className="block text-xs text-muted-foreground">{here ? $t('Déjà sur la page') : b.hint}</span>
+                        </span>
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
             <span className="mx-1 h-5 w-px bg-primary-foreground/25" />
             <Hint label={`${$t('Annuler')} (Ctrl+Z)`}>
               <button type="button" onClick={undo} disabled={!past.current.length} className="inline-flex size-8 items-center justify-center rounded-full hover:bg-primary-foreground/15 disabled:pointer-events-none disabled:opacity-40" aria-label={$t('Annuler la dernière modification')}>
