@@ -2817,5 +2817,9 @@
   "Un style prêt à l’emploi, ou une couleur de votre choix.": "A ready-made style, or a colour of your choice.",
   "Une carte blanche, sobre": "A plain white card",
   "Une carte noire, pour un chiffre clé": "A black card, for a key figure",
-  "{share} des lignes": "{share} of rows"
+  "{share} des lignes": "{share} of rows",
+  "Centré, à la largeur d’une page à l’italienne : il se lit comme il s’imprime": "Centred, the width of a landscape page: it reads as it prints",
+  "Page A4": "A4 page",
+  "Pleine largeur": "Full width",
+  "Toute la largeur de l’écran": "The whole width of the screen"
 }

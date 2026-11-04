@@ -1,5 +1,6 @@
 'use client'
 
+import { ThemeScope } from '@/lib/theme'
 import type { Folder, ItemKind, ItemSummary, LookColor } from '@eodia/contracts'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { FolderMenu } from '@/components/app/folder-menu'
@@ -419,11 +420,12 @@ function DashboardPreview({ id }: { id: string }) {
   if (!d) return <Loader2 className="m-auto size-5 animate-spin text-muted-foreground" />
   const runner: Runner = (card, values, { fresh }) =>
     api.post<RunResult>(`/v1/dashboards/${d.id}/cards/${card.id}/run`, { values, fresh })
+  // Dressed in its theme, as on its own page: its colours, fonts and cards.
   return (
-    <div className="flex h-full flex-col">
+    <ThemeScope theme={d.resolved_theme} className="theme-surface flex h-full flex-col bg-surface">
       <div className="flex items-start gap-3 px-6 pt-4 pb-1">
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-lg font-semibold">{d.name}</h2>
+          <h2 className="theme-title truncate text-lg font-semibold">{d.name}</h2>
           {d.description ? <p className="text-sm text-muted-foreground">{d.description}</p> : null}
         </div>
         <Button asChild size="sm">
@@ -441,7 +443,7 @@ function DashboardPreview({ id }: { id: string }) {
           autoRefresh={d.auto_refresh}
         />
       </div>
-    </div>
+    </ThemeScope>
   )
 }
 

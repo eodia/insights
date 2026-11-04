@@ -746,7 +746,12 @@ export interface Dashboard {
   readonly theme: string | null
   /** The theme it wears: its own, or its folder's (or a parent's). */
   readonly resolved_theme: ResolvedTheme | null
+  /** All the screen's width (`full`), or an A4 page in landscape, centred (`a4`). */
+  readonly width: DashboardWidth
 }
+
+/** How wide a dashboard is drawn. */
+export type DashboardWidth = 'full' | 'a4'
 
 export interface ItemSummary {
   readonly kind: ItemKind

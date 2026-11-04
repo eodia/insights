@@ -601,3 +601,15 @@
     animation: none;
   }
 }
+
+/* A dashboard on an A4 page: its rows centred at the page's width (set on the dashboard). */
+.dash-page {
+  width: 100%;
+  max-width: var(--dash-page, none);
+  margin-inline: auto;
+}
+.dash-page-padded {
+  width: 100%;
+  max-width: var(--dash-page-padded, none);
+  margin-inline: auto;
+}

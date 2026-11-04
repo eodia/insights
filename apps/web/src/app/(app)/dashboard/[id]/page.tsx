@@ -77,6 +77,7 @@ function SettingsDialog({
     cache_ttl: dashboard.cache_ttl,
     preload: dashboard.preload,
     theme: dashboard.theme,
+    width: dashboard.width,
   })
   useEffect(() => {
     if (open)
@@ -87,6 +88,7 @@ function SettingsDialog({
         cache_ttl: dashboard.cache_ttl,
         preload: dashboard.preload,
         theme: dashboard.theme,
+        width: dashboard.width,
       })
   }, [open, dashboard])
   return (
@@ -111,6 +113,32 @@ function SettingsDialog({
           <div className="space-y-1.5">
             <Label>{$t('Dossier')}</Label>
             <FolderPicker value={form.folder} onChange={(folder) => setForm({ ...form, folder })} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{$t('Largeur')}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  ['full', $t('Pleine largeur'), $t('Toute la largeur de l’écran')],
+                  ['a4', $t('Page A4'), $t('Centré, à la largeur d’une page à l’italienne : il se lit comme il s’imprime')],
+                ] as const
+              ).map(([w, label, hint]) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => setForm({ ...form, width: w })}
+                  className={cn('flex gap-3 rounded-xl p-2.5 text-left ring-1 transition-colors', form.width === w ? 'bg-primary/8 ring-2 ring-primary' : 'ring-border hover:bg-muted/60')}
+                >
+                  <span className="flex h-10 w-14 shrink-0 items-stretch justify-center rounded-md bg-muted p-1">
+                    <span className={cn('rounded-[3px] bg-background shadow-xs', w === 'full' ? 'w-full' : 'w-7')} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-medium">{label}</span>
+                    <span className="block text-[11.5px] leading-snug text-muted-foreground">{hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label>{$t('Thème')}</Label>
@@ -294,7 +322,7 @@ function DashboardScreen({ id }: { id: string }) {
   return (
     <div ref={root} className="h-full">
       <ThemeScope theme={dashboard.resolved_theme} className="theme-surface flex h-full flex-col bg-surface">
-        <div className={cn('flex gap-3 px-6 transition-all duration-200', folded ? 'items-center pt-2.5 pb-0.5' : 'items-start pt-5 pb-1', editingNow && 'bg-primary/[0.06]')}>
+        <div className={cn('flex w-full gap-3 px-6 transition-all duration-200', dashboard.width === 'a4' && 'mx-auto max-w-[1171px]', folded ? 'items-center pt-2.5 pb-0.5' : 'items-start pt-5 pb-1', editingNow && 'bg-primary/[0.06]')}>
           {dashboard.resolved_theme?.settings.logo_position !== 'right' ? (
             <ThemeLogo
               theme={dashboard.resolved_theme}

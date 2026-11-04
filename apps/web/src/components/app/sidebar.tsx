@@ -271,7 +271,6 @@ export function Sidebar({ rail = false }: { rail?: boolean }) {
             icon={AssistantIcon}
             label={$t('Assistant IA')}
             active={path.startsWith('/assistant')}
-            badge={<span className="rounded-full bg-gradient-to-r from-primary to-violet-500 px-1.5 py-px text-[10px] font-semibold text-white">{$t('Nouveau')}</span>}
           />
         ) : null}
         <NavItem href="/browse" icon={FolderClosed} label={$t('Dossiers')} active={path === '/browse'} />

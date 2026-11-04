@@ -170,6 +170,9 @@ function withCondition<T extends { condition?: DashboardCard['condition'] }>(x: 
 const MENU_LABEL = 'text-[11px] font-medium tracking-wide text-muted-foreground uppercase'
 
 /** Where one was in a dashboard's grid when it was remounted (a save): to find it again. */
+/** An A4 page in landscape, at 96 dpi: a dashboard set to it reads as it prints. */
+const A4_WIDTH = 1123
+
 const KEPT_SCROLL = new Map<string, { top: number; at: number }>()
 
 /** Cards whose entrance was played, for the session: shown at once since, drawn without growing. */
@@ -1286,6 +1289,9 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const vizs = useRef(new Map<string, Viz>())
   const [, force] = useState(0)
   const { width, containerRef, mounted } = useContainerWidth()
+  // An A4 page (landscape), centred: the grid, its filters and its tabs at its width.
+  const page = dashboard.width === 'a4' ? A4_WIDTH : null
+  const gridWidth = page ? Math.min(width - 48, page) : width - 48
   // Cards reached on screen, in waves: each wave rises left to right, a few dozen ms apart.
   // In edit mode, asked for less motion, or once seen, a card simply is there.
   const [revealed, setRevealed] = useState<ReadonlyMap<string, number>>(() => new Map())
@@ -1760,10 +1766,13 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   )
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div
+      className="relative flex h-full flex-col"
+      style={page ? ({ '--dash-page': `${page}px`, '--dash-page-padded': `${page + 48}px` } as React.CSSProperties) : undefined}
+    >
       {/* Bar: the filters in a band, then — unless the page holds them by its title — the actions; tinted while edited. */}
       {band || !actionsSlot ? (
-        <div className={cn('flex flex-wrap items-center gap-2 px-6 py-2.5 transition-colors', editing && 'bg-primary/[0.06]')}>
+        <div className={cn('dash-page-padded flex flex-wrap items-center gap-2 px-6 py-2.5 transition-colors', editing && 'bg-primary/[0.06]')}>
           {band ? (
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-2xl bg-card p-1.5 shadow-[0_1px_2px_rgba(16,24,40,0.03),0_8px_24px_-20px_rgba(16,24,40,0.2)] dark:ring-1 dark:ring-border/60">
               <ParameterBar
@@ -1908,7 +1917,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
 
       {/* Tabs */}
       {tabs.length > 0 || editing ? (
-        <TabRow className="items-center gap-1 px-6 py-2">
+        <TabRow className="dash-page-padded items-center gap-1 px-6 py-2">
           {tabs.map((t: DashboardTab) => (
             <div
               key={t.id}
@@ -2050,6 +2059,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
 
       {/* Grid */}
       <div ref={containerRef} className={cn('theme-surface min-h-0 flex-1 overflow-y-auto bg-surface px-6 py-5', editing && 'pb-24')}>
+        <div className="dash-page">
         {cards.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-8 text-center text-sm text-muted-foreground">
             <EmptyScene variant="dashboard" className="mb-1 w-56" />
@@ -2069,7 +2079,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
         {mounted && cards.length > 0 ? (
           <ReactGridLayout
             layout={layout}
-            width={width - 48}
+            width={gridWidth}
             gridConfig={{ cols: DASHBOARD_COLUMNS, rowHeight: DASHBOARD_ROW_HEIGHT, margin: [14, 14], containerPadding: [0, 0] }}
             dragConfig={{ enabled: editing, handle: '.card-handle', cancel: '.card-still', threshold: 3 }}
             resizeConfig={{ enabled: editing, handles: ['se'] }}
@@ -2131,6 +2141,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
             ))}
           </ReactGridLayout>
         ) : null}
+        </div>
       </div>
 
       {settingsTab ? (

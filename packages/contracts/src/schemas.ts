@@ -346,6 +346,7 @@ export const DashboardImportSchema = z.object({
   parameters: z.array(z.record(z.string(), z.unknown())).max(16).optional(),
   auto_refresh: z.number().int().min(0).max(86_400).nullable().optional(),
   cache_ttl: z.number().int().min(0).max(31_536_000).nullable().optional(),
+  width: z.enum(['full', 'a4']).optional(),
 })
 export const DashboardPasteSchema = z.object({ folder: id.nullable().optional(), dashboard: z.unknown() })
 
@@ -387,6 +388,8 @@ export const DashboardInputSchema = z.object({
   preload: z.boolean().optional(),
   /** The dashboard's own theme; null: its folder's. */
   theme: id.nullable().optional(),
+  /** All the screen's width, or an A4 page (landscape), centred. */
+  width: z.enum(['full', 'a4']).optional(),
 })
 
 export const DataPermissionSchema = z.object({

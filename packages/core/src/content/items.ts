@@ -334,6 +334,7 @@ interface DashboardRow {
   preload: boolean
   archived: boolean
   theme_id: string | null
+  width: string
   created_by: string | null
   created_at: Date
   updated_at: Date
@@ -364,6 +365,7 @@ export async function getDashboard(core: Core, actor: Actor, id: string): Promis
     archived: r.archived,
     theme: r.theme_id,
     resolved_theme: await resolveTheme(core, { folder: r.folder_id, dashboard: { id: r.id, name: r.name, theme: r.theme_id } }),
+    width: r.width === 'a4' ? 'a4' : 'full',
   }
 }
 
@@ -403,6 +405,7 @@ export async function exportDashboard(core: Core, actor: Actor, id: string): Pro
     parameters: d.parameters as unknown as Record<string, unknown>[],
     auto_refresh: d.auto_refresh ?? null,
     cache_ttl: d.cache_ttl ?? null,
+    ...(d.width !== 'full' ? { width: d.width } : {}),
   }
 }
 
@@ -418,8 +421,8 @@ export async function createDashboard(core: Core, actor: Actor, input: Dashboard
   checkCards(input)
   const folder = await checkFolder(core, actor, input.folder)
   const row = await core.db.one<{ id: string }>(
-    `INSERT INTO dashboard (folder_id, name, description, tabs, cards, parameters, auto_refresh, cache_ttl, preload, created_by, updated_by, workspace_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10, $11) RETURNING id`,
+    `INSERT INTO dashboard (folder_id, name, description, tabs, cards, parameters, auto_refresh, cache_ttl, preload, created_by, updated_by, workspace_id, width)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10, $11, $12) RETURNING id`,
     [
       folder,
       input.name.trim(),
@@ -432,6 +435,7 @@ export async function createDashboard(core: Core, actor: Actor, input: Dashboard
       input.preload ?? false,
       actor.userId,
       actor.workspaceId,
+      input.width ?? 'full',
     ],
   )
   const id = row?.id as string
@@ -447,7 +451,7 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
   if (input.theme !== undefined) await checkTheme(core, actor, input.theme)
   await core.db.exec(
     `UPDATE dashboard SET folder_id = $2, name = $3, description = $4, tabs = $5, cards = $6, parameters = $7, auto_refresh = $8,
-       cache_ttl = $9, preload = $10, archived = $11, updated_by = $12, theme_id = $13, updated_at = now() WHERE id = $1`,
+       cache_ttl = $9, preload = $10, archived = $11, updated_by = $12, theme_id = $13, width = $14, updated_at = now() WHERE id = $1`,
     [
       id,
       folder,
@@ -462,6 +466,7 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
       input.archived ?? current.archived,
       actor.userId,
       input.theme !== undefined ? input.theme : current.theme,
+      input.width ?? current.width,
     ],
   )
   // Its own questions follow its cards: one no card cites any more is archived, and comes back with it.
@@ -484,6 +489,7 @@ export async function duplicateDashboard(core: Core, actor: Actor, id: string, f
     auto_refresh: d.auto_refresh,
     cache_ttl: d.cache_ttl,
     preload: d.preload,
+    width: d.width,
   })
   // Its own questions are copied with it, and its cards point to the copies.
   const own = await core.db.many<{ id: string }>('SELECT id FROM question WHERE dashboard_id = $1 AND NOT archived', [id])
