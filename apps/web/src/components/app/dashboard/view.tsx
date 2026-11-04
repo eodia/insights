@@ -528,7 +528,7 @@ function CardFrame(props: CardProps) {
                 <Ellipsis className="size-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuContent align="end" className="w-auto min-w-64 [&_[role=menuitem]]:whitespace-nowrap">
               {/* The card: what one does with it, as one reads it. */}
               <DropdownMenuLabel className={MENU_LABEL}>{$t('Carte')}</DropdownMenuLabel>
               <DropdownMenuGroup>
