@@ -25,9 +25,26 @@ ajoute des onglets, des cartes et des filtres.
 | Carte | Contenu |
 |---|---|
 | **Question** | une question, un modèle ou une métrique enregistrés, avec sa visualisation — ou une autre, propre à la carte |
-| **Titre** | un titre de section |
+| **Titre** | un titre de section : taille, graisse, alignement, police, couleur, majuscules, sous-titre, et une mise en valeur (trait dessous, barre à gauche, bandeau de couleur) — le pinceau à côté du titre, en mode édition |
 | **Texte** | du Markdown ; `{{id_du_filtre}}` y affiche la valeur d’un filtre |
+| **Volet de filtre** | la liste d’un filtre, posée dans la grille |
+| **Boutons** | une rangée de boutons, un par valeur d’un filtre de catégorie (« Web · Mobile · Marketplace ») : un clic la choisit, **Tout** l’efface ; les valeurs exclues par les autres filtres pâlissent |
+| **Variable** | un nombre que le lecteur règle, au curseur ou au clavier — un objectif, un taux : la valeur d’un filtre de nombre, que les questions SQL citent en `{{objectif}}` |
+| **Lien vers un tableau de bord** | un bouton ou une tuile qui ouvre un autre tableau (et l’un de ses onglets) ; les filtres choisis vont aux filtres du même nom là-bas |
+| **Résumé par l’IA** | quelques lignes que l’assistant écrit à partir des cartes choisies, filtres appliqués, selon votre consigne ; récrites quand les filtres changent |
+| **Image** | un logo, un schéma, une photo, par son adresse ; un clic peut ouvrir une page |
+| **Séparateur** | un trait (plein, tirets, pointillés) ou un simple espace |
 | **Page intégrée** | une page d’ailleurs, par son adresse |
+
+En mode édition, l’en-tête prend une teinte et une barre flottante, en bas, ajoute les cartes :
+**Question**, **Titre**, **Texte**, **Volet de filtre**, **Boutons**, et **Plus** pour les
+autres. Les réglages d’une carte (son filtre, son lien, son image, sa consigne…) sont dans son
+menu, **Réglages…**.
+
+**Le résumé par l’IA** lit, pour chaque carte choisie (huit au plus), quelques dizaines de lignes
+de son résultat — sous les droits de qui regarde, filtres appliqués — et rien d’autre : de quoi
+dire l’essentiel sans dépenser trop. Le même texte est gardé dix minutes pour les mêmes filtres ;
+**Réécrire** en demande un nouveau. Il faut un fournisseur d’IA configuré.
 
 **Ajouter une question** cherche parmi les questions, modèles et métriques que vous pouvez lire ;
 chacune y montre son dossier. Une question peut aussi venir de son propre écran (**Ajouter à un
@@ -133,6 +150,32 @@ Les filtres qu’une carte reçoit sont lus dans le tableau de bord enregistré,
 appelant envoie des valeurs, jamais la liste des colonnes à filtrer. Un lien partagé ne permet
 donc pas de détourner une carte.
 :::
+
+### Un volet de filtre dans la grille
+
+**Volet de filtre** (en mode édition) pose une carte qui montre un filtre du tableau tel quel : la
+liste associative verte, blanche et grise d’un filtre de catégorie, ou le choix d’une période,
+d’un nombre, d’un texte. Ce qu’on y choisit est la valeur du filtre : la barre du haut, les
+autres cartes et les clics sur les graphiques suivent, et le volet suit en retour.
+
+## Les conditions d’affichage
+
+Une carte — ou un onglet entier — peut ne s’afficher que sous condition, comme dans Qlik : en
+mode édition, menu ⋯ de la carte › **Condition d’affichage…**, ou l’œil à côté du nom de
+l’onglet. Trois sortes de règles, à combiner (**toutes** ou **au moins une**) :
+
+| Règle | Exemple |
+|---|---|
+| **Sur un filtre** | *Statut* a exactement une valeur choisie, au moins une, aucune ; vaut, ou ne vaut pas, telle valeur |
+| **Requête SQL** | `SELECT count(*) > 5000 FROM boutique.public.commandes WHERE {{statut}}` : oui si la première valeur est vraie |
+| **Sur le résultat de la carte** | a au moins une ligne, aucune, au moins ou au plus N lignes |
+
+Quand la condition n’est pas remplie, la carte ou l’onglet **disparaît** ; une carte en dessous
+remonte. Une règle sur un filtre se lit sans requête, et une carte qu’elle masque ne lance pas
+la sienne. Dans une requête SQL, `{{nom}}` reçoit la valeur d’un filtre, comme une condition sur
+la colonne indiquée ; la requête tourne avec les droits de qui regarde, y compris sur un lien
+partagé. En mode édition, tout reste visible : un badge **Conditionnelle** ou **Masquée** dit où
+en est chaque carte.
 
 ## Les graphiques des cartes
 

@@ -7,6 +7,10 @@ import {
   RunQuerySchema,
   ShareInputSchema,
   ThemeInputSchema,
+  SavedViewInputSchema,
+  CardCommentInputSchema,
+  AnnotationInputSchema,
+  requestLocaleOf,
 } from '@eodia/contracts'
 import {
   AppError,
@@ -33,6 +37,8 @@ import {
   getFolder,
   getQuestion,
   history,
+  performance,
+  adviseQuery,
   homeInsights,
   homeItems,
   listByType,
@@ -42,6 +48,17 @@ import {
   moveCard,
   recordView,
   runCard,
+  summarizeCard,
+  listDashboardViews,
+  listCardComments,
+  addCardComment,
+  deleteCardComment,
+  questionAnnotations,
+  dashboardAnnotations,
+  addAnnotation,
+  deleteAnnotation,
+  saveDashboardView,
+  deleteDashboardView,
   runQuery,
   runQuestion,
   saveSnippet,
@@ -67,6 +84,7 @@ const RunSaved = z.object({
 })
 const CardMove = z.object({ dashboard: z.string().min(1).max(64), tab: z.string().max(60).nullable().optional() })
 const CardRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional() })
+const CardSummaryRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional(), card: z.record(z.string(), z.unknown()).optional() })
 const ExportInput = Run.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(120).optional() })
 /** A table as it shows — its columns, its titles, its filters and its order —, to save as a file. */
 const TableExport = z.object({
@@ -75,6 +93,8 @@ const TableExport = z.object({
   columns: z.array(z.object({ name: z.string().max(300), label: z.string().max(300), type: z.enum(['text', 'number', 'date', 'datetime', 'boolean']) })).min(1).max(500),
   rows: z.array(z.array(z.unknown())).max(100_000),
 })
+const PerformanceQuery = z.object({ days: z.string().optional(), all: z.enum(['0', '1']).optional() })
+const AdviceInput = z.object({ sql: z.string().min(1).max(200_000) })
 const HistoryQuery = z.object({ all: z.enum(['0', '1']).optional(), origin: z.string().optional(), errors: z.enum(['0', '1']).optional(), before: z.string().optional() })
 const SnippetInput = z.object({ name: z.string().min(1).max(80), description: z.string().max(500).nullable().optional(), content: z.string().min(1).max(50_000) })
 const Bookmark = z.object({ kind: z.enum(['question', 'model', 'metric', 'dashboard', 'folder']), id: z.string(), on: z.boolean() })
@@ -117,6 +137,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
         ...(input.limit ? { limit: input.limit } : {}),
         ...(input.execution_id ? { executionId: input.execution_id } : {}),
         ...(input.question ? { questionId: input.question } : {}),
+        ...(input.compare ? { compare: input.compare } : {}),
       }),
     )
   })
@@ -147,6 +168,15 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'get', path: '/api/v1/history', tags: qtags, summary: 'Historique des requêtes', query: HistoryQuery }, async (c) => {
     const q = queryOf(c, HistoryQuery)
     return ok(c, await history(c.get('core'), actorOf(c), { all: q.all === '1', ...(q.origin ? { origin: q.origin } : {}), errors: q.errors === '1', ...(q.before ? { before: Number(q.before) } : {}) }))
+  })
+
+  route(app, { method: 'get', path: '/api/v1/performance', tags: qtags, summary: 'Performance des requêtes : les plus coûteuses de la période', query: PerformanceQuery }, async (c) => {
+    const q = queryOf(c, PerformanceQuery)
+    return ok(c, await performance(c.get('core'), actorOf(c), { all: q.all === '1', ...(q.days ? { days: Number(q.days) } : {}) }))
+  })
+  route(app, { method: 'post', path: '/api/v1/performance/advice', tags: qtags, summary: "Conseils d'optimisation d'une requête par l'assistant, d'après son plan Trino", body: AdviceInput }, async (c) => {
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
+    return ok(c, await adviseQuery(c.get('core'), actorOf(c), bodyOf(c, AdviceInput).sql, locale))
   })
 
   route(app, { method: 'get', path: '/api/v1/snippets', tags: qtags, summary: 'Snippets SQL' }, async (c) => {
@@ -315,6 +345,56 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   }, async (c) => {
     const input = bodyOf(c, CardRun)
     return ok(c, await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { ...(input.fresh ? { fresh: true } : {}) }))
+  })
+  route(app, { method: 'get', path: '/api/v1/dashboards/:id/comments', tags: dtags, summary: 'Commentaires des cartes du tableau de bord' }, async (c) =>
+    ok(c, await listCardComments(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'post', path: '/api/v1/dashboards/:id/comments', tags: dtags, summary: 'Commenter une carte', body: CardCommentInputSchema }, async (c) => {
+    const input = bodyOf(c, CardCommentInputSchema)
+    await addCardComment(c.get('core'), actorOf(c), param(c, 'id'), input.card, input.body)
+    return ok(c)
+  })
+  route(app, { method: 'delete', path: '/api/v1/dashboards/:id/comments/:comment', tags: dtags, summary: 'Supprimer un commentaire' }, async (c) => {
+    await deleteCardComment(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'comment'))
+    return ok(c)
+  })
+  route(app, { method: 'get', path: '/api/v1/dashboards/:id/annotations', tags: dtags, summary: 'Annotations des graphiques du tableau de bord' }, async (c) =>
+    ok(c, await dashboardAnnotations(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'get', path: '/api/v1/questions/:id/annotations', tags: qtags, summary: 'Annotations de la question' }, async (c) =>
+    ok(c, await questionAnnotations(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'post', path: '/api/v1/annotations', tags: qtags, summary: 'Annoter une date d’un graphique', body: AnnotationInputSchema }, async (c) => {
+    await addAnnotation(c.get('core'), actorOf(c), bodyOf(c, AnnotationInputSchema))
+    return ok(c)
+  })
+  route(app, { method: 'delete', path: '/api/v1/annotations/:id', tags: qtags, summary: 'Supprimer une annotation' }, async (c) => {
+    await deleteAnnotation(c.get('core'), actorOf(c), param(c, 'id'))
+    return ok(c)
+  })
+  route(app, { method: 'get', path: '/api/v1/dashboards/:id/views', tags: dtags, summary: 'Vues enregistrées du tableau de bord : les siennes et les partagées' }, async (c) =>
+    ok(c, await listDashboardViews(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'post', path: '/api/v1/dashboards/:id/views', tags: dtags, summary: 'Enregistrer une vue du tableau de bord (filtres, onglet)', body: SavedViewInputSchema }, async (c) =>
+    ok(c, await saveDashboardView(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, SavedViewInputSchema))),
+  )
+  route(app, { method: 'put', path: '/api/v1/dashboards/:id/views/:view', tags: dtags, summary: 'Modifier une de ses vues enregistrées', body: SavedViewInputSchema }, async (c) =>
+    ok(c, await saveDashboardView(c.get('core'), actorOf(c), param(c, 'id'), bodyOf(c, SavedViewInputSchema), param(c, 'view'))),
+  )
+  route(app, { method: 'delete', path: '/api/v1/dashboards/:id/views/:view', tags: dtags, summary: 'Supprimer une de ses vues enregistrées' }, async (c) => {
+    await deleteDashboardView(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'view'))
+    return ok(c)
+  })
+  route(app, {
+    method: 'post',
+    path: '/api/v1/dashboards/:id/cards/:card/summary',
+    tags: dtags,
+    summary: "Résumé d'un tableau de bord par l'assistant, d'après ses cartes et les filtres appliqués",
+    body: CardSummaryRun,
+  }, async (c) => {
+    const input = bodyOf(c, CardSummaryRun)
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
+    return ok(c, await summarizeCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { locale, ...(input.fresh ? { fresh: true } : {}), ...(input.card ? { draft: input.card as never } : {}) }))
   })
   route(app, {
     method: 'post',

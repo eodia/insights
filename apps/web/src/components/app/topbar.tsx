@@ -42,7 +42,7 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
           <PanelLeft className="size-[18px] text-muted-foreground" />
         </Button>
       </Hint>
-      <nav aria-label={$t("Fil d'Ariane")} className="flex min-w-0 flex-1 items-center gap-2 text-[17px]">
+      <nav aria-label={$t("Fil d'Ariane")} className="flex min-w-0 flex-1 items-center gap-2 text-[15px]">
         {crumbs.map((c, i) => (
           <Fragment key={`${c.label}-${i}`}>
             {i > 0 ? <span className="text-muted-foreground/60">/</span> : null}

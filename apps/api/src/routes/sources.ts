@@ -8,6 +8,8 @@ import {
   MakeDependencySchema,
   SourceSchemasInputSchema,
   ViewOwnersInputSchema,
+  SourceViewInputSchema,
+  ViewRefreshScheduleSchema,
   TablePatchSchema,
 } from '@eodia/contracts'
 import {
@@ -39,6 +41,12 @@ import {
   setSourceSchemas,
   setViewOwners,
   viewOwnersOf,
+  listViews,
+  saveView,
+  viewImpact,
+  dropView,
+  refreshView,
+  setViewRefresh,
   stopSync,
   schemaTree,
   testDatasource,
@@ -144,6 +152,25 @@ export function sourceRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'put', path: '/api/v1/datasources/:id/view-owners', tags, summary: 'Autoriser des propriétaires de vues à lire la source', body: ViewOwnersInputSchema }, async (c) => {
     await setViewOwners(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), bodyOf(c, ViewOwnersInputSchema).owners)
     return ok(c)
+  })
+  route(app, { method: 'get', path: '/api/v1/datasources/:id/views', tags, summary: 'Vues Trino de la source' }, async (c) => {
+    return ok(c, await listViews(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id')))
+  })
+  route(app, { method: 'post', path: '/api/v1/datasources/:id/views', tags, summary: 'Enregistrer une vue Trino (SECURITY INVOKER), vérifiée sous l’identité de la personne', body: SourceViewInputSchema }, async (c) => {
+    return ok(c, await saveView(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), bodyOf(c, SourceViewInputSchema)))
+  })
+  route(app, { method: 'get', path: '/api/v1/datasources/:id/views/:schema/:name/impact', tags, summary: 'Questions et tableaux de bord qui lisent la vue' }, async (c) => {
+    return ok(c, await viewImpact(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), param(c, 'schema'), param(c, 'name')))
+  })
+  route(app, { method: 'post', path: '/api/v1/datasources/:id/views/:schema/:name/refresh', tags, summary: 'Rafraîchir une vue matérialisée (en arrière-plan)' }, async (c) => {
+    return ok(c, await refreshView(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), param(c, 'schema'), param(c, 'name')))
+  })
+  route(app, { method: 'put', path: '/api/v1/datasources/:id/views/:schema/:name/schedule', tags, summary: 'Rafraîchir une vue matérialisée toutes les N heures, ou à la main', body: ViewRefreshScheduleSchema }, async (c) => {
+    await setViewRefresh(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), param(c, 'schema'), param(c, 'name'), bodyOf(c, ViewRefreshScheduleSchema).hours)
+    return ok(c)
+  })
+  route(app, { method: 'delete', path: '/api/v1/datasources/:id/views/:schema/:name', tags, summary: 'Supprimer une vue Trino' }, async (c) => {
+    return ok(c, await dropView(c.get('core'), await requireRight(c, 'manage_sources'), param(c, 'id'), param(c, 'schema'), param(c, 'name')))
   })
   route(app, { method: 'post', path: '/api/v1/datasources/:id/sync/stop', tags, summary: 'Arrêter la synchronisation en cours (bloquée, trop longue)' }, async (c) => {
     await stopSync(c.get('core'), await requireRight(c, 'manage_metadata'), param(c, 'id'))

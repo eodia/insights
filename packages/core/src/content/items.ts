@@ -15,7 +15,7 @@ import type {
   SourceRef,
   Visualization,
 } from '@eodia/contracts'
-import { DASHBOARD_COLUMNS, DASHBOARD_FORMAT, DASHBOARD_LIMITS, DashboardImportSchema, cardSize, placedAfter } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, DASHBOARD_FORMAT, DASHBOARD_LIMITS, DashboardImportSchema, DisplayConditionSchema, cardSize, placedAfter } from '@eodia/contracts'
 import type { z } from 'zod'
 import { audit } from '../audit'
 import { checkTheme, resolveTheme } from './themes'
@@ -371,6 +371,7 @@ function checkCards(input: Partial<DashboardInput>): void {
   for (const card of (input.cards ?? []) as unknown as DashboardCard[]) {
     if (typeof card.id !== 'string' || typeof card.kind !== 'string') throw invalid('Carte invalide.')
     if ((card.text ?? '').length > DASHBOARD_LIMITS.html) throw invalid('Texte de carte trop long.')
+    if (card.condition !== undefined && !DisplayConditionSchema.safeParse(card.condition).success) throw invalid('Condition d’affichage invalide.')
   }
 }
 
@@ -397,7 +398,7 @@ export async function exportDashboard(core: Core, actor: Actor, id: string): Pro
     version: 1,
     name: d.name,
     description: d.description,
-    tabs: d.tabs.map((t) => ({ id: t.id, label: t.label })),
+    tabs: d.tabs.map((t) => ({ id: t.id, label: t.label, ...(t.condition ? { condition: t.condition } : {}) })) as z.infer<typeof DashboardImportSchema>['tabs'],
     cards,
     parameters: d.parameters as unknown as Record<string, unknown>[],
     auto_refresh: d.auto_refresh ?? null,
@@ -477,7 +478,7 @@ export async function duplicateDashboard(core: Core, actor: Actor, id: string, f
     name: `${d.name} (copie)`,
     description: d.description,
     folder: folder ?? d.folder,
-    tabs: [...d.tabs],
+    tabs: [...d.tabs] as DashboardInput['tabs'],
     cards: d.cards as unknown as Record<string, unknown>[],
     parameters: d.parameters as unknown as Record<string, unknown>[],
     auto_refresh: d.auto_refresh,

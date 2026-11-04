@@ -5,7 +5,11 @@
 import { z } from 'zod'
 import {
   AGGREGATION_FNS,
+  COMPARE_MODES,
+  CONDITION_LIMITS,
   FILTER_OPS,
+  FILTER_TESTS,
+  ROWS_TESTS,
   JOIN_KINDS,
   PARAMETER_TYPES,
   QUERY_LIMITS,
@@ -123,6 +127,33 @@ export const SqlVariableSchema = z.object({
   column_kind: z.enum(SQL_FILTER_KINDS).optional(),
 })
 
+/** A dashboard filter tied to a column of a card's question, or to a SQL variable. */
+const CardMappingSchema = z.object({
+  parameter: z.string().min(1).max(64),
+  target: z.union([z.object({ column: z.object({ field: z.string().min(1).max(256), join: z.string().max(64).optional() }) }), z.object({ variable: z.string().min(1).max(64) })]),
+})
+
+/** When a card or a tab shows: rules on the filters, a query's yes or no, the card's rows. */
+export const DisplayConditionSchema = z.object({
+  match: z.enum(['all', 'any']),
+  rules: z
+    .array(
+      z.discriminatedUnion('kind', [
+        z.object({ kind: z.literal('filter'), parameter: z.string().min(1).max(64), test: z.enum(FILTER_TESTS), value: z.string().max(500).optional() }),
+        z.object({
+          kind: z.literal('query'),
+          sql: z.string().min(1).max(CONDITION_LIMITS.sql),
+          variables: z.array(SqlVariableSchema).max(QUERY_LIMITS.variables).optional(),
+          mappings: z.array(CardMappingSchema).max(16).optional(),
+        }),
+        z.object({ kind: z.literal('rows'), test: z.enum(ROWS_TESTS), value: z.number().int().min(0).max(1_000_000).optional() }),
+      ]),
+    )
+    .max(CONDITION_LIMITS.rules),
+})
+
+const TabSchema = z.object({ id: z.string().max(60), label: z.string().max(120), condition: DisplayConditionSchema.optional() })
+
 export const SqlQuerySchema = z.object({
   kind: z.literal('sql'),
   sql: z.string().min(1).max(QUERY_LIMITS.sql),
@@ -162,6 +193,8 @@ export const RunQuerySchema = z.object({
   /** Bypass the result cache. */
   fresh: z.boolean().optional(),
   limit: z.number().int().positive().max(100_000).optional(),
+  /** Beside each measure, its value in the period compared to. */
+  compare: z.enum(COMPARE_MODES).optional(),
 })
 
 export const ColumnFormatSchema = z
@@ -245,6 +278,46 @@ export const DependenciesInputSchema = z.object({ ids: z.array(id).max(20) })
 /** A source made the technical catalog of another one. */
 export const MakeDependencySchema = z.object({ main: id })
 
+export const CardCommentInputSchema = z.object({ card: z.string().min(1).max(64), body: z.string().trim().min(1).max(4000) })
+
+const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+export const AnnotationInputSchema = z.object({
+  question: id.nullable().optional(),
+  dashboard: id.nullable().optional(),
+  card: z.string().max(64).nullable().optional(),
+  at: day,
+  end: day.nullable().optional(),
+  label: z.string().trim().min(1).max(200),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+})
+export type AnnotationInput = z.infer<typeof AnnotationInputSchema>
+
+/** A dashboard's view to keep: its name, its filters, its tab, for whom. */
+export const SavedViewInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  values: z.record(z.string(), ParameterValueSchema.nullable()),
+  tab: z.string().max(60).nullable().optional(),
+  shared: z.boolean().optional(),
+  is_default: z.boolean().optional(),
+})
+export type SavedViewInput = z.infer<typeof SavedViewInputSchema>
+
+/** A Trino view saved from the SQL editor: where it goes, what it selects. */
+export const SourceViewInputSchema = z.object({
+  schema: z.string().min(1).max(128),
+  name: z.string().regex(/^[A-Za-z_][A-Za-z0-9_]{0,127}$/, 'Lettres, chiffres et « _ », sans commencer par un chiffre.'),
+  sql: z.string().min(1).max(100_000),
+  /** Replaces the view of that name; without it, a view already there is an error. */
+  replace: z.boolean().optional(),
+  /** Keeps the result (Iceberg): a heavy computation done once, refreshed later. */
+  materialized: z.boolean().optional(),
+  /** A materialized view refreshed by itself every so many hours; `null`: by hand. */
+  refresh_hours: z.number().int().min(1).max(168).nullable().optional(),
+})
+
+export const ViewRefreshScheduleSchema = z.object({ hours: z.number().int().min(1).max(168).nullable() })
+export type SourceViewInput = z.infer<typeof SourceViewInputSchema>
+
 /** The owners of views allowed to read a source's catalog. */
 export const ViewOwnersInputSchema = z.object({ owners: z.array(z.string().min(1).max(200)).max(50) })
 
@@ -261,7 +334,7 @@ export const DashboardImportSchema = z.object({
   version: z.literal(1),
   name,
   description: z.string().max(5000).nullable().optional(),
-  tabs: z.array(z.object({ id: z.string().max(60), label: z.string().max(80) })).max(12).optional(),
+  tabs: z.array(TabSchema).max(12).optional(),
   cards: z.array(z.record(z.string(), z.unknown())).max(60),
   parameters: z.array(z.record(z.string(), z.unknown())).max(16).optional(),
   auto_refresh: z.number().int().min(0).max(86_400).nullable().optional(),
@@ -299,7 +372,7 @@ export const DashboardInputSchema = z.object({
   name,
   description: z.string().max(5000).nullable().optional(),
   folder: id.nullable().optional(),
-  tabs: z.array(z.object({ id: z.string(), label: z.string().max(120) })).max(12).optional(),
+  tabs: z.array(TabSchema).max(12).optional(),
   cards: z.array(z.record(z.string(), z.unknown())).max(60).optional(),
   parameters: z.array(z.record(z.string(), z.unknown())).max(16).optional(),
   auto_refresh: z.number().int().min(10).max(86_400).nullable().optional(),

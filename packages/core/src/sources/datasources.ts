@@ -483,7 +483,7 @@ export async function listSourceSchemas(core: Core, actor: Actor, id: string): P
     .map((r) => String(r[0]))
     .filter((name) => name.toLowerCase() !== 'information_schema')
     .map((name) => {
-      const system = isSystemSchema(row.engine, name)
+      const system = isSystemSchema(row.engine, name, row.config)
       return {
         name,
         system,

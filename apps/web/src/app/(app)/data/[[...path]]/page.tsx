@@ -1,16 +1,17 @@
 'use client'
 
 import type { ColumnPatch } from '@eodia/contracts'
-import { NewSourceDialog } from '@/components/app/data/new-source-dialog'
 import { SourceSettings } from '@/components/app/data/source-settings'
 import { SourcesOverview } from '@/components/app/data/sources-overview'
+import { TablePreview } from '@/components/app/data/table-preview'
+import { SourceViews, VIEW_ENGINES } from '@/components/app/data/views'
 import { CatalogName, ENGINE_NAMES, EngineBadge, SyncDot, syncSummary } from '@/components/app/data/source-look'
 import { Chip } from '@/components/app/look'
 import { ColumnList } from '@/components/app/structure/column-list'
 import { ColumnPanel } from '@/components/app/structure/column-panel'
 import { RelationsDiagram } from '@/components/app/structure/relations'
 import { TableEditor } from '@/components/app/structure/table-editor'
-import { StructureTree, TableGlyph } from '@/components/app/structure/tree'
+import { TableGlyph } from '@/components/app/structure/tree'
 import { usePatchColumn, usePatchTable } from '@/components/app/structure/use-metadata'
 import { Button } from '@/components/ui/button'
 import { formatCount } from '@/lib/format'
@@ -24,7 +25,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, use, useCallback, useEffect, useState } from 'react'
 import { TabRow } from '@/components/ui/tab-row'
 
-type Tab = 'tables' | 'relations' | 'connection'
+type Tab = 'tables' | 'data' | 'relations' | 'views' | 'connection'
 
 /**
  * A data source, all in one place: its tables — each one with its columns, described for the
@@ -37,15 +38,10 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
   const { data: me } = useMe()
   const canDescribe = !!me?.can.manage_metadata
   const canManage = !!me?.can.manage_sources
-  const [adding, setAdding] = useState(false)
-  // « Nouveau › Source de données » arrives with `?new=1`.
-  const add = adding || (params.get('new') === '1' && canManage)
-  const setAdd = (v: boolean) => {
-    setAdding(v)
-    if (!v && params.get('new') === '1') router.replace(pathname)
-  }
+  // The dialog is the layout's, opened by `?new=1`, as « Nouveau › Source de données » does.
+  const openAdd = () => router.replace(`${pathname}?new=1`, { scroll: false })
   const { data: sources = [], isLoading: loadingSources } = useDatasources()
-  const { data: allTables = [], isLoading: loadingTables } = useTables()
+  const { data: allTables = [] } = useTables()
   const [dsParam, tableId = null] = segments
   // Arriving on `/data`, no source is chosen: they are all shown, as folders.
   const datasourceId = dsParam ?? null
@@ -55,7 +51,14 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
   const { data: table, error: tableError } = useTable(tableId)
   const { data: sourceTables = [] } = useTables(datasourceId ?? undefined, true)
   const asked = params.get('tab')
-  const tab: Tab = asked === 'relations' || asked === 'connection' ? asked : 'tables'
+  // A table's rows have their own tab (`?tab=data`, a link to share; `?view=data` from before).
+  const tab: Tab = tableId
+    ? asked === 'data' || params.get('view') === 'data'
+      ? 'data'
+      : 'tables'
+    : asked === 'relations' || asked === 'connection' || asked === 'views'
+      ? asked
+      : 'tables'
   const [column, setColumn] = useState<string | null>(null)
   const patchTable = usePatchTable(tableId ?? '')
   const patchColumnRaw = usePatchColumn(tableId ?? '')
@@ -69,29 +72,30 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
     ...(table && tableId ? [{ label: table.label }] : []),
   ])
 
-  const setTab = (t: Tab) => router.replace(t === 'tables' ? pathname : `${pathname}?tab=${t}`)
+  const setTab = (t: Tab) => router.replace(t === 'tables' ? pathname : `${pathname}?tab=${t}`, { scroll: false })
   const selected = table?.columns.find((c) => c.id === column) ?? null
   const ownTables = allTables.filter((t) => t.datasource === datasourceId)
 
   return (
-    <div className="flex h-full">
-      <StructureTree sources={sources} tables={allTables} loading={loadingSources || loadingTables} datasource={datasourceId} table={tableId} onAdd={canManage ? () => setAdd(true) : undefined} />
-
+    <div className="flex h-full min-w-0 flex-1">
       {!datasourceId ? (
         <section className="min-w-0 flex-1 overflow-y-auto">
-          <SourcesOverview sources={sources} tables={allTables} loading={loadingSources} onAdd={canManage ? () => setAdd(true) : undefined} />
+          <SourcesOverview sources={sources} tables={allTables} loading={loadingSources} onAdd={canManage ? openAdd : undefined} />
         </section>
       ) : (
       <section className="flex min-w-0 flex-1 flex-col">
         <TabRow className="h-12 shrink-0 items-center gap-6 border-b px-6 text-[15px]">
-          {(['tables', 'relations', 'connection'] as const).map((t) => (
+          {(tableId
+            ? (['tables', 'data'] as const)
+            : (['tables', 'relations', ...(source && VIEW_ENGINES.has(source.engine) && canManage && !source.shared ? (['views'] as const) : []), 'connection'] as const)
+          ).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
               className={cn('relative py-3', tab === t ? 'font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary' : 'text-muted-foreground hover:text-foreground')}
             >
-              {t === 'tables' ? (tableId ? $t('Table et colonnes') : $t('Tables')) : t === 'relations' ? $t('Relations') : $t('Connexion')}
+              {t === 'tables' ? (tableId ? $t('Colonnes') : $t('Tables')) : t === 'data' ? $t('Données') : t === 'relations' ? $t('Relations') : t === 'views' ? $t('Vues') : $t('Connexion')}
             </button>
           ))}
           <span className="flex-1" />
@@ -102,7 +106,15 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
           ) : null}
         </TabRow>
 
-        {tab === 'connection' ? (
+        {tab === 'views' && source ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <SourceViews source={source} />
+          </div>
+        ) : tab === 'data' && table ? (
+          <div className="flex min-h-0 flex-1 flex-col px-6 py-5">
+            <TablePreview table={table} fill />
+          </div>
+        ) : tab === 'connection' ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
             {datasourceId ? <SourceSettings id={datasourceId} /> : <p className="m-10 text-center text-sm text-muted-foreground">{$t('Aucune source.')}</p>}
           </div>
@@ -124,10 +136,10 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
               <div className="space-y-6 px-6 py-6">
                 <TableEditor table={table} source={source} readOnly={readOnly} aiEnabled={!!me?.ai_enabled} onPatch={patchTable} />
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 px-1">
-                    <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  <div className="flex items-center gap-3 px-1">
+                    <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                       {$t('Colonnes')} <span className="ml-1 font-normal">{table.columns.filter((c) => c.status === 'active').length}</span>
-                    </div>
+                    </span>
                     <span className="flex-1" />
                     <span className="text-xs text-muted-foreground">{$t('Cliquez une colonne pour sa description, son format et ses valeurs.')}</span>
                   </div>
@@ -196,7 +208,7 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
                 <TableProperties className="mx-auto size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">{$t('Aucune source connectée : ajoutez-en une pour décrire ses tables.')}</p>
                 {canManage ? (
-                  <Button size="sm" onClick={() => setAdd(true)}>
+                  <Button size="sm" onClick={openAdd}>
                     {$t('Ajouter une source')}
                   </Button>
                 ) : null}
@@ -206,8 +218,6 @@ function SourceWorkspace({ segments }: { segments: string[] }) {
         )}
       </section>
       )}
-
-      {canManage ? <NewSourceDialog open={add} onOpenChange={setAdd} onCreated={(ds) => router.push(`/data/${ds.id}?tab=connection`)} /> : null}
 
       {tab === 'tables' && selected && table ? (
         <ColumnPanel column={selected} tables={sourceTables} readOnly={readOnly} onClose={() => setColumn(null)} onPatch={patchColumn} />

@@ -6,6 +6,7 @@ import { Worker } from './jobs'
 import { cachePurgeExpired } from './query/cache'
 import { prewarmDashboards } from './query/run'
 import { ensureCatalogs, scheduleDueSyncs } from './sources/datasources'
+import { refreshDueViews, refreshViewJob } from './sources/views'
 import { syncJob } from './sources/sync'
 
 export * from './access/decide'
@@ -20,6 +21,8 @@ export * from './config'
 export * from './content/access'
 export * from './content/folders'
 export * from './content/items'
+export * from './content/dashboard-views'
+export * from './content/comments'
 export * from './content/themes'
 export * from './context'
 export * from './crypto'
@@ -32,10 +35,13 @@ export * from './mailer'
 export * from './query/cache'
 export * from './query/export'
 export * from './query/history'
+export * from './query/performance'
+export * from './ai/summary'
 export * from './query/insights'
 export * from './query/run'
 export * from './sharing/links'
 export * from './sources/datasources'
+export * from './sources/views'
 export * from './sources/metadata'
 export * from './sources/sync'
 export * from './workspaces'
@@ -44,6 +50,7 @@ export const JOB_HANDLERS = {
   sync: syncJob,
   demo_content: (core: Core, payload: Record<string, unknown>) => demoContent(core, payload),
   prewarm: (core: Core) => prewarmDashboards(core),
+  refresh_view: (core: Core, payload: Record<string, unknown>) => refreshViewJob(core, payload),
 }
 
 let lastHousekeeping = 0
@@ -57,6 +64,8 @@ export async function housekeeping(core: Core): Promise<void> {
   // Catalogs lost by a Trino restart come back without waiting for a query to miss them.
   await ensureCatalogs(core).catch(() => undefined)
   const minute = new Date().getMinutes()
+  // Materialized views refreshed on a schedule: checked every five minutes.
+  if (minute % 5 === 0) await refreshDueViews(core).catch(() => undefined)
   if (minute % 15 === 0) {
     const { enqueue } = await import('./jobs')
     await enqueue(core, 'prewarm', {}, { dedupe: 'prewarm' })

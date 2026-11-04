@@ -30,7 +30,7 @@ applications run from their TypeScript sources with `tsx`; only the interface is
 In `all` mode, a small supervisor starts the three processes, prefixes their logs (`[api]`,
 `[web]`, `[worker]`), forwards shutdown, and **stops the whole container as soon as one of them
 dies**: the orchestrator then restarts it in full rather than leaving a half-alive instance
-running. `WITH_MCP=1` adds the MCP server to it.
+running. It runs the MCP server too (`WITH_MCP=0` leaves it out): the interface relays `/mcp` to it, the address shown in « API and MCP ».
 
 :::note[`API_URL` is fixed at build time]
 The interface relays `/api/*` to the API, at the `API_URL` address read **at build time**

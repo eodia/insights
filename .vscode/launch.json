@@ -24,7 +24,8 @@
       "cwd": "${workspaceFolder}/apps/web",
       "command": "node node_modules/next/dist/bin/next dev --port 3300",
       "env": {
-        "API_URL": "http://localhost:4300"
+        "API_URL": "http://localhost:4300",
+        "MCP_URL": "http://localhost:4400"
       },
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "serverReadyAction": {

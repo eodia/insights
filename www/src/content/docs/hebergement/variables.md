@@ -103,7 +103,8 @@ Voir [Copilot](/insights/fonctionnalites/copilot/).
 | `API_URL` | `http://localhost:4100` | l’interface (au build), le serveur MCP | l’adresse de l’API |
 | `MCP_PORT`, `MCP_HOST` | `4200`, `0.0.0.0` | le serveur MCP | son écoute |
 | `EODIA_URL`, `EODIA_TOKEN` | `http://localhost:4100`, — | le serveur MCP en stdio | l’adresse de l’application et le jeton |
-| `WITH_MCP` | — | l’image (rôle `all`) | `1` ajoute le serveur MCP au conteneur |
+| `WITH_MCP` | `1` | l’image (rôle `all`) | `0` retire le serveur MCP du conteneur |
+| `MCP_URL` | `http://localhost:4200` | `web` | le serveur MCP auquel l’interface relaie `/mcp` |
 
 ## Compose de production
 

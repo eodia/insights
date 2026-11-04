@@ -30,7 +30,7 @@ compilée (`next build`), au moment du build.
 En mode `all`, un petit superviseur lance les trois processus, préfixe leurs journaux
 (`[api]`, `[web]`, `[worker]`), relaie l’arrêt, et **arrête tout le conteneur dès que l’un d’eux
 meurt** : l’orchestrateur le relance alors entier plutôt que de laisser tourner une instance à
-moitié vivante. `WITH_MCP=1` y ajoute le serveur MCP.
+moitié vivante. Il lance aussi le serveur MCP (`WITH_MCP=0` le retire) : l’interface lui relaie `/mcp`, l’adresse affichée dans « API et MCP ».
 
 :::note[`API_URL` est figé au build]
 L’interface relaie `/api/*` vers l’API, à l’adresse `API_URL` lue **au build** (défaut :

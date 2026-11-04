@@ -42,8 +42,10 @@ declared in [Structure](/insights/en/fonctionnalites/sources/#relationships) —
 alongside those of the starting table: choosing one adds the join, and removing it takes it away.
 
 **Join data.** In the **Data** step, **Join data** adds a join of your
-choice: the table, the type (**left**, **inner**, **right**, **full**) and the two
-columns of the condition — the key between the two tables is suggested automatically. The join
+choice: the table or the [model](/insights/en/fonctionnalites/modeles-et-metriques/), the type
+(**left**, **inner**, **right**, **full**) and the two columns of the condition — the key between
+the two is suggested automatically (the model's `client_id` ↔ the clients' `id`, say). A table
+joins a model, a model joins a table or another model, and a question can join several models. The join
 stays even if no step references its columns; without a summary, its columns are displayed after
 those of the source, and are chosen, filtered and sorted just like them. Its chip edits or
 removes it (along with the steps that referenced its columns). Four joins at most.
@@ -61,7 +63,7 @@ source.
 
 ## The SQL editor
 
-**SQL editor** (or **New › SQL query**) is written in Trino SQL:
+The **SQL editor** opens from **New › SQL query** (or search, `Ctrl+K`); it is written in Trino SQL:
 
 - **autocompletion** knows `catalog.schema.table` and the columns of every table you
   can read, and nothing else;
@@ -71,13 +73,30 @@ source.
 - a Trino error is placed on the line and column it points to; **Fix with the
   copilot** asks it for a fix;
 - several **tabs**, kept in your browser;
-- a side panel: the **schema** (click to insert a name), **snippets** and
-  the **history** of your queries.
+- a side panel: the **schema** — tables arranged by source then by schema (database), click
+  to insert a name —, **snippets** and the **history** of your queries;
+- **Ctrl+F** opens search: case, whole word, regular expression, the match's rank among all,
+  and **Replace** (or **Replace all**).
 
 Editor queries never go through the result cache: you always see the
 current state of the data. A preview reads at most 2,000 rows (`MAX_ROWS`).
 
 **Save as question** stores the query in a folder; it becomes a SQL question.
+
+### Saving a Trino view
+
+**Save as view** (**Manage sources** right) keeps the query in a catalog that accepts views —
+Iceberg, or a Hive or Delta Trino connector: choose the source, the schema and the name. Every
+question, and every tool connected to Trino, then reads it as a table; the source syncs right
+away to describe it.
+
+The query is first analysed under **your** identity: you cannot keep in a view what you cannot
+read. The view is created `SECURITY INVOKER`: everyone reads it with **their own rights**, their
+filtered rows and masked columns included. A view keeps no `{{…}}` variable, nor several queries.
+
+A source's views are in its **Views** tab (see
+[Sources](/insights/en/fonctionnalites/sources/#views)): **Edit** reopens them in the editor,
+**Save view** replaces them, after showing the questions and dashboards reading them.
 
 ### Snippets
 
@@ -161,3 +180,15 @@ and [Forecasts](/insights/en/fonctionnalites/previsions/).
 its row count, any error and its origin: editor, question, dashboard card,
 API (including the MCP server), copilot or shared link. Everyone sees their own; an administrator can
 display those of all users.
+
+### Performance
+
+The **Performance** tab of the history ranks a period's queries (24 hours, 7 or 30 days) by
+**total time spent in Trino** — a fast query run a thousand times can cost more than a slow one
+run once —, a question's runs together: runs, average time, 95th percentile, maximum, errors,
+share served from cache. On top, the period's summary and the **slow** queries (over 5 s).
+
+**Optimise with AI** reads the query's plan (`EXPLAIN`, under your identity) and asks the
+assistant for a diagnosis, ranked actions — filter earlier, read only the useful columns,
+partition, cache, materialise… — and, when it helps, a rewritten query to **try** in the SQL
+editor. An AI provider must be configured.

@@ -24,9 +24,25 @@ cards with the mouse, and add tabs, cards and filters.
 | Card | Content |
 |---|---|
 | **Question** | a saved question, model or metric, with its visualization — or a different one, specific to the card |
-| **Title** | a section heading |
+| **Title** | a section heading: size, weight, alignment, font, colour, capitals, subtitle, and a highlight (line beneath, bar on the left, colour band) — the brush next to the title, in edit mode |
 | **Text** | Markdown; `{{filter_id}}` displays a filter's value |
+| **Filter pane** | a filter's list, laid in the grid |
+| **Buttons** | a row of buttons, one per value of a category filter (“Web · Mobile · Marketplace”): a click chooses it, **All** clears it; values the other filters exclude fade |
+| **Variable** | a number the reader sets, with a slider or the keyboard — an objective, a rate: the value of a number filter, which SQL questions cite as `{{objective}}` |
+| **Link to a dashboard** | a button or a tile opening another dashboard (and one of its tabs); the filters chosen go to the filters of the same name there |
+| **AI summary** | a few lines the assistant writes from the chosen cards, filters applied, as instructed; rewritten when the filters change |
+| **Image** | a logo, a diagram, a photo, by its URL; a click may open a page |
+| **Separator** | a line (solid, dashed, dotted) or just room |
 | **Embedded page** | a page from elsewhere, by its URL |
+
+In edit mode, the header takes a tint and a floating bar, at the bottom, adds cards: **Question**,
+**Title**, **Text**, **Filter pane**, **Buttons**, and **More** for the others. A card's settings
+(its filter, its link, its image, its instruction…) are in its menu, **Settings…**.
+
+**The AI summary** reads, for each chosen card (eight at most), a few dozen rows of its result —
+with the rights of whoever looks, filters applied — and nothing else: enough to say what matters
+without spending too much. The same text is kept ten minutes for the same filters; **Rewrite**
+asks for a new one. An AI provider must be configured.
 
 **Add a question** searches the questions, models and metrics you can
 read; each one shows its folder. A question can also come from its own screen (**Add to a
@@ -131,6 +147,31 @@ The filters a card receives are read from the saved dashboard, on the server sid
 values, never the list of columns to filter. A shared link therefore cannot be used to hijack a
 card.
 :::
+
+### A filter pane in the grid
+
+**Filter pane** (in edit mode) lays a card showing a dashboard filter as it is: a category
+filter's green, white and grey associative list, or the choice of a period, a number, a text.
+What is chosen there is the filter's value: the top bar, the other cards and clicks on charts
+follow, and the pane follows them in turn.
+
+## Display conditions
+
+A card — or a whole tab — can show only under a condition, as in Qlik: in edit mode, the card's
+⋯ menu › **Display condition…**, or the eye next to the tab's name. Three kinds of rules, to
+combine (**all** or **at least one**):
+
+| Rule | Example |
+|---|---|
+| **On a filter** | *Status* has exactly one value chosen, at least one, none; is, or is not, a given value |
+| **SQL query** | `SELECT count(*) > 5000 FROM boutique.public.commandes WHERE {{statut}}`: yes if the first value is true |
+| **On the card's result** | has at least one row, none, at least or at most N rows |
+
+When the condition does not hold, the card or the tab **disappears**; a card below moves up. A
+rule on a filter is read without a query, and a card it hides does not run its own. In a SQL
+query, `{{name}}` receives a filter's value, as a condition on the column given; the query runs
+with the rights of whoever looks, a shared link included. In edit mode, everything stays visible:
+a **Conditional** or **Hidden** badge tells where each card stands.
 
 ## Card charts
 

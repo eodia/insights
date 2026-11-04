@@ -29,7 +29,6 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronsUpDown,
-  Code2,
   Database,
   FolderClosed,
   FolderLock,
@@ -194,7 +193,6 @@ export function Sidebar() {
         {roots.map((f) => (
           <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />
         ))}
-        <NavItem href="/sql" icon={Code2} label={$t('Éditeur SQL')} active={is('/sql')} />
         <NavItem href="/data" icon={Database} label={$t('Sources de données')} active={is('/data')} />
         <NavItem href="/history" icon={History} label={$t('Historique')} active={is('/history')} />
       </nav>

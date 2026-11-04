@@ -1,6 +1,6 @@
 'use client'
 
-import type { Aggregation, BuilderQuery, Breakout, ColumnRef, CustomColumn, Filter, ItemSummary, Join, OrderBy, TableMeta, TemporalUnit } from '@eodia/contracts'
+import type { Aggregation, BuilderQuery, Breakout, ColumnRef, CustomColumn, Filter, ItemSummary, Join, OrderBy, SourceRef, TableMeta, TemporalUnit } from '@eodia/contracts'
 import { JOIN_KINDS, QUERY_LIMITS, TEMPORAL_EXTRACTIONS, TEMPORAL_UNITS, columnName } from '@eodia/contracts'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { Button } from '@/components/ui/button'
@@ -24,8 +24,9 @@ import {
 } from '@/lib/builder'
 import { $t, $tp, msg } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { ArrowDownAZ, ArrowUpAZ, ChevronDown, Columns3, Database, Filter as FilterIcon, ListOrdered, Plus, Sigma, SquareFunction, X } from 'lucide-react'
-import { useId, useState } from 'react'
+import { ArrowDownAZ, ArrowUpAZ, ChevronDown, Columns3, Database, Filter as FilterIcon, ListOrdered, Loader2, Plus, Sigma, SquareFunction, X } from 'lucide-react'
+import { useEffect, useId, useState } from 'react'
+import { useModelColumns } from '@/lib/queries'
 import { JoinGlyph } from './join-glyph'
 import { ColumnList, FilterEditor, KindIcon, SearchBox, SourceList } from './pickers'
 
@@ -87,14 +88,48 @@ const JOIN_SHORT: Record<Join['kind'], string> = {
   full: msg('Complète'),
 }
 
+/** What a join brings in: a table, or a model — a saved question read as a table. */
+interface JoinTarget {
+  readonly ref: SourceRef
+  /** Its name, for the join's alias. */
+  readonly name: string
+  readonly label: string
+  readonly icon: React.ReactNode
+  /** Its columns; for a model, once its first row is read. */
+  readonly columns: readonly { name: string; label: string }[] | null
+}
+
 /**
- * A join the person adds: the table, how rows meet (left, inner, right, full) and the columns
- * they meet on — the key between the two tables is proposed when there is one.
+ * The likely condition of a join on a model, read off the names of the keys: the model's
+ * `client_id` meets the `id` of « clients »; the source's `commande_id` meets the `id` of a model
+ * of commandes; else a key named alike on both sides. Nothing rather than a guess on any column.
+ */
+function modelCondition(options: readonly ColumnOption[], columns: readonly { name: string }[], model: string, source: string): { left: ColumnRef; right: string } | null {
+  const stem = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/s\b|x\b/g, '').slice(0, 5)
+  const col = (name: string) => columns.find((c) => c.name.toLowerCase() === name)?.name
+  const own = options.filter((o) => !o.join)
+  const id = own.find((o) => o.ref.field.toLowerCase() === 'id')
+  // The model points to the source.
+  const pointing = columns.find((c) => c.name.toLowerCase().endsWith('_id') && stem(source).startsWith(stem(c.name.slice(0, -3))))
+  if (id && pointing) return { left: id.ref, right: pointing.name }
+  // The source points to the model.
+  const modelId = col('id')
+  const key = modelId ? own.find((o) => o.ref.field.toLowerCase().endsWith('_id') && stem(model).startsWith(stem(o.ref.field.slice(0, -3)))) : undefined
+  if (key && modelId) return { left: key.ref, right: modelId }
+  // A key of the same name on both sides.
+  const shared = own.find((o) => o.ref.field.toLowerCase().endsWith('_id') && col(o.ref.field.toLowerCase()))
+  return shared ? { left: shared.ref, right: col(shared.ref.field.toLowerCase()) as string } : null
+}
+
+/**
+ * A join the person adds: the table or the model, how rows meet (left, inner, right, full) and
+ * the columns they meet on — the key between the two is proposed when there is one.
  */
 function JoinEditor({
   query,
   initial,
   tables,
+  models,
   sourceTable,
   sourceLabel,
   options,
@@ -104,30 +139,61 @@ function JoinEditor({
   query: BuilderQuery
   initial?: Join
   tables: readonly TableMeta[]
+  models: readonly ItemSummary[]
   sourceTable: TableMeta | null
   sourceLabel: string
   options: readonly ColumnOption[]
   onApply: (j: Join) => void
   onRemove?: () => void
 }) {
-  const [target, setTarget] = useState<TableMeta | null>(() => (initial?.source.kind === 'table' ? (tables.find((t) => t.id === initial.source.id) ?? null) : null))
+  const [picked, setPicked] = useState<SourceRef | null>(initial?.source ?? null)
   const [kind, setKind] = useState<Join['kind']>(initial?.kind ?? 'left')
   const [left, setLeft] = useState<ColumnRef | null>(initial?.left ?? null)
   const [right, setRight] = useState<string | null>(initial?.right ?? null)
+  const modelColumns = useModelColumns(picked?.kind === 'question' ? picked.id : null)
   // The columns a condition may start from: the source's, and those of the other joins added by hand.
   const others = new Set((query.joins ?? []).filter((j) => j.explicit && j.alias !== initial?.alias).map((j) => j.alias))
   const leftOptions = options.filter((o) => !o.join || others.has(o.join.alias))
+  const target: JoinTarget | null = !picked
+    ? null
+    : picked.kind === 'table'
+      ? (() => {
+          const t = tables.find((x) => x.id === picked.id)
+          return t
+            ? { ref: picked, name: t.name, label: t.label, icon: t.icon ? <LookIcon name={t.icon} color={t.color} className="size-4" /> : <Database className="size-4 text-muted-foreground" />, columns: (t.columns ?? []).filter((c) => c.status === 'active').map((c) => ({ name: c.name, label: c.label })) }
+            : null
+        })()
+      : (() => {
+          const name = models.find((m) => m.id === picked.id)?.name ?? $t('Modèle')
+          return { ref: picked, name, label: name, icon: <ItemTile kind="model" className="size-4" />, columns: modelColumns.data ?? null }
+        })()
+  // A model's columns arrive after it is picked: the likely condition is proposed then.
+  const suggestFor = picked?.kind === 'question' && !initial ? picked.id : null
+  const columnsReady = !!modelColumns.data
+  // biome-ignore lint/correctness/useExhaustiveDependencies: proposed once, when the model's columns come
+  useEffect(() => {
+    if (!suggestFor || !modelColumns.data || left || right) return
+    const cond = modelCondition(leftOptions, modelColumns.data, target?.name ?? '', sourceTable?.name ?? sourceLabel)
+    if (cond) {
+      setLeft(cond.left)
+      setRight(cond.right)
+    }
+  }, [suggestFor, columnsReady])
   if (!target) {
     return (
       <SourceList
         tables={tables}
-        models={[]}
+        models={models}
         onPick={(ref) => {
-          const t = tables.find((x) => x.id === ref.id) ?? null
-          setTarget(t)
-          const cond = t ? suggestedCondition(sourceTable, t) : null
-          setLeft(cond?.left ?? null)
-          setRight(cond?.right ?? null)
+          setPicked(ref)
+          setLeft(null)
+          setRight(null)
+          if (ref.kind === 'table') {
+            const t = tables.find((x) => x.id === ref.id)
+            const cond = t ? suggestedCondition(sourceTable, t) : null
+            setLeft(cond?.left ?? null)
+            setRight(cond?.right ?? null)
+          }
         }}
       />
     )
@@ -135,8 +201,8 @@ function JoinEditor({
   const ready = left !== null && right !== null && leftOptions.some((o) => columnName(o.ref) === columnName(left))
   // The condition may start from another join: its side is then named after that table.
   const leftSide = (left?.join ? leftOptions.find((o) => columnName(o.ref) === columnName(left))?.group : undefined) ?? sourceLabel
-  const sourceIcon = sourceTable?.icon ? <LookIcon name={sourceTable.icon} color={sourceTable.color} className="size-4" /> : <Database className="size-4 text-muted-foreground" />
-  const targetIcon = target.icon ? <LookIcon name={target.icon} color={target.color} className="size-4" /> : <Database className="size-4 text-muted-foreground" />
+  const sourceIcon = sourceTable?.icon ? <LookIcon name={sourceTable.icon} color={sourceTable.color} className="size-4" /> : query.source.kind === 'question' ? <ItemTile kind="model" className="size-4" /> : <Database className="size-4 text-muted-foreground" />
+  const targetIcon = target.icon
   return (
     <div className="w-[22rem] space-y-3 p-3">
       <div className="flex items-center gap-2 rounded-lg bg-muted/60 p-1.5">
@@ -153,8 +219,8 @@ function JoinEditor({
         ) : (
           <button
             type="button"
-            onClick={() => setTarget(null)}
-            title={$t('Changer de table')}
+            onClick={() => setPicked(null)}
+            title={$t('Changer de table ou de modèle')}
             className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md bg-background px-2 py-1.5 text-left text-sm font-semibold shadow-xs hover:ring-1 hover:ring-primary/40"
           >
             {targetIcon}
@@ -216,14 +282,23 @@ function JoinEditor({
           {targetIcon}
           <span className="truncate">{target.label}</span>
         </div>
-        <Choice
-          value={right ?? ''}
-          onValueChange={(v) => setRight(v)}
-          options={(target.columns ?? []).filter((c) => c.status === 'active').map((c) => ({ value: c.name, label: c.label }))}
-          placeholder={$t('Colonne de {table}', { table: target.label })}
-          aria-label={$t('Colonne de {table}', { table: target.label })}
-          className="w-full"
-        />
+        {target.columns ? (
+          <Choice
+            value={right ?? ''}
+            onValueChange={(v) => setRight(v)}
+            options={target.columns.map((c) => ({ value: c.name, label: c.label }))}
+            placeholder={$t('Colonne de {table}', { table: target.label })}
+            aria-label={$t('Colonne de {table}', { table: target.label })}
+            className="w-full"
+            searchable={target.columns.length > 12}
+          />
+        ) : modelColumns.error ? (
+          <p className="rounded-md bg-destructive/10 px-2 py-1.5 text-xs text-destructive">{(modelColumns.error as Error).message}</p>
+        ) : (
+          <div className="flex h-8 items-center gap-2 px-1 text-xs text-muted-foreground">
+            <Loader2 className="size-3.5 animate-spin" /> {$t('Lecture des colonnes du modèle…')}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-2">
         {onRemove ? (
@@ -238,7 +313,7 @@ function JoinEditor({
           onClick={() =>
             left &&
             right &&
-            onApply({ alias: initial?.alias ?? joinAlias(query, target, options), source: { kind: 'table', id: target.id }, kind, left, right, explicit: true })
+            onApply({ alias: initial?.alias ?? joinAlias(query, target, options), source: target.ref, kind, left, right, explicit: true })
           }
         >
           {initial ? $t('Appliquer') : $t('Joindre')}
@@ -459,7 +534,7 @@ export function Notebook({
       .filter((j) => j.explicit)
       .map((j) => ({
         alias: j.alias,
-        label: (j.source.kind === 'table' ? tables.find((t) => t.id === j.source.id)?.label : undefined) ?? j.alias,
+        label: (j.source.kind === 'table' ? tables.find((t) => t.id === j.source.id)?.label : models.find((m) => m.id === j.source.id)?.name) ?? j.alias,
         icon: <JoinGlyph kind={j.kind} className="h-3.5 w-[22px]" />,
         options: shownOptions.filter((o) => o.ref.join === j.alias),
       })),
@@ -538,7 +613,8 @@ export function Notebook({
                   <Pill tone={TONES.data} onClick={() => setJoinOpen(j.alias)} onRemove={() => removeJoin(j.alias)}>
                     <span className="inline-flex items-center gap-1.5">
                       <JoinGlyph kind={j.kind} className="h-3.5 w-[22px]" />
-                      {(j.source.kind === 'table' ? tables.find((t) => t.id === j.source.id)?.label : undefined) ?? j.alias}
+                      {j.source.kind === 'question' ? <ItemTile kind="model" className="size-3.5" /> : null}
+                      {(j.source.kind === 'table' ? tables.find((t) => t.id === j.source.id)?.label : models.find((m) => m.id === j.source.id)?.name) ?? j.alias}
                     </span>
                   </Pill>
                 </span>
@@ -548,6 +624,7 @@ export function Notebook({
                   query={query}
                   initial={j}
                   tables={tables}
+                  models={models}
                   sourceTable={sourceTable ?? null}
                   sourceLabel={sourceLabel}
                   options={options}
@@ -570,6 +647,7 @@ export function Notebook({
             <JoinEditor
               query={query}
               tables={tables}
+              models={models.filter((m) => !(query.source.kind === 'question' && query.source.id === m.id))}
               sourceTable={sourceTable ?? null}
               sourceLabel={sourceLabel}
               options={options}

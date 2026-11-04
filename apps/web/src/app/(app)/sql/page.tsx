@@ -5,6 +5,8 @@ import { sqlVariableNames } from '@eodia/contracts'
 import { SaveDialog } from '@/components/app/dialogs'
 import { KindIcon } from '@/components/app/question/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
+import { SaveViewDialog, type ViewTarget, parseViewKey } from '@/components/app/data/views'
+import { KindGlyph } from '@/components/app/structure/tree'
 import { type SqlError, SqlEditor } from '@/components/app/sql-editor'
 import { DataTable, ResultFooter, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
@@ -37,6 +39,8 @@ import {
   Table2,
   Wand2,
   X,
+  FolderTree,
+  Eye,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
@@ -49,6 +53,8 @@ interface Tab {
   name: string
   sql: string
   native: string | null
+  /** A Trino view opened to be edited: saving it replaces it. */
+  view?: ViewTarget | null
 }
 
 const STORE = 'eodia-sql-tabs'
@@ -65,10 +71,24 @@ function loadTabs(): Tab[] {
   return [newTab(1, 'SELECT *\nFROM boutique.public.commandes\nLIMIT 100')]
 }
 
+/** A source's tables by schema — its databases —, in the order they come. */
+function schemasOf<T extends { schema: string }>(tables: readonly T[]): [string, T[]][] {
+  const out = new Map<string, T[]>()
+  for (const t of tables) out.set(t.schema, [...(out.get(t.schema) ?? []), t])
+  return [...out.entries()]
+}
+
 function SchemaBrowser({ onInsert }: { onInsert: (text: string) => void }) {
   const { data: tree } = useSchemaTree()
   const [open, setOpen] = useState<Set<string>>(new Set())
   const [q, setQ] = useState('')
+  const [closed, setClosed] = useState<Set<string>>(new Set())
+  const shut = (k: string) =>
+    setClosed((s) => {
+      const n = new Set(s)
+      n.has(k) ? n.delete(k) : n.add(k)
+      return n
+    })
   const toggle = (k: string) => setOpen((s) => {
     const n = new Set(s)
     n.has(k) ? n.delete(k) : n.add(k)
@@ -90,17 +110,35 @@ function SchemaBrowser({ onInsert }: { onInsert: (text: string) => void }) {
               <span className="ml-auto font-mono text-[11px] text-muted-foreground">{ds.catalog}</span>
             </button>
             {open.has(ds.id) || q
-              ? ds.tables
-                  .filter((t) => !q || fold(`${t.name} ${t.label}`).includes(fold(q)))
-                  .map((t) => {
+              ? schemasOf(ds.tables.filter((t) => !q || fold(`${t.schema} ${t.name} ${t.label}`).includes(fold(q)))).map(([schema, tables]) => {
+                  const schemaKey = `${ds.id}/${schema}`
+                  // Schemas arrive unfolded: one click less to reach a table.
+                  const schemaOpen = !closed.has(schemaKey) || !!q
+                  return (
+                    <div key={schema} className="pl-3">
+                      <div className="group flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground">
+                        <button type="button" onClick={() => shut(schemaKey)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                          <ChevronRight className={cn('size-3 shrink-0 transition-transform', schemaOpen && 'rotate-90')} />
+                          <FolderTree className="size-3.5 shrink-0" />
+                          <span className="truncate font-mono font-medium">{schema}</span>
+                          <span className="ml-auto pl-1 text-[10px]">{tables.length}</span>
+                        </button>
+                        <Hint label={$t('Insérer {name}', { name: [ds.catalog, schema].map(sqlName).join('.') })}>
+                          <button type="button" onClick={() => onInsert([ds.catalog, schema].map(sqlName).join('.'))} className="opacity-0 group-hover:opacity-100">
+                            <Plus className="size-3.5" />
+                          </button>
+                        </Hint>
+                      </div>
+                      {schemaOpen
+                        ? tables.map((t) => {
                     const key = `${ds.id}.${t.id}`
                     const full = [ds.catalog, t.schema, t.name].map(sqlName).join('.')
                     return (
                       <div key={t.id} className="pl-4">
                         <div className="group flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent">
-                          <button type="button" onClick={() => toggle(key)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                          <button type="button" onClick={() => toggle(key)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left" title={t.label !== t.name ? t.label : undefined}>
                             <ChevronRight className={cn('size-3 shrink-0 transition-transform', open.has(key) && 'rotate-90')} />
-                            <Table2 className="size-3.5 shrink-0 text-teal-600" />
+                            <KindGlyph kind={t.kind} className={cn('size-3.5 shrink-0', t.kind && t.kind !== 'table' ? 'text-violet-600' : 'text-teal-600')} />
                             <span className="truncate">{t.name}</span>
                           </button>
                           <Hint label={$t('Insérer {name}', { name: full })}>
@@ -121,6 +159,10 @@ function SchemaBrowser({ onInsert }: { onInsert: (text: string) => void }) {
                       </div>
                     )
                   })
+                        : null}
+                    </div>
+                  )
+                })
               : null}
           </div>
         ))}
@@ -215,13 +257,17 @@ function SqlWorkspace() {
   const [vizType, setVizType] = useState<VisualizationType>('table')
   const [values, setValues] = useState<Record<string, string>>({})
   const [saveOpen, setSaveOpen] = useState(false)
+  const [viewOpen, setViewOpen] = useState(false)
   const editorApi = useRef<{ format: () => void; insert: (t: string) => void } | null>(null)
   useCrumbs([{ label: $t('Éditeur SQL') }])
 
   useEffect(() => {
     const loaded = loadTabs()
     const sql = params.get('sql')
-    const next = sql ? [...loaded, newTab(loaded.length + 1, sql)] : loaded
+    // A view to edit arrives with its definition: its tab is named after it, and saves it back.
+    const view = parseViewKey(params.get('view'))
+    const opened = sql ? { ...newTab(loaded.length + 1, sql), ...(view ? { name: view.name, view } : {}) } : null
+    const next = opened ? [...loaded, opened] : loaded
     setTabs(next)
     setActive(next[next.length - 1]?.id ?? '')
     if (sql) router.replace('/sql')
@@ -357,6 +403,11 @@ function SqlWorkspace() {
               <Sparkles className="text-violet-500" /> {$t('Copilote')}
             </Button>
           ) : null}
+          {me?.can.manage_sources && !tab?.native ? (
+            <Button size="sm" variant={tab?.view ? 'default' : 'outline'} disabled={!tab?.sql.trim()} onClick={() => setViewOpen(true)}>
+              <Eye /> {tab?.view ? $t('Enregistrer la vue') : $t('Enregistrer comme vue')}
+            </Button>
+          ) : null}
           <Button size="sm" variant="outline" disabled={!tab?.sql.trim()} onClick={() => setSaveOpen(true)}>
             <Save /> {$t('Enregistrer comme question')}
           </Button>
@@ -441,6 +492,7 @@ function SqlWorkspace() {
           )}
         </div>
       </div>
+      <SaveViewDialog open={viewOpen} onOpenChange={setViewOpen} sql={tab?.sql ?? ''} initial={tab?.view ?? null} />
       <SaveDialog
         open={saveOpen}
         onOpenChange={setSaveOpen}

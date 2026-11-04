@@ -6,6 +6,7 @@
  * sélection quand il y en a une, `Maj+Alt+F` met en forme, et l'erreur de Trino se place sur
  * la ligne et la colonne qu'il désigne.
  */
+import { searchPanel } from '@/components/app/sql-search'
 import { $t } from '@/lib/i18n'
 import type { SchemaTree } from '@/lib/queries'
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
@@ -15,7 +16,7 @@ import { HighlightStyle, bracketMatching, foldGutter, indentOnInput, syntaxHighl
 import { type Diagnostic, lintGutter, linter } from '@codemirror/lint'
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search'
 import { Compartment, EditorSelection, EditorState } from '@codemirror/state'
-import { EditorView, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, placeholder as placeholderExtension } from '@codemirror/view'
+import { EditorView, drawSelection, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, placeholder as placeholderExtension } from '@codemirror/view'
 import { tags } from '@lezer/highlight'
 import { useEffect, useRef } from 'react'
 
@@ -74,7 +75,14 @@ const theme = EditorView.theme({
   '.cm-gutters': { backgroundColor: 'transparent', border: 'none', color: 'color-mix(in oklab, var(--muted-foreground) 55%, transparent)' },
   '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--foreground)' },
   '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: 'color-mix(in oklab, var(--primary) 22%, transparent)' },
-  '.cm-cursor': { borderLeftColor: 'var(--foreground)' },
+  // The cursor is drawn (drawSelection), in the text's colour: the browser's own caret, in light,
+  // could vanish against the active line.
+  '.cm-cursor, .cm-dropCursor': { borderLeft: '2px solid var(--foreground)', marginLeft: '-1px' },
+  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: 'color-mix(in oklab, var(--primary) 22%, transparent) !important' },
+  '.cm-panels': { backgroundColor: 'transparent', color: 'inherit' },
+  '.cm-searchMatch': { backgroundColor: 'color-mix(in oklab, oklch(0.85 0.15 85) 40%, transparent)', borderRadius: '2px' },
+  '.cm-searchMatch.cm-searchMatch-selected': { backgroundColor: 'color-mix(in oklab, var(--primary) 30%, transparent)', outline: '1px solid color-mix(in oklab, var(--primary) 60%, transparent)' },
+  '.cm-panels.cm-panels-top': { borderBottom: 'none' },
   '.cm-completionLabel': { fontFamily: 'var(--font-mono, ui-monospace, monospace)' },
   '.cm-completionDetail': { fontStyle: 'normal', opacity: 0.6, marginLeft: '0.75rem' },
 })
@@ -164,7 +172,8 @@ export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, on
           highlightActiveLine(),
           highlightActiveLineGutter(),
           highlightSelectionMatches(),
-          search({ top: true }),
+          drawSelection(),
+          search({ top: true, createPanel: searchPanel }),
           syntaxHighlighting(highlight),
           theme,
           lintGutter(),

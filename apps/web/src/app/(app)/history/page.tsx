@@ -14,7 +14,9 @@ import { useMe } from '@/lib/queries'
 import { useCrumbs } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronRight, Code2, History, Loader2, RotateCw, Zap } from 'lucide-react'
+import { ChevronDown, ChevronRight, Code2, Gauge, History, Loader2, RotateCw, Zap } from 'lucide-react'
+import { PerformancePanel } from '@/components/app/performance'
+import { Segmented } from '@/components/ui/segmented'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -103,6 +105,7 @@ export default function HistoryPage() {
   const [all, setAll] = useState(false)
   const [origin, setOrigin] = useState('')
   const [errors, setErrors] = useState(false)
+  const [tab, setTab] = useState<'runs' | 'performance'>('runs')
   const everyone = all && !!me?.is_admin
   const q = useInfiniteQuery({
     queryKey: ['history', everyone, origin, errors],
@@ -121,13 +124,22 @@ export default function HistoryPage() {
         title={$t('Historique des requêtes')}
         description={$t('Chaque requête envoyée à Trino, avec le SQL réellement exécuté : depuis l’éditeur, une question, un tableau de bord, l’API, le serveur MCP ou le copilot.')}
         actions={
-          <Hint label={$t('Actualiser')}>
-            <Button variant="outline" size="icon" onClick={() => q.refetch()} aria-label={$t('Actualiser')}>
-              <RotateCw className={cn(q.isFetching && 'animate-spin')} />
-            </Button>
-          </Hint>
+          <Segmented
+            value={tab}
+            onValueChange={(v) => setTab(v as 'runs' | 'performance')}
+            aria-label={$t('Vue')}
+            inline
+            options={[
+              { value: 'runs', label: $t('Exécutions'), icon: History },
+              { value: 'performance', label: $t('Performance'), icon: Gauge },
+            ]}
+          />
         }
       />
+      {tab === 'performance' ? (
+        <PerformancePanel />
+      ) : (
+      <>
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <Choice
           value={origin}
@@ -149,6 +161,11 @@ export default function HistoryPage() {
           </label>
         ) : null}
         <span className="flex-1" />
+        <Hint label={$t('Actualiser')}>
+          <Button variant="outline" size="icon" onClick={() => q.refetch()} aria-label={$t('Actualiser')}>
+            <RotateCw className={cn(q.isFetching && 'animate-spin')} />
+          </Button>
+        </Hint>
         <span className="text-sm text-muted-foreground">{q.hasNextPage ? $t('{count}+ requêtes', { count: runs.length }) : $tp(runs.length, '{count} requête', '{count} requêtes')}</span>
       </div>
       <div className="overflow-hidden rounded-xl border">
@@ -171,6 +188,8 @@ export default function HistoryPage() {
           </Button>
         </div>
       ) : null}
+      </>
+      )}
     </div>
   )
 }

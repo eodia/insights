@@ -12,8 +12,13 @@ import {
   type SourceRef,
   applyConstraints,
   cardConstraints,
+  conditionCard,
   distinctLabels,
   kindOfTrinoType,
+  mergeCompared,
+  comparedQuery,
+  type CompareMode,
+  parseConditionCardId,
 } from '@eodia/contracts'
 import {
   type ColumnInfo,
@@ -58,6 +63,17 @@ export interface RunInput {
   readonly executionId?: string
   /** Column metadata of a model, applied to the result. */
   readonly columnsMeta?: Record<string, Partial<{ label: string; semantic: string | null; format: Record<string, unknown> }>> | null
+  /** Beside each measure, its value in the period compared to (a builder question over time). */
+  readonly compare?: CompareMode
+}
+
+/** The period compared to, as a measure's column says it. */
+const COMPARE_LABELS: Record<CompareMode, string> = { previous_year: 'N-1', previous_period: 'période précédente' }
+
+/** A visualization's comparison, when it asks for one. */
+export function compareOf(visualization: unknown): CompareMode | undefined {
+  const v = (visualization as { settings?: { compare?: unknown } } | null | undefined)?.settings?.compare
+  return v === 'previous_year' || v === 'previous_period' ? v : undefined
 }
 
 export interface RunResult extends QueryResult {
@@ -259,7 +275,21 @@ function sqlColumns(columns: readonly { name: string; dataType: string }[]): Res
 
 const CATALOG_MISSING = /Catalog '([^']+)' (?:not found|does not exist)/i
 
+/**
+ * Runs a query — and, when it asks to be compared, the same over the period compared to: its date
+ * filters moved back, under the same rights, its measures set beside the current ones.
+ */
 export async function runQuery(core: Core, actor: Actor, input: RunInput): Promise<RunResult> {
+  const main = await runOnce(core, actor, input)
+  if (!input.compare || input.query.kind !== 'builder') return main
+  const shifted = comparedQuery(input.query, input.constraints ?? [], input.compare, today())
+  if (!shifted) return main
+  const { executionId: _id, compare: _c, ...rest } = input
+  const previous = await runOnce(core, actor, { ...rest, query: shifted.query, constraints: shifted.constraints }).catch(() => null)
+  return previous ? mergeCompared(main, previous, shifted.shift, COMPARE_LABELS[input.compare]) : main
+}
+
+async function runOnce(core: Core, actor: Actor, input: RunInput): Promise<RunResult> {
   const snap = await core.snapshot()
   const prepared: Prepared = { tables: new Map(), questions: new Map(), metrics: new Map(), datasources: new Set() }
   if (input.adhoc) {
@@ -435,6 +465,7 @@ export async function runQuestion(
     cacheTtl: q.cache_ttl,
     // A model's column metadata, or a saved question's own (labels and formats of its SQL).
     columnsMeta: (q.columns_meta as RunInput['columnsMeta']) ?? null,
+    ...(compareOf(q.visualization) ? { compare: compareOf(q.visualization) } : {}),
   })
 }
 
@@ -451,7 +482,11 @@ export async function runCard(
   opts: { fresh?: boolean; origin?: Origin; locked?: Readonly<Record<string, ParameterValue | null>> } = {},
 ): Promise<RunResult> {
   const d = await getDashboard(core, actor, dashboardId)
-  const card = d.cards.find((c) => c.id === cardId)
+  // A query rule of a card's or a tab's display condition runs as a card of its own.
+  const rule = parseConditionCardId(cardId)
+  const owner = rule ? (d.cards.find((c) => c.id === rule.owner)?.condition ?? d.tabs.find((t) => t.id === rule.owner)?.condition) : undefined
+  const ruleDef = rule ? owner?.rules[rule.index] : undefined
+  const card = rule ? (ruleDef?.kind === 'query' ? conditionCard(rule.owner, rule.index, ruleDef) : undefined) : d.cards.find((c) => c.id === cardId)
   if (!card || card.kind !== 'question') throw new AppError('NOT_FOUND', 'Carte introuvable.')
   const merged = { ...values, ...(opts.locked ?? {}) }
   const constraints = cardConstraints(card.mappings, d.parameters, merged)
@@ -459,9 +494,11 @@ export async function runCard(
   if (card.question) {
     const q = await getQuestion(core, actor, card.question)
     const limit = rowLimitOf(card.visualization ?? q.visualization)
+    const compare = compareOf(card.visualization ?? q.visualization)
     return runQuery(core, actor, {
       ...common,
       ...(limit ? { limit } : {}),
+      ...(compare ? { compare } : {}),
       query: q.query,
       adhoc: false,
       questionId: q.id,
@@ -471,7 +508,8 @@ export async function runCard(
   }
   if (!card.query) throw new AppError('NOT_FOUND', 'Carte sans question.')
   const limit = rowLimitOf(card.visualization)
-  return runQuery(core, actor, { ...common, ...(limit ? { limit } : {}), query: card.query, adhoc: false, cacheTtl: d.cache_ttl })
+  const compare = compareOf(card.visualization)
+  return runQuery(core, actor, { ...common, ...(limit ? { limit } : {}), ...(compare ? { compare } : {}), query: card.query, adhoc: false, cacheTtl: d.cache_ttl })
 }
 
 /** Warms the cache of the dashboards marked « préchargés », as their author. */

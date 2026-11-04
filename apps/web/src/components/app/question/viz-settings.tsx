@@ -1,7 +1,8 @@
 'use client'
 
-import type { ColorScheme, ResultColumn, VisualizationSettings, VisualizationType } from '@eodia/contracts'
-import { VISUALIZATIONS } from '@eodia/contracts'
+import type { ColorScheme, ResultColumn, TextSize, VisualizationSettings, VisualizationType } from '@eodia/contracts'
+import { TEXT_SIZES, THEME_FONTS, VISUALIZATIONS } from '@eodia/contracts'
+import { loadFont } from '@/lib/theme'
 import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,7 +14,7 @@ import { VIZ_LABELS, type Result, autoVisualization, chartOption, roles, vizFits
 import { Hint } from '@/components/ui/tooltip'
 import { Segmented } from '@/components/ui/segmented'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { axesOf, pivotModel } from '@/lib/pivot'
 import { PivotAxisSetting } from '@/components/app/pivot-axis'
@@ -29,9 +30,6 @@ import {
   Bubbles,
   ChartColumnDecreasing,
   ChartNoAxesColumn,
-  PaintBucket,
-  Slash,
-  Blend,
   Disc3,
   Orbit,
   Flower2,
@@ -212,6 +210,50 @@ function Glyph({ className, children }: { className?: string; children: React.Re
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       {children}
     </svg>
+  )
+}
+/** Three bars, as the chart draws them: the same shapes for each fill, only their inside changes. */
+const BARS = [
+  { x: 2.5, y: 10, h: 11 },
+  { x: 9.5, y: 3, h: 18 },
+  { x: 16.5, y: 7, h: 14 },
+] as const
+const IconBarsSolid = ({ className }: { className?: string }) => (
+  <Glyph className={className}>
+    {BARS.map((b) => (
+      <rect key={b.x} x={b.x} y={b.y} width={5} height={b.h} rx={1.2} fill="currentColor" />
+    ))}
+  </Glyph>
+)
+const IconBarsHatched = ({ className }: { className?: string }) => {
+  const id = useId()
+  return (
+    <Glyph className={className}>
+      <defs>
+        <pattern id={`${id}-h`} width={3.2} height={3.2} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1={0} y1={0} x2={0} y2={3.2} stroke="currentColor" strokeWidth={1.6} />
+        </pattern>
+      </defs>
+      {BARS.map((b) => (
+        <rect key={b.x} x={b.x} y={b.y} width={5} height={b.h} rx={1.2} fill={`url(#${id}-h)`} strokeWidth={1.3} />
+      ))}
+    </Glyph>
+  )
+}
+const IconBarsGradient = ({ className }: { className?: string }) => {
+  const id = useId()
+  return (
+    <Glyph className={className}>
+      <defs>
+        <linearGradient id={`${id}-g`} x1={0} y1={0} x2={0} y2={1}>
+          <stop offset="0%" stopColor="currentColor" stopOpacity={1} />
+          <stop offset="100%" stopColor="currentColor" stopOpacity={0.12} />
+        </linearGradient>
+      </defs>
+      {BARS.map((b) => (
+        <rect key={b.x} x={b.x} y={b.y} width={5} height={b.h} rx={1.2} fill={`url(#${id}-g)`} stroke="none" />
+      ))}
+    </Glyph>
   )
 }
 const IconStraight = ({ className }: { className?: string }) => (
@@ -598,6 +640,8 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
     set({ ref_lines: [...next] })
   }
   const race = type === 'bar_race' || type === 'line_race'
+  // Drawn by ECharts, whose texts these settings restyle.
+  const charted = !['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(type)
   const colored = cartesian || race || type === 'polar' || type === 'bubble' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'scatter' || type === 'radar'
 
   return (
@@ -830,6 +874,30 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
         </Section>
       ) : null}
 
+      {cartesian && xCol && (xCol.type === 'date' || xCol.type === 'datetime') ? (
+        <Section title={$t('Comparer')}>
+          <Choice
+            value={settings.compare ?? ''}
+            onValueChange={(v) => set({ compare: (v || undefined) as VisualizationSettings['compare'] })}
+            options={[
+              { value: '', label: $t('Aucune comparaison') },
+              { value: 'previous_year', label: $t('Même période l’an dernier') },
+              { value: 'previous_period', label: $t('Période précédente') },
+            ]}
+            aria-label={$t('Comparer')}
+            className="w-full"
+            searchable={false}
+          />
+          {settings.compare ? (
+            <p className="text-[11px] text-muted-foreground">
+              {settings.compare === 'previous_period'
+                ? $t('Chaque mesure gagne sa valeur sur la période précédente, de même durée — il faut un filtre de dates, de la question ou du tableau de bord. Questions construites avec l’éditeur visuel.')
+                : $t('Chaque mesure gagne sa valeur un an plus tôt, en pointillés. Questions construites avec l’éditeur visuel.')}
+            </p>
+          ) : null}
+        </Section>
+      ) : null}
+
       {cartesian ? (
         <Section title={$t('Axes')}>
           {(type === 'line' || type === 'area') && xCol && (xCol.type === 'date' || xCol.type === 'datetime') ? (
@@ -1029,9 +1097,9 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
             onValueChange={(v) => set({ bar_fill: v === 'auto' ? undefined : v })}
             options={[
               { value: 'auto', label: $t('Du thème'), icon: Palette },
-              { value: 'solid', label: $t('Plein'), icon: PaintBucket },
-              { value: 'hatched', label: $t('Hachuré'), icon: Slash },
-              { value: 'gradient', label: $t('Dégradé'), icon: Blend },
+              { value: 'solid', label: $t('Plein'), icon: IconBarsSolid },
+              { value: 'hatched', label: $t('Hachuré'), icon: IconBarsHatched },
+              { value: 'gradient', label: $t('Dégradé'), icon: IconBarsGradient },
             ]}
             aria-label={$t('Remplissage des barres')}
           />
@@ -1162,6 +1230,58 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           </div>
         </Section>
       ) : null}
+
+      {charted ? <TextSettings settings={settings} set={set} /> : null}
     </div>
+  )
+}
+
+/** The colours offered for the texts: the greys of the page, then those of the looks. */
+const TEXT_COLORS = ['#18181b', '#52525b', '#a1a1aa', '#ffffff', LOOK_HEX.blue, LOOK_HEX.green, LOOK_HEX.red, LOOK_HEX.purple] as const
+
+/** A chart's texts: their font, their size, their colour — the theme's when nothing is chosen. */
+function TextSettings({ settings, set }: { settings: VisualizationSettings; set: (p: Partial<VisualizationSettings>) => void }) {
+  const color = settings.text_color
+  return (
+    <Section title={$t('Textes')}>
+      <Field label={$t('Police')}>
+        <Choice
+          value={settings.text_font ?? ''}
+          onValueChange={(v) => {
+            if (v) loadFont(v)
+            set({ text_font: v || undefined })
+          }}
+          options={[{ value: '', label: $t('Celle du thème') }, ...THEME_FONTS.map((f) => ({ value: f, label: f }))]}
+          aria-label={$t('Police')}
+          searchable
+          className="w-full"
+        />
+      </Field>
+      <Field label={$t('Taille')}>
+        <Segmented
+          value={settings.text_size ?? 'md'}
+          onValueChange={(v) => set({ text_size: v === 'md' ? undefined : (v as TextSize) })}
+          aria-label={$t('Taille des textes')}
+          options={TEXT_SIZES.map((k) => ({ value: k, label: { sm: 'S', md: 'M', lg: 'L', xl: 'XL' }[k] }))}
+        />
+      </Field>
+      <Field label={$t('Couleur')}>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => set({ text_color: undefined })}
+            className={cn('h-6 rounded-full border-2 px-2 text-[11px]', !color ? 'border-foreground' : 'border-border text-muted-foreground')}
+          >
+            {$t('Auto')}
+          </button>
+          {TEXT_COLORS.map((c) => (
+            <button key={c} type="button" onClick={() => set({ text_color: c })} className={cn('size-6 rounded-full border-2', color === c ? 'border-primary' : 'border-border')} style={{ background: c }} aria-label={c} />
+          ))}
+          <span className="relative size-6 overflow-hidden rounded-full border-2 border-dashed border-border" style={color && !(TEXT_COLORS as readonly string[]).includes(color) ? { background: color, borderStyle: 'solid' } : undefined}>
+            <input type="color" value={color ?? '#52525b'} onChange={(e) => set({ text_color: e.target.value })} className="absolute inset-0 cursor-pointer opacity-0" aria-label={$t('Autre couleur')} />
+          </span>
+        </div>
+      </Field>
+    </Section>
   )
 }

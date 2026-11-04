@@ -54,6 +54,7 @@ export function ValueList({
   onChange,
   onShare,
   onDone,
+  fill = false,
 }: {
   columnId: string
   selected: readonly string[]
@@ -63,8 +64,16 @@ export function ValueList({
   /** The share of the rows in scope the selection keeps, for the filter's button. */
   onShare?: (share: number | null) => void
   onDone?: () => void
+  /** Laid in a card of the grid: the list fills it, and follows the filter chosen elsewhere. */
+  fill?: boolean
 }) {
   const [sel, setSel] = useState<string[]>(() => [...selected])
+  // In the grid, the filter changes elsewhere too — the bar, a click on a chart: the list follows.
+  const selectedKey = JSON.stringify(selected)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: by its content, not its identity
+  useEffect(() => {
+    if (fill && pending.current === null) setSel(JSON.parse(selectedKey) as string[])
+  }, [selectedKey, fill])
   const [opened] = useState(() => new Set(selected))
   const [q, setQ] = useState('')
   const [serverQ, setServerQ] = useState('')
@@ -244,8 +253,8 @@ export function ValueList({
   ]
 
   return (
-    <div className="flex w-80 flex-col gap-2 p-3" onKeyDown={onKey}>
-      <SearchBox value={q} onChange={setQ} placeholder={$t('Chercher une valeur…')} />
+    <div className={cn('flex flex-col gap-2', fill ? 'h-full min-h-0 w-full' : 'w-80 p-3')} onKeyDown={onKey}>
+      <SearchBox value={q} onChange={setQ} placeholder={$t('Chercher une valeur…')} autoFocus={!fill} />
 
       {/* What the selection keeps */}
       <div className="space-y-1">
@@ -307,7 +316,7 @@ export function ValueList({
         aria-multiselectable={multiple}
         tabIndex={0}
         aria-activedescendant={rows[active] ? `v-${active}` : undefined}
-        className="max-h-72 overflow-y-auto rounded-lg border outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        className={cn('overflow-y-auto rounded-lg border outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/40', fill ? 'min-h-0 flex-1' : 'max-h-72')}
       >
         {loading ? (
           <div className="flex items-center justify-center gap-2 p-4 text-xs text-muted-foreground">
@@ -398,13 +407,16 @@ export function ValueList({
         ) : null}
       </div>
 
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        {multiple
-          ? $t(
-              'Maj + clic : une plage · Ctrl + clic : seulement celle-ci · ↑ ↓ Espace · Ctrl + A : tout',
-            )
-          : $t('Un clic choisit la valeur · ↑ ↓ Espace')}
-      </p>
+      {/* The keys, in the bar's list; a pane in the grid keeps its room for the values. */}
+      {fill ? null : (
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          {multiple
+            ? $t(
+                'Maj + clic : une plage · Ctrl + clic : seulement celle-ci · ↑ ↓ Espace · Ctrl + A : tout',
+              )
+            : $t('Un clic choisit la valeur · ↑ ↓ Espace')}
+        </p>
+      )}
     </div>
   )
 }

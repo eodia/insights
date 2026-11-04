@@ -18,6 +18,7 @@ import {
   renameConversation,
   revokeShareLink,
   runCard,
+  summarizeCard,
   runQuestion,
   sharedContent,
   updateShareLink,
@@ -71,6 +72,13 @@ export function sharingRoutes(app: ReturnType<typeof newApp>) {
     const { link, actor } = await openShareLink(core, param(c, 'token'), c.get('actor'))
     if (link.item_kind !== 'dashboard') throw new AppError('NOT_FOUND', 'Carte introuvable.')
     return ok(c, await runCard(core, actor, link.item_id, param(c, 'card'), bodyOf(c, PublicRun).values ?? {}, { origin: 'share', locked: link.locked_parameters }))
+  })
+  route(app, { method: 'post', path: '/api/public/links/:token/cards/:card/summary', tags: ptags, summary: "Résumé d'un tableau partagé par l'assistant", body: PublicRun, public: true }, async (c) => {
+    const core = c.get('core')
+    const { link, actor } = await openShareLink(core, param(c, 'token'), c.get('actor'))
+    if (link.item_kind !== 'dashboard') throw new AppError('NOT_FOUND', 'Carte introuvable.')
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
+    return ok(c, await summarizeCard(core, actor, link.item_id, param(c, 'card'), bodyOf(c, PublicRun).values ?? {}, { locale, locked: link.locked_parameters }))
   })
   route(app, { method: 'post', path: '/api/public/links/:token/run', tags: ptags, summary: 'Exécuter une question partagée', body: PublicRun, public: true }, async (c) => {
     const core = c.get('core')

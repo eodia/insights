@@ -486,6 +486,8 @@ export interface DatasourceOptions {
    * catalog: a view runs with its owner's rights by default (SECURITY DEFINER).
    */
   readonly view_owners?: readonly string[]
+  /** Materialized views refreshed by themselves: every so many hours, by `schema.name`. */
+  readonly view_refresh?: Readonly<Record<string, number>>
   /**
    * A technical catalog: in Trino for the views of the sources that depend on it, never shown
    * as a source, never synchronised, read by no one directly — only by those views' owners.
@@ -507,6 +509,76 @@ export interface SourceDependency {
   readonly shared_with: readonly string[]
 }
 
+/** A comment on a card of a dashboard, read by everyone who opens it. */
+export interface CardComment {
+  readonly id: string
+  readonly card: string
+  readonly body: string
+  readonly author: UserSummary | null
+  readonly created_at: string
+  readonly edited_at: string | null
+  /** Its author's: they may change or remove it. */
+  readonly mine: boolean
+}
+
+/** A date — or a span — marked on a chart over time: « grève du 12 ». */
+export interface Annotation {
+  readonly id: string
+  /** On a saved question: wherever it shows. */
+  readonly question: string | null
+  /** On a card keeping its own query. */
+  readonly dashboard: string | null
+  readonly card: string | null
+  /** `YYYY-MM-DD`. */
+  readonly at: string
+  readonly end: string | null
+  readonly label: string
+  readonly color: string | null
+  readonly author: UserSummary | null
+  readonly mine: boolean
+}
+
+/** A dashboard's filters and tab kept under a name — Qlik's bookmarks. */
+export interface DashboardSavedView {
+  readonly id: string
+  readonly name: string
+  /** The filters' values, by filter id. */
+  readonly values: Readonly<Record<string, unknown>>
+  readonly tab: string | null
+  /** Seen by everyone who opens the dashboard. */
+  readonly shared: boolean
+  /** Applied when its author opens the dashboard. */
+  readonly is_default: boolean
+  readonly mine: boolean
+  readonly author: UserSummary | null
+}
+
+/** A Trino view of a source, as its catalog defines it. */
+export interface SourceView {
+  readonly schema: string
+  readonly name: string
+  /** Its SELECT, as Trino keeps it. */
+  readonly definition: string
+  /** The table insights describes it as, once synchronised. */
+  readonly table: string | null
+  /** A materialized view: its result kept, read as a table, refreshed by hand or on a schedule. */
+  readonly materialized: boolean
+  /** When its result was last computed (a materialized view). */
+  readonly fresh_at: string | null
+  /** `FRESH`, `STALE`, `UNKNOWN`: whether its result still matches its tables, as Trino says. */
+  readonly freshness: string | null
+  /** Refreshed by itself every so many hours; `null`: by hand. */
+  readonly refresh_hours: number | null
+}
+
+/** What reads a view: what an edit or a removal of it would touch. */
+export interface ViewImpact {
+  readonly questions: readonly { readonly id: string; readonly name: string; readonly type: string }[]
+  readonly dashboards: readonly { readonly id: string; readonly name: string }[]
+  /** Those of other spaces the source is shared with: counted, not named. */
+  readonly elsewhere: number
+}
+
 /** A schema of a source as its settings list it: shown or not, and its name to show. */
 export interface SourceSchema {
   readonly name: string
@@ -521,6 +593,8 @@ export interface SourceSchema {
 // ── Structure ───────────────────────────────────────────────────────────────
 
 export type ItemStatus = 'active' | 'removed'
+
+export type TableKind = 'table' | 'view' | 'materialized_view'
 
 export interface TableMeta {
   readonly id: string
@@ -538,6 +612,8 @@ export interface TableMeta {
   readonly icon: string | null
   readonly display_column: string | null
   readonly row_count: number | null
+  /** What it is for Trino: a view shows by its own pictogram. */
+  readonly kind: TableKind
   readonly status: ItemStatus
   readonly synced_at: string | null
   readonly columns?: readonly ColumnMeta[]
@@ -689,6 +765,45 @@ export interface Snippet {
   readonly name: string
   readonly description: string | null
   readonly content: string
+}
+
+/** A query as it ran over a period: a question's, or the same SQL run again. */
+export interface QueryPerformance {
+  readonly key: string
+  readonly question: { readonly id: string; readonly name: string } | null
+  /** Its SQL, the last run's. */
+  readonly sql: string
+  readonly runs: number
+  /** Runs served by the cache: not counted in the times. */
+  readonly cached: number
+  readonly errors: number
+  readonly avg_ms: number
+  readonly p95_ms: number
+  readonly max_ms: number
+  /** The time it took Trino, all runs together: where the effort pays most. */
+  readonly total_ms: number
+  readonly last_at: string
+}
+
+export interface PerformanceReport {
+  readonly days: number
+  readonly runs: number
+  readonly cached: number
+  readonly errors: number
+  readonly avg_ms: number
+  readonly p95_ms: number
+  /** Runs past the slowness threshold. */
+  readonly slow: number
+  readonly slow_ms: number
+  readonly queries: readonly QueryPerformance[]
+}
+
+/** The assistant's advice on a query: what slows it, what to do. */
+export interface QueryAdvice {
+  /** Markdown: the diagnosis, the actions ranked, a rewritten query when one helps. */
+  readonly advice: string
+  /** Trino's plan, as EXPLAIN gives it — `null` when it could not be read. */
+  readonly plan: string | null
 }
 
 export interface QueryExecution {

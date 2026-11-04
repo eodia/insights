@@ -139,6 +139,7 @@ services:
     environment:
       <<: *app-env
       API_URL: http://api:4100
+      MCP_URL: http://mcp:4200
     depends_on:
       api: { condition: service_healthy }
 

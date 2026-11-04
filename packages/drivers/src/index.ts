@@ -72,8 +72,13 @@ export const SYSTEM_SCHEMAS: Readonly<Record<Engine, readonly string[]>> = {
 }
 
 /** Whether a schema holds the engine's own machinery — Oracle's APEX ones carry a version. */
-export function isSystemSchema(engine: Engine, name: string): boolean {
+/**
+ * A schema of the engine's own machinery. A Trino connector set by hand is read by what it is:
+ * an Iceberg one has Iceberg's `system` schema too.
+ */
+export function isSystemSchema(engine: Engine, name: string, config?: Readonly<Record<string, unknown>> | null): boolean {
   const n = name.toLowerCase()
+  if (engine === 'trino' && String(config?.connector ?? '').toLowerCase() === 'iceberg' && SYSTEM_SCHEMAS.iceberg.includes(n)) return true
   return SYSTEM_SCHEMAS[engine].includes(n) || (engine === 'oracle' && /^apex_\d/.test(n))
 }
 

@@ -154,7 +154,7 @@ développement.
 
 Une image unique (`Dockerfile`) contient l'API, le web, le worker et le serveur MCP ; l'argument
 du conteneur choisit le rôle : `api`, `web`, `worker`, `mcp`, ou `all` (API + web + worker dans
-un seul conteneur, sous un petit superviseur ; `WITH_MCP=1` y ajoute le MCP).
+un seul conteneur, sous un petit superviseur ; le MCP compris, que l’interface relaie sur `/mcp` ; `WITH_MCP=0` le retire).
 
 `docker-compose.prod.yml` assemble l'ensemble : PostgreSQL du catalogue, Trino (configuration de
 `docker/trino/etc`, OPA pointé sur `http://api:4100/internal/opa/<secret>`), api, worker, web,

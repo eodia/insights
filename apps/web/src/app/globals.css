@@ -251,6 +251,20 @@
   }
 }
 
+/* A card just added to a dashboard: a ring that fades, to find it at a glance. */
+@keyframes card-landed {
+  0%,
+  40% {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+.card-landed {
+  animation: card-landed 1.6s ease-out 0.25s;
+}
+
 /* The screens before a session move a lot; asked for less motion, they arrive still. */
 @media (prefers-reduced-motion: reduce) {
   [data-auth-screen] *,
@@ -292,6 +306,10 @@
   html,
   body {
     height: 100%;
+  }
+  /* A touch smaller than the browser's 16 px: every size given in rem follows — text and spacing. */
+  html {
+    font-size: 15px;
   }
   ::-webkit-scrollbar {
     width: 10px;

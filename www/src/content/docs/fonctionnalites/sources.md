@@ -201,6 +201,38 @@ onglets :
 - **Emoji** : par thème, ou collé ;
 - **Image** : un logo, une photo, un drapeau, par son adresse `https://`, avec un aperçu.
 
+### Les données
+
+Sous la table, **Colonnes** / **Données** bascule vers ses premières lignes (100, 1 000 ou
+10 000), lues comme une question : sous **votre** identité, vos filtres de lignes et vos masques
+appliqués. La table s’y cherche, s’y filtre, s’y trie et s’exporte ; **Explorer dans une
+question** ouvre l’éditeur visuel sur elle.
+
+### Les vues
+
+Une source Iceberg (ou un connecteur Trino qui les accepte) a un onglet **Vues** : les vues Trino
+de ses schémas, avec leur requête et ce qui les lit — questions et tableaux de bord. **Modifier**
+rouvre une vue dans l’éditeur SQL, **Supprimer** la retire du catalogue après avoir montré ce qui
+cessera de fonctionner. On en crée depuis l’éditeur SQL, **Enregistrer comme vue** (voir
+[Questions](/insights/fonctionnalites/questions/#enregistrer-une-vue-trino)) ; elles sont toujours
+`SECURITY INVOKER`, lues avec les droits de qui les lit.
+
+**Les vues matérialisées** gardent leur résultat, calculé une fois : un calcul lourd, lu vite. Un
+administrateur de l’espace les crée (option **Vue matérialisée** du même dialogue), sur un
+catalogue Iceberg dont le métastore les accepte — Hive ou Glue, ni REST ni JDBC. L’onglet **Vues**
+dit quand chacune a été calculée et si elle est **périmée** (ses tables ont changé depuis) ;
+**Rafraîchir** la recalcule, et elle se rafraîchit seule toutes les heures, 6 ou 12 heures,
+chaque jour ou chaque semaine si on le choisit.
+
+:::caution[Une vue matérialisée se lit en entier]
+Son résultat est calculé avec tous les droits : qui peut lire la vue en voit tout, quels que
+soient ses filtres de lignes sur les tables d’origine. Réglez ses accès sur la vue elle-même, dans
+[Droits](/insights/fonctionnalites/droits/), comme pour une table.
+:::
+
+Dans l’explorateur, l’éditeur SQL et le choix des données d’une question, une vue se reconnaît à
+son œil, une vue matérialisée à ses couches.
+
 ### Les relations
 
 **Voir les relations** ouvre le diagramme d’une source : ses tables et leurs clés étrangères,

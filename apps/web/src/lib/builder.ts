@@ -34,12 +34,21 @@ export interface ColumnOption {
 
 const aliasOf = (fkColumn: string, table: TableMeta) => (fkColumn.replace(/_id$|Id$|_fk$/, '') || table.name).toLowerCase()
 
+/** A model's result columns, as its question reads them: what a join on it offers. */
+export interface ModelColumns {
+  readonly name: string
+  /** Each with the catalog column it reads, when the model's question says: its values are listed. */
+  readonly columns: readonly { name: string; type: string; label: string; id?: string }[]
+}
+
 /** Columns a question built on `source` can use. */
 export function columnOptions(
   source: TableMeta | null,
   tables: ReadonlyMap<string, TableMeta>,
   query: BuilderQuery | null,
-  sourceColumns?: readonly { name: string; type: string; label: string }[],
+  sourceColumns?: readonly { name: string; type: string; label: string; id?: string }[],
+  /** The models joined to the question, by identifier. */
+  models?: ReadonlyMap<string, ModelColumns>,
 ): ColumnOption[] {
   const out: ColumnOption[] = []
   const own = (c: ColumnMeta, group: string, join?: Join): ColumnOption => ({
@@ -67,12 +76,19 @@ export function columnOptions(
       }
     }
   } else if (sourceColumns) {
-    for (const c of sourceColumns) out.push({ ref: { field: c.name }, label: c.label, group: $t('Modèle'), kind: kindOfTrinoType(c.type), type: c.type })
+    for (const c of sourceColumns) out.push({ ref: { field: c.name }, label: c.label, group: $t('Modèle'), kind: kindOfTrinoType(c.type), type: c.type, ...(c.id ? { columnId: c.id } : {}) })
   }
-  // Explicit joins already in the query whose table is not reached through a key.
+  // Explicit joins already in the query whose table is not reached through a key — or a model.
   for (const j of query?.joins ?? []) {
     if (out.some((o) => o.join?.alias === j.alias)) continue
-    const t = j.source.kind === 'table' ? tables.get(j.source.id) : undefined
+    if (j.source.kind === 'question') {
+      const m = models?.get(j.source.id)
+      for (const c of m?.columns ?? []) {
+        out.push({ ref: { join: j.alias, field: c.name }, label: c.label, group: `${m?.name} (${j.alias})`, kind: kindOfTrinoType(c.type), type: c.type, join: j, ...(c.id ? { columnId: c.id } : {}) })
+      }
+      continue
+    }
+    const t = tables.get(j.source.id)
     for (const c of t?.columns ?? []) out.push(own(c, `${t?.label} (${j.alias})`, j))
   }
   for (const e of query?.expressions ?? []) out.push({ ref: { field: e.name }, label: e.name, group: $t('Colonnes personnalisées'), kind: 'number', type: 'double' })
@@ -200,9 +216,9 @@ export const semanticLabel = (s?: string | null) => {
 }
 
 /** An alias for a new join on `table`, free in the query and among the implicit ones. */
-export function joinAlias(query: BuilderQuery, table: TableMeta, options: readonly ColumnOption[]): string {
+export function joinAlias(query: BuilderQuery, table: { readonly name: string }, options: readonly ColumnOption[]): string {
   const taken = new Set([...(query.joins ?? []).map((j) => j.alias), ...options.flatMap((o) => (o.join ? [o.join.alias] : []))])
-  const base = table.name.toLowerCase().replace(/[^a-z0-9_]/g, '_') || 'jointure'
+  const base = table.name.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'jointure'
   let alias = base
   for (let i = 2; taken.has(alias); i++) alias = `${base}_${i}`
   return alias

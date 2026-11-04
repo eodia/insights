@@ -94,7 +94,7 @@ export function ColorPicker({ value, onChange, disabled, size = 'sm' }: { value:
  * An image sent as a pictogram, made small: 96 pixels at most on its longer side, in WebP (PNG
  * where the browser cannot), as a `data:` address the pictogram carries itself.
  */
-async function shrinkImage(file: File, max = 96): Promise<string> {
+export async function shrinkImage(file: File, max = 96, quality = 0.9): Promise<string> {
   const src = URL.createObjectURL(file)
   try {
     const img = new Image()
@@ -105,7 +105,7 @@ async function shrinkImage(file: File, max = 96): Promise<string> {
     canvas.width = Math.max(1, Math.round((img.naturalWidth || max) * scale))
     canvas.height = Math.max(1, Math.round((img.naturalHeight || max) * scale))
     canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height)
-    const webp = canvas.toDataURL('image/webp', 0.9)
+    const webp = canvas.toDataURL('image/webp', quality)
     return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/png')
   } finally {
     URL.revokeObjectURL(src)

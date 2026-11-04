@@ -9,10 +9,10 @@ import { LookIcon } from '@/components/app/look'
 import type { RunResult } from '@/lib/api'
 import { LOOK_CLASSES, formatCount, formatValue } from '@/lib/format'
 import { $t, $tp, intlLocale } from '@/lib/i18n'
-import { type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles, withTemporalUnits } from '@/lib/viz'
+import { type ChartAnnotation, type ChartModel, OTHER_CATEGORY, type Result, VIZ_LABELS, chartOption, roles, withAnnotations, withTemporalUnits } from '@/lib/viz'
 import { type PivotAxes, axesOf, pivotModel } from '@/lib/pivot'
 import { PivotAxisHeader } from '@/components/app/pivot-axis'
-import { useChartTheme } from '@/lib/theme'
+import { fontReady, useChartTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -108,9 +108,12 @@ export function Visualization({
   onSettingsChange,
   exportName,
   toolbarSlot,
+  annotations,
 }: {
   result: RunResult | Result
   viz: Viz
+  /** Dates marked on a chart over time. */
+  annotations?: readonly ChartAnnotation[]
   /** A table: where its search goes — a card's header —, rather than a line of its own. */
   toolbarSlot?: HTMLElement | null
   /** A table: where this browser keeps its widths and order. */
@@ -137,11 +140,24 @@ export function Visualization({
     () => (!own.scheme && chartTheme.scheme ? { ...own, scheme: chartTheme.scheme, ...(chartTheme.colors ? { colors: chartTheme.colors } : {}) } : own),
     [own, chartTheme.scheme, chartTheme.colors],
   )
+  // A font of the chart's own is fetched first: the canvas measures its labels once.
+  const textFont = settings.text_font
+  const [fontsLoaded, setFontsLoaded] = useState(0)
+  useEffect(() => {
+    if (!textFont) return
+    let live = true
+    void fontReady(textFont).then(() => live && setFontsLoaded((n) => n + 1))
+    return () => {
+      live = false
+    }
+  }, [textFont])
   const model = useMemo(() => {
+    void fontsLoaded
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
     const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
-    return m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
-  }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius])
+    const chosen = m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
+    return chosen && annotations?.length ? withAnnotations(chosen, annotations, dark) : chosen
+  }, [viz.type, result, settings, dark, selected, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations])
 
   if (result.rows.length === 0) {
     return (

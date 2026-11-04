@@ -18,12 +18,18 @@ for (const name of ['.env', '.env.local']) {
  * Il ne dépend jamais de `@eodia/core` — aucune action serveur n'ouvre de connexion aux données.
  */
 const API = process.env.API_URL ?? 'http://localhost:4100'
+/** The MCP server: `/mcp` is relayed too, so the address shown in « API et MCP » answers even without a proxy in front. */
+const MCP = process.env.MCP_URL ?? 'http://localhost:4200'
 
 const config: NextConfig = {
   transpilePackages: ['@eodia/contracts'],
   devIndicators: { position: 'bottom-right' },
   async rewrites() {
-    return [{ source: '/api/:path*', destination: `${API}/api/:path*` }]
+    return [
+      { source: '/api/:path*', destination: `${API}/api/:path*` },
+      { source: '/mcp', destination: `${MCP}/mcp` },
+      { source: '/mcp/', destination: `${MCP}/mcp` },
+    ]
   },
   // A shared item may be framed only with `?embed=1` (the page checks the link allows it).
   async headers() {

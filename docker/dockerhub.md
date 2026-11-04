@@ -164,7 +164,7 @@ yourself, the repository ships `docker-compose.demo.yml`; see
 On startup, the API and the worker apply the catalog migrations, under a lock: on an empty
 database they create it; afterwards, they only add what is missing. In `all` mode, if any of
 the processes stops, the whole container stops, and the restart policy brings it back.
-`WITH_MCP=1` adds the MCP server to it.
+It runs the MCP server too (`WITH_MCP=0` leaves it out); the interface relays `/mcp` to it.
 
 | Command | Port | What it runs |
 |---|---|---|

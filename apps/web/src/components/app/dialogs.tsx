@@ -138,6 +138,7 @@ export function ConfirmDialog({
   confirmLabel = $t('Supprimer'),
   destructive = true,
   onConfirm,
+  children,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -146,6 +147,8 @@ export function ConfirmDialog({
   confirmLabel?: string
   destructive?: boolean
   onConfirm: () => Promise<void> | void
+  /** What to weigh before confirming: what a removal touches, say. */
+  children?: React.ReactNode
 }) {
   const [busy, setBusy] = useState(false)
   return (
@@ -155,6 +158,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           {description ? <DialogDescription>{description}</DialogDescription> : null}
         </DialogHeader>
+        {children}
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             {$t('Annuler')}

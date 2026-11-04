@@ -121,6 +121,13 @@ Dans un tableau de bord, un clic sur une barre ou une part filtre le tableau, et
 ajoute d’autres catégories : voir [Tableaux de bord](/insights/fonctionnalites/tableaux-de-bord/#cliquer-sur-un-graphique-pour-filtrer).
 Dans l’éditeur, il propose de filtrer la question sur la valeur, ou de l’exclure.
 
+## Les textes
+
+Section **Textes** d’un graphique : la **police** (une de celles des thèmes, celle du thème par
+défaut), la **taille** — S, M, L ou XL, chaque texte en proportion : axes, étiquettes, légende,
+totaux — et la **couleur** des textes, pour un graphique lisible de loin ou aux couleurs d’une
+marque.
+
 ## Le clic droit dans un tableau
 
 Un clic droit sur une cellule ouvre le menu du tableau, rangé par groupes :

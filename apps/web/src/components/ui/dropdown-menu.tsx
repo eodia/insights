@@ -43,7 +43,8 @@ function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
-      data-variant={variant}
+      // An item already said destructive by its colour is one: its pictogram turns red with it.
+      data-variant={variant === 'default' && className?.includes('text-destructive') ? 'destructive' : variant}
       className={cn(
         "relative flex cursor-default select-none items-center gap-2.5 rounded-md px-2 py-1.5 text-sm outline-none transition-colors [&_svg]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         'focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',

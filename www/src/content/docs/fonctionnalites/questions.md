@@ -41,8 +41,11 @@ déclarée dans [Structure](/insights/fonctionnalites/sources/#les-relations) �
 avec celles de la table de départ : en choisir une ajoute la jointure, et la retirer l’enlève.
 
 **Joindre des données.** Dans l’étape **Données**, **Joindre des données** ajoute une jointure
-choisie : la table, le type (**à gauche**, **interne**, **à droite**, **complète**) et les deux
-colonnes de la condition — la clé entre les deux tables est proposée d’office. La jointure reste
+choisie : la table ou le [modèle](/insights/fonctionnalites/modeles-et-metriques/), le type
+(**à gauche**, **interne**, **à droite**, **complète**) et les deux colonnes de la condition — la
+clé entre les deux est proposée d’office (`client_id` du modèle ↔ `id` des clients, par
+exemple). Une table se joint à un modèle, un modèle à une table ou à un autre modèle, et une
+question peut joindre plusieurs modèles. La jointure reste
 même si aucune étape ne cite ses colonnes ; sans résumé, ses colonnes s’affichent après celles
 de la source, et se choisissent, se filtrent et se trient comme elles. Sa pastille la modifie ou
 la retire (avec les étapes qui citaient ses colonnes). Quatre jointures au plus.
@@ -60,7 +63,7 @@ source.
 
 ## L’éditeur SQL
 
-**Éditeur SQL** (ou **Nouveau › Requête SQL**) s’écrit en SQL Trino :
+L’**éditeur SQL** s’ouvre par **Nouveau › Requête SQL** (ou la recherche, `Ctrl+K`) ; il s’écrit en SQL Trino :
 
 - l’**autocomplétion** connaît `catalogue.schéma.table` et les colonnes de chaque table que vous
   pouvez lire, et rien d’autre ;
@@ -70,13 +73,32 @@ source.
 - une erreur de Trino se place sur la ligne et la colonne qu’il désigne ; **Corriger avec le
   copilot** lui demande une correction ;
 - plusieurs **onglets**, gardés dans votre navigateur ;
-- un panneau latéral : le **schéma** (cliquez pour insérer un nom), les **snippets** et
-  l’**historique** de vos requêtes.
+- un panneau latéral : le **schéma** — les tables rangées par source puis par schéma (base),
+  cliquez pour insérer un nom —, les **snippets** et l’**historique** de vos requêtes ;
+- **Ctrl+F** ouvre la recherche : casse, mot entier, expression régulière, le rang de
+  l’occurrence parmi toutes, et **Remplacer** (ou **Tout remplacer**).
 
 Les requêtes de l’éditeur ne passent jamais par le cache de résultats : vous voyez toujours
 l’état présent des données. Un aperçu lit au plus 2 000 lignes (`MAX_ROWS`).
 
 **Enregistrer comme question** range la requête dans un dossier ; elle devient une question SQL.
+
+### Enregistrer une vue Trino
+
+**Enregistrer comme vue** (droit **Gérer les sources**) garde la requête dans un catalogue qui
+accepte les vues — Iceberg, ou un connecteur Trino Hive ou Delta : choisissez la source, le
+schéma et le nom. Toute question, et tout outil branché sur Trino, la lit ensuite comme une table ;
+la source se synchronise aussitôt pour la décrire.
+
+La requête est d’abord analysée sous **votre** identité : vous ne gardez pas dans une vue ce que
+vous ne pouvez pas lire. La vue est créée `SECURITY INVOKER` : chacun la lit avec **ses propres
+droits**, ses lignes filtrées et ses colonnes masquées comprises. Une vue ne garde ni variable
+`{{…}}` ni plusieurs requêtes.
+
+Les vues d’une source se retrouvent dans son onglet **Vues** (voir
+[Sources](/insights/fonctionnalites/sources/#les-vues)) : **Modifier** les rouvre dans
+l’éditeur, **Enregistrer la vue** les remplace, après avoir montré les questions et tableaux de
+bord qui les lisent.
 
 ### Snippets
 
@@ -160,3 +182,16 @@ et [Prévisions](/insights/fonctionnalites/previsions/).
 son nombre de lignes, son erreur éventuelle et son origine : éditeur, question, carte de tableau
 de bord, API (le serveur MCP compris), copilot ou lien partagé. Chacun y voit les siennes ; un administrateur peut
 afficher celles de toutes les personnes.
+
+### La performance
+
+L’onglet **Performance** de l’historique classe les requêtes d’une période (24 heures, 7 ou
+30 jours) par **temps total passé dans Trino** — une requête rapide lancée mille fois peut coûter
+plus qu’une lente lancée une fois —, les exécutions d’une même question ensemble : nombre
+d’exécutions, temps moyen, 95ᵉ centile, maximum, erreurs, part servie par le cache. En tête, la
+synthèse de la période et les requêtes **lentes** (plus de 5 s).
+
+**Optimiser avec l’IA** lit le plan de la requête (`EXPLAIN`, sous votre identité) et demande à
+l’assistant un diagnostic, des actions classées — filtrer plus tôt, ne lire que les colonnes
+utiles, partitionner, mettre en cache, matérialiser… — et, quand elle aide, une requête
+réécrite à **essayer** dans l’éditeur SQL. Il faut un fournisseur d’IA configuré.

@@ -25,9 +25,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { ApiError, type RunResult, api, download } from '@/lib/api'
-import { type ColumnOption, UNIT_LABELS, columnOptions, withJoinFor } from '@/lib/builder'
+import { type ColumnOption, type ModelColumns, UNIT_LABELS, columnOptions, withJoinFor } from '@/lib/builder'
 import { $t, intlLocale } from '@/lib/i18n'
-import { keys, useMe, useMetrics, useModels, useQuestion, useSchemaTree, useTables } from '@/lib/queries'
+import { keys, useMe, useMetrics, useModelColumns, useModels, useModelsColumns, useQuestion, useSchemaTree, useTables } from '@/lib/queries'
 import { ThemeScope } from '@/lib/theme'
 import { useCrumbs, useUi } from '@/lib/store'
 import { autoVisualization } from '@/lib/viz'
@@ -160,15 +160,21 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const tableMap = useMemo(() => new Map(tables.map((t) => [t.id, t])), [tables])
   const builder = draft.query.kind === 'builder' ? draft.query : null
   const sourceTable = builder?.source.kind === 'table' ? tableMap.get(builder.source.id) ?? null : null
-  const modelColumns = useQuery({
-    queryKey: ['model-columns', builder?.source.kind === 'question' ? builder.source.id : null],
-    queryFn: () => api.post<RunResult>('/v1/query', { query: { kind: 'builder', source: builder?.source, limit: 1 } }),
-    enabled: builder?.source.kind === 'question',
-  })
-  const options = useMemo(
-    () => columnOptions(sourceTable, tableMap, builder, modelColumns.data?.columns.map((c) => ({ name: c.name, type: c.type === 'number' ? 'double' : c.type === 'date' ? 'date' : c.type === 'datetime' ? 'timestamp' : 'varchar', label: c.label }))),
-    [sourceTable, tableMap, builder, modelColumns.data],
-  )
+  const modelColumns = useModelColumns(builder?.source.kind === 'question' ? builder.source.id : null)
+  // The models joined: their columns, as those of a table joined.
+  const joinedIds = useMemo(() => [...new Set((builder?.joins ?? []).flatMap((j) => (j.source.kind === 'question' ? [j.source.id] : [])))], [builder?.joins])
+  const joinedColumns = useModelsColumns(joinedIds)
+  const joinedKey = joinedColumns.map((q) => q.dataUpdatedAt).join(',')
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the queries change identity on each render; their data by `joinedKey`
+  const joined = useMemo(() => {
+    const out = new Map<string, ModelColumns>()
+    joinedIds.forEach((id, i) => {
+      const columns = joinedColumns[i]?.data
+      if (columns) out.set(id, { name: models.find((m) => m.id === id)?.name ?? $t('Modèle'), columns })
+    })
+    return out
+  }, [joinedIds, joinedKey, models])
+  const options = useMemo(() => columnOptions(sourceTable, tableMap, builder, modelColumns.data, joined), [sourceTable, tableMap, builder, modelColumns.data, joined])
   const sourceLabel = sourceTable?.label ?? models.find((m) => m.id === (builder?.source.kind === 'question' ? builder.source.id : ''))?.name ?? $t('Choisir une source')
   const variables = draft.query.kind !== 'builder' ? draft.query.variables ?? [] : []
 
@@ -184,6 +190,8 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   }, [draft.query.kind === 'builder' ? '' : draft.query.sql])
 
   const maxRows = Number((draft.visualization.settings as { max_rows?: number } | undefined)?.max_rows) || undefined
+  // A chart compared to another period: the server runs both.
+  const compare = (draft.visualization.settings as { compare?: string } | undefined)?.compare
   const run = useCallback(
     async (override?: QuestionQuery) => {
       const limit = maxRows
@@ -197,7 +205,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
       try {
         const parameters = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''))
         // The rows the question reads: its table's « Limite de lignes », as when it runs saved.
-        const res = await api.post<RunResult>('/v1/query', { query, parameters, execution_id: id, fresh: true, ...(limit ? { limit } : {}), ...(draft.id ? { question: draft.id } : {}) })
+        const res = await api.post<RunResult>('/v1/query', { query, parameters, execution_id: id, fresh: true, ...(limit ? { limit } : {}), ...(draft.id ? { question: draft.id } : {}), ...(compare && query.kind === 'builder' ? { compare } : {}) })
         if (execution.current !== id) return
         setResult(res)
         // A new question takes the visualization its first result suggests.
@@ -208,13 +216,13 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         if (execution.current === id) setRunning(false)
       }
     },
-    [draft.query, draft.id, values, maxRows],
+    [draft.query, draft.id, values, maxRows, compare],
   )
   const dirtyViz = useRef(!!initial.id)
 
   // The builder runs as it is edited; SQL waits for Ctrl+Entrée — but an opened question shows
   // its result straight away.
-  const queryKey = draft.query.kind === 'builder' ? JSON.stringify(draft.query) : 'sql'
+  const queryKey = draft.query.kind === 'builder' ? JSON.stringify([draft.query, compare ?? null]) : 'sql'
   const lastRunKey = useRef<string | null>(null)
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the serialized builder query
   useEffect(() => {

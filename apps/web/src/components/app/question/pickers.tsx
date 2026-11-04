@@ -1,6 +1,7 @@
 'use client'
 
 import type { ColumnValue, Filter, ItemSummary, TableMeta } from '@eodia/contracts'
+import { TableGlyph } from '@/components/app/structure/tree'
 import { Chip, ItemTile, LookIcon } from '@/components/app/look'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -24,11 +25,12 @@ export function KindIcon({ kind, className }: { kind: string; className?: string
   return <Icon className={cn('size-3.5 shrink-0 text-muted-foreground', className)} />
 }
 
-export function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+/** A search field, focused as it opens — but in the grid, where focusing would scroll the page to it. */
+export function SearchBox({ value, onChange, placeholder, autoFocus = true }: { value: string; onChange: (v: string) => void; placeholder: string; autoFocus?: boolean }) {
   return (
     <div className="relative">
       <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-      <Input autoFocus value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-8 pl-8 text-sm" />
+      <Input autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-8 pl-8 text-sm" />
     </div>
   )
 }
@@ -117,7 +119,7 @@ export function SourceList({ tables, models, onPick }: { tables: readonly TableM
             <div className="px-2 pt-2 pb-1 font-mono text-[11px] text-muted-foreground">{group}</div>
             {list.map((t) => (
               <button key={t.id} type="button" onClick={() => onPick({ kind: 'table', id: t.id })} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent">
-                {t.icon ? <LookIcon name={t.icon} color={t.color} className="size-4" /> : <ItemTile kind="table" className="size-6" />}
+                {t.icon ? <LookIcon name={t.icon} color={t.color} className="size-4" /> : t.kind && t.kind !== 'table' ? <TableGlyph table={t} className="size-6" /> : <ItemTile kind="table" className="size-6" />}
                 <span className="flex-1 truncate">{t.label}</span>
                 {t.row_count ? <span className="text-[11px] text-muted-foreground tabular-nums">{formatCount(t.row_count)}</span> : null}
               </button>

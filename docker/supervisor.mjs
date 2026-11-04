@@ -1,12 +1,13 @@
 /**
- * Superviseur minimal du mode `all` : lance l'API, le web et le worker (et le serveur MCP si
- * WITH_MCP=1) dans un seul conteneur, préfixe leurs journaux, relaie SIGTERM, et
+ * Superviseur minimal du mode `all` : lance l'API, le web, le worker et le serveur MCP (sauf
+ * WITH_MCP=0) dans un seul conteneur, préfixe leurs journaux, relaie SIGTERM, et
  * s'arrête dès que l'un d'eux meurt — l'orchestrateur redémarre alors le conteneur entier,
  * plutôt que de laisser tourner une instance à moitié vivante.
  */
 import { spawn } from 'node:child_process'
 
-const roles = ['api', 'web', 'worker', ...(process.env.WITH_MCP === '1' ? ['mcp'] : [])]
+// The MCP server too, unless WITH_MCP=0: the web relays `/mcp` to it, the address the docs give.
+const roles = ['api', 'web', 'worker', ...(process.env.WITH_MCP === '0' ? [] : ['mcp'])]
 
 // The worker runs on its own here: the API must not run the jobs a second time.
 const env = { ...process.env, INPROCESS_WORKER: '0' }

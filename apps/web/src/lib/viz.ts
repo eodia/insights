@@ -5,6 +5,7 @@
  * grille discrète ; info-bulle partout.
  */
 import type { BarFill, ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
+import { TEXT_SCALE } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { LOOK_HEX, formatValue, parseDate } from './format'
 import { $t, intlLocale, msg } from './i18n'
@@ -22,6 +23,8 @@ export interface Theme {
   readonly dark: boolean
   /** The font of the charts — a theme's; by default, the page's. */
   readonly font?: string
+  /** The colour of the texts, `#rrggbb`, rather than the greys of the mode. */
+  readonly textColor?: string
   /** False for a printed page: the charts are drawn at once, in their final state. */
   readonly animation?: boolean
   /** A theme's bars: their fill and their corner radius. */
@@ -52,9 +55,10 @@ function barFill(fill: BarFill | undefined, color: string, horizontal = false): 
 }
 
 const ink = (t: Theme) => ({
-  primary: t.dark ? '#f4f4f5' : '#18181b',
-  secondary: t.dark ? '#a1a1aa' : '#52525b',
-  muted: t.dark ? '#71717a' : '#a1a1aa',
+  primary: t.textColor ?? (t.dark ? '#f4f4f5' : '#18181b'),
+  secondary: t.textColor ?? (t.dark ? '#a1a1aa' : '#52525b'),
+  // A colour of one's own keeps its faint texts faint: the same, two thirds opaque.
+  muted: t.textColor ? `${t.textColor}aa` : t.dark ? '#71717a' : '#a1a1aa',
   grid: t.dark ? '#27272a' : '#ececef',
   surface: t.dark ? '#18181b' : '#ffffff',
 })
@@ -561,7 +565,94 @@ export interface ColorTarget {
   readonly color: string
 }
 
-export function chartOption(type: VisualizationType, result: Result, settings: VisualizationSettings, theme: Theme): ChartModel | null {
+/**
+ * A chart's option — with its texts as its settings want them: another font, another colour, every
+ * size in proportion.
+ */
+export function chartOption(type: VisualizationType, given: Result, given_settings: VisualizationSettings, theme: Theme): ChartModel | null {
+  const { result, settings } = withCompared(given, given_settings)
+  const color = settings.text_color && /^#[0-9a-f]{6}$/i.test(settings.text_color) ? settings.text_color : undefined
+  const drawnModel = drawn(type, result, settings, { ...theme, ...(settings.text_font ? { font: settings.text_font } : {}), ...(color ? { textColor: color } : {}) })
+  const model = drawnModel ? { ...drawnModel, option: comparedLook(drawnModel.option, result) } : drawnModel
+  const scale = TEXT_SCALE[settings.text_size ?? 'md'] ?? 1
+  return model && scale !== 1 ? { ...model, option: scaled(sized(model.option), scale) as EChartsOption } : model
+}
+
+/**
+ * The measures of the period compared to, named in the reader's language and drawn with their
+ * own: a measure chosen brings its past along.
+ */
+function withCompared(result: Result, settings: VisualizationSettings): { result: Result; settings: VisualizationSettings } {
+  if (!result.columns.some((c) => c.compared)) return { result, settings }
+  const suffix = settings.compare === 'previous_period' ? $t('période précédente') : $t('N-1')
+  const columns = result.columns.map((c) => {
+    if (!c.compared) return c
+    const base = result.columns.find((x) => x.name === c.compared?.of)
+    return { ...c, label: `${base?.label ?? c.label} · ${suffix}` }
+  })
+  const metrics = settings.metrics?.length ? [...settings.metrics, ...columns.filter((c) => c.compared && settings.metrics?.includes(c.compared.of)).map((c) => c.name)] : settings.metrics
+  return { result: { ...result, columns }, settings: { ...settings, ...(metrics ? { metrics } : {}) } }
+}
+
+/** A past series in its measure's colour: dashed for a line, faded for bars. */
+function comparedLook(option: EChartsOption, result: Result): EChartsOption {
+  const compared = new Map(result.columns.filter((c) => c.compared).map((c) => [c.label, result.columns.find((x) => x.name === c.compared?.of)?.label ?? '']))
+  if (!compared.size || !Array.isArray(option.series)) return option
+  const series = option.series as Array<Record<string, unknown>>
+  const palette = (Array.isArray(option.color) ? option.color : []) as string[]
+  const next = series.map((s) => {
+    const baseName = compared.get(String(s.name ?? ''))
+    if (baseName === undefined) return s
+    const i = series.findIndex((x) => x.name === baseName)
+    const base = series[i] as { itemStyle?: { color?: unknown }; lineStyle?: { color?: unknown } } | undefined
+    const color = base?.itemStyle?.color ?? base?.lineStyle?.color ?? palette[i % Math.max(palette.length, 1)]
+    if (s.type === 'line') return { ...s, itemStyle: { ...(s.itemStyle as object), ...(color ? { color } : {}), opacity: 0.6 }, lineStyle: { ...(s.lineStyle as object), ...(color ? { color } : {}), type: 'dashed', opacity: 0.75 }, areaStyle: undefined, z: 1 }
+    return { ...s, itemStyle: { ...(s.itemStyle as object), ...(color ? { color } : {}), opacity: 0.4 }, z: 1 }
+  })
+  return { ...option, series: next as EChartsOption['series'] }
+}
+
+/** ECharts' default size, written where an option leaves it to ECharts — so that it scales too. */
+const DEFAULT_FONT = 12
+
+function sized(option: EChartsOption): EChartsOption {
+  const all = (v: unknown): Record<string, unknown>[] => (Array.isArray(v) ? v : v && typeof v === 'object' ? [v] : []) as Record<string, unknown>[]
+  const fill = (o: Record<string, unknown>, key: string): Record<string, unknown> => {
+    const inner = (o[key] ?? {}) as Record<string, unknown>
+    return { ...o, [key]: { fontSize: DEFAULT_FONT, ...inner } }
+  }
+  const out: Record<string, unknown> = { ...option }
+  for (const axis of ['xAxis', 'yAxis', 'radiusAxis', 'angleAxis', 'singleAxis']) {
+    if (out[axis] === undefined) continue
+    const list = all(out[axis]).map((a) => fill(fill(a, 'axisLabel'), 'nameTextStyle'))
+    out[axis] = Array.isArray(out[axis]) ? list : list[0]
+  }
+  if (out.legend !== undefined) {
+    const list = all(out.legend).map((l) => fill(l, 'textStyle'))
+    out.legend = Array.isArray(out.legend) ? list : list[0]
+  }
+  if (out.radar !== undefined) {
+    const list = all(out.radar).map((r) => fill(r, 'axisName'))
+    out.radar = Array.isArray(out.radar) ? list : list[0]
+  }
+  out.series = all(out.series).map((s) => (s.label && typeof s.label === 'object' ? fill(s, 'label') : s))
+  return out as EChartsOption
+}
+
+/** Every `fontSize` of an option, and every size a canvas font names (`600 10px Inter`), times `k`. */
+function scaled(node: unknown, k: number): unknown {
+  if (Array.isArray(node)) return node.map((n) => scaled(n, k))
+  if (!node || typeof node !== 'object' || Object.getPrototypeOf(node) !== Object.prototype) return node
+  const out: Record<string, unknown> = {}
+  for (const [key, v] of Object.entries(node)) {
+    if ((key === 'fontSize' || key === 'lineHeight') && typeof v === 'number') out[key] = Math.round(v * k * 10) / 10
+    else if (key === 'font' && typeof v === 'string') out[key] = v.replace(/(\d+(?:\.\d+)?)px/, (_, n: string) => `${Math.round(Number(n) * k)}px`)
+    else out[key] = scaled(v, k)
+  }
+  return out
+}
+
+function drawn(type: VisualizationType, result: Result, settings: VisualizationSettings, theme: Theme): ChartModel | null {
   const c = ink(theme)
   const base: EChartsOption = {
     animation: theme.animation !== false,
@@ -1736,4 +1827,65 @@ export function chartOption(type: VisualizationType, result: Result, settings: V
       series: out,
     },
   }
+}
+
+/** A date marked on a chart over time — a strike, a launch —, or a span. */
+export interface ChartAnnotation {
+  readonly at: string
+  readonly end?: string | null
+  readonly label: string
+  readonly color?: string | null
+}
+
+/**
+ * The chart with its annotations: a line at each date, a band over each span, their label above
+ * — on an axis of dates, the category they fall in.
+ */
+export function withAnnotations(model: ChartModel, annotations: readonly ChartAnnotation[], dark: boolean): ChartModel {
+  if (!annotations.length) return model
+  const option = model.option
+  const axis = (Array.isArray(option.xAxis) ? option.xAxis[0] : option.xAxis) as { type?: string; data?: unknown[] } | undefined
+  if (!axis) return model
+  const ink = dark ? '#d4d4d8' : '#3f3f46'
+  // A date's place on the axis: itself on a time axis; on categories, the one it falls in.
+  const place = (day: string): string | number | null => {
+    if (axis.type === 'time') return day
+    const data = (axis.data ?? []).map((d) => String((d as { value?: unknown })?.value ?? d).slice(0, 10))
+    if (!data.length || !/^\d{4}-\d{2}-\d{2}$/.test(data[0] ?? '')) return null
+    let index = -1
+    for (let i = 0; i < data.length; i++) if ((data[i] ?? '') <= day) index = i
+    return index < 0 ? null : index
+  }
+  const lines: unknown[] = []
+  const areas: unknown[] = []
+  for (const a of annotations) {
+    const from = place(a.at)
+    if (from === null) continue
+    const color = a.color ?? ink
+    const label = { show: true, formatter: a.label, color, fontSize: 11, fontWeight: 600, position: 'insideEndTop' as const }
+    if (a.end) {
+      const to = place(a.end)
+      if (to !== null) {
+        areas.push([{ xAxis: from, name: a.label, itemStyle: { color: `${color}22` }, label: { show: true, color, fontSize: 11, fontWeight: 600, position: 'insideTop' } }, { xAxis: to }])
+        continue
+      }
+    }
+    lines.push({ xAxis: from, name: a.label, lineStyle: { color, type: 'solid', width: 1.5 }, label })
+  }
+  if (!lines.length && !areas.length) return model
+  const series = [...((Array.isArray(option.series) ? option.series : option.series ? [option.series] : []) as unknown[])]
+  series.push({
+    type: 'line',
+    name: HIDDEN,
+    data: [],
+    silent: true,
+    tooltip: { show: false },
+    ...(lines.length ? { markLine: { symbol: 'none', silent: true, data: lines } } : {}),
+    ...(areas.length ? { markArea: { silent: true, data: areas } } : {}),
+  })
+  // The legend names what it named: the marks' series stays out of it.
+  const legend = option.legend && !Array.isArray(option.legend) && !(option.legend as { data?: unknown }).data
+    ? { ...(option.legend as object), data: series.slice(0, -1).map((x) => (x as { name?: string }).name).filter((n): n is string => !!n && n !== HIDDEN) }
+    : option.legend
+  return { ...model, option: { ...option, series: series as EChartsOption['series'], ...(legend ? { legend: legend as EChartsOption['legend'] } : {}) } }
 }

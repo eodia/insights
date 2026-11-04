@@ -35,6 +35,24 @@ const ChartThemeContext = createContext<ChartTheme>({})
 export const useChartTheme = (): ChartTheme => useContext(ChartThemeContext)
 
 const loaded = new Set<string>()
+const ready = new Map<string, Promise<void>>()
+
+/**
+ * A Google font loaded, and its faces fetched: what a canvas — a chart — waits for before it
+ * draws with it, since it measures its texts once and never again.
+ */
+export function fontReady(family: string): Promise<void> {
+  if (typeof document === 'undefined') return Promise.resolve()
+  let p = ready.get(family)
+  if (!p) {
+    loadFont(family)
+    const link = [...document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')].find((l) => l.href.includes(`family=${encodeURIComponent(family).replace(/%20/g, '+')}:`))
+    const sheet = link && !link.sheet ? new Promise<void>((resolve) => link.addEventListener('load', () => resolve(), { once: true })) : Promise.resolve()
+    p = sheet.then(() => document.fonts.load(`600 12px '${family}'`)).then(() => document.fonts.load(`400 12px '${family}'`)).then(() => undefined, () => undefined)
+    ready.set(family, p)
+  }
+  return p
+}
 
 /** Loads a Google font once for the page. */
 export function loadFont(family: string | undefined): void {

@@ -17,8 +17,13 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
@@ -30,8 +35,10 @@ import { $t } from '@/lib/i18n'
 import { keys, useDashboard } from '@/lib/queries'
 import { useCrumbs, useUi } from '@/lib/store'
 import { ThemeLogo, ThemeScope } from '@/lib/theme'
-import type { Dashboard } from '@eodia/contracts'
-import { cardConstraints } from '@eodia/contracts'
+import type { Dashboard, ParameterValue } from '@eodia/contracts'
+import type { SummaryText } from '@/components/app/dashboard/cards'
+import { cn } from '@/lib/utils'
+import { cardConstraints, parseConditionCardId, savedConditionCard } from '@eodia/contracts'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   Braces,
@@ -47,7 +54,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 function SettingsDialog({
@@ -171,6 +178,16 @@ function DashboardScreen({ id }: { id: string }) {
   const { data: dashboard, error } = useDashboard(id)
   const setCopilotContext = useUi((s) => s.setCopilotContext)
   const [share, setShare] = useState(false)
+  const [editingNow, setEditingNow] = useState(false)
+  // Filters brought by a link from another dashboard (`?filters={"Canal":["Web"]}`).
+  const carried = useMemo(() => {
+    try {
+      const raw = params.get('filters')
+      return raw ? (JSON.parse(raw) as Record<string, ParameterValue>) : null
+    } catch {
+      return null
+    }
+  }, [params])
   const [pasting, setPasting] = useState(false)
   const [pasted, setPasted] = useState('')
   const [pasteError, setPasteError] = useState<string | null>(null)
@@ -178,6 +195,8 @@ function DashboardScreen({ id }: { id: string }) {
   const [remove, setRemove] = useState(false)
   const [refresh, setRefresh] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
+  // Where the dashboard puts its actions: on the title's line, so the filters have theirs to themselves.
+  const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null)
   // The filters as they stand: a print shows the dashboard as one sees it.
   const filterValues = useRef<Record<string, unknown>>({})
   const onValuesChange = useCallback((v: Record<string, unknown>) => {
@@ -200,10 +219,9 @@ function DashboardScreen({ id }: { id: string }) {
     return <Loader2 className="m-auto mt-20 size-5 animate-spin text-muted-foreground" />
 
   const runner: Runner = async (card, values, { fresh, draft }) => {
-    if (
-      draft ||
-      !dashboard.cards.some((c) => c.id === card.id && JSON.stringify(c) === JSON.stringify(card))
-    ) {
+    // A display condition's query, as saved: the server finds it in the dashboard, and ties it.
+    const saved = parseConditionCardId(card.id) ? savedConditionCard(dashboard, card) : dashboard.cards.some((c) => c.id === card.id && JSON.stringify(c) === JSON.stringify(card))
+    if (draft || !saved) {
       // A card not saved yet runs as its own question, under the same filters.
       const constraints = cardConstraints(
         card.mappings,
@@ -212,7 +230,8 @@ function DashboardScreen({ id }: { id: string }) {
       )
       if (card.question)
         return api.post<RunResult>(`/v1/questions/${card.question}/run`, { constraints, fresh })
-      return api.post<RunResult>('/v1/query', { query: card.query, constraints, fresh })
+      const compare = (card.visualization?.settings as { compare?: string } | undefined)?.compare
+      return api.post<RunResult>('/v1/query', { query: card.query, constraints, fresh, ...(compare && card.query?.kind === 'builder' ? { compare } : {}) })
     }
     return api.post<RunResult>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/run`, {
       values,
@@ -230,7 +249,7 @@ function DashboardScreen({ id }: { id: string }) {
   return (
     <div ref={root} className="h-full">
       <ThemeScope theme={dashboard.resolved_theme} className="flex h-full flex-col bg-background">
-        <div className="flex items-start gap-3 px-6 pt-5 pb-1">
+        <div className={cn('flex items-start gap-3 px-6 pt-5 pb-1 transition-colors', editingNow && 'bg-primary/[0.06]')}>
           {dashboard.resolved_theme?.settings.logo_position !== 'right' ? (
             <ThemeLogo
               theme={dashboard.resolved_theme}
@@ -245,6 +264,7 @@ function DashboardScreen({ id }: { id: string }) {
               <p className="mt-0.5 text-sm text-muted-foreground">{dashboard.description}</p>
             ) : null}
           </div>
+          <div ref={setActionsSlot} className="contents" />
           {dashboard.resolved_theme?.settings.logo_position === 'right' ? (
             <ThemeLogo
               theme={dashboard.resolved_theme}
@@ -267,6 +287,13 @@ function DashboardScreen({ id }: { id: string }) {
                 await api.patch(`/v1/dashboards/${dashboard.id}`, { auto_refresh: next })
             }}
             onNewQuestion={(tab) => router.push(newQuestionHref(tab))}
+            onEditingChange={setEditingNow}
+            savedViews
+            collaborative
+            summarizer={(card, values, { fresh, draft }) =>
+              api.post<SummaryText>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/summary`, { values, fresh, ...(draft ? { card } : {}) })
+            }
+            {...(carried ? { initialFilters: carried } : {})}
             tab={tab}
             onValuesChange={onValuesChange}
             onTabChange={(next) => router.push(dashboardHref(next), { scroll: false })}
@@ -300,74 +327,93 @@ function DashboardScreen({ id }: { id: string }) {
               toast.success($t('Tableau de bord enregistré.'))
               if (params.get('edit')) router.replace(dashboardHref(tab))
             }}
+            actionsSlot={actionsSlot}
             toolbar={
+              <Button size="sm" variant="ghost" onClick={() => setShare(true)}>
+                <Share2 /> {$t('Partager')}
+              </Button>
+            }
+            more={
               <>
-                <Button size="sm" variant="outline" onClick={() => setShare(true)}>
-                  <Share2 /> {$t('Partager')}
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="icon-sm" variant="ghost" aria-label={$t('Plus')}>
                       <Ellipsis />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
-                      <Maximize /> {$t('Plein écran')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        const values = encodeURIComponent(JSON.stringify(filterValues.current))
-                        window.open(`/print/dashboard/${dashboard.id}?values=${values}`, '_blank')
-                      }}
-                    >
-                      <FileDown /> {$t('Exporter en PDF')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={async () => {
-                        await api.post('/v1/bookmarks', { kind: 'dashboard', id, on: true })
-                        toast.success($t('Ajouté aux favoris.'))
-                      }}
-                    >
-                      <FavoriteIcon /> {$t('Ajouter aux favoris')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={async () => {
-                        const d = await api.post<Dashboard>(`/v1/dashboards/${id}/duplicate`, {})
-                        router.push(`/dashboard/${d.id}`)
-                      }}
-                    >
-                      <Copy /> {$t('Dupliquer')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={async () => {
-                        try {
-                          const json = await api.get<unknown>(`/v1/dashboards/${id}/export`)
-                          await navigator.clipboard.writeText(JSON.stringify(json, null, 2))
-                          toast.success($t('Tableau de bord copié en JSON : collez-le dans « Coller un JSON » pour en créer un autre.'))
-                        } catch (err) {
-                          toast.error(err instanceof Error ? err.message : String(err))
-                        }
-                      }}
-                    >
-                      <Braces /> {$t('Copier en JSON')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setPasting(true)}>
-                      <ClipboardPaste /> {$t('Coller un JSON…')}
-                    </DropdownMenuItem>
+                  <DropdownMenuContent align="end" className="w-60">
+                    <DropdownMenuLabel className={MENU_LABEL}>{$t('Affichage')}</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
+                        <Maximize /> {$t('Plein écran')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          const values = encodeURIComponent(JSON.stringify(filterValues.current))
+                          window.open(`/print/dashboard/${dashboard.id}?values=${values}`, '_blank')
+                        }}
+                      >
+                        <FileDown /> {$t('Exporter en PDF')}
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className={MENU_LABEL}>{$t('Tableau de bord')}</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      {editable ? (
+                        <>
+                          <DropdownMenuItem onSelect={() => router.push(newQuestionHref(tab))}>
+                            <Plus /> {$t('Nouvelle question')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setSettings(true)}>
+                            <Settings2 /> {$t('Réglages')}
+                          </DropdownMenuItem>
+                        </>
+                      ) : null}
+                      <DropdownMenuItem
+                        onSelect={async () => {
+                          await api.post('/v1/bookmarks', { kind: 'dashboard', id, on: true })
+                          toast.success($t('Ajouté aux favoris.'))
+                        }}
+                      >
+                        <FavoriteIcon /> {$t('Ajouter aux favoris')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={async () => {
+                          const d = await api.post<Dashboard>(`/v1/dashboards/${id}/duplicate`, {})
+                          router.push(`/dashboard/${d.id}`)
+                        }}
+                      >
+                        <Copy /> {$t('Dupliquer')}
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <Braces /> JSON
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-56">
+                          <DropdownMenuItem
+                            onSelect={async () => {
+                              try {
+                                const json = await api.get<unknown>(`/v1/dashboards/${id}/export`)
+                                await navigator.clipboard.writeText(JSON.stringify(json, null, 2))
+                                toast.success($t('Tableau de bord copié en JSON : collez-le dans « Coller un JSON » pour en créer un autre.'))
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : String(err))
+                              }
+                            }}
+                          >
+                            <Braces /> {$t('Copier en JSON')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setPasting(true)}>
+                            <ClipboardPaste /> {$t('Coller un JSON…')}
+                          </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                     {editable ? (
                       <>
-                        <DropdownMenuItem onSelect={() => router.push(newQuestionHref(tab))}>
-                          <Plus /> {$t('Nouvelle question')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setSettings(true)}>
-                          <Settings2 /> {$t('Réglages')}
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onSelect={() => setRemove(true)}
-                        >
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => setRemove(true)}>
                           <Trash2 /> {$t('Supprimer')}
                         </DropdownMenuItem>
                       </>
@@ -440,6 +486,9 @@ function DashboardScreen({ id }: { id: string }) {
   )
 }
 
+
+/** A group's name in a menu: small, quiet, above its items. */
+const MENU_LABEL = 'text-[11px] font-medium tracking-wide text-muted-foreground uppercase'
 export default function DashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   return (

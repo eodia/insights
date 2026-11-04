@@ -1,6 +1,6 @@
 'use client'
 
-import type { Datasource, TableMeta } from '@eodia/contracts'
+import type { Datasource, TableKind, TableMeta } from '@eodia/contracts'
 import { EngineBadge, SyncDot } from '@/components/app/data/source-look'
 import { LookIcon } from '@/components/app/look'
 import { Input } from '@/components/ui/input'
@@ -8,17 +8,30 @@ import { LOOK_CLASSES } from '@/lib/format'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ChevronRight, EyeOff, FolderTree, Loader2, Plus, Search, Table2, Wrench } from 'lucide-react'
+import { ChevronRight, Eye, EyeOff, FolderTree, Layers, Loader2, Plus, Search, Table2, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Pane } from '@/components/ui/pane'
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
-export function TableGlyph({ table, className }: { table: Pick<TableMeta, 'icon' | 'color'>; className?: string }) {
+/** A table's own pictogram — or a view's (an eye), a materialized view's (layers) — as Trino has it. */
+export function KindGlyph({ kind, className }: { kind?: TableKind | undefined; className?: string }) {
+  if (kind === 'view') return <Eye className={className} aria-label={$t('Vue')} />
+  if (kind === 'materialized_view') return <Layers className={className} aria-label={$t('Vue matérialisée')} />
+  return <Table2 className={className} />
+}
+
+export function TableGlyph({ table, className }: { table: Pick<TableMeta, 'icon' | 'color'> & { kind?: TableKind }; className?: string }) {
   return (
-    <span className={cn('inline-flex size-7 shrink-0 items-center justify-center rounded-lg', LOOK_CLASSES[table.color ?? 'gray'], className)}>
-      {table.icon ? <LookIcon name={table.icon} className="size-3.5" /> : <Table2 className="size-3.5" />}
+    <span className={cn('relative inline-flex size-7 shrink-0 items-center justify-center rounded-lg', LOOK_CLASSES[table.color ?? (table.kind && table.kind !== 'table' ? 'violet' : 'gray')], className)}>
+      {table.icon ? <LookIcon name={table.icon} className="size-3.5" /> : <KindGlyph kind={table.kind} className="size-3.5" />}
+      {/* A view with a pictogram of its own still says it is one. */}
+      {table.icon && table.kind && table.kind !== 'table' ? (
+        <span className="absolute -right-1 -bottom-1 inline-flex size-3.5 items-center justify-center rounded-full border bg-background text-violet-600">
+          <KindGlyph kind={table.kind} className="size-2.5" />
+        </span>
+      ) : null}
     </span>
   )
 }
@@ -101,7 +114,7 @@ export function StructureTree({
                 </Link>
               </div>
               {open ? (
-                <div className="mt-0.5 space-y-0.5">
+                <div className="mt-0.5 ml-3.5 space-y-0.5 border-l border-border/70 pl-1.5">
                   {[...schemas.entries()].map(([schema, list]) => {
                     const key = `${ds.id}/${schema}`
                     const schemaOpen = !closed.has(key) || !!q
@@ -110,7 +123,7 @@ export function StructureTree({
                         <button
                           type="button"
                           onClick={() => toggle(key)}
-                          className="flex w-full items-center gap-1.5 rounded-md py-1 pr-2 pl-6 text-left text-xs font-medium text-muted-foreground hover:text-foreground"
+                          className="flex w-full items-center gap-1.5 rounded-md py-1 pr-2 pl-1 text-left text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                         >
                           <ChevronRight className={cn('size-3.5 transition-transform', schemaOpen && 'rotate-90')} />
                           <FolderTree className="size-3.5" />
@@ -123,16 +136,18 @@ export function StructureTree({
                           )}
                           <span className="font-normal">{list.length}</span>
                         </button>
-                        {schemaOpen
-                          ? list.map((t) => {
+                        {schemaOpen ? (
+                          <div className="mt-0.5 ml-[11px] space-y-0.5 border-l border-border/70 pl-1.5">
+                          {list.map((t) => {
                               const active = t.id === table
                               return (
                                 <Link
                                   key={t.id}
                                   href={`/data/${ds.id}/${t.id}`}
-                                  className={cn('relative ml-4 flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors', active ? 'bg-muted' : 'hover:bg-muted/60')}
+                                  className={cn('relative flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors', active ? 'bg-muted' : 'hover:bg-muted/60')}
                                 >
-                                  {active ? <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-primary" /> : null}
+                                  {/* The current table: its stretch of the line turns green. */}
+                                  {active ? <span className="absolute inset-y-1.5 -left-[8px] w-[3px] rounded-full bg-primary" /> : null}
                                   <TableGlyph table={t} />
                                   <span className="min-w-0 flex-1">
                                     <span className={cn('block truncate text-sm', active && 'font-semibold', t.visibility !== 'normal' && 'text-muted-foreground')}>{t.label}</span>
@@ -142,12 +157,13 @@ export function StructureTree({
                                   {t.visibility === 'technical' ? <Wrench className="size-3.5 shrink-0 text-muted-foreground" /> : null}
                                 </Link>
                               )
-                            })
-                          : null}
+                            })}
+                          </div>
+                        ) : null}
                       </div>
                     )
                   })}
-                  {own.length === 0 && !loading ? <p className="py-2 pl-10 text-xs text-muted-foreground">{$t('Aucune table synchronisée.')}</p> : null}
+                  {own.length === 0 && !loading ? <p className="py-2 pl-2 text-xs text-muted-foreground">{$t('Aucune table synchronisée.')}</p> : null}
                 </div>
               ) : null}
             </div>

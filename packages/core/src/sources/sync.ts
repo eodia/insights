@@ -6,7 +6,7 @@
  * 2. empreinte — cardinalité, nulls, min/max sur un échantillon ; pré-devine le type sémantique ;
  * 3. valeurs — les valeurs distinctes des colonnes catégorielles.
  */
-import { type Fingerprint, type SemanticType, type SyncReport, kindOfTrinoType, sourceSchemas } from '@eodia/contracts'
+import { type Fingerprint, type SemanticType, type SyncReport, type TableKind, kindOfTrinoType, sourceSchemas } from '@eodia/contracts'
 import { humanize } from '@eodia/compiler'
 import { SYSTEM_SCHEMAS, introspect, isSystemSchema, type NativeIntrospection } from '@eodia/drivers'
 import { quoteTrinoIdent as q, quoteTrinoString } from '@eodia/engine'
@@ -84,7 +84,22 @@ async function schemaPass(core: Core, ds: DsRow, progress: Progress, signal: Abo
       type: String(r[4]),
       nullable: r[5] !== 'NO',
     }))
-    .filter((c) => !excluded.has(lower(c.schema)) && !isSystemSchema(ds.engine, c.schema) && (!only || only.has(lower(c.schema))) && (!shown || shown.has(lower(c.schema))))
+    .filter((c) => !excluded.has(lower(c.schema)) && !isSystemSchema(ds.engine, c.schema, ds.config) && (!only || only.has(lower(c.schema))) && (!shown || shown.has(lower(c.schema))))
+
+  // What each is for Trino: a table, a view, a materialized view — shown by its own pictogram.
+  const kinds = new Map<string, TableKind>()
+  try {
+    const types = await core.engine.run(`SELECT table_schema, table_name, table_type FROM ${q(ds.catalog)}.information_schema.tables WHERE table_schema <> 'information_schema'`, { timeoutMs: 120_000, signal })
+    for (const r of types.data) kinds.set(lower(`${r[0]}.${r[1]}`), r[2] === 'VIEW' ? 'view' : 'table')
+  } catch {
+    // Unknown, they stay tables.
+  }
+  try {
+    const mvs = await core.engine.run(`SELECT schema_name, name FROM system.metadata.materialized_views WHERE catalog_name = '${ds.catalog.replace(/'/g, "''")}'`, { timeoutMs: 60_000, signal })
+    for (const r of mvs.data) kinds.set(lower(`${r[0]}.${r[1]}`), 'materialized_view')
+  } catch {
+    // A connector without materialized views.
+  }
 
   await progress('Clés, commentaires et volumes (pilote natif)', 1, 3)
   let native: NativeIntrospection = { tables: [], columns: [], foreignKeys: [] }
@@ -147,12 +162,12 @@ async function schemaPass(core: Core, ds: DsRow, progress: Progress, signal: Abo
       const existing = knownTables.get(key)
       if (!existing) report.tables.added++
       const row = await core.db.one<{ id: string }>(
-        `INSERT INTO db_table (datasource_id, schema_name, name, label, native_comment, row_count, synced_at)
-         VALUES ($1, $2, $3, $4, $5, $6, now())
+        `INSERT INTO db_table (datasource_id, schema_name, name, label, native_comment, row_count, kind, synced_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, now())
          ON CONFLICT (datasource_id, schema_name, name) DO UPDATE SET status = 'active', native_comment = EXCLUDED.native_comment,
-           row_count = coalesce(EXCLUDED.row_count, db_table.row_count), synced_at = now()
+           row_count = coalesce(EXCLUDED.row_count, db_table.row_count), kind = EXCLUDED.kind, synced_at = now()
          RETURNING id`,
-        [ds.id, schema, table, humanize(table), nt?.comment ?? null, nt?.rowEstimate ?? null],
+        [ds.id, schema, table, humanize(table), nt?.comment ?? null, nt?.rowEstimate ?? null, kinds.get(lower(`${schema}.${table}`)) ?? 'table'],
         c,
       )
       const tableId = row?.id as string

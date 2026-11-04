@@ -76,7 +76,7 @@ export function filterName(p: Pick<DashboardParameter, 'label' | 'type'>): strin
   return p.label.trim() || $t(filterType(p.type).label)
 }
 
-function Editor({
+export function ParameterEditor({
   p,
   value,
   columnId,
@@ -210,7 +210,7 @@ export function ParameterBar({
   const setShare = useCallback((id: string, share: number | null) => setShares((s) => (s[id] === share ? s : { ...s, [id]: share })), [])
   if (parameters.length === 0) return null
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-1.5">
       {parameters.map((p) => {
         const Icon = ICONS[p.type]
         const v = values[p.id]
@@ -268,16 +268,16 @@ export function ParameterBar({
                 }}
                 title={sortable ? $t('Glissez pour déplacer (ou Alt + flèches)') : undefined}
                 className={cn(
-                  'inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3 text-sm shadow-xs transition-colors hover:bg-accent',
-                  has && 'border-primary/50 bg-primary/5',
+                  'inline-flex h-8 items-center gap-1.5 rounded-lg bg-background px-2.5 text-sm shadow-xs ring-1 ring-border/70 transition-shadow hover:ring-border',
+                  has && 'ring-primary/45 hover:ring-primary/70',
                   editing && selected === p.id && 'ring-2 ring-primary',
                   sortable && 'cursor-grab pl-1.5 active:cursor-grabbing',
                 )}
               >
                 {sortable ? <GripVertical className="-mr-1 size-3.5 text-muted-foreground/70" /> : null}
-                <Icon className="size-4 text-muted-foreground" />
-                <span className={cn(has ? 'text-muted-foreground' : '')}>{filterName(p)}</span>
-                {has ? <span className="font-medium">{valueLabel(p, v)}</span> : null}
+                {has ? <span className="mx-0.5 size-1.5 shrink-0 rounded-full bg-primary" /> : <Icon className="size-3.5 text-muted-foreground" />}
+                <span className="text-muted-foreground">{filterName(p)}</span>
+                {has ? <span className="font-medium">{valueLabel(p, v)}</span> : <span className="text-muted-foreground/60">{$t('Tous')}</span>}
                 {has && p.type === 'category' && typeof shares[p.id] === 'number' ? (
                   <span className="rounded bg-emerald-500/15 px-1.5 text-[11px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
                     {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(shares[p.id] as number)}
@@ -303,7 +303,7 @@ export function ParameterBar({
               </button>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-auto p-0">
-              <Editor
+              <ParameterEditor
                 p={p}
                 value={v}
                 columnId={columnFor(p.id)}

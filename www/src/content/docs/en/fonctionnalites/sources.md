@@ -201,6 +201,38 @@ tabs:
 - **Emoji**: by theme, or pasted;
 - **Image**: a logo, a photo, a flag, by its `https://` address, with a preview.
 
+### Data
+
+Under the table, **Columns** / **Data** switches to its first rows (100, 1,000 or 10,000), read
+like a question: under **your** identity, your row filters and masks applied. The table can be
+searched, filtered, sorted and exported there; **Explore in a question** opens the visual editor
+on it.
+
+### Views
+
+An Iceberg source (or a Trino connector that accepts them) has a **Views** tab: the Trino views of
+its schemas, with their query and what reads them — questions and dashboards. **Edit** reopens a
+view in the SQL editor, **Delete** removes it from the catalog after showing what will stop
+working. They are created from the SQL editor, **Save as view** (see
+[Questions](/insights/en/fonctionnalites/questions/#saving-a-trino-view)); they are always
+`SECURITY INVOKER`, read with the rights of whoever reads them.
+
+**Materialized views** keep their result, computed once: a heavy computation, read fast. An
+administrator of the space creates them (**Materialized view** option of the same dialog), on an
+Iceberg catalog whose metastore accepts them — Hive or Glue, neither REST nor JDBC. The **Views**
+tab tells when each was computed and whether it is **stale** (its tables changed since);
+**Refresh** computes it again, and it refreshes by itself every hour, 6 or 12 hours, every day or
+every week if chosen.
+
+:::caution[A materialized view is read whole]
+Its result is computed with full rights: whoever can read the view sees all of it, whatever their
+row filters on the source tables. Set its access on the view itself, in
+[Rights](/insights/en/fonctionnalites/droits/), as for a table.
+:::
+
+In the explorer, the SQL editor and a question's data picker, a view shows by its eye, a
+materialized view by its layers.
+
 ### Relationships
 
 **View relationships** opens a source's diagram: its tables and their foreign keys,

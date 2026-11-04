@@ -325,6 +325,12 @@ export type ColorScheme = (typeof COLOR_SCHEMES)[number]
 export const PIVOT_SORTS = ['result', 'asc', 'desc', 'total_desc', 'total_asc'] as const
 export type PivotSort = (typeof PIVOT_SORTS)[number]
 
+export const TEXT_SIZES = ['sm', 'md', 'lg', 'xl'] as const
+export type TextSize = (typeof TEXT_SIZES)[number]
+
+/** How much bigger than usual each size draws a chart's texts. */
+export const TEXT_SCALE: Readonly<Record<TextSize, number>> = { sm: 0.85, md: 1, lg: 1.2, xl: 1.45 }
+
 export interface VisualizationSettings {
   /** Dimensions: the first on the axis, the second splitting it into series. */
   readonly dimensions?: readonly string[]
@@ -340,6 +346,14 @@ export interface VisualizationSettings {
   readonly y_label?: string
   /** Numbers: 1,2 k rather than 1 234. */
   readonly compact?: boolean
+  /** A chart over time compared to another period: the same a year before, or the one before. */
+  readonly compare?: CompareMode
+  /** A chart's texts: their font — one of a theme's —, rather than the theme's or the page's. */
+  readonly text_font?: string
+  /** …their size, every text in proportion. */
+  readonly text_size?: TextSize
+  /** …their colour, `#rrggbb`, rather than the greys of the light or dark mode. */
+  readonly text_color?: string
   readonly decimals?: number | null
   readonly prefix?: string
   readonly suffix?: string
@@ -568,6 +582,8 @@ export interface Visualization {
 export interface ResultColumn {
   /** Stable name — what the settings cite. */
   readonly name: string
+  /** A measure of the period compared to (`compare`): drawn fainter, beside its own. */
+  readonly compared?: { readonly of: string }
   readonly label: string
   /** `dimension`: a grouping; `metric`: an aggregate; `field`: a column read as it is. */
   readonly role: 'dimension' | 'metric' | 'field'
@@ -862,9 +878,236 @@ export const DASHBOARD_LIMITS = {
 export interface DashboardTab {
   readonly id: string
   readonly label: string
+  /** Shown only when it holds — a tab hidden from the row, its cards with it. */
+  readonly condition?: DisplayCondition
 }
 
-export const CARD_KINDS = ['question', 'heading', 'text', 'embed'] as const
+// ── Display conditions ──────────────────────────────────────────────────────
+
+/** What a rule on a filter checks: Qlik's `GetSelectedCount(…) = 1`, and its kin. */
+export const FILTER_TESTS = ['one', 'some', 'none', 'equals', 'not_equals'] as const
+export type FilterTest = (typeof FILTER_TESTS)[number]
+
+/** What a rule on the card's own result checks. */
+export const ROWS_TESTS = ['some', 'none', 'at_least', 'at_most'] as const
+export type RowsTest = (typeof ROWS_TESTS)[number]
+
+/**
+ * A rule a card or a tab is shown by: a dashboard filter's value — read in the browser, no query;
+ * a SQL query whose first value says yes or no — run as a card of its own, under the reader's
+ * rights, its `{{…}}` tied to the filters; the card's own result — how many rows it has.
+ */
+export type DisplayRule =
+  | { readonly kind: 'filter'; readonly parameter: string; readonly test: FilterTest; readonly value?: string }
+  | { readonly kind: 'query'; readonly sql: string; readonly variables?: readonly SqlVariable[]; readonly mappings?: readonly CardMapping[] }
+  | { readonly kind: 'rows'; readonly test: RowsTest; readonly value?: number }
+
+export interface DisplayCondition {
+  /** All the rules, or at least one. */
+  readonly match: 'all' | 'any'
+  readonly rules: readonly DisplayRule[]
+}
+
+export const CONDITION_LIMITS = { rules: 8, sql: 20_000 } as const
+
+/** The values a filter holds, as strings: none for an empty one. */
+function chosenValues(value: ParameterValue | null | undefined): string[] {
+  if (!parameterHasValue(value)) return []
+  if (typeof value === 'string') return [value]
+  return value.filter((v) => v !== null && v !== '').map(String)
+}
+
+/** A rule on a filter: does it hold for these values? */
+export function filterRuleHolds(rule: Extract<DisplayRule, { kind: 'filter' }>, values: Readonly<Record<string, ParameterValue | null | undefined>>): boolean {
+  const chosen = chosenValues(values[rule.parameter])
+  switch (rule.test) {
+    case 'one':
+      return chosen.length === 1
+    case 'some':
+      return chosen.length > 0
+    case 'none':
+      return chosen.length === 0
+    case 'equals':
+      return chosen.length > 0 && chosen.every((v) => v === (rule.value ?? ''))
+    case 'not_equals':
+      return !chosen.includes(rule.value ?? '')
+  }
+}
+
+/** A rule on the card's rows: does it hold for a result of `rows` rows? */
+export function rowsRuleHolds(rule: Extract<DisplayRule, { kind: 'rows' }>, rows: number): boolean {
+  const n = rule.value ?? 1
+  switch (rule.test) {
+    case 'some':
+      return rows > 0
+    case 'none':
+      return rows === 0
+    case 'at_least':
+      return rows >= n
+    case 'at_most':
+      return rows <= n
+  }
+}
+
+/** Whether a query's first value says yes: true, a number but zero, a text but empty, `false` or `0`. */
+export function truthy(value: unknown): boolean {
+  if (value === null || value === undefined) return false
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value !== 0 && !Number.isNaN(value)
+  const s = String(value).trim().toLowerCase()
+  return s !== '' && s !== 'false' && s !== '0'
+}
+
+/** The id a query rule runs under, as a card of its own: `<card or tab>~if<rank>`. */
+export const conditionCardId = (owner: string, index: number) => `${owner}~if${index}`
+
+/** The card or tab a query rule's id belongs to, and the rule's rank. */
+export function parseConditionCardId(id: string): { owner: string; index: number } | null {
+  const m = /^(.+)~if(\d+)$/.exec(id)
+  return m ? { owner: m[1] as string, index: Number(m[2]) } : null
+}
+
+/** A query rule as a card: what the kernel runs, its filters tied by the rule's own mappings. */
+export function conditionCard(owner: string, index: number, rule: Extract<DisplayRule, { kind: 'query' }>): DashboardCard {
+  return {
+    id: conditionCardId(owner, index),
+    tab: null,
+    x: 0,
+    y: 0,
+    w: 1,
+    h: 1,
+    kind: 'question',
+    query: { kind: 'sql', sql: rule.sql, variables: rule.variables ?? [] },
+    visualization: { type: 'table' },
+    ...(rule.mappings?.length ? { mappings: rule.mappings } : {}),
+  }
+}
+
+/**
+ * Whether a query rule's card is the one the saved dashboard holds: then the server runs it from
+ * there; otherwise — being edited — it runs as a query of its own.
+ */
+export function savedConditionCard(dashboard: { readonly cards: readonly DashboardCard[]; readonly tabs: readonly DashboardTab[] }, card: DashboardCard): boolean {
+  const ref = parseConditionCardId(card.id)
+  if (!ref) return false
+  const condition = dashboard.cards.find((c) => c.id === ref.owner)?.condition ?? dashboard.tabs.find((t) => t.id === ref.owner)?.condition
+  const rule = condition?.rules[ref.index]
+  return rule?.kind === 'query' && JSON.stringify(conditionCard(ref.owner, ref.index, rule)) === JSON.stringify(card)
+}
+
+/**
+ * Whether a condition holds: `true`, `false`, or `undefined` while a query rule or the card's own
+ * result is not known yet. No condition, or no rule: shown.
+ */
+export function conditionHolds(
+  condition: DisplayCondition | undefined,
+  ctx: {
+    readonly values: Readonly<Record<string, ParameterValue | null | undefined>>
+    /** The answer of the query rule of that rank, once it ran. */
+    readonly query: (index: number) => boolean | undefined
+    /** The card's rows, once it ran; a tab has none — its `rows` rules are left out. */
+    readonly rows?: number | undefined
+    readonly isTab?: boolean
+  },
+): boolean | undefined {
+  const rules = (condition?.rules ?? []).map((rule, index) => ({ rule, index })).filter(({ rule }) => !(ctx.isTab && rule.kind === 'rows'))
+  if (!rules.length) return true
+  const answers = rules.map(({ rule, index }) =>
+    rule.kind === 'filter' ? filterRuleHolds(rule, ctx.values) : rule.kind === 'query' ? ctx.query(index) : ctx.rows === undefined ? undefined : rowsRuleHolds(rule, ctx.rows),
+  )
+  if (condition?.match === 'any') {
+    if (answers.some((a) => a === true)) return true
+    return answers.some((a) => a === undefined) ? undefined : false
+  }
+  if (answers.some((a) => a === false)) return false
+  return answers.some((a) => a === undefined) ? undefined : true
+}
+
+/**
+ * Whether the card may run before its own result is known: a condition already false — on a
+ * filter, or a query that answered — spares the query. Its `rows` rules wait for the result.
+ */
+export function conditionAllowsRun(condition: DisplayCondition | undefined, ctx: { readonly values: Readonly<Record<string, ParameterValue | null | undefined>>; readonly query: (index: number) => boolean | undefined }): boolean | undefined {
+  if (!condition?.rules.length) return true
+  const before = { ...condition, rules: condition.rules.map((r) => (r.kind === 'rows' ? null : r)) }
+  const answers = before.rules.map((rule, index) => (rule === null ? (condition.match === 'any' ? false : true) : rule.kind === 'filter' ? filterRuleHolds(rule, ctx.values) : ctx.query(index)))
+  // With « any », a `rows` rule could hold whatever the others say: the card runs to know.
+  if (condition.match === 'any') {
+    if (condition.rules.some((r) => r.kind === 'rows')) return true
+    if (answers.some((a) => a === true)) return true
+    return answers.some((a) => a === undefined) ? undefined : false
+  }
+  if (answers.some((a) => a === false)) return false
+  return answers.some((a) => a === undefined) ? undefined : true
+}
+
+export const CARD_KINDS = ['question', 'heading', 'text', 'embed', 'filter', 'buttons', 'link', 'variable', 'image', 'separator', 'summary'] as const
+
+/** A heading's look: everything a section title may want, the theme's when left out. */
+export interface HeadingStyle {
+  readonly size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  readonly weight?: 'medium' | 'semibold' | 'bold'
+  readonly align?: 'left' | 'center' | 'right'
+  /** `#rrggbb`; the theme's titles' colour when absent. */
+  readonly color?: string
+  /** One of a theme's fonts. */
+  readonly font?: string
+  readonly uppercase?: boolean
+  /** Under the title, smaller and quieter. */
+  readonly subtitle?: string
+  /** What sets it apart: nothing, a line under it, a bar before it, a band of colour behind it. */
+  readonly decoration?: 'none' | 'underline' | 'bar' | 'band'
+  /** The colour of the line, the bar or the band; the brand's when absent. */
+  readonly accent?: string
+}
+
+/** A link to another dashboard — Qlik's « Aller à la feuille » —, the filters chosen carried along. */
+export interface CardLink {
+  readonly dashboard: string
+  /** An open tab there, by id. */
+  readonly tab?: string | null
+  /** Carries the filters' values to the filters of the same name there. */
+  readonly carry?: boolean
+  /** How it shows: a button, or a tile with the title and a line of description. */
+  readonly style?: 'button' | 'tile'
+  readonly description?: string
+}
+
+/** A number the reader sets — an objective, a rate — that queries cite as a filter's value. */
+export interface CardVariable {
+  readonly min?: number
+  readonly max?: number
+  readonly step?: number
+  readonly control?: 'slider' | 'input'
+  readonly prefix?: string
+  readonly suffix?: string
+}
+
+export interface CardImage {
+  /** `https://…`, or a `data:` image pasted in. */
+  readonly url: string
+  readonly fit?: 'contain' | 'cover'
+  /** Opened on a click. */
+  readonly href?: string
+  readonly alt?: string
+}
+
+export interface CardSeparator {
+  readonly style?: 'line' | 'dashed' | 'dotted' | 'space'
+  readonly color?: string
+  readonly thickness?: number
+}
+
+/** A text the assistant writes from the dashboard's cards — the filters applied —, as asked. */
+export interface CardSummary {
+  /** What to say, and how: « Résume les ventes en trois points, chiffres à l'appui. » */
+  readonly prompt: string
+  /** The cards it reads, by id: their results, a few rows each. */
+  readonly cards: readonly string[]
+}
+
+/** How much of each card a summary reads: enough to say something, little enough to stay cheap. */
+export const SUMMARY_LIMITS = { cards: 8, rows: 40, chars: 12_000, prompt: 2000 } as const
 export type CardKind = (typeof CARD_KINDS)[number]
 
 export interface DashboardCard {
@@ -895,6 +1138,26 @@ export interface DashboardCard {
   readonly variables?: readonly TextVariable[]
   /** A page from elsewhere (chapter 18 §2). */
   readonly url?: string
+  /** A filter pane: the dashboard filter it shows, its values listed in the grid as in Qlik. */
+  readonly parameter?: string
+  /** A heading's look. */
+  readonly heading?: HeadingStyle
+  /** A navigation card: where it leads. */
+  readonly link?: CardLink
+  /** A variable card: the bounds of its number. */
+  readonly variable?: CardVariable
+  readonly image?: CardImage
+  readonly separator?: CardSeparator
+  readonly summary?: CardSummary
+  /**
+   * What a click on a point of its chart does: filter this dashboard (by default), or open
+   * another — Qlik's drill to a sheet —, filtered on the value clicked, the filters carried.
+   */
+  readonly click?: { readonly action: 'filter' | 'dashboard'; readonly dashboard?: string; readonly tab?: string | null; readonly carry?: boolean }
+  /** Selection buttons: how they look. */
+  readonly buttons?: { readonly style?: 'pills' | 'segmented'; readonly all?: boolean }
+  /** Shown only when it holds: hidden otherwise, its query not even run when a filter says no. */
+  readonly condition?: DisplayCondition
 }
 
 /**
@@ -1222,6 +1485,13 @@ export function cardSize(
   if (kind === 'heading') return { w: DASHBOARD_COLUMNS, h: 2 }
   if (kind === 'text') return { w: 12, h: 4 }
   if (kind === 'embed') return { w: 12, h: 8 }
+  if (kind === 'filter') return { w: 5, h: 8 }
+  if (kind === 'buttons') return { w: 12, h: 2 }
+  if (kind === 'link') return { w: 6, h: 2 }
+  if (kind === 'variable') return { w: 6, h: 3 }
+  if (kind === 'image') return { w: 6, h: 5 }
+  if (kind === 'separator') return { w: DASHBOARD_COLUMNS, h: 1 }
+  if (kind === 'summary') return { w: 12, h: 6 }
   switch (viz) {
     case 'scalar':
     case 'trend':
@@ -1264,3 +1534,128 @@ export const QUERY_LIMITS = {
   variables: 20,
   bytes: 200_000,
 } as const
+
+
+// ── Comparing periods ────────────────────────────────────────────────────────
+
+/** What a chart over time is compared to: the same period a year before, or the one just before. */
+export const COMPARE_MODES = ['previous_year', 'previous_period'] as const
+export type CompareMode = (typeof COMPARE_MODES)[number]
+
+/** How far back the comparison goes: whole months when the period is made of months, else days. */
+export type PeriodShift = { readonly months: number } | { readonly days: number }
+
+/** A day moved by whole months, its day of the month kept — a month's last day stays its last. */
+function shiftMonths(day: string, months: number): string {
+  const first = addMonths(day, months)
+  const last = addDays(addMonths(first, 1), -1)
+  const wasLast = addDays(addMonths(day, 1), -1) === day
+  if (wasLast) return last
+  const wanted = `${first.slice(0, 8)}${day.slice(8, 10)}`
+  return wanted > last ? last : wanted
+}
+
+const shiftDay = (day: string, by: PeriodShift, sign: 1 | -1) =>
+  'months' in by ? shiftMonths(day, sign * by.months) : addDays(day, sign * by.days)
+
+/** A date expression moved back by `by`, as an explicit span — `2025-01-01~2025-12-31`. */
+function shiftedExpression(expression: string, by: PeriodShift, today: string): string | null {
+  const span = resolveDateExpression(expression, today)
+  if (!span) return null
+  const from = span.start ? shiftDay(span.start, by, -1) : ''
+  const to = span.end ? shiftDay(span.end, by, -1) : ''
+  return `${from}~${to}`
+}
+
+/** The first span a query is limited to: by a date filter of its own, or a dashboard's. */
+function firstSpan(query: BuilderQuery, constraints: readonly Constraint[], today: string) {
+  for (const f of query.filters ?? []) {
+    if ('values' in f && f.op === 'date' && typeof f.values[0] === 'string') {
+      const span = resolveDateExpression(f.values[0], today)
+      if (span) return span
+    }
+  }
+  for (const c of constraints) {
+    if (c.type === 'date' && typeof c.value === 'string') {
+      const span = resolveDateExpression(c.value, today)
+      if (span) return span
+    }
+  }
+  return null
+}
+
+const lastOfMonth = (day: string) => addDays(addMonths(`${day.slice(0, 7)}-01`, 1), -1) === day
+
+/**
+ * The query of the period compared to: its date filters and the dashboard's date filters moved
+ * back — a year, or the length of the period itself. `null` when there is nothing to move: the
+ * previous period of an unbounded one is no period.
+ */
+export function comparedQuery(
+  query: BuilderQuery,
+  constraints: readonly Constraint[],
+  mode: CompareMode,
+  today: string,
+): { query: BuilderQuery; constraints: Constraint[]; shift: PeriodShift } | null {
+  let shift: PeriodShift
+  if (mode === 'previous_year') shift = { months: 12 }
+  else {
+    const span = firstSpan(query, constraints, today)
+    if (!span?.start || !span.end) return null
+    // Whole months — this quarter, the last 12 months — move by months, the rest by days.
+    if (span.start.endsWith('-01') && lastOfMonth(span.end)) {
+      const months = (Number(span.end.slice(0, 4)) - Number(span.start.slice(0, 4))) * 12 + Number(span.end.slice(5, 7)) - Number(span.start.slice(5, 7)) + 1
+      shift = { months }
+    } else {
+      const days = Math.round((Date.parse(span.end) - Date.parse(span.start)) / 86_400_000) + 1
+      shift = { days }
+    }
+  }
+  const filters = (query.filters ?? []).map((f) => {
+    if (!('values' in f) || f.op !== 'date' || typeof f.values[0] !== 'string') return f
+    const moved = shiftedExpression(f.values[0], shift, today)
+    return moved ? { ...f, values: [moved] } : f
+  })
+  const moved = constraints.map((c) => {
+    if (c.type !== 'date' || typeof c.value !== 'string') return c
+    const value = shiftedExpression(c.value, shift, today)
+    return value ? { ...c, value } : c
+  })
+  return { query: { ...query, filters }, constraints: moved, shift }
+}
+
+/** A grouped date moved forward by `by`, its time of day kept: where a past value is drawn. */
+function shiftValue(value: unknown, by: PeriodShift): unknown {
+  if (typeof value !== 'string' || !DAY.test(value.slice(0, 10))) return value
+  return `${shiftDay(value.slice(0, 10), by, 1)}${value.slice(10)}`
+}
+
+/**
+ * The result with the period compared to beside it: each measure gains its past value, read
+ * from `previous` at the same groupings — the date moved forward by `shift`.
+ */
+export function mergeCompared<T extends QueryResult>(current: T, previous: QueryResult, shift: PeriodShift, label: string): T {
+  const time = current.columns.findIndex((c) => c.role === 'dimension' && !!c.unit && ['day', 'week', 'month', 'quarter', 'year'].includes(c.unit))
+  if (time < 0) return current
+  const dims = current.columns.map((c, i) => ({ c, i })).filter(({ c }) => c.role === 'dimension')
+  const metrics = current.columns.map((c, i) => ({ c, i })).filter(({ c }) => c.role === 'metric')
+  if (!metrics.length) return current
+  const at = (cols: readonly ResultColumn[], name: string) => cols.findIndex((c) => c.name === name)
+  const keyOf = (row: readonly unknown[], cols: readonly ResultColumn[], moved: boolean) =>
+    JSON.stringify(
+      dims.map(({ c }) => {
+        const v = row[at(cols, c.name)]
+        return moved && c.name === current.columns[time]?.name ? shiftValue(v, shift) : v
+      }),
+    )
+  const past = new Map(previous.rows.map((r) => [keyOf(r, previous.columns, true), r]))
+  const columns: ResultColumn[] = [
+    ...current.columns,
+    ...metrics.map(({ c }) => ({ ...c, name: `${c.name}__compared`, label: `${c.label} · ${label}`, compared: { of: c.name } })),
+  ]
+  const rows = current.rows.map((r) => {
+    const p = past.get(keyOf(r, current.columns, false))
+    return [...r, ...metrics.map(({ c }) => (p ? (p[at(previous.columns, c.name)] ?? null) : null))]
+  })
+  return { ...current, columns, rows }
+}

@@ -117,6 +117,12 @@ In a dashboard, clicking a bar or a slice filters the dashboard, and **Shift** +
 adds more categories: see [Dashboards](/insights/en/fonctionnalites/tableaux-de-bord/#click-a-chart-to-filter).
 In the editor, it offers to filter the question on the value, or to exclude it.
 
+## Texts
+
+A chart's **Texts** section: the **font** (one of the themes' fonts, the theme's by default), the
+**size** — S, M, L or XL, every text in proportion: axes, labels, legend, totals — and the
+**colour** of the texts, for a chart readable from afar or in a brand's colours.
+
 ## Right-clicking a table
 
 A right click on a cell opens the table's menu, arranged in groups:

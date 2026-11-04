@@ -10,10 +10,11 @@ import type {
   ItemSummary,
   Me,
   Question,
+  TableKind,
   TableMeta,
 } from '@eodia/contracts'
-import { useQuery } from '@tanstack/react-query'
-import { api } from './api'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import { type RunResult, api } from './api'
 
 export interface SchemaTree {
   readonly datasources: readonly {
@@ -26,6 +27,7 @@ export interface SchemaTree {
       readonly schema: string
       readonly name: string
       readonly label: string
+      readonly kind?: TableKind
       readonly columns: readonly { readonly name: string; readonly type: string; readonly label: string }[]
     }[]
   }[]
@@ -63,10 +65,34 @@ export const useTable = (id: string | null | undefined) =>
 export const useQuestion = (id: string | null | undefined) =>
   useQuery({ queryKey: keys.question(id ?? ''), queryFn: () => api.get<Question>(`/v1/questions/${id}`), enabled: !!id })
 export const useDashboard = (id: string | null) => useQuery({ queryKey: keys.dashboard(id ?? ''), queryFn: () => api.get<Dashboard>(`/v1/dashboards/${id}`), enabled: !!id })
-export const useModels = () => useQuery({ queryKey: ['models'], queryFn: () => api.get<ItemSummary[]>('/v1/models') })
+export const useModels = (enabled = true) => useQuery({ queryKey: ['models'], queryFn: () => api.get<ItemSummary[]>('/v1/models'), enabled })
 export const useMetrics = () => useQuery({ queryKey: ['metrics'], queryFn: () => api.get<ItemSummary[]>('/v1/metrics') })
 export const useDirectory = () =>
   useQuery({
     queryKey: keys.directory,
     queryFn: () => api.get<{ users: { id: string; name: string; email: string; color: string | null }[]; groups: Group[] }>('/v1/directory'),
   })
+
+/** The SQL type a result column's kind stands for: what the builder needs of a model's column. */
+const resultType = (type: string) => (type === 'number' ? 'double' : type === 'date' ? 'date' : type === 'datetime' ? 'timestamp' : type === 'boolean' ? 'boolean' : 'varchar')
+
+/** A model's columns, read off one row of it — run as the reader, with their rights. */
+export function useModelColumns(id: string | null) {
+  return useQuery({
+    queryKey: ['model-columns', id],
+    queryFn: async () => (await api.post<RunResult>('/v1/query', { query: { kind: 'builder', source: { kind: 'question', id }, limit: 1 } })).columns.filter((c) => !c.hidden).map((c) => ({ name: c.name, type: resultType(c.type), label: c.label, ...(c.source?.column ? { id: c.source.column } : {}) })),
+    enabled: !!id,
+    staleTime: 5 * 60_000,
+  })
+}
+
+/** The columns of several models at once — those a question joins. */
+export function useModelsColumns(ids: readonly string[]) {
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: ['model-columns', id],
+      queryFn: async () => (await api.post<RunResult>('/v1/query', { query: { kind: 'builder', source: { kind: 'question', id }, limit: 1 } })).columns.filter((c) => !c.hidden).map((c) => ({ name: c.name, type: resultType(c.type), label: c.label, ...(c.source?.column ? { id: c.source.column } : {}) })),
+      staleTime: 5 * 60_000,
+    })),
+  })
+}

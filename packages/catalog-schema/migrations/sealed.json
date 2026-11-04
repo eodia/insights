@@ -6,5 +6,10 @@
   },
   "0.3.0": {
     "0004_espaces.sql": "ccc840c42a8bfae9ec4b5a4ce6a8840b84445351ead535848ad760012e8d5481"
+  },
+  "0.4.9": {
+    "0005_types_de_table.sql": "6050ed32c9cda7123251393cb32d5f90f6ff605c04c145865fb03cf6d9b1bb9e",
+    "0006_vues_de_tableau.sql": "43572e9e21c94c6cb4c9fe564c067ba983e0776f09e2ca849c68282dd3a661fc",
+    "0007_commentaires_annotations.sql": "359f24b6c165729838bd05c78b85d2611744a7320897c60192dcc9fe0deaf6c7"
   }
 }

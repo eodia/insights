@@ -4,6 +4,7 @@
  * lecteur : une table refusée n'existe pas pour lui, une colonne cachée non plus.
  */
 import type {
+  TableKind,
   ColumnFormat,
   ColumnMeta,
   ColumnPatch,
@@ -38,6 +39,7 @@ interface TableRow {
   icon: string | null
   display_column: string | null
   row_count: number | null
+  kind: TableKind
   status: 'active' | 'removed'
   synced_at: Date | null
 }
@@ -85,6 +87,7 @@ function tableDto(r: TableRow, columns?: ColumnMeta[]): TableMeta {
     icon: r.icon,
     display_column: r.display_column,
     row_count: r.row_count,
+    kind: r.kind ?? 'table',
     status: r.status,
     synced_at: r.synced_at?.toISOString() ?? null,
     ...(columns ? { columns } : {}),
@@ -463,6 +466,7 @@ export async function schemaTree(core: Core, actor: Actor): Promise<SchemaTree> 
             schema: t.schema,
             name: t.name,
             label: t.label,
+            kind: t.kind,
             columns: (t.columns ?? []).filter((c) => c.visibility !== 'hidden').map((c) => ({ name: c.name, type: c.type, label: c.label })),
           })),
       }))
