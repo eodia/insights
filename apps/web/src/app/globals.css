@@ -538,3 +538,52 @@
   border-color: transparent !important;
   color: oklch(0.96 0 0);
 }
+
+/* Small drawings coming to life: a curve that traces itself, bars that rise or stretch out. */
+@keyframes viz-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes viz-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes viz-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* A curve unveiled left to right (a dash would follow the screen's pixels, not the curve). */
+@keyframes viz-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.viz-wipe {
+  animation: viz-wipe 1.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.viz-fade {
+  animation: viz-fade 0.8s ease 0.55s both;
+}
+.viz-grow-y {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: viz-grow-y 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.viz-grow-x {
+  transform-origin: left;
+  animation: viz-grow-x 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .viz-wipe,
+  .viz-fade,
+  .viz-grow-y,
+  .viz-grow-x {
+    animation: none;
+  }
+}

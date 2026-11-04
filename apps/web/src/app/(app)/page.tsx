@@ -24,8 +24,9 @@ export default function HomePage() {
     .slice(0, 6)
   const favorite = home?.bookmarks[0]
 
+  // The canvas, lit at the top: a green glow on the left, a violet one on the right.
   return (
-    <div className="min-h-full bg-surface">
+    <div className="min-h-full bg-surface bg-[radial-gradient(55%_45%_at_12%_0%,rgba(45,163,30,0.11),transparent_70%),radial-gradient(45%_40%_at_92%_4%,rgba(124,58,237,0.09),transparent_70%)] dark:bg-[radial-gradient(55%_45%_at_12%_0%,rgba(45,163,30,0.14),transparent_70%),radial-gradient(45%_40%_at_92%_4%,rgba(124,58,237,0.14),transparent_70%)]">
     <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-9 px-4 pt-7 pb-16 sm:px-6 lg:px-10">
       <HomeHero firstName={me?.name.split(' ')[0] ?? ''} ai={!!me?.ai_enabled} />
       <Shortcuts sql={!!me?.can.use_sql} table={starters[0]?.qualified ?? null} />

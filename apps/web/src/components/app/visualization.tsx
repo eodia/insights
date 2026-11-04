@@ -371,7 +371,7 @@ function Spark({ values, kind, className }: { values: readonly number[]; kind: '
       <svg viewBox={`0 0 ${w} ${h}`} className={className} preserveAspectRatio="none" aria-hidden="true">
         {values.map((v, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: one bar per period, in order
-          <rect key={i} x={x(i) - bw / 2} y={y(v)} width={bw} height={Math.max(1, h - pad - y(v))} rx={1} fill="currentColor" opacity={i === values.length - 1 ? 1 : 0.45} />
+          <rect key={i} className="viz-grow-y" style={{ animationDelay: `${i * 22}ms` }} x={x(i) - bw / 2} y={y(v)} width={bw} height={Math.max(1, h - pad - y(v))} rx={1} fill="currentColor" opacity={i === values.length - 1 ? 1 : 0.45} />
         ))}
       </svg>
     )
@@ -389,7 +389,7 @@ function Spark({ values, kind, className }: { values: readonly number[]; kind: '
   }
   const last = pts[pts.length - 1] as readonly [number, number]
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className={className} aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} className={cn('viz-wipe', className)} aria-hidden="true">
       {kind === 'area' ? (
         <>
           <defs>
@@ -398,11 +398,11 @@ function Spark({ values, kind, className }: { values: readonly number[]; kind: '
               <stop offset="1" stopColor="currentColor" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d={`${d} L${last[0]},${h} L${pts[0]?.[0]},${h} Z`} fill={`url(#${id})`} />
+          <path className="viz-fade" d={`${d} L${last[0]},${h} L${pts[0]?.[0]},${h} Z`} fill={`url(#${id})`} />
         </>
       ) : null}
       <path d={d} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      <circle cx={last[0]} cy={last[1]} r={2.5} fill="currentColor" />
+      <circle className="viz-fade" cx={last[0]} cy={last[1]} r={2.5} fill="currentColor" />
     </svg>
   )
 }
@@ -480,7 +480,7 @@ function Progress({ result, settings }: { result: Result; settings: Visualizatio
         </span>
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(ratio, 1) * 100}%`, background: settings.color ?? (ratio >= 1 ? '#0ca30c' : 'var(--primary)') }} />
+        <div className="viz-grow-x h-full rounded-full transition-all" style={{ width: `${Math.min(ratio, 1) * 100}%`, background: settings.color ?? (ratio >= 1 ? '#0ca30c' : 'var(--primary)') }} />
       </div>
       <div className="text-xs text-muted-foreground">{new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(ratio)}</div>
     </div>
@@ -840,7 +840,7 @@ export function DataTable({
                         {rule?.icon ? <RuleGlyph icon={rule.icon} color={rule.color} /> : null}
                         {max !== undefined && typeof value === 'number' ? (
                           <span className="relative inline-flex w-full min-w-[120px] items-center justify-end">
-                            <span className="absolute inset-y-1 left-0 rounded-sm bg-primary/15" style={{ width: `${(Math.abs(value) / max) * 100}%` }} />
+                            <span className="viz-grow-x absolute inset-y-1 left-0 rounded-sm bg-primary/15" style={{ width: `${(Math.abs(value) / max) * 100}%` }} />
                             <span className="relative">{formatValue(value, c)}</span>
                           </span>
                         ) : (
