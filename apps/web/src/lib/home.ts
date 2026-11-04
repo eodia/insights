@@ -40,7 +40,6 @@ export function defaultCards(): DashboardCard[] {
     block('alerts', 16, 0, 8, 7),
     block('recent', 0, 7, 12, 6),
     block('latest', 12, 7, 12, 6),
-    block('shortcuts', 0, 13, 24, 5),
   ]
 }
 
