@@ -1102,7 +1102,7 @@ export interface DashboardViewProps {
   records?: boolean
   /** The page's own blocks (the home page's lists): how each is drawn, and those one may add. */
   blocks?: DashboardBlocks
-  /** The edit button's word — « Personnaliser » on the home page. */
+  /** The edit button's word — « Personnaliser » on the home page, where it is a quiet button. */
   editLabel?: string
   /** False: the grid lets the page's own background show through. */
   surface?: boolean
@@ -1789,8 +1789,8 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           />
           {toolbar}
           {editable ? (
-            <Button size="sm" onClick={() => setEditing(true)}>
-              <Pencil /> {editLabel ?? $t('Modifier')}
+            <Button size="sm" variant={editLabel ? 'outline' : 'default'} className={cn(editLabel && 'bg-card')} onClick={() => setEditing(true)}>
+              {editLabel ? <Settings2 /> : <Pencil />} {editLabel ?? $t('Modifier')}
             </Button>
           ) : null}
           {more}
