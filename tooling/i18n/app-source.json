@@ -35,7 +35,7 @@
     "one": "« {label} » relié à {count} carte.",
     "other": "« {label} » relié à {count} cartes.",
     "where": [
-      "components/app/dashboard/view.tsx:926"
+      "components/app/dashboard/view.tsx:932"
     ]
   },
   "« {name} » est archivé": {
@@ -144,7 +144,7 @@
     "other": "{count} cartes",
     "where": [
       "components/app/dashboard/tabs.tsx:158",
-      "components/app/dashboard/view.tsx:932"
+      "components/app/dashboard/view.tsx:938"
     ]
   },
   "{count} cartes ajoutées : enregistrez le tableau de bord pour les garder.": {
@@ -165,7 +165,7 @@
     "one": "{count} carte d’un autre onglet : ouvrez-le pour la relier.",
     "other": "{count} cartes d’autres onglets : ouvrez-les pour les relier.",
     "where": [
-      "components/app/dashboard/view.tsx:945"
+      "components/app/dashboard/view.tsx:951"
     ]
   },
   "{count} chiffres clés": {
@@ -557,7 +557,7 @@
   },
   "{count} sur {total}": {
     "where": [
-      "components/app/dashboard/view.tsx:908",
+      "components/app/dashboard/view.tsx:914",
       "components/app/question/notebook.tsx:367"
     ]
   },
@@ -668,7 +668,7 @@
   },
   "{name} (copie)": {
     "where": [
-      "components/app/dashboard/view.tsx:1156"
+      "components/app/dashboard/view.tsx:1162"
     ]
   },
   "{name} (groupe)": {
@@ -768,7 +768,7 @@
   },
   "1 heure": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:138"
+      "app/(app)/dashboard/[id]/page.tsx:141"
     ]
   },
   "1 min": {
@@ -824,7 +824,7 @@
   },
   "24 heures": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:139",
+      "app/(app)/dashboard/[id]/page.tsx:142",
       "components/app/performance.tsx:182"
     ]
   },
@@ -878,7 +878,7 @@
   },
   "5 minutes": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:137"
+      "app/(app)/dashboard/[id]/page.tsx:140"
     ]
   },
   "6 derniers mois": {
@@ -1004,7 +1004,7 @@
   },
   "À quelle colonne relier « {label} » sur chaque carte qui l’a ?": {
     "where": [
-      "components/app/dashboard/view.tsx:918"
+      "components/app/dashboard/view.tsx:924"
     ]
   },
   "À qui": {
@@ -1056,12 +1056,12 @@
     "where": [
       "app/(app)/deliveries/page.tsx:44",
       "app/(app)/deliveries/page.tsx:57",
-      "components/app/sidebar.tsx:251"
+      "components/app/sidebar.tsx:313"
     ]
   },
   "Abonnements…": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:397"
+      "app/(app)/dashboard/[id]/page.tsx:433"
     ]
   },
   "Accent": {
@@ -1152,7 +1152,7 @@
   },
   "Actions de la carte": {
     "where": [
-      "components/app/dashboard/view.tsx:516"
+      "components/app/dashboard/view.tsx:522"
     ]
   },
   "Actions du dossier": {
@@ -1204,7 +1204,7 @@
     "where": [
       "app/(app)/account/page.tsx:54",
       "app/(app)/admin/workspace/page.tsx:32",
-      "components/app/sidebar.tsx:174"
+      "components/app/sidebar.tsx:221"
     ]
   },
   "Administrateurs": {
@@ -1264,7 +1264,7 @@
   },
   "Affichage": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:380"
+      "app/(app)/dashboard/[id]/page.tsx:416"
     ]
   },
   "Affichage des lignes": {
@@ -1276,7 +1276,7 @@
   "Affiché si": {
     "where": [
       "components/app/dashboard/tabs.tsx:232",
-      "components/app/dashboard/view.tsx:1857"
+      "components/app/dashboard/view.tsx:1867"
     ]
   },
   "Affiche un graphique dans la conversation (MCP Apps : Claude, ChatGPT, VS Code…), dessiné comme dans l’application, d’une question enregistrée ou d’une requête SQL. Un client sans MCP Apps reçoit le résultat en texte.": {
@@ -1286,7 +1286,7 @@
   },
   "Affichée si": {
     "where": [
-      "components/app/dashboard/view.tsx:498"
+      "components/app/dashboard/view.tsx:504"
     ]
   },
   "Afficher « {column} »": {
@@ -1301,12 +1301,12 @@
   },
   "Afficher l’onglet « {name} » si…": {
     "where": [
-      "components/app/dashboard/view.tsx:2016"
+      "components/app/dashboard/view.tsx:2026"
     ]
   },
   "Afficher la carte si…": {
     "where": [
-      "components/app/dashboard/view.tsx:2017"
+      "components/app/dashboard/view.tsx:2027"
     ]
   },
   "Afficher ou masquer le détail": {
@@ -1332,7 +1332,7 @@
   },
   "Agrandir": {
     "where": [
-      "components/app/dashboard/view.tsx:530"
+      "components/app/dashboard/view.tsx:536"
     ]
   },
   "Aire": {
@@ -1352,7 +1352,7 @@
   },
   "Ajouté aux favoris.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:416"
+      "app/(app)/dashboard/[id]/page.tsx:452"
     ]
   },
   "Ajoutée à « {name} ».": {
@@ -1369,7 +1369,7 @@
     "where": [
       "app/(app)/admin/workspace/page.tsx:162",
       "components/app/dashboard/tabs.tsx:243",
-      "components/app/dashboard/view.tsx:2037"
+      "components/app/dashboard/view.tsx:2047"
     ]
   },
   "Ajouter à un tableau de bord": {
@@ -1379,18 +1379,19 @@
   },
   "Ajouter au tableau de bord": {
     "where": [
-      "components/app/dashboard/view.tsx:2036"
+      "components/app/dashboard/view.tsx:2046"
     ]
   },
   "Ajouter aux favoris": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:419",
-      "components/app/item-selection.tsx:233"
+      "app/(app)/dashboard/[id]/page.tsx:312",
+      "app/(app)/dashboard/[id]/page.tsx:320",
+      "app/(app)/dashboard/[id]/page.tsx:455"
     ]
   },
   "Ajouter des cartes": {
     "where": [
-      "components/app/dashboard/view.tsx:1902"
+      "components/app/dashboard/view.tsx:1912"
     ]
   },
   "Ajouter des destinataires": {
@@ -1420,7 +1421,7 @@
   },
   "Ajouter un filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:1638"
+      "components/app/dashboard/view.tsx:1644"
     ]
   },
   "Ajouter une condition": {
@@ -1466,8 +1467,8 @@
   },
   "Ajouter une question": {
     "where": [
-      "components/app/dashboard/view.tsx:790",
-      "components/app/dashboard/view.tsx:1906"
+      "components/app/dashboard/view.tsx:796",
+      "components/app/dashboard/view.tsx:1916"
     ]
   },
   "Ajouter une règle de lignes": {
@@ -1488,13 +1489,13 @@
   },
   "Ajoutez d’abord un filtre au tableau de bord.": {
     "where": [
-      "components/app/dashboard/view.tsx:699",
-      "components/app/dashboard/view.tsx:2042"
+      "components/app/dashboard/view.tsx:705",
+      "components/app/dashboard/view.tsx:2052"
     ]
   },
   "Ajoutez d’abord un filtre de catégorie.": {
     "where": [
-      "components/app/dashboard/view.tsx:2043"
+      "components/app/dashboard/view.tsx:2053"
     ]
   },
   "Ajoutez-y des personnes, puis donnez-lui des droits dans « Permissions ».": {
@@ -1504,7 +1505,7 @@
   },
   "Ajoutez-y des questions : chacune devient une carte, que vous placez et redimensionnez sur la grille.": {
     "where": [
-      "components/app/dashboard/view.tsx:1899"
+      "components/app/dashboard/view.tsx:1909"
     ]
   },
   "Alerte": {
@@ -1539,7 +1540,7 @@
   },
   "Alertes…": {
     "where": [
-      "components/app/dashboard/view.tsx:577",
+      "components/app/dashboard/view.tsx:583",
       "components/app/question/editor.tsx:485"
     ]
   },
@@ -1583,7 +1584,7 @@
   "Analyste": {
     "where": [
       "app/(app)/account/page.tsx:54",
-      "components/app/sidebar.tsx:174"
+      "components/app/sidebar.tsx:221"
     ]
   },
   "Analyste en Bretagne": {
@@ -1626,7 +1627,7 @@
   },
   "Annotation ajoutée.": {
     "where": [
-      "components/app/dashboard/view.tsx:2006"
+      "components/app/dashboard/view.tsx:2016"
     ]
   },
   "Annotations du graphique": {
@@ -1641,7 +1642,7 @@
   },
   "Annoter ce point…": {
     "where": [
-      "components/app/dashboard/view.tsx:2125"
+      "components/app/dashboard/view.tsx:2135"
     ]
   },
   "Annoter le graphique": {
@@ -1669,7 +1670,7 @@
   },
   "Annuler la dernière modification": {
     "where": [
-      "components/app/dashboard/view.tsx:2074"
+      "components/app/dashboard/view.tsx:2084"
     ]
   },
   "Annuler la sélection": {
@@ -1857,7 +1858,7 @@
   },
   "Au clic sur un point…": {
     "where": [
-      "components/app/dashboard/view.tsx:603"
+      "components/app/dashboard/view.tsx:609"
     ]
   },
   "au moins": {
@@ -1945,7 +1946,7 @@
   },
   "Aucun filtre du tableau n’est relié à « {col} ».": {
     "where": [
-      "components/app/dashboard/view.tsx:1380"
+      "components/app/dashboard/view.tsx:1386"
     ]
   },
   "Aucun groupe": {
@@ -2062,7 +2063,7 @@
   },
   "Aucune : tout est affiché": {
     "where": [
-      "components/app/dashboard/view.tsx:952"
+      "components/app/dashboard/view.tsx:958"
     ]
   },
   "Aucune alerte": {
@@ -2097,7 +2098,7 @@
   },
   "Aucune colonne commune : choisissez-la sur chaque carte, ci-dessous.": {
     "where": [
-      "components/app/dashboard/view.tsx:944"
+      "components/app/dashboard/view.tsx:950"
     ]
   },
   "Aucune colonne ne correspond.": {
@@ -2611,7 +2612,7 @@
   },
   "Boutons": {
     "where": [
-      "components/app/dashboard/view.tsx:2043"
+      "components/app/dashboard/view.tsx:2053"
     ]
   },
   "Boutons de sélection": {
@@ -2652,7 +2653,7 @@
   },
   "Cache": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:141",
+      "app/(app)/dashboard/[id]/page.tsx:144",
       "app/(app)/history/page.tsx:81"
     ]
   },
@@ -2740,8 +2741,8 @@
   "Carte": {
     "where": [
       "app/(app)/history/page.tsx:28",
-      "components/app/dashboard/view.tsx:522",
-      "components/app/dashboard/view.tsx:2100"
+      "components/app/dashboard/view.tsx:528",
+      "components/app/dashboard/view.tsx:2110"
     ]
   },
   "Carte copiée en image : collez-la où vous voulez.": {
@@ -2756,12 +2757,12 @@
   },
   "Carte déplacée dans « {name} ».": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:349"
+      "app/(app)/dashboard/[id]/page.tsx:385"
     ]
   },
   "Carte déplacée.": {
     "where": [
-      "components/app/dashboard/view.tsx:1528"
+      "components/app/dashboard/view.tsx:1534"
     ]
   },
   "Carte proportionnelle": {
@@ -2771,12 +2772,12 @@
   },
   "Carte sans question.": {
     "where": [
-      "components/app/dashboard/view.tsx:1422"
+      "components/app/dashboard/view.tsx:1428"
     ]
   },
   "Carte sans titre": {
     "where": [
-      "components/app/dashboard/view.tsx:764"
+      "components/app/dashboard/view.tsx:770"
     ]
   },
   "Carte||type de graphique : une carte géographique": {
@@ -2918,7 +2919,7 @@
   },
   "Ce que lit la personne dans la barre des filtres.": {
     "where": [
-      "components/app/dashboard/view.tsx:893"
+      "components/app/dashboard/view.tsx:899"
     ]
   },
   "Ce que montre l’image": {
@@ -2948,7 +2949,7 @@
   },
   "Ce tableau de bord est vide.": {
     "where": [
-      "components/app/dashboard/view.tsx:1898"
+      "components/app/dashboard/view.tsx:1908"
     ]
   },
   "Ce texte n’est pas du JSON valide.": {
@@ -2958,7 +2959,7 @@
   },
   "Ce texte n’est pas du JSON.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:488"
+      "app/(app)/dashboard/[id]/page.tsx:524"
     ]
   },
   "ce trimestre": {
@@ -2985,7 +2986,7 @@
   },
   "Celle de l'instance": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:135"
+      "app/(app)/dashboard/[id]/page.tsx:138"
     ]
   },
   "Celle du thème": {
@@ -3325,7 +3326,7 @@
     "where": [
       "components/app/dashboard/conditions.tsx:149",
       "components/app/dashboard/conditions.tsx:237",
-      "components/app/dashboard/view.tsx:693"
+      "components/app/dashboard/view.tsx:699"
     ]
   },
   "Choisir une image (PNG, SVG, JPEG, WebP)": {
@@ -3370,7 +3371,7 @@
   },
   "Choisissez le filtre que ce volet montre.": {
     "where": [
-      "components/app/dashboard/view.tsx:699"
+      "components/app/dashboard/view.tsx:705"
     ]
   },
   "Choisissez le filtre que ces boutons règlent.": {
@@ -3405,7 +3406,7 @@
   },
   "Choisissez une valeur dans le filtre, en haut, puis gardez-la ici.": {
     "where": [
-      "components/app/dashboard/view.tsx:962"
+      "components/app/dashboard/view.tsx:968"
     ]
   },
   "Cible": {
@@ -3549,7 +3550,7 @@
   },
   "Coller un JSON…": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:450"
+      "app/(app)/dashboard/[id]/page.tsx:486"
     ]
   },
   "Coller une configuration": {
@@ -3560,7 +3561,7 @@
   },
   "Collez un tableau de bord copié avec « Copier en JSON » : il est créé à côté de celui-ci, dans le même dossier.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:474"
+      "app/(app)/dashboard/[id]/page.tsx:510"
     ]
   },
   "Colonne": {
@@ -3774,12 +3775,12 @@
   },
   "Condition d’affichage…": {
     "where": [
-      "components/app/dashboard/view.tsx:608"
+      "components/app/dashboard/view.tsx:614"
     ]
   },
   "Conditionnelle": {
     "where": [
-      "components/app/dashboard/view.tsx:508"
+      "components/app/dashboard/view.tsx:514"
     ]
   },
   "Confidentiel — usage interne": {
@@ -3981,12 +3982,12 @@
   },
   "Copier en image": {
     "where": [
-      "components/app/dashboard/view.tsx:539"
+      "components/app/dashboard/view.tsx:545"
     ]
   },
   "Copier en JSON": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:447",
+      "app/(app)/dashboard/[id]/page.tsx:483",
       "components/app/data/source-form.tsx:469"
     ]
   },
@@ -4014,7 +4015,7 @@
   },
   "Copier le lien de cette vue": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:394"
+      "app/(app)/dashboard/[id]/page.tsx:430"
     ]
   },
   "Copier le SQL": {
@@ -4048,7 +4049,7 @@
     "where": [
       "app/(app)/sql/page.tsx:403",
       "components/app/copilot.tsx:233",
-      "components/app/topbar.tsx:101"
+      "components/app/topbar.tsx:91"
     ]
   },
   "Corps de la requête": {
@@ -4170,7 +4171,7 @@
   },
   "Créée dans ce tableau de bord, sans passer par un dossier": {
     "where": [
-      "components/app/dashboard/view.tsx:804"
+      "components/app/dashboard/view.tsx:810"
     ]
   },
   "Créer": {
@@ -4213,7 +4214,7 @@
   },
   "Créer le tableau de bord": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:501"
+      "app/(app)/dashboard/[id]/page.tsx:537"
     ]
   },
   "Créer le thème": {
@@ -4293,7 +4294,7 @@
   "Curateur": {
     "where": [
       "app/(app)/account/page.tsx:54",
-      "components/app/sidebar.tsx:174"
+      "components/app/sidebar.tsx:221"
     ]
   },
   "Curseur": {
@@ -4464,7 +4465,7 @@
   },
   "Délier toutes": {
     "where": [
-      "components/app/dashboard/view.tsx:939"
+      "components/app/dashboard/view.tsx:945"
     ]
   },
   "Delta Lake": {
@@ -4480,7 +4481,7 @@
   "Demander au copilote": {
     "where": [
       "components/app/question/editor.tsx:422",
-      "components/app/topbar.tsx:100"
+      "components/app/topbar.tsx:90"
     ]
   },
   "Demandez au copilote…": {
@@ -4539,7 +4540,7 @@
   },
   "Déplacer": {
     "where": [
-      "components/app/dashboard/view.tsx:618",
+      "components/app/dashboard/view.tsx:624",
       "components/app/move-dialog.tsx:212"
     ]
   },
@@ -4562,7 +4563,7 @@
     "where": [
       "app/(app)/history/page.tsx:50",
       "components/app/docs/schema-tree.tsx:39",
-      "components/app/sidebar.tsx:128"
+      "components/app/sidebar.tsx:134"
     ]
   },
   "Déplier la ligne": {
@@ -4681,7 +4682,7 @@
   "Description": {
     "where": [
       "app/(app)/admin/workspace/page.tsx:85",
-      "app/(app)/dashboard/[id]/page.tsx:101",
+      "app/(app)/dashboard/[id]/page.tsx:104",
       "components/app/admin/row-rule-editor.tsx:235"
     ]
   },
@@ -4813,7 +4814,7 @@
   "Dossier": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:478",
-      "app/(app)/dashboard/[id]/page.tsx:109",
+      "app/(app)/dashboard/[id]/page.tsx:112",
       "components/app/admin/permission-matrix.tsx:353"
     ]
   },
@@ -4903,7 +4904,7 @@
   },
   "Dupliquer": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:427",
+      "app/(app)/dashboard/[id]/page.tsx:463",
       "components/app/dashboard/view.tsx:425",
       "components/app/dashboard/view.tsx:426"
     ]
@@ -4912,7 +4913,7 @@
     "where": [
       "components/app/dashboard/tabs.tsx:248",
       "components/app/dashboard/tabs.tsx:253",
-      "components/app/dashboard/view.tsx:1844"
+      "components/app/dashboard/view.tsx:1854"
     ]
   },
   "Durée": {
@@ -4930,7 +4931,7 @@
   },
   "Durée de cache des résultats": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:128"
+      "app/(app)/dashboard/[id]/page.tsx:131"
     ]
   },
   "Durée de conservation (secondes)": {
@@ -5172,7 +5173,7 @@
   },
   "En bref": {
     "where": [
-      "components/app/dashboard/view.tsx:2051"
+      "components/app/dashboard/view.tsx:2061"
     ]
   },
   "En développement, Trino tourne dans Docker : « localhost » est traduit automatiquement en « host.docker.internal » pour que Trino joigne votre base.": {
@@ -5528,7 +5529,7 @@
     "where": [
       "app/(app)/admin/workspaces/page.tsx:34",
       "app/(app)/admin/workspaces/page.tsx:94",
-      "components/app/sidebar.tsx:215"
+      "components/app/sidebar.tsx:277"
     ]
   },
   "Essai envoyé : regardez votre boîte de réception.": {
@@ -5656,7 +5657,7 @@
   },
   "Ex. {example}": {
     "where": [
-      "components/app/dashboard/view.tsx:888"
+      "components/app/dashboard/view.tsx:894"
     ]
   },
   "Exactement celui que citent les vues, « iceberg-raw » par exemple.": {
@@ -5815,12 +5816,12 @@
   },
   "Exporter en PDF…": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:386"
+      "app/(app)/dashboard/[id]/page.tsx:422"
     ]
   },
   "Exporter les données": {
     "where": [
-      "components/app/dashboard/view.tsx:545"
+      "components/app/dashboard/view.tsx:551"
     ]
   },
   "expression régulière": {
@@ -5845,7 +5846,7 @@
   },
   "facultatif": {
     "where": [
-      "components/app/dashboard/view.tsx:975",
+      "components/app/dashboard/view.tsx:981",
       "components/app/docs/endpoint.tsx:116"
     ]
   },
@@ -5906,6 +5907,11 @@
       "components/app/favorite-icon.tsx:36"
     ]
   },
+  "Favoris": {
+    "where": [
+      "components/app/sidebar.tsx:256"
+    ]
+  },
   "fermer": {
     "where": [
       "components/app/sql-editor.tsx:141"
@@ -5937,17 +5943,17 @@
   },
   "Filtré : {label} = {value}": {
     "where": [
-      "components/app/dashboard/view.tsx:1411"
+      "components/app/dashboard/view.tsx:1417"
     ]
   },
   "Filtre « {label} » retiré.": {
     "where": [
-      "components/app/dashboard/view.tsx:1409"
+      "components/app/dashboard/view.tsx:1415"
     ]
   },
   "Filtre « {name} »": {
     "where": [
-      "components/app/dashboard/view.tsx:872"
+      "components/app/dashboard/view.tsx:878"
     ]
   },
   "Filtrer": {
@@ -5969,7 +5975,7 @@
   },
   "Filtrer le tableau de bord sur cette valeur": {
     "where": [
-      "components/app/dashboard/view.tsx:2120"
+      "components/app/dashboard/view.tsx:2130"
     ]
   },
   "Filtrer les membres…": {
@@ -6178,7 +6184,7 @@
   "Glissez pour déplacer (ou Alt + flèches)": {
     "where": [
       "components/app/dashboard/parameters.tsx:269",
-      "components/app/dashboard/view.tsx:1790"
+      "components/app/dashboard/view.tsx:1800"
     ]
   },
   "Glissez un élément ou un dossier sur un dossier pour l’y ranger.": {
@@ -6537,7 +6543,7 @@
   },
   "Il s’affiche en haut du tableau de bord et restreint, d’un coup, toutes les cartes que vous lui reliez.": {
     "where": [
-      "components/app/dashboard/view.tsx:1639"
+      "components/app/dashboard/view.tsx:1645"
     ]
   },
   "Il y a": {
@@ -6594,7 +6600,7 @@
   "Image": {
     "where": [
       "components/app/dashboard/cards.tsx:594",
-      "components/app/dashboard/view.tsx:2062",
+      "components/app/dashboard/view.tsx:2072",
       "components/app/delivery/subscriptions.tsx:250"
     ]
   },
@@ -6692,7 +6698,7 @@
   },
   "Intégration": {
     "where": [
-      "components/app/dashboard/view.tsx:2068"
+      "components/app/dashboard/view.tsx:2078"
     ]
   },
   "Intégration signée": {
@@ -6942,7 +6948,7 @@
     "where": [
       "app/(app)/admin/audit/page.tsx:84",
       "app/(app)/admin/audit/page.tsx:194",
-      "components/app/sidebar.tsx:219"
+      "components/app/sidebar.tsx:281"
     ]
   },
   "jours": {
@@ -7291,12 +7297,12 @@
   },
   "Langue": {
     "where": [
-      "components/app/sidebar.tsx:268"
+      "components/app/sidebar.tsx:330"
     ]
   },
   "Langue du navigateur": {
     "where": [
-      "components/app/sidebar.tsx:275"
+      "components/app/sidebar.tsx:337"
     ]
   },
   "Large": {
@@ -7532,7 +7538,7 @@
   },
   "Le worker garde ses résultats au chaud, sous les droits de son auteur.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:150"
+      "app/(app)/dashboard/[id]/page.tsx:153"
     ]
   },
   "Lecture": {
@@ -7639,7 +7645,7 @@
   },
   "Les cartes qu’il filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:903"
+      "components/app/dashboard/view.tsx:909"
     ]
   },
   "Les catalogues que lisent les vues de cette source, sans être exposés : créés dans Trino, jamais synchronisés ni montrés, lus seulement par ces vues sous le nom de leurs propriétaires.": {
@@ -7799,7 +7805,7 @@
   },
   "Les questions créées dans ce tableau de bord sont supprimées avec lui ; celles rangées dans un dossier restent.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:520",
+      "app/(app)/dashboard/[id]/page.tsx:556",
       "components/app/item-selection.tsx:116"
     ]
   },
@@ -7944,7 +7950,7 @@
   },
   "Lien copié : il ouvre le tableau de bord avec ces filtres et cet onglet.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:391"
+      "app/(app)/dashboard/[id]/page.tsx:427"
     ]
   },
   "Lien d’accès créé : copiez-le pour la personne.": {
@@ -7960,7 +7966,7 @@
   "Lien vers un tableau de bord": {
     "where": [
       "components/app/dashboard/cards.tsx:592",
-      "components/app/dashboard/view.tsx:2058"
+      "components/app/dashboard/view.tsx:2068"
     ]
   },
   "Liens et intégration": {
@@ -8142,7 +8148,7 @@
   },
   "Maj + clic pour ajouter d’autres catégories.": {
     "where": [
-      "components/app/dashboard/view.tsx:1412"
+      "components/app/dashboard/view.tsx:1418"
     ]
   },
   "Majuscules": {
@@ -8188,7 +8194,7 @@
   },
   "Masquée": {
     "where": [
-      "components/app/dashboard/view.tsx:508",
+      "components/app/dashboard/view.tsx:514",
       "components/app/structure/column-bits.tsx:71",
       "components/app/structure/format-editor.tsx:247"
     ]
@@ -8409,6 +8415,16 @@
       "components/app/structure/format-editor.tsx:175"
     ]
   },
+  "Mis à jour {when}": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:332"
+    ]
+  },
+  "Mis à jour {when} · {name}": {
+    "where": [
+      "app/(app)/dashboard/[id]/page.tsx:331"
+    ]
+  },
   "Mise en avant": {
     "where": [
       "components/app/question/viz-settings.tsx:713"
@@ -8432,7 +8448,7 @@
   },
   "Mode modification": {
     "where": [
-      "components/app/dashboard/view.tsx:1567"
+      "components/app/dashboard/view.tsx:1573"
     ]
   },
   "Modèle": {
@@ -8480,7 +8496,7 @@
     "where": [
       "components/app/admin/row-rule-editor.tsx:152",
       "components/app/dashboard/tabs.tsx:243",
-      "components/app/dashboard/view.tsx:1600"
+      "components/app/dashboard/view.tsx:1606"
     ]
   },
   "Modifier « {name} »": {
@@ -8500,8 +8516,8 @@
   },
   "Modifier la question": {
     "where": [
-      "components/app/dashboard/view.tsx:572",
-      "components/app/dashboard/view.tsx:586"
+      "components/app/dashboard/view.tsx:578",
+      "components/app/dashboard/view.tsx:592"
     ]
   },
   "mois": {
@@ -8552,7 +8568,7 @@
   },
   "Mon profil": {
     "where": [
-      "components/app/sidebar.tsx:248"
+      "components/app/sidebar.tsx:310"
     ]
   },
   "MongoDB": {
@@ -8834,7 +8850,7 @@
   },
   "Nom du filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:889"
+      "components/app/dashboard/view.tsx:895"
     ]
   },
   "Nom du snippet": {
@@ -9036,7 +9052,7 @@
   },
   "Nouveau tableau de bord depuis un JSON": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:472"
+      "app/(app)/dashboard/[id]/page.tsx:508"
     ]
   },
   "Nouveau thème": {
@@ -9065,8 +9081,8 @@
   "Nouvel onglet": {
     "where": [
       "app/(app)/sql/page.tsx:373",
-      "components/app/dashboard/view.tsx:1880",
-      "components/app/dashboard/view.tsx:1882"
+      "components/app/dashboard/view.tsx:1890",
+      "components/app/dashboard/view.tsx:1892"
     ]
   },
   "Nouvelle": {
@@ -9091,12 +9107,12 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:788",
       "app/(app)/browse/[[...folder]]/page.tsx:827",
-      "app/(app)/dashboard/[id]/page.tsx:406"
+      "app/(app)/dashboard/[id]/page.tsx:442"
     ]
   },
   "Nouvelle section": {
     "where": [
-      "components/app/dashboard/view.tsx:2040"
+      "components/app/dashboard/view.tsx:2050"
     ]
   },
   "Nuage de points": {
@@ -9175,7 +9191,7 @@
   },
   "Onglet": {
     "where": [
-      "components/app/dashboard/view.tsx:1887",
+      "components/app/dashboard/view.tsx:1897",
       "components/app/move-dialog.tsx:174",
       "components/app/move-dialog.tsx:179"
     ]
@@ -9253,7 +9269,7 @@
   },
   "Ou choisissez la colonne sur chaque carte, ci-dessous.": {
     "where": [
-      "components/app/dashboard/view.tsx:944"
+      "components/app/dashboard/view.tsx:950"
     ]
   },
   "Ou collez un emoji": {
@@ -9317,7 +9333,7 @@
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:372",
       "app/(app)/browse/[[...folder]]/page.tsx:428",
-      "app/(app)/dashboard/[id]/page.tsx:351"
+      "app/(app)/dashboard/[id]/page.tsx:387"
     ]
   },
   "Ouvrir « API et MCP »": {
@@ -9362,7 +9378,7 @@
   },
   "Ouvrir la question": {
     "where": [
-      "components/app/dashboard/view.tsx:568",
+      "components/app/dashboard/view.tsx:574",
       "components/app/performance.tsx:143"
     ]
   },
@@ -9384,7 +9400,7 @@
   },
   "Page intégrée": {
     "where": [
-      "components/app/dashboard/view.tsx:2067"
+      "components/app/dashboard/view.tsx:2077"
     ]
   },
   "Page introuvable": {
@@ -9515,7 +9531,7 @@
   "Partager": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:522",
-      "app/(app)/dashboard/[id]/page.tsx:368",
+      "app/(app)/dashboard/[id]/page.tsx:404",
       "components/app/item-selection.tsx:237"
     ]
   },
@@ -9571,7 +9587,7 @@
   },
   "Pas de cache": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:136"
+      "app/(app)/dashboard/[id]/page.tsx:139"
     ]
   },
   "Pas de format d’affichage pour une colonne de type {type}.": {
@@ -9774,14 +9790,14 @@
   },
   "Plein écran": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:383"
+      "app/(app)/dashboard/[id]/page.tsx:419"
     ]
   },
   "Plus": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:375",
+      "app/(app)/dashboard/[id]/page.tsx:411",
       "components/app/assistant/parts.tsx:307",
-      "components/app/dashboard/view.tsx:2047"
+      "components/app/dashboard/view.tsx:2057"
     ]
   },
   "Plus ancien": {
@@ -9823,7 +9839,7 @@
   },
   "Plusieurs valeurs à la fois": {
     "where": [
-      "components/app/dashboard/view.tsx:897"
+      "components/app/dashboard/view.tsx:903"
     ]
   },
   "Pointillés": {
@@ -9862,7 +9878,7 @@
   },
   "Polices, couleurs, palette et logo du tableau de bord et de son PDF. Par défaut, celui de son dossier.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:122"
+      "app/(app)/dashboard/[id]/page.tsx:125"
     ]
   },
   "Port": {
@@ -9947,7 +9963,7 @@
   },
   "Préchargé": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:148"
+      "app/(app)/dashboard/[id]/page.tsx:151"
     ]
   },
   "Précisez au moins un jour.": {
@@ -9973,7 +9989,7 @@
   },
   "Prendre la valeur choisie": {
     "where": [
-      "components/app/dashboard/view.tsx:960"
+      "components/app/dashboard/view.tsx:966"
     ]
   },
   "Préparation des graphiques…": {
@@ -10209,8 +10225,8 @@
   "Question": {
     "where": [
       "app/(app)/history/page.tsx:27",
-      "components/app/dashboard/view.tsx:565",
-      "components/app/dashboard/view.tsx:2038"
+      "components/app/dashboard/view.tsx:571",
+      "components/app/dashboard/view.tsx:2048"
     ]
   },
   "Question ajoutée à « {name} ».": {
@@ -10245,7 +10261,7 @@
   },
   "Question sans titre": {
     "where": [
-      "components/app/dashboard/view.tsx:1470",
+      "components/app/dashboard/view.tsx:1476",
       "components/app/question/editor.tsx:377"
     ]
   },
@@ -10290,7 +10306,7 @@
     "where": [
       "components/app/dashboard/refresh-timer.tsx:60",
       "components/app/dashboard/refresh-timer.tsx:64",
-      "components/app/dashboard/view.tsx:526"
+      "components/app/dashboard/view.tsx:532"
     ]
   },
   "Rafraîchissement automatique": {
@@ -10336,6 +10352,11 @@
   "Réactiver": {
     "where": [
       "app/(app)/admin/people/page.tsx:86"
+    ]
+  },
+  "Récents": {
+    "where": [
+      "components/app/sidebar.tsx:257"
     ]
   },
   "Recevoir « {name} » à heure fixe, par e-mail ou dans Teams et Slack — en PDF, en image ou en résumé écrit.": {
@@ -10416,7 +10437,7 @@
   },
   "Rechercher une question, un modèle, une métrique…": {
     "where": [
-      "components/app/dashboard/view.tsx:794"
+      "components/app/dashboard/view.tsx:800"
     ]
   },
   "Rechercher une source ou une table…": {
@@ -10438,7 +10459,7 @@
   "Rechercher…": {
     "where": [
       "components/app/login-stage.tsx:293",
-      "components/app/topbar.tsx:95",
+      "components/app/sidebar.tsx:236",
       "components/app/visualization.tsx:656"
     ]
   },
@@ -10519,8 +10540,8 @@
   "Réglages de l’onglet": {
     "where": [
       "components/app/dashboard/tabs.tsx:197",
-      "components/app/dashboard/view.tsx:1841",
-      "components/app/dashboard/view.tsx:1862"
+      "components/app/dashboard/view.tsx:1851",
+      "components/app/dashboard/view.tsx:1872"
     ]
   },
   "Réglages du cache enregistrés": {
@@ -10535,12 +10556,12 @@
   },
   "Réglages du tableau de bord": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:93"
+      "app/(app)/dashboard/[id]/page.tsx:96"
     ]
   },
   "Réglages…": {
     "where": [
-      "components/app/dashboard/view.tsx:598"
+      "components/app/dashboard/view.tsx:604"
     ]
   },
   "Règle": {
@@ -10590,8 +10611,8 @@
   },
   "Réinitialiser les filtres": {
     "where": [
-      "components/app/dashboard/view.tsx:1689",
-      "components/app/dashboard/view.tsx:1696"
+      "components/app/dashboard/view.tsx:1695",
+      "components/app/dashboard/view.tsx:1702"
     ]
   },
   "Rejoindre eodia insights": {
@@ -10642,13 +10663,13 @@
   },
   "Relier toutes les cartes": {
     "where": [
-      "components/app/dashboard/view.tsx:914"
+      "components/app/dashboard/view.tsx:920"
     ]
   },
   "Reliez ce filtre à une carte : ses valeurs viennent de la colonne qu’il restreint.": {
     "where": [
       "components/app/dashboard/cards.tsx:258",
-      "components/app/dashboard/view.tsx:711"
+      "components/app/dashboard/view.tsx:717"
     ]
   },
   "Remise": {
@@ -10769,7 +10790,7 @@
     "where": [
       "app/(app)/history/page.tsx:50",
       "components/app/docs/schema-tree.tsx:39",
-      "components/app/sidebar.tsx:128"
+      "components/app/sidebar.tsx:134"
     ]
   },
   "Replier la ligne": {
@@ -10895,7 +10916,7 @@
   "Résumé par l’IA": {
     "where": [
       "components/app/dashboard/cards.tsx:595",
-      "components/app/dashboard/view.tsx:2052"
+      "components/app/dashboard/view.tsx:2062"
     ]
   },
   "Résume un tableau de bord : onglets, filtres et cartes, avec la question de chaque carte.": {
@@ -10912,12 +10933,12 @@
   },
   "Rétablir": {
     "where": [
-      "components/app/dashboard/view.tsx:2078"
+      "components/app/dashboard/view.tsx:2088"
     ]
   },
   "Rétablir la modification annulée": {
     "where": [
-      "components/app/dashboard/view.tsx:2079"
+      "components/app/dashboard/view.tsx:2089"
     ]
   },
   "retirée": {
@@ -10959,7 +10980,8 @@
   "Retirer des favoris": {
     "where": [
       "app/(app)/browse/[[...folder]]/page.tsx:519",
-      "components/app/item-selection.tsx:233"
+      "app/(app)/dashboard/[id]/page.tsx:312",
+      "app/(app)/dashboard/[id]/page.tsx:320"
     ]
   },
   "Retirer du groupe": {
@@ -11003,7 +11025,7 @@
   },
   "Retirer la valeur par défaut": {
     "where": [
-      "components/app/dashboard/view.tsx:954"
+      "components/app/dashboard/view.tsx:960"
     ]
   },
   "Retirer le canal": {
@@ -11119,7 +11141,7 @@
   },
   "Sa valeur à l’ouverture": {
     "where": [
-      "components/app/dashboard/view.tsx:950"
+      "components/app/dashboard/view.tsx:956"
     ]
   },
   "Saison": {
@@ -11252,7 +11274,7 @@
   },
   "Se déconnecter": {
     "where": [
-      "components/app/sidebar.tsx:291"
+      "components/app/sidebar.tsx:353"
     ]
   },
   "Secondes": {
@@ -11297,14 +11319,14 @@
   },
   "Sélection précédente": {
     "where": [
-      "components/app/dashboard/view.tsx:1671",
-      "components/app/dashboard/view.tsx:1673"
+      "components/app/dashboard/view.tsx:1677",
+      "components/app/dashboard/view.tsx:1679"
     ]
   },
   "Sélection suivante": {
     "where": [
-      "components/app/dashboard/view.tsx:1678",
-      "components/app/dashboard/view.tsx:1680"
+      "components/app/dashboard/view.tsx:1684",
+      "components/app/dashboard/view.tsx:1686"
     ]
   },
   "Sélectionner": {
@@ -11372,7 +11394,7 @@
   },
   "Séparateur": {
     "where": [
-      "components/app/dashboard/view.tsx:2065"
+      "components/app/dashboard/view.tsx:2075"
     ]
   },
   "Séparateurs de milliers": {
@@ -11385,7 +11407,7 @@
     "where": [
       "app/(app)/account/page.tsx:42",
       "app/(app)/account/page.tsx:241",
-      "components/app/sidebar.tsx:257"
+      "components/app/sidebar.tsx:319"
     ]
   },
   "Service client": {
@@ -11477,7 +11499,7 @@
   },
   "Son nom": {
     "where": [
-      "components/app/dashboard/view.tsx:884"
+      "components/app/dashboard/view.tsx:890"
     ]
   },
   "Son nom, son pictogramme et sa couleur dans la rangée d’onglets ; sa description s’affiche au survol, avec un aperçu de ses cartes.": {
@@ -11655,7 +11677,7 @@
   },
   "suggérée": {
     "where": [
-      "components/app/dashboard/view.tsx:931"
+      "components/app/dashboard/view.tsx:937"
     ]
   },
   "suivant": {
@@ -11682,7 +11704,7 @@
   "Supprimer": {
     "where": [
       "app/(app)/admin/themes/page.tsx:657",
-      "app/(app)/dashboard/[id]/page.tsx:458",
+      "app/(app)/dashboard/[id]/page.tsx:494",
       "components/app/assistant/history.tsx:119"
     ]
   },
@@ -11695,7 +11717,7 @@
     "where": [
       "app/(app)/admin/groups/page.tsx:339",
       "app/(app)/admin/themes/page.tsx:669",
-      "app/(app)/dashboard/[id]/page.tsx:519"
+      "app/(app)/dashboard/[id]/page.tsx:555"
     ]
   },
   "Supprimer (Suppr)": {
@@ -11726,7 +11748,7 @@
     "where": [
       "components/app/dashboard/tabs.tsx:263",
       "components/app/dashboard/tabs.tsx:268",
-      "components/app/dashboard/view.tsx:1850"
+      "components/app/dashboard/view.tsx:1860"
     ]
   },
   "Supprimer la règle": {
@@ -11928,19 +11950,19 @@
   },
   "Tableau de bord": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:401",
+      "app/(app)/dashboard/[id]/page.tsx:437",
       "app/login/page.tsx:35",
       "components/app/copilot.tsx:225"
     ]
   },
   "Tableau de bord copié en JSON : collez-le dans « Coller un JSON » pour en créer un autre.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:441"
+      "app/(app)/dashboard/[id]/page.tsx:477"
     ]
   },
   "Tableau de bord enregistré.": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:362"
+      "app/(app)/dashboard/[id]/page.tsx:398"
     ]
   },
   "Tableaux": {
@@ -11951,7 +11973,7 @@
   "Tableaux de bord": {
     "where": [
       "app/(app)/admin/audit/page.tsx:43",
-      "app/(app)/dashboard/[id]/page.tsx:236",
+      "app/(app)/dashboard/[id]/page.tsx:246",
       "components/app/docs/openapi.ts:99"
     ]
   },
@@ -12048,7 +12070,7 @@
   "Terminé": {
     "where": [
       "app/(app)/admin/people/page.tsx:464",
-      "components/app/dashboard/view.tsx:879",
+      "components/app/dashboard/view.tsx:885",
       "components/app/docs/token-dialog.tsx:202"
     ]
   },
@@ -12082,7 +12104,7 @@
     "where": [
       "app/(app)/admin/themes/page.tsx:391",
       "components/app/dashboard/parameters.tsx:51",
-      "components/app/dashboard/view.tsx:2041"
+      "components/app/dashboard/view.tsx:2051"
     ]
   },
   "Texte alternatif": {
@@ -12097,7 +12119,7 @@
   },
   "Texte en Markdown ; citez un filtre par son nom, entre doubles accolades : {{Région}}": {
     "where": [
-      "components/app/dashboard/view.tsx:720"
+      "components/app/dashboard/view.tsx:726"
     ]
   },
   "Texte et graphiques": {
@@ -12122,14 +12144,14 @@
   },
   "Thème": {
     "where": [
-      "app/(app)/dashboard/[id]/page.tsx:113",
+      "app/(app)/dashboard/[id]/page.tsx:116",
       "components/app/dashboard/cards.tsx:151",
       "components/app/folder-menu.tsx:221"
     ]
   },
   "Thème clair": {
     "where": [
-      "components/app/sidebar.tsx:261"
+      "components/app/sidebar.tsx:323"
     ]
   },
   "Thème enregistré.": {
@@ -12144,7 +12166,7 @@
   },
   "Thème sombre": {
     "where": [
-      "components/app/sidebar.tsx:264"
+      "components/app/sidebar.tsx:326"
     ]
   },
   "Thèmes": {
@@ -12181,7 +12203,7 @@
   },
   "Titre": {
     "where": [
-      "components/app/dashboard/view.tsx:2040",
+      "components/app/dashboard/view.tsx:2050",
       "components/app/structure/column-bits.tsx:34",
       "packages/contracts/src/metadata.ts:68"
     ]
@@ -13140,7 +13162,7 @@
   "Variable": {
     "where": [
       "components/app/dashboard/cards.tsx:593",
-      "components/app/dashboard/view.tsx:2055"
+      "components/app/dashboard/view.tsx:2065"
     ]
   },
   "Variables de la question, par nom.": {
@@ -13205,12 +13227,12 @@
   },
   "Vers l’onglet": {
     "where": [
-      "components/app/dashboard/view.tsx:623"
+      "components/app/dashboard/view.tsx:629"
     ]
   },
   "Vers un autre tableau de bord…": {
     "where": [
-      "components/app/dashboard/view.tsx:636"
+      "components/app/dashboard/view.tsx:642"
     ]
   },
   "Version": {
@@ -13274,7 +13296,7 @@
   },
   "Visualisation": {
     "where": [
-      "components/app/dashboard/view.tsx:664",
+      "components/app/dashboard/view.tsx:670",
       "components/app/question/editor.tsx:534",
       "components/app/question/editor.tsx:626"
     ]
@@ -13303,7 +13325,7 @@
   },
   "Voir en table": {
     "where": [
-      "components/app/dashboard/view.tsx:534"
+      "components/app/dashboard/view.tsx:540"
     ]
   },
   "Voir la ligne": {
@@ -13313,7 +13335,7 @@
   },
   "Voir le détail": {
     "where": [
-      "components/app/dashboard/view.tsx:2057"
+      "components/app/dashboard/view.tsx:2067"
     ]
   },
   "Voir le détail par région": {
@@ -13323,7 +13345,7 @@
   },
   "Voir le graphique": {
     "where": [
-      "components/app/dashboard/view.tsx:534"
+      "components/app/dashboard/view.tsx:540"
     ]
   },
   "Voir le plan Trino": {
@@ -13352,13 +13374,13 @@
   },
   "Voir les enregistrements": {
     "where": [
-      "components/app/dashboard/view.tsx:2115",
+      "components/app/dashboard/view.tsx:2125",
       "components/app/question/editor.tsx:582"
     ]
   },
   "Volet de filtre": {
     "where": [
-      "components/app/dashboard/view.tsx:2042"
+      "components/app/dashboard/view.tsx:2052"
     ]
   },
   "Vos chiffres clés sont calculés à chaque visite, sous vos droits, dans les tables que vous pouvez lire.": {
@@ -13482,7 +13504,7 @@
   "Vue d’ensemble": {
     "where": [
       "app/(app)/admin/themes/page.tsx:236",
-      "components/app/dashboard/view.tsx:1880"
+      "components/app/dashboard/view.tsx:1890"
     ]
   },
   "Vue matérialisée": {

@@ -2802,5 +2802,8 @@
   "Vert → rouge": "Green → red",
   "Voir en table": "View as table",
   "Voir le graphique": "View the chart",
-  "Pictogramme": "Pictogram"
+  "Pictogramme": "Pictogram",
+  "Mis à jour {when}": "Updated {when}",
+  "Mis à jour {when} · {name}": "Updated {when} · {name}",
+  "Récents": "Recent"
 }

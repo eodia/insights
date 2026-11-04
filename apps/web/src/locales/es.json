@@ -2891,5 +2891,8 @@
   "Vert → rouge": "Verde → rojo",
   "Voir en table": "Ver como tabla",
   "Voir le graphique": "Ver el gráfico",
-  "Pictogramme": "Pictograma"
+  "Pictogramme": "Pictograma",
+  "Mis à jour {when}": "Actualizado {when}",
+  "Mis à jour {when} · {name}": "Actualizado {when} · {name}",
+  "Récents": "Recientes"
 }
