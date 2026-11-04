@@ -86,6 +86,9 @@ function withSelection(model: ChartModel, chosen: ReadonlySet<string>): ChartMod
 /** A surface that is dark whatever the page — a dark card: the charts in it are drawn for it. */
 export const DarkSurface = createContext<boolean | null>(null)
 
+/** A chart whose entrance was already played: drawn at once, its numbers and marks still. */
+export const StillMotion = createContext(false)
+
 function useDark(): boolean {
   const forced = useContext(DarkSurface)
   const [dark, setDark] = useState(false)
@@ -158,13 +161,14 @@ export function Visualization({
   }, [textFont])
   // The selection by its values: a new array with the same ones draws nothing anew.
   const selectedKey = JSON.stringify(selected ?? [])
+  const stillMotion = useContext(StillMotion)
   const model = useMemo(() => {
     void fontsLoaded
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
-    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
+    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still || stillMotion ? { animation: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
     const chosen = m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
     return chosen && annotations?.length ? withAnnotations(chosen, annotations, dark) : chosen
-  }, [viz.type, result, settings, dark, selectedKey, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations])
+  }, [viz.type, result, settings, dark, selectedKey, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations, stillMotion])
 
   if (result.rows.length === 0) {
     return (
@@ -327,7 +331,8 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
  * A figure counting up to its value when it appears (on a dashboard): 0.9 s, slowing down at the
  * end. Still when asked for less motion, on a printed page, or for anything but a number.
  */
-function useCountUp(target: unknown, enabled: boolean): unknown {
+function useCountUp(target: unknown, wanted: boolean): unknown {
+  const enabled = wanted && !useContext(StillMotion)
   const [shown, setShown] = useState<unknown>(() => (enabled && typeof target === 'number' && Number.isFinite(target) ? 0 : target))
   useEffect(() => {
     if (!enabled || typeof target !== 'number' || !Number.isFinite(target)) {

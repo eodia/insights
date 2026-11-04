@@ -589,6 +589,10 @@
   transform-origin: left;
   animation: viz-grow-x 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+/* A card whose entrance was played: its drawings stay as they are. */
+.motion-played :is(.viz-wipe, .viz-fade, .viz-grow-y, .viz-grow-x) {
+  animation: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .viz-wipe,
   .viz-fade,
