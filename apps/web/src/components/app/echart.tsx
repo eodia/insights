@@ -93,6 +93,17 @@ function shapeOf(option: EChartsOption): string {
   })
 }
 
+/**
+ * Each series named by its rank and name: merged with the same ones, its marks move from their old
+ * values to the new (a filter) rather than being drawn anew.
+ */
+function withSeriesIds(option: EChartsOption): EChartsOption {
+  const o = option as Record<string, unknown>
+  if (!Array.isArray(o.series)) return option
+  const series = (o.series as Record<string, unknown>[]).map((s, i) => (s.id === undefined ? { ...s, id: `${i}:${String(s.type)}:${String(s.name ?? '')}` } : s))
+  return { ...option, series } as EChartsOption
+}
+
 /** A map's regions, registered once for every chart that draws it. */
 export function registerMap(name: string, geo: unknown): void {
   if (echarts.getMap(name) !== undefined && echarts.getMap(name) !== null) return
@@ -209,7 +220,7 @@ export function EChart({
       if (waiting.current && element.clientWidth > 0 && element.clientHeight > 0) {
         const next = waiting.current
         waiting.current = null
-        instance.setOption(next, { notMerge: true })
+        instance.setOption(withSeriesIds(next), { notMerge: true })
       }
     })
     observer.observe(element)
@@ -236,7 +247,7 @@ export function EChart({
       waiting.current = option
       return
     }
-    instance.setOption(option, next === shape.current ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: true })
+    instance.setOption(withSeriesIds(option), next === shape.current ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: true })
     shape.current = next
   }, [option])
 

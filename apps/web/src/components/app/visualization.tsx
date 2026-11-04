@@ -86,6 +86,12 @@ function withSelection(model: ChartModel, chosen: ReadonlySet<string>): ChartMod
 /** A surface that is dark whatever the page — a dark card: the charts in it are drawn for it. */
 export const DarkSurface = createContext<boolean | null>(null)
 
+/**
+ * A chart whose entrance was already played: drawn at once rather than growing from zero — but
+ * still moving, its bars and its numbers, to the values a filter brings.
+ */
+export const StillMotion = createContext(false)
+
 function useDark(): boolean {
   const forced = useContext(DarkSurface)
   const [dark, setDark] = useState(false)
@@ -158,13 +164,14 @@ export function Visualization({
   }, [textFont])
   // The selection by its values: a new array with the same ones draws nothing anew.
   const selectedKey = JSON.stringify(selected ?? [])
+  const stillMotion = useContext(StillMotion)
   const model = useMemo(() => {
     void fontsLoaded
     if (['table', 'scalar', 'trend', 'progress', 'pivot', 'map'].includes(viz.type)) return null
-    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
+    const m = chartOption(viz.type, result, settings, { dark, ...(chartTheme.font ? { font: chartTheme.font } : {}), ...(chartTheme.still ? { animation: false } : {}), ...(stillMotion ? { entrance: false } : {}), ...(chartTheme.barFill ? { barFill: chartTheme.barFill } : {}), ...(chartTheme.barRadius !== undefined ? { barRadius: chartTheme.barRadius } : {}) })
     const chosen = m && selected?.length && m.clickColumn ? withSelection(m, new Set(selected)) : m
     return chosen && annotations?.length ? withAnnotations(chosen, annotations, dark) : chosen
-  }, [viz.type, result, settings, dark, selectedKey, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations])
+  }, [viz.type, result, settings, dark, selectedKey, chartTheme.font, chartTheme.still, chartTheme.barFill, chartTheme.barRadius, fontsLoaded, annotations, stillMotion])
 
   if (result.rows.length === 0) {
     return (
@@ -328,9 +335,19 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
  * end. Still when asked for less motion, on a printed page, or for anything but a number.
  */
 function useCountUp(target: unknown, enabled: boolean): unknown {
-  const [shown, setShown] = useState<unknown>(() => (enabled && typeof target === 'number' && Number.isFinite(target) ? 0 : target))
+  const played = useContext(StillMotion)
+  const [shown, setShown] = useState<unknown>(() => (enabled && !played && typeof target === 'number' && Number.isFinite(target) ? 0 : target))
+  const from = useRef<number | null>(null)
   useEffect(() => {
+    const before = from.current
+    from.current = typeof target === 'number' && Number.isFinite(target) ? target : null
     if (!enabled || typeof target !== 'number' || !Number.isFinite(target)) {
+      setShown(target)
+      return
+    }
+    // Entrance played: no count from zero again; a new value is reached from the previous one.
+    const origin = played ? before : 0
+    if (origin === null || origin === target) {
       setShown(target)
       return
     }
@@ -343,14 +360,14 @@ function useCountUp(target: unknown, enabled: boolean): unknown {
     const decimals = Number.isInteger(target) ? 0 : 2
     let frame = 0
     const step = (now: number) => {
-      const t = Math.min(1, (now - start) / 900)
+      const t = Math.min(1, (now - start) / (played ? 600 : 900))
       const eased = 1 - (1 - t) ** 3
-      setShown(t === 1 ? target : Number((target * eased).toFixed(decimals)))
+      setShown(t === 1 ? target : Number((origin + (target - origin) * eased).toFixed(decimals)))
       if (t < 1) frame = requestAnimationFrame(step)
     }
     frame = requestAnimationFrame(step)
     return () => cancelAnimationFrame(frame)
-  }, [target, enabled])
+  }, [target, enabled, played])
   return shown
 }
 

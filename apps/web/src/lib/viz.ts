@@ -27,6 +27,8 @@ export interface Theme {
   readonly textColor?: string
   /** False for a printed page: the charts are drawn at once, in their final state. */
   readonly animation?: boolean
+  /** False once a chart's entrance was played: drawn at once, but still moving to new values. */
+  readonly entrance?: boolean
   /** A theme's bars: their fill and their corner radius. */
   readonly barFill?: BarFill
   readonly barRadius?: number
@@ -656,9 +658,9 @@ function drawn(type: VisualizationType, result: Result, settings: VisualizationS
   const c = ink(theme)
   const base: EChartsOption = {
     animation: theme.animation !== false,
-    animationDuration: 900,
+    animationDuration: theme.entrance === false ? 0 : 900,
     animationEasing: 'cubicOut',
-    animationDurationUpdate: 300,
+    animationDurationUpdate: 500,
     // The family the page really uses: ECharts measures labels on a canvas, which reads no CSS variable.
     textStyle: { fontFamily: theme.font ? `'${theme.font}', sans-serif` : typeof document === 'undefined' ? 'sans-serif' : getComputedStyle(document.body).fontFamily, color: c.secondary, fontSize: 12 },
     tooltip: {

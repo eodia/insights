@@ -23,7 +23,7 @@ import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
-import { DarkSurface, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
+import { DarkSurface, StillMotion, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
 import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
@@ -171,6 +171,9 @@ const MENU_LABEL = 'text-[11px] font-medium tracking-wide text-muted-foreground 
 
 /** Where one was in a dashboard's grid when it was remounted (a save): to find it again. */
 const KEPT_SCROLL = new Map<string, { top: number; at: number }>()
+
+/** Cards whose entrance was played, for the session: shown at once since, drawn without growing. */
+const PLAYED = new Set<string>()
 
 const newId = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
 
@@ -343,6 +346,10 @@ function CardFrame(props: CardProps) {
     const t = setTimeout(() => setDrawn(true), (props.revealDelay ?? 0) + 260)
     return () => clearTimeout(t)
   }, [props.revealed, props.revealDelay, drawn])
+  // Its entrance — rising, growing from zero, counting up — is played once: not again on another
+  // tab or coming back to the dashboard. A filter still moves its marks to their new values.
+  const playKey = `${props.dashboardId}:${card.id}`
+  const [played, setPlayed] = useState(() => PLAYED.has(playKey))
   /** The card as an image in the clipboard: to paste in a message, a slide. */
   const copyImage = async () => {
     const el = frameRef.current
@@ -375,6 +382,15 @@ function CardFrame(props: CardProps) {
     }
   }
   const run = useCardRun({ card, dashboardId: props.dashboardId, values, tick, fresh, draft, runner, enabled: isQuestion })
+  const showing = !!run.data && drawn
+  useEffect(() => {
+    if (played || !showing) return
+    const t = setTimeout(() => {
+      PLAYED.add(playKey)
+      setPlayed(true)
+    }, 1400)
+    return () => clearTimeout(t)
+  }, [played, showing, playKey])
   const viz = card.visualization ?? question?.visualization ?? { type: 'table' as VisualizationType }
   useEffect(() => {
     if (run.data) onResult(card.id, run.data, viz)
@@ -492,6 +508,7 @@ function CardFrame(props: CardProps) {
         props.revealed === false && 'translate-y-4 scale-[0.985] opacity-0',
         props.revealed !== undefined && 'transition-[opacity,transform,box-shadow] duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
         surface.className,
+        played && 'motion-played',
         editing && 'ring-primary/30 hover:ring-2',
       )}
     >
@@ -769,6 +786,7 @@ function CardFrame(props: CardProps) {
             <AlertTriangle className="size-4 shrink-0" /> {(run.error as Error).message}
           </div>
         ) : run.data && (props.revealed === undefined || drawn) ? (
+          <StillMotion.Provider value={played}>
           <DarkSurface.Provider value={surface.dark}>
           <Visualization
             result={run.data}
@@ -783,6 +801,7 @@ function CardFrame(props: CardProps) {
             {...(talk?.annotations.length ? { annotations: talk.annotations } : {})}
           />
           </DarkSurface.Provider>
+          </StillMotion.Provider>
         ) : (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="size-5 animate-spin text-muted-foreground/60" />
@@ -2083,7 +2102,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   onColumns={onColumns}
                   onPoint={onPoint}
                   onPointMenu={(c, point, v, title) => setMenu({ card: c, point, values: v, title })}
-                  {...(editing || still || publicMode ? {} : { revealed: revealed.has(card.id), revealDelay: revealed.get(card.id) ?? 0 })}
+                  {...(editing || still || publicMode || PLAYED.has(`${dashboard.id}:${card.id}`) ? {} : { revealed: revealed.has(card.id), revealDelay: revealed.get(card.id) ?? 0 })}
                   {...(card.question ? { onLeave: () => leaveFor(card.question as string) } : {})}
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
