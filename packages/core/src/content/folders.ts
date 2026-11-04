@@ -330,6 +330,15 @@ export async function setBookmark(core: Core, actor: Actor, kind: ItemKind, id: 
   } else await core.db.exec('DELETE FROM bookmark WHERE user_id = $1 AND item_id = $2', [actor.userId, id])
 }
 
+/** The person's favourites in the order they chose: those named take these places, in turn. */
+export async function orderBookmarks(core: Core, actor: Actor, ids: readonly string[]) {
+  await core.db.exec(
+    `UPDATE bookmark b SET position = o.n FROM unnest($2::uuid[]) WITH ORDINALITY AS o(id, n)
+     WHERE b.user_id = $1 AND b.item_id = o.id`,
+    [actor.userId, ids],
+  )
+}
+
 export async function recordView(core: Core, actor: Actor, kind: ItemKind, id: string) {
   await core.db.exec(
     `INSERT INTO recent_view (user_id, item_kind, item_id) VALUES ($1, $2, $3)
@@ -351,6 +360,10 @@ export async function homeItems(core: Core, actor: Actor) {
   const rank = new Map(order.map((r, i) => [r.item_id, i]))
   recent.sort((a, b) => (rank.get(a.id) ?? 99) - (rank.get(b.id) ?? 99))
   const bookmarks = await itemsWhere(core, actor, idx, `id IN (SELECT item_id FROM bookmark WHERE user_id = $1)`, [actor.userId])
+  // In the order the person gave them; the others after, as they were added.
+  const placed = await core.db.many<{ item_id: string }>('SELECT item_id FROM bookmark WHERE user_id = $1 ORDER BY position NULLS LAST, created_at', [actor.userId])
+  const place = new Map(placed.map((r, i) => [r.item_id, i]))
+  bookmarks.sort((a, b) => (place.get(a.id) ?? 999) - (place.get(b.id) ?? 999))
   const latest = (await itemsWhere(core, actor, idx, `updated_at > now() - interval '60 days'`, [])).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 8)
   return { recent, bookmarks, latest }
 }

@@ -92,17 +92,62 @@ function DashboardThumb() {
 }
 
 function Favorites({ items }: { items: readonly ItemSummary[] }) {
+  const qc = useQueryClient()
   const [picking, setPicking] = useState(false)
+  // While a tile is dragged: the order shown, the dragged one moving among the others.
+  const [dragged, setDragged] = useState<string | null>(null)
+  const [order, setOrder] = useState<string[] | null>(null)
+  const byId = new Map(items.map((i) => [i.id, i]))
+  const shown = (order ?? items.map((i) => i.id)).map((id) => byId.get(id)).filter((i): i is ItemSummary => !!i)
+
+  /** The home data changed at once, and on the server: the list in its new order, or without one. */
+  const keep = (next: readonly ItemSummary[]) => qc.setQueryData<HomeData>(['home'], (d) => (d ? { ...d, bookmarks: next } : d))
+  const drop = () => {
+    if (order) {
+      keep(shown)
+      void api.post('/v1/bookmarks/order', { ids: order })
+    }
+    setDragged(null)
+    setOrder(null)
+  }
+  const remove = async (item: ItemSummary) => {
+    keep(items.filter((i) => i.id !== item.id))
+    await api.post('/v1/bookmarks', { kind: item.kind, id: item.id, on: false })
+    await qc.invalidateQueries({ queryKey: ['home'] })
+  }
+
   return (
     <>
       <div className="grid h-full auto-rows-[190px] grid-cols-[repeat(auto-fill,minmax(200px,1fr))] content-start gap-3 overflow-y-auto px-2 pb-1">
-        {items.map((i) => (
+        {shown.map((i) => (
           <Link
             key={i.id}
             href={itemHref(i)}
-            className="flex flex-col overflow-hidden rounded-2xl border bg-card transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_30px_-20px_rgba(31,138,58,0.45)]"
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = 'move'
+              setDragged(i.id)
+              setOrder(items.map((x) => x.id))
+            }}
+            onDragOver={(e) => {
+              if (!dragged || dragged === i.id || !order) return
+              e.preventDefault()
+              const next = order.filter((id) => id !== dragged)
+              next.splice(next.indexOf(i.id) + (order.indexOf(dragged) < order.indexOf(i.id) ? 1 : 0), 0, dragged)
+              if (next.join() !== order.join()) setOrder(next)
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              drop()
+            }}
+            onDragEnd={drop}
+            title={$t('Glissez pour déplacer')}
+            className={cn(
+              'group/fav relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-[transform,box-shadow,border-color,opacity] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_30px_-20px_rgba(31,138,58,0.45)]',
+              dragged === i.id && 'scale-[0.98] opacity-50',
+            )}
           >
-            <div className="min-h-0 flex-1">{i.kind === 'dashboard' || i.kind === 'folder' ? <DashboardThumb /> : <FavoriteChart id={i.id} />}</div>
+            <div className="pointer-events-none min-h-0 flex-1">{i.kind === 'dashboard' || i.kind === 'folder' ? <DashboardThumb /> : <FavoriteChart id={i.id} />}</div>
             <div className="border-t px-3.5 py-2.5">
               <div className="truncate text-[14px] font-semibold">{i.name}</div>
               <div className="truncate text-xs text-muted-foreground">
@@ -110,6 +155,19 @@ function Favorites({ items }: { items: readonly ItemSummary[] }) {
                 {i.updated_by ? ` · ${i.updated_by.name}` : ''}
               </div>
             </div>
+            <button
+              type="button"
+              aria-label={$t('Retirer des favoris')}
+              title={$t('Retirer des favoris')}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                void remove(i)
+              }}
+              className="absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full bg-background/90 text-amber-500 opacity-0 shadow-sm ring-1 ring-border transition-opacity group-hover/fav:opacity-100 hover:text-muted-foreground focus-visible:opacity-100"
+            >
+              <FavoriteIcon active className="size-3.5" />
+            </button>
           </Link>
         ))}
         <button

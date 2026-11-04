@@ -1431,8 +1431,8 @@
   },
   "Ajouter un favori": {
     "where": [
-      "components/app/home/widgets.tsx:123",
-      "components/app/home/widgets.tsx:145"
+      "components/app/home/widgets.tsx:181",
+      "components/app/home/widgets.tsx:203"
     ]
   },
   "Ajouter un filtre": {
@@ -1536,7 +1536,7 @@
   },
   "Alerte déclenchée": {
     "where": [
-      "components/app/home/widgets.tsx:190"
+      "components/app/home/widgets.tsx:248"
     ]
   },
   "Alerte modifiée.": {
@@ -2232,7 +2232,7 @@
   },
   "Aucune source connectée.": {
     "where": [
-      "components/app/home/widgets.tsx:300"
+      "components/app/home/widgets.tsx:358"
     ]
   },
   "Aucune source de données connectée.": {
@@ -2259,7 +2259,7 @@
   "Aucune table accessible pour l’instant.": {
     "where": [
       "components/app/home/sections.tsx:233",
-      "components/app/home/widgets.tsx:281"
+      "components/app/home/widgets.tsx:339"
     ]
   },
   "Aucune table avec une date et une mesure à suivre pour l’instant.": {
@@ -2599,7 +2599,7 @@
   },
   "Bonjour": {
     "where": [
-      "components/app/home/board.tsx:109",
+      "components/app/home/board.tsx:157",
       "components/app/home/hero.tsx:23"
     ]
   },
@@ -2610,7 +2610,7 @@
   },
   "Bonsoir": {
     "where": [
-      "components/app/home/board.tsx:109",
+      "components/app/home/board.tsx:157",
       "components/app/home/hero.tsx:23"
     ]
   },
@@ -3345,6 +3345,11 @@
       "components/app/login-stage.tsx:481"
     ]
   },
+  "Chiffre d’affaires, commandes, satisfaction… calculés à chaque visite, sous vos droits.": {
+    "where": [
+      "components/app/home/board.tsx:130"
+    ]
+  },
   "Chiffrer la connexion": {
     "where": [
       "components/app/data/source-form.tsx:42",
@@ -3873,7 +3878,7 @@
   "Connectée": {
     "where": [
       "components/app/home/sections.tsx:266",
-      "components/app/home/widgets.tsx:310"
+      "components/app/home/widgets.tsx:368"
     ]
   },
   "Connecter {engine}": {
@@ -4558,7 +4563,7 @@
   "Demandez n’importe quoi sur vos données…": {
     "where": [
       "components/app/assistant/assistant.tsx:194",
-      "components/app/home/board.tsx:143",
+      "components/app/home/board.tsx:191",
       "components/app/home/hero.tsx:59"
     ]
   },
@@ -5255,7 +5260,7 @@
   "En erreur": {
     "where": [
       "components/app/home/sections.tsx:266",
-      "components/app/home/widgets.tsx:310"
+      "components/app/home/widgets.tsx:368"
     ]
   },
   "En file d’attente": {
@@ -5524,7 +5529,7 @@
     "where": [
       "components/app/assistant/assistant.tsx:241",
       "components/app/copilot.tsx:342",
-      "components/app/home/board.tsx:149"
+      "components/app/home/board.tsx:197"
     ]
   },
   "Envoyer maintenant à tous": {
@@ -5553,6 +5558,17 @@
   "Épingler à l’accueil": {
     "where": [
       "components/app/dashboard/view.tsx:609"
+    ]
+  },
+  "Épingler un indicateur": {
+    "where": [
+      "components/app/home/board.tsx:99",
+      "components/app/home/board.tsx:133"
+    ]
+  },
+  "Épinglez vos chiffres clés": {
+    "where": [
+      "components/app/home/board.tsx:129"
     ]
   },
   "Équipe commerciale": {
@@ -5868,7 +5884,7 @@
   "Explorer une table sans écrire de SQL": {
     "where": [
       "components/app/home/sections.tsx:61",
-      "components/app/home/widgets.tsx:257",
+      "components/app/home/widgets.tsx:315",
       "components/app/topbar.tsx:81"
     ]
   },
@@ -6215,7 +6231,7 @@
   },
   "Gérer les alertes": {
     "where": [
-      "components/app/home/widgets.tsx:226"
+      "components/app/home/widgets.tsx:284"
     ]
   },
   "Gérer les groupes et leurs membres": {
@@ -6263,6 +6279,11 @@
   "Glisser pour redimensionner · double-clic pour revenir à la taille par défaut": {
     "where": [
       "components/ui/pane.tsx:90"
+    ]
+  },
+  "Glissez pour déplacer": {
+    "where": [
+      "components/app/home/widgets.tsx:144"
     ]
   },
   "Glissez pour déplacer (ou Alt + flèches)": {
@@ -8528,7 +8549,7 @@
   "Mis à jour {when}": {
     "where": [
       "app/(app)/dashboard/[id]/page.tsx:362",
-      "components/app/home/widgets.tsx:109"
+      "components/app/home/widgets.tsx:154"
     ]
   },
   "Mis à jour {when} · {name}": {
@@ -9612,7 +9633,7 @@
   "Parcourir les dossiers partagés": {
     "where": [
       "components/app/home/sections.tsx:69",
-      "components/app/home/widgets.tsx:259"
+      "components/app/home/widgets.tsx:317"
     ]
   },
   "Part": {
@@ -9736,7 +9757,7 @@
   },
   "Pas encore vérifiée": {
     "where": [
-      "components/app/home/widgets.tsx:219"
+      "components/app/home/widgets.tsx:277"
     ]
   },
   "passe sous": {
@@ -9844,7 +9865,7 @@
   },
   "Personnaliser": {
     "where": [
-      "components/app/home/board.tsx:74"
+      "components/app/home/board.tsx:82"
     ]
   },
   "Personne ne correspond.": {
@@ -10555,7 +10576,7 @@
   },
   "Rechercher un tableau de bord, une question…": {
     "where": [
-      "components/app/home/widgets.tsx:149"
+      "components/app/home/widgets.tsx:207"
     ]
   },
   "Rechercher un tableau de bord…": {
@@ -11245,12 +11266,12 @@
   },
   "Rien à signaler : aucune alerte déclenchée, aucun chiffre en baisse.": {
     "where": [
-      "components/app/home/widgets.tsx:223"
+      "components/app/home/widgets.tsx:281"
     ]
   },
   "Rien pour l’instant.": {
     "where": [
-      "components/app/home/widgets.tsx:235"
+      "components/app/home/widgets.tsx:293"
     ]
   },
   "Rôle": {
@@ -12069,7 +12090,7 @@
   "Synchronisation…": {
     "where": [
       "components/app/home/sections.tsx:266",
-      "components/app/home/widgets.tsx:310"
+      "components/app/home/widgets.tsx:368"
     ]
   },
   "synchronisée {when}": {
@@ -12834,7 +12855,7 @@
   "Trino SQL sur toutes vos sources": {
     "where": [
       "components/app/home/sections.tsx:65",
-      "components/app/home/widgets.tsx:258",
+      "components/app/home/widgets.tsx:316",
       "components/app/topbar.tsx:85"
     ]
   },
@@ -13415,7 +13436,7 @@
   },
   "Vérifiée {when}": {
     "where": [
-      "components/app/home/widgets.tsx:219"
+      "components/app/home/widgets.tsx:277"
     ]
   },
   "Vérifier": {
@@ -13644,7 +13665,7 @@
   },
   "Votre question": {
     "where": [
-      "components/app/home/board.tsx:144",
+      "components/app/home/board.tsx:192",
       "components/app/home/hero.tsx:60"
     ]
   },
@@ -13681,7 +13702,7 @@
   "vs mois précédent": {
     "where": [
       "components/app/home/exploration.tsx:245",
-      "components/app/home/widgets.tsx:207"
+      "components/app/home/widgets.tsx:265"
     ]
   },
   "Vue": {

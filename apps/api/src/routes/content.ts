@@ -19,6 +19,7 @@ import {
   cancelExecution,
   createDashboard,
   getHomeLayout,
+  orderBookmarks,
   saveHomeLayout,
   createFolder,
   createQuestion,
@@ -102,6 +103,7 @@ const AdviceInput = z.object({ sql: z.string().min(1).max(200_000) })
 const HistoryQuery = z.object({ all: z.enum(['0', '1']).optional(), origin: z.string().optional(), errors: z.enum(['0', '1']).optional(), before: z.string().optional() })
 const SnippetInput = z.object({ name: z.string().min(1).max(80), description: z.string().max(500).nullable().optional(), content: z.string().min(1).max(50_000) })
 const HomeLayoutPut = z.object({ layout: HomeLayoutSchema.nullable() })
+const BookmarkOrder = z.object({ ids: z.array(z.string().uuid()).max(500) })
 const Bookmark = z.object({ kind: z.enum(['question', 'model', 'metric', 'dashboard', 'folder']), id: z.string(), on: z.boolean() })
 const FolderPatch = FolderInputSchema.partial().extend({ archived: z.boolean().optional() })
 const QuestionPatch = QuestionInputSchema.partial().extend({ archived: z.boolean().optional() })
@@ -221,6 +223,10 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'post', path: '/api/v1/bookmarks', tags: ftags, summary: 'Ajouter ou retirer un favori', body: Bookmark }, async (c) => {
     const b = bodyOf(c, Bookmark)
     await setBookmark(c.get('core'), actorOf(c), b.kind, b.id, b.on)
+    return ok(c)
+  })
+  route(app, { method: 'post', path: '/api/v1/bookmarks/order', tags: ftags, summary: 'Ranger ses favoris', body: BookmarkOrder }, async (c) => {
+    await orderBookmarks(c.get('core'), actorOf(c), bodyOf(c, BookmarkOrder).ids)
     return ok(c)
   })
   route(app, { method: 'get', path: '/api/v1/folders', tags: ftags, summary: 'Dossiers accessibles' }, async (c) => ok(c, await listFolders(c.get('core'), actorOf(c))))
