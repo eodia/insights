@@ -61,6 +61,7 @@ import {
   ArrowRightLeft,
   BellRing,
   Check,
+  Paintbrush,
   Palette,
   Braces,
   Download,
@@ -704,6 +705,43 @@ function CardFrame(props: CardProps) {
               </PopoverTrigger>
               <PopoverContent align="end" className="w-80">
                 <VizPicker value={viz.type} result={run.data ?? null} onChange={(type) => onChange({ visualization: { ...viz, type } })} />
+              </PopoverContent>
+            </Popover>
+          ) : null}
+          {/* The card's look, at hand while editing: plain, set off, dark. */}
+          {editing ? (
+            <Popover>
+              <Hint label={$t('Style de la carte')}>
+                <PopoverTrigger asChild>
+                  <button type="button" className="card-still rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent data-[state=open]:opacity-100" aria-label={$t('Style de la carte')}>
+                    <Paintbrush className="size-4" />
+                  </button>
+                </PopoverTrigger>
+              </Hint>
+              <PopoverContent align="end" className="w-auto p-2">
+                <p className="px-1 pb-2 text-xs font-medium text-muted-foreground">{$t('Style de la carte')}</p>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      [undefined, $t('Normale'), 'bg-card ring-1 ring-border'],
+                      ['accent', $t('Mise en valeur'), 'card-accent'],
+                      ['dark', $t('Sombre'), 'bg-[#0f1110]'],
+                    ] as const
+                  ).map(([look, label, swatch]) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => {
+                        const { look: _gone, ...rest } = card
+                        onChange(look ? { ...rest, look } : rest)
+                      }}
+                      className={cn('flex w-20 flex-col items-center gap-1.5 rounded-lg p-1.5 text-[11px] transition-colors hover:bg-accent', card.look === look && 'bg-accent font-medium')}
+                    >
+                      <span className={cn('h-10 w-full rounded-md', swatch, card.look === look && 'ring-2 ring-primary ring-offset-1 ring-offset-popover')} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </PopoverContent>
             </Popover>
           ) : null}
