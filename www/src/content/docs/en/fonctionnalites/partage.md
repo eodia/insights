@@ -16,7 +16,7 @@ and columns their own permissions let them read. Only share links are an excepti
 ## Folders
 
 **Folders** shows the content tree: questions, models, metrics and dashboards,
-organized like Metabase collections. You can search it, filter by kind, and preview an item.
+organized in folders and subfolders. You can search it, filter by kind, and preview an item.
 
 - **My folder.** Each person has a personal, **private** folder: only they and the
   administrators can see it. It cannot be moved or archived.

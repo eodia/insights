@@ -104,7 +104,7 @@ liens. Une carte non reliée ignore le filtre.
 
 ### Des filtres associatifs
 
-La liste d’un filtre de catégorie se lit comme dans Qlik :
+La liste d’un filtre de catégorie se lit d’un coup d’œil :
 
 | Couleur | Ce que c’est |
 |---|---|
@@ -160,7 +160,7 @@ autres cartes et les clics sur les graphiques suivent, et le volet suit en retou
 
 ## Les conditions d’affichage
 
-Une carte — ou un onglet entier — peut ne s’afficher que sous condition, comme dans Qlik : en
+Une carte — ou un onglet entier — peut ne s’afficher que sous condition : en
 mode édition, menu ⋯ de la carte › **Condition d’affichage…**, ou l’œil à côté du nom de
 l’onglet. Trois sortes de règles, à combiner (**toutes** ou **au moins une**) :
 
@@ -216,7 +216,7 @@ Ctrl + Maj + Z) défont et refont chaque changement du brouillon. Une carte ajou
 ## Vues, sélections et liens
 
 - **Sélection précédente / suivante** : les deux flèches au bout du bandeau des filtres
-  parcourent les sélections faites, comme dans Qlik.
+  parcourent les sélections faites, en arrière comme en avant.
 - **Vues enregistrées** : le menu **Vues** garde les filtres choisis et l’onglet ouvert sous un
   nom — « Bretagne, mois en cours » —, pour soi ou pour tous ; l’une peut s’ouvrir par défaut.
 - **Un lien qui garde tout** : l’adresse du tableau porte l’onglet et les filtres qui

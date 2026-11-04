@@ -17,7 +17,7 @@ exception — voir plus bas.
 ## Les dossiers
 
 **Dossiers** montre l’arborescence du contenu : questions, modèles, métriques et tableaux de
-bord, rangés comme dans les collections de Metabase. On y cherche, on filtre par nature, on
+bord, rangés en dossiers et sous-dossiers. On y cherche, on filtre par nature, on
 prévisualise un élément.
 
 - **Mon dossier.** Chaque personne a un dossier personnel, **privé** : seuls elle et les

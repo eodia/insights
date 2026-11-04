@@ -3,7 +3,7 @@ title: Introduction
 description: What eodia insights is, and what sets it apart from other BI tools.
 ---
 
-**eodia insights** is an open source BI tool in the spirit of Metabase: you connect your
+**eodia insights** is an open source BI tool: you connect your
 databases, describe them, then build questions — point-and-click or in SQL —, models, metrics
 and dashboards, which you share with fine-grained permissions. One decision drives everything
 else: **every query goes through Trino, and Trino is what enforces permissions**.
@@ -51,7 +51,7 @@ a hand-written query or an assistant connected to the MCP server. See
 - [Models and metrics](/insights/en/fonctionnalites/modeles-et-metriques/): virtual tables and
   named aggregates, defined once.
 - [Dashboards](/insights/en/fonctionnalites/tableaux-de-bord/) with **associative filters**
-  (selected, possible, excluded, as in Qlik), selection with **Shift + click** on charts, tabs,
+  (selected, possible, excluded), selection with **Shift + click** on charts, tabs,
   automatic refresh that slides values to their new ones, a result cache and **PDF export**.
 - [Themes](/insights/en/fonctionnalites/themes/) — fonts, colors, palette, logo — applied to a
   folder and inherited by everything in it, down to the PDF.

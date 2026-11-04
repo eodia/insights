@@ -102,7 +102,7 @@ all** removes the links. A card that is not connected ignores the filter.
 
 ### Associative filters
 
-A category filter’s list reads as in Qlik:
+A category filter’s list reads at a glance:
 
 | Color | What it is |
 |---|---|
@@ -157,7 +157,7 @@ follow, and the pane follows them in turn.
 
 ## Display conditions
 
-A card — or a whole tab — can show only under a condition, as in Qlik: in edit mode, the card's
+A card — or a whole tab — can show only under a condition: in edit mode, the card's
 ⋯ menu › **Display condition…**, or the eye next to the tab's name. Three kinds of rules, to
 combine (**all** or **at least one**):
 
@@ -209,7 +209,7 @@ redo each change of the draft. A card added is brought into view and glows a mom
 ## Views, selections and links
 
 - **Previous / next selection**: the two arrows at the end of the filter band walk through the
-  selections made, as in Qlik.
+  selections made, backward and forward.
 - **Saved views**: the **Views** menu keeps the chosen filters and the open tab under a name —
   “Brittany, this month” —, for yourself or for everyone; one can open by default.
 - **A link that keeps everything**: the dashboard's address carries the tab and the filters

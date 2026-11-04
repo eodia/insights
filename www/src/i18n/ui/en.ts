@@ -576,7 +576,7 @@ export default {
 		badge: 'New',
 		title: 'Dashboards',
 		titleAccent: 'that come to you.',
-		lede: 'Sent every Monday at 8, compared to last year, commented by the team, filtered like in Qlik, coloured by their own figures and summed up by AI: version 0.5 changes the way you read your data.',
+		lede: 'Sent every Monday at 8, compared to last year, commented by the team, filtered in a click, coloured by their own figures and summed up by AI: version 0.5 changes the way you read your data.',
 		more: 'Learn more',
 		art: {
 			when: 'Monday · 08:00',
@@ -601,7 +601,7 @@ export default {
 			subscriptions: { title: 'Subscriptions and alerts', text: 'A dashboard sent at set times, as a PDF, an image or a summary, by e-mail or in Teams and Slack — and an alert when a figure crosses a threshold. Each person receives their own figures.', href: '/fonctionnalites/abonnements/' },
 			compare: { title: 'Compare to last year', text: 'Each measure gains its value from last year, or from the previous period, dashed beside its own. One setting, no formula.', href: '/fonctionnalites/visualisations/#compare-to-another-period' },
 			talk: { title: 'Comments and annotations', text: 'Explain a drop where it shows: a comment on the card, a dated marker on the curve, seen by everyone who opens the dashboard.', href: '/fonctionnalites/tableaux-de-bord/#comments-and-annotations' },
-			qlik: { title: 'Qlik-style selections', text: 'A filter pane in the grid, selections you walk back and forth, saved views, a link that keeps everything — and cards that only show when a condition holds.', href: '/fonctionnalites/tableaux-de-bord/#views-selections-and-links' },
+			selections: { title: 'Selections that follow on', text: 'A filter pane in the grid, selections you walk back and forth, saved views, a link that keeps everything — and cards that only show when a condition holds.', href: '/fonctionnalites/tableaux-de-bord/#views-selections-and-links' },
 			formats: { title: 'Conditional formatting', text: 'Cells coloured by their value: rules and pictograms, red-to-green scales, bars. The outliers jump out.', href: '/fonctionnalites/visualisations/#conditional-formatting' },
 			summary: { title: 'The AI summary', text: 'A card the assistant writes from the others, filters included: three points, figures in hand, rewritten when the data changes.', href: '/fonctionnalites/tableaux-de-bord/#cards' },
 		},
@@ -614,9 +614,9 @@ export default {
 				q: 'Can I trust the forecasts?',
 				a: 'As much as the series they extend. eodia insights picks the method from the data — Holt-Winters when the series covers two seasons, a smoothed trend otherwise — and surrounds the forecast with an 80 % interval that widens with the horizon. It does not guess what the data does not hold: a new offer, a crisis.',
 			},
-			metabase: {
-				q: 'How is it different from Metabase?',
-				a: 'The spirit is the same: questions, models, dashboards. The difference is underneath: every query goes through Trino, which joins your databases together and enforces row and column permissions itself — free-form SQL included.',
+			difference: {
+				q: 'What sets it apart from a classic BI tool?',
+				a: 'You find questions, models and dashboards. The difference is underneath: every query goes through Trino, which joins your databases together and enforces row and column permissions itself — free-form SQL included.',
 			},
 			trino: {
 				q: 'Do I need to know how to run Trino?',

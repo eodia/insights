@@ -1,6 +1,6 @@
 # eodia insights
 
-**eodia insights** est un outil de BI open source, dans l'esprit de Metabase : on branche ses
+**eodia insights** est un outil de BI open source : on branche ses
 bases de données, on les décrit, puis on construit des questions (sans SQL ou en SQL), des
 modèles, des métriques et des tableaux de bord, que l'on partage avec des droits fins.
 

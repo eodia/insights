@@ -563,7 +563,7 @@ const fr = {
 		badge: 'Nouveau',
 		title: 'Des tableaux de bord',
 		titleAccent: 'qui viennent à vous.',
-		lede: 'Envoyés chaque lundi à 8 h, comparés à l’an dernier, commentés par l’équipe, filtrés comme dans Qlik, colorés par leurs propres chiffres et résumés par l’IA : la version 0.5 change la façon de lire vos données.',
+		lede: 'Envoyés chaque lundi à 8 h, comparés à l’an dernier, commentés par l’équipe, filtrés d’un clic, colorés par leurs propres chiffres et résumés par l’IA : la version 0.5 change la façon de lire vos données.',
 		more: 'En savoir plus',
 		art: {
 			when: 'Lundi · 08:00',
@@ -588,7 +588,7 @@ const fr = {
 			subscriptions: { title: 'Abonnements et alertes', text: 'Un tableau de bord envoyé à heure fixe, en PDF, en image ou en résumé, par e-mail ou dans Teams et Slack — et une alerte quand un chiffre franchit un seuil. Chacun reçoit ses propres chiffres.', href: '/fonctionnalites/abonnements/' },
 			compare: { title: 'Comparer à l’an dernier', text: 'Chaque mesure gagne sa valeur de l’an dernier, ou de la période précédente, en pointillés à côté de la sienne. Un réglage, aucune formule.', href: '/fonctionnalites/visualisations/#comparer-à-une-autre-période' },
 			talk: { title: 'Commentaires et annotations', text: 'Expliquez une baisse là où on la voit : un commentaire sur la carte, un repère daté sur la courbe, vus de tous ceux qui ouvrent le tableau.', href: '/fonctionnalites/tableaux-de-bord/#commentaires-et-annotations' },
-			qlik: { title: 'Des sélections à la Qlik', text: 'Un volet de filtre dans la grille, des sélections qu’on parcourt en arrière et en avant, des vues enregistrées, un lien qui garde tout — et des cartes qui ne s’affichent que si une condition tient.', href: '/fonctionnalites/tableaux-de-bord/#vues-sélections-et-liens' },
+			selections: { title: 'Des sélections qui se suivent', text: 'Un volet de filtre dans la grille, des sélections qu’on parcourt en arrière et en avant, des vues enregistrées, un lien qui garde tout — et des cartes qui ne s’affichent que si une condition tient.', href: '/fonctionnalites/tableaux-de-bord/#vues-sélections-et-liens' },
 			formats: { title: 'Mise en forme conditionnelle', text: 'Des cellules qui se colorent selon leur valeur : règles et pictogrammes, échelles du rouge au vert, barres. Les écarts sautent aux yeux.', href: '/fonctionnalites/visualisations/#la-mise-en-forme-conditionnelle' },
 			summary: { title: 'Le résumé par l’IA', text: 'Une carte que l’assistant écrit à partir des autres, filtres compris : trois points, chiffres à l’appui, réécrits quand les données changent.', href: '/fonctionnalites/tableaux-de-bord/#les-cartes' },
 		},
@@ -647,9 +647,9 @@ const fr = {
 	faq: {
 		title: 'Questions fréquentes',
 		items: {
-			metabase: question({
-				q: 'En quoi est-ce différent de Metabase ?',
-				a: 'L’esprit est le même : des questions, des modèles, des tableaux de bord. La différence est dessous : toute requête passe par Trino, qui joint vos bases entre elles et applique lui-même les droits sur les lignes et les colonnes — y compris pour le SQL libre.',
+			difference: question({
+				q: 'Qu’est-ce qui le distingue d’une BI classique ?',
+				a: 'On y retrouve des questions, des modèles et des tableaux de bord. La différence est dessous : toute requête passe par Trino, qui joint vos bases entre elles et applique lui-même les droits sur les lignes et les colonnes — y compris pour le SQL libre.',
 			}),
 			trino: question({
 				q: 'Faut-il savoir administrer Trino ?',
