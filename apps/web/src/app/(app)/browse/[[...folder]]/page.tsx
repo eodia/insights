@@ -649,7 +649,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
             onDelete={() => removal.ask(ticks.rows)}
           />
         ) : (
-          <TabRow className="gap-1 px-3 py-2 text-[13px]">
+          <TabRow className="mx-3 my-2 gap-0.5 rounded-full bg-muted/70 p-1 text-[13px]">
             {(
               [
                 ['all', $t('Tout'), LayoutGrid],
@@ -668,10 +668,10 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
                 onClick={() => setTab(t)}
                 aria-pressed={tab === t}
                 className={cn(
-                  'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 whitespace-nowrap transition-colors',
+                  'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5 whitespace-nowrap transition-colors',
                   tab === t
-                    ? 'bg-foreground font-medium text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)]'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                    ? 'bg-background font-semibold text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-accent'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 <Icon className="size-3.5" />
@@ -679,7 +679,7 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
                 <span
                   className={cn(
                     'min-w-5 rounded-full px-1.5 text-center text-[11px] tabular-nums',
-                    tab === t ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground',
+                    'bg-muted text-muted-foreground',
                   )}
                 >
                   {counts[t] ?? 0}
