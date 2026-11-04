@@ -11,6 +11,7 @@ import { Hint } from '@/components/ui/tooltip'
 import { $t } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
+import { cn } from '@/lib/utils'
 import { Code2, Database, FolderPlus, LayoutDashboard, PanelLeft, Plus, Search, Sparkles, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -21,6 +22,10 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
   const toggleSidebar = useUi((s) => s.toggleSidebar)
   const setPalette = useUi((s) => s.setPalette)
   const openCopilot = useUi((s) => s.openCopilot)
+  const closeCopilot = useUi((s) => s.closeCopilot)
+  const copilotOpen = useUi((s) => s.copilot)
+  // The button opens the copilot, and closes it once open: a toggle.
+  const toggleCopilot = () => (useUi.getState().copilot ? closeCopilot() : openCopilot())
   const router = useRouter()
   const { data: me } = useMe()
 
@@ -33,12 +38,13 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
       // Ctrl + J: the copilot, wherever one is.
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j' && me?.ai_enabled) {
         e.preventDefault()
-        openCopilot()
+        if (useUi.getState().copilot) closeCopilot()
+        else openCopilot()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [setPalette, openCopilot, me?.ai_enabled])
+  }, [setPalette, openCopilot, closeCopilot, me?.ai_enabled])
 
   return (
     <header className="flex h-[54px] shrink-0 items-center gap-3 border-b bg-background px-4">
@@ -94,13 +100,15 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
       {me?.ai_enabled ? (
         <button
           type="button"
-          onClick={() => openCopilot()}
+          onClick={toggleCopilot}
+          aria-pressed={copilotOpen}
           className="group relative inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-500/70 via-fuchsia-400/60 to-primary/70 p-px shadow-[0_6px_20px_-10px_rgba(124,58,237,0.6)] transition-shadow hover:shadow-[0_8px_26px_-8px_rgba(124,58,237,0.7)]"
         >
-          <span className="inline-flex h-full items-center gap-2 rounded-full bg-background/95 pr-2 pl-3 text-[13.5px] font-medium text-foreground transition-colors group-hover:bg-background/85">
-            <Sparkles className="size-4 text-violet-500 transition-transform group-hover:rotate-12" />
+          {/* Open, the button is filled: one click more closes the copilot. */}
+          <span className={cn('inline-flex h-full items-center gap-2 rounded-full pr-2 pl-3 text-[13.5px] font-medium transition-colors', copilotOpen ? 'bg-transparent text-white' : 'bg-background/95 text-foreground group-hover:bg-background/85')}>
+            <Sparkles className={cn('size-4 transition-transform group-hover:rotate-12', copilotOpen ? 'text-white' : 'text-violet-500')} />
             <span className="hidden sm:inline">{$t('Demander au copilote')}</span>
-            <kbd className="hidden rounded-md bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline">Ctrl J</kbd>
+            <kbd className={cn('hidden rounded-md px-1.5 py-0.5 font-mono text-[10px] md:inline', copilotOpen ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground')}>Ctrl J</kbd>
           </span>
         </button>
       ) : null}
