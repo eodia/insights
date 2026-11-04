@@ -2896,5 +2896,7 @@
   "Mis à jour {when} · {name}": "Actualizado {when} · {name}",
   "Récents": "Recientes",
   "Bonjour": "Buenos días",
-  "Bonsoir": "Buenas tardes"
+  "Bonsoir": "Buenas tardes",
+  "Sombre": "Oscura",
+  "Style de la carte": "Estilo de la tarjeta"
 }

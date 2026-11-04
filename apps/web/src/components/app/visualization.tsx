@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown, ArrowUp, Copy, FilterX, Minus, RotateCcw, Search } from 'lucide-react'
-import { type MouseEvent, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { createContext, type MouseEvent, useContext, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { copy } from '@/components/app/admin/common'
@@ -83,7 +83,11 @@ function withSelection(model: ChartModel, chosen: ReadonlySet<string>): ChartMod
   return { ...model, option: { ...model.option, series: faded as never } }
 }
 
+/** A surface that is dark whatever the page — a dark card: the charts in it are drawn for it. */
+export const DarkSurface = createContext<boolean | null>(null)
+
 function useDark(): boolean {
+  const forced = useContext(DarkSurface)
   const [dark, setDark] = useState(false)
   useEffect(() => {
     const el = document.documentElement
@@ -93,7 +97,7 @@ function useDark(): boolean {
     obs.observe(el, { attributes: true, attributeFilter: ['class'] })
     return () => obs.disconnect()
   }, [])
-  return dark
+  return forced ?? dark
 }
 
 const NO_SETTINGS: VisualizationSettings = {}

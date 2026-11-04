@@ -1172,6 +1172,8 @@ export interface DashboardCard {
   readonly title?: string
   /** A pictogram before the title: a lucide name, `emoji:…` or `img:https://…`. */
   readonly icon?: string
+  /** How the card stands out: tinted with the brand's colour (`accent`), or dark (`dark`). */
+  readonly look?: 'accent' | 'dark'
   /** A saved question, by identifier… */
   readonly question?: string
   /** …or a question kept in the card alone. */

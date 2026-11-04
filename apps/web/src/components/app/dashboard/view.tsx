@@ -23,7 +23,7 @@ import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
-import { ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
+import { DarkSurface, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
 import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
@@ -60,6 +60,8 @@ import {
   ArrowRight,
   ArrowRightLeft,
   BellRing,
+  Check,
+  Palette,
   Braces,
   Download,
   FileSpreadsheet,
@@ -466,6 +468,9 @@ function CardFrame(props: CardProps) {
       ref={frameRef}
       className={cn(
         'theme-card group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-transparent bg-card shadow-[0_1px_2px_rgba(16,24,40,0.03),0_10px_30px_-20px_rgba(16,24,40,0.18)] transition-shadow duration-200 hover:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_18px_40px_-20px_rgba(16,24,40,0.26)] dark:border-border/60',
+        // Set off: the brand's colour, softly. Dark: a black card, its contents drawn for it.
+        card.look === 'accent' && 'card-accent',
+        card.look === 'dark' && 'card-dark dark',
         editing && 'ring-primary/30 hover:ring-2',
       )}
     >
@@ -614,6 +619,32 @@ function CardFrame(props: CardProps) {
                         <Eye /> {$t('Condition d’affichage…')}
                       </DropdownMenuItem>
                     ) : null}
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <Palette className="size-4" /> {$t('Style de la carte')}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-52">
+                        {(
+                          [
+                            [undefined, $t('Normale'), 'bg-card ring-1 ring-border'],
+                            ['accent', $t('Mise en valeur'), 'card-accent'],
+                            ['dark', $t('Sombre'), 'bg-[#0f1110]'],
+                          ] as const
+                        ).map(([look, label, swatch]) => (
+                          <DropdownMenuItem
+                            key={label}
+                            onSelect={() => {
+                              const { look: _gone, ...rest } = card
+                              onChange(look ? { ...rest, look } : rest)
+                            }}
+                          >
+                            <span className={cn('size-4 rounded-md', swatch)} />
+                            <span className="flex-1">{label}</span>
+                            {card.look === look ? <Check className="size-4" /> : null}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuGroup>
                 </>
               ) : null}
@@ -740,6 +771,7 @@ function CardFrame(props: CardProps) {
             <AlertTriangle className="size-4 shrink-0" /> {(run.error as Error).message}
           </div>
         ) : run.data ? (
+          <DarkSurface.Provider value={card.look === 'dark' ? true : null}>
           <Visualization
             result={run.data}
             viz={asTable ? { ...viz, type: 'table' } : viz}
@@ -752,6 +784,7 @@ function CardFrame(props: CardProps) {
             toolbarSlot={toolbarSlot}
             {...(talk?.annotations.length ? { annotations: talk.annotations } : {})}
           />
+          </DarkSurface.Provider>
         ) : (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="size-5 animate-spin text-muted-foreground/60" />

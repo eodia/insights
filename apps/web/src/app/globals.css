@@ -523,3 +523,18 @@
   font-weight: 400;
   letter-spacing: -0.01em;
 }
+
+/* A card set off: the brand's colour, softly — its words stay dark. */
+.card-accent {
+  background: linear-gradient(150deg, oklch(0.95 0.07 135), oklch(0.9 0.12 132)) !important;
+  border-color: transparent !important;
+}
+.dark .card-accent:not(.card-dark) {
+  background: linear-gradient(150deg, oklch(0.36 0.08 140), oklch(0.29 0.07 140)) !important;
+}
+/* A dark card: black whatever the page, its contents in the dark theme (`.dark` on it). */
+.card-dark {
+  background: #0f1110 !important;
+  border-color: transparent !important;
+  color: oklch(0.96 0 0);
+}

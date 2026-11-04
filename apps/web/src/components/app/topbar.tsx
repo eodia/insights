@@ -30,10 +30,15 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
         e.preventDefault()
         setPalette(true)
       }
+      // Ctrl + J: the copilot, wherever one is.
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j' && me?.ai_enabled) {
+        e.preventDefault()
+        openCopilot()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [setPalette])
+  }, [setPalette, openCopilot, me?.ai_enabled])
 
   return (
     <header className="flex h-[54px] shrink-0 items-center gap-3 border-b bg-background px-4">
@@ -87,11 +92,17 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
       </DropdownMenu>
 
       {me?.ai_enabled ? (
-        <Hint label={$t('Demander au copilote')}>
-          <Button variant="ghost" size="icon-sm" onClick={() => openCopilot()} aria-label={$t('Copilote')}>
-            <Sparkles className="size-[18px] text-violet-500" />
-          </Button>
-        </Hint>
+        <button
+          type="button"
+          onClick={() => openCopilot()}
+          className="group relative inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-500/70 via-fuchsia-400/60 to-primary/70 p-px shadow-[0_6px_20px_-10px_rgba(124,58,237,0.6)] transition-shadow hover:shadow-[0_8px_26px_-8px_rgba(124,58,237,0.7)]"
+        >
+          <span className="inline-flex h-full items-center gap-2 rounded-full bg-background/95 pr-2 pl-3 text-[13.5px] font-medium text-foreground transition-colors group-hover:bg-background/85">
+            <Sparkles className="size-4 text-violet-500 transition-transform group-hover:rotate-12" />
+            <span className="hidden sm:inline">{$t('Demander au copilote')}</span>
+            <kbd className="hidden rounded-md bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline">Ctrl J</kbd>
+          </span>
+        </button>
       ) : null}
     </header>
   )

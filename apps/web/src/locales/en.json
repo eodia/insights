@@ -2807,5 +2807,7 @@
   "Mis à jour {when} · {name}": "Updated {when} · {name}",
   "Récents": "Recent",
   "Bonjour": "Good morning",
-  "Bonsoir": "Good evening"
+  "Bonsoir": "Good evening",
+  "Sombre": "Dark",
+  "Style de la carte": "Card style"
 }
