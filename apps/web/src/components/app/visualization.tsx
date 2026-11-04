@@ -275,6 +275,33 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
   if (!m) return null
   const value = result.rows[0]?.[m.index]
   const color = ruleColor(settings.rules, undefined, value) ?? settings.color
+  const shown = formatValue(value, m.col, { compact: settings.compact ?? (typeof value === 'number' && Math.abs(value) >= 1e7), decimals: settings.decimals ?? null, prefix: settings.prefix, suffix: settings.suffix })
+  if (compact) {
+    // On a dashboard: the figure on the left, heavy; beneath it, how it compares, as a pill.
+    const pastIndex = result.columns.findIndex((c) => c.compared?.of === m.col.name)
+    const past = pastIndex >= 0 ? Number(result.rows[0]?.[pastIndex]) : Number.NaN
+    const now = Number(value)
+    const change = Number.isFinite(past) && past !== 0 && Number.isFinite(now) ? (now - past) / Math.abs(past) : null
+    const good = change === null ? null : settings.invert ? change < 0 : change > 0
+    return (
+      <div className="@container flex h-full flex-col justify-center gap-1.5 px-1">
+        <div className="truncate text-[min(34px,13cqw)] leading-none font-bold tracking-[-0.035em] tabular-nums" style={color ? { color } : undefined} title={formatValue(value, m.col)}>
+          {shown}
+        </div>
+        {change !== null ? (
+          <div className="flex min-w-0 items-center gap-1.5 text-xs">
+            <span className={cn('inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold', change === 0 ? 'bg-muted text-muted-foreground' : good ? 'bg-green-500/12 text-green-700 dark:text-green-400' : 'bg-red-500/12 text-red-700 dark:text-red-400')}>
+              {change > 0 ? <ArrowUp className="size-3" /> : change < 0 ? <ArrowDown className="size-3" /> : <Minus className="size-3" />}
+              {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 1 }).format(Math.abs(change))}
+            </span>
+            <span className="truncate text-muted-foreground">{result.columns[pastIndex]?.label ?? ''}</span>
+          </div>
+        ) : settings.caption ? (
+          <div className="truncate text-xs text-muted-foreground">{settings.caption}</div>
+        ) : null}
+      </div>
+    )
+  }
   return (
     <div className="flex h-full flex-col items-center justify-center gap-1 px-3 text-center">
       <div
@@ -372,8 +399,8 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
     ) : null
   if (!spark) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-1.5 px-3 text-center">
-        <div className="text-4xl font-semibold tracking-tight tabular-nums">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
+      <div className="@container flex h-full flex-col justify-center gap-1.5 px-1">
+        <div className="truncate text-[min(34px,13cqw)] leading-none font-bold tracking-[-0.035em] tabular-nums">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
         {delta}
         {period ? <div className="text-xs text-muted-foreground">{period}</div> : null}
       </div>
@@ -383,13 +410,13 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
   return (
     <div className="@container flex h-full flex-col justify-center gap-1 px-1">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 truncate text-2xl font-semibold tracking-tight tabular-nums @[16rem]:text-3xl">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e4 })}</div>
+        <div className="min-w-0 truncate text-2xl font-bold tracking-[-0.03em] tabular-nums @[16rem]:text-[32px]">{formatValue(last, m.col, { compact: Math.abs(last) >= 1e4 })}</div>
         <Spark values={series} kind={kind} className={cn('h-10 w-2/5 max-w-40 shrink-0', tone)} />
       </div>
       {change !== null ? (
         <div className="flex min-w-0 items-center gap-1 text-xs">
-          <span className={cn('flex shrink-0 items-center gap-0.5 font-medium', change === 0 ? 'text-muted-foreground' : tone)}>
-            {change > 0 ? '+' : change < 0 ? '−' : ''}
+          <span className={cn('inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold', change === 0 ? 'bg-muted text-muted-foreground' : good ? 'bg-green-500/12 text-green-700 dark:text-green-400' : 'bg-red-500/12 text-red-700 dark:text-red-400')}>
+            {change > 0 ? <ArrowUp className="size-3" /> : change < 0 ? <ArrowDown className="size-3" /> : <Minus className="size-3" />}
             {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 1 }).format(Math.abs(change))}
           </span>
           <span className="truncate text-muted-foreground">{$t('vs {period}', { period: prevPeriod })}</span>

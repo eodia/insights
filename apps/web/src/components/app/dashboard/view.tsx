@@ -1014,6 +1014,8 @@ export interface DashboardViewProps {
   restoring?: boolean
   /** Filters by identifier, from a link that kept them (`?v=`). */
   startValues?: Readonly<Record<string, ParameterValue | null>>
+  /** Told when the grid is scrolled down, and back to its top: the page's head folds. */
+  onScrolled?: (scrolled: boolean) => void
   /** Offers the saved views — Qlik's bookmarks — of the dashboard. */
   savedViews?: boolean
   /** Comments on the cards, annotations on the charts — not on a public page. */
@@ -1026,7 +1028,7 @@ export interface DashboardViewProps {
   records?: boolean
 }
 
-export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, more, actionsSlot, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, onEditingChange, summarizer, initialFilters, restoring = false, startValues, savedViews = false, collaborative = false, records: readsRecords = false }: DashboardViewProps) {
+export function DashboardView({ dashboard, runner, editable, publicMode = false, startEditing = false, onSave, toolbar, more, actionsSlot, autoRefresh, onAutoRefreshChange, onNewQuestion, tab: tabProp, onTabChange, onMoveCard, onValuesChange, onEditingChange, summarizer, initialFilters, restoring = false, startValues, onScrolled, savedViews = false, collaborative = false, records: readsRecords = false }: DashboardViewProps) {
   const [editing, setEditing] = useState(startEditing && editable)
   useEffect(() => onEditingChange?.(editing), [editing, onEditingChange])
   const [draft, setDraftRaw] = useState({ tabs: dashboard.tabs, cards: dashboard.cards, parameters: dashboard.parameters })
@@ -1233,6 +1235,21 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   const vizs = useRef(new Map<string, Viz>())
   const [, force] = useState(0)
   const { width, containerRef, mounted } = useContainerWidth()
+  // The grid scrolled down: the page's head folds, to leave the cards the room.
+  useEffect(() => {
+    const grid = containerRef.current
+    if (!grid || !onScrolled) return
+    let last = false
+    const on = () => {
+      const now = grid.scrollTop > 24
+      if (now !== last) {
+        last = now
+        onScrolled(now)
+      }
+    }
+    grid.addEventListener('scroll', on, { passive: true })
+    return () => grid.removeEventListener('scroll', on)
+  }, [onScrolled, containerRef])
 
   useEffect(() => {
     if (!editing) {

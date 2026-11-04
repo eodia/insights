@@ -59,7 +59,7 @@ const ink = (t: Theme) => ({
   secondary: t.textColor ?? (t.dark ? '#a1a1aa' : '#52525b'),
   // A colour of one's own keeps its faint texts faint: the same, two thirds opaque.
   muted: t.textColor ? `${t.textColor}aa` : t.dark ? '#71717a' : '#a1a1aa',
-  grid: t.dark ? '#27272a' : '#ececef',
+  grid: t.dark ? '#26262a' : '#f0f0f3',
   surface: t.dark ? '#18181b' : '#ffffff',
 })
 
@@ -1583,7 +1583,7 @@ function drawn(type: VisualizationType, result: Result, settings: VisualizationS
         : undefined
     // In a stack, only the outer end is rounded; a hairline of the surface parts the segments.
     const lastBar = stack ? i === series.length - 1 : true
-    const r = theme.barRadius ?? 4
+    const r = theme.barRadius ?? 6
     const radius = lastBar ? (horizontal ? [0, r, r, 0] : [r, r, 0, 0]) : 0
     const fc = forecasts[i]
     const fcColor = series.length === 1 ? brand : color

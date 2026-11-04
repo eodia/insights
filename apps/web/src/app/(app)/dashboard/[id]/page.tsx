@@ -204,6 +204,8 @@ function DashboardScreen({ id }: { id: string }) {
   const [remove, setRemove] = useState(false)
   const [refresh, setRefresh] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
+  // Scrolled down the cards: the head folds to its name.
+  const [folded, setFolded] = useState(false)
   // Starred: among one's favourites (the home page's list, shared with the sidebar).
   const { data: home } = useQuery({
     queryKey: ['home'],
@@ -292,7 +294,7 @@ function DashboardScreen({ id }: { id: string }) {
   return (
     <div ref={root} className="h-full">
       <ThemeScope theme={dashboard.resolved_theme} className="flex h-full flex-col bg-background">
-        <div className={cn('flex items-start gap-3 px-6 pt-5 pb-1 transition-colors', editingNow && 'bg-primary/[0.06]')}>
+        <div className={cn('flex gap-3 px-6 transition-all duration-200', folded ? 'items-center pt-2.5 pb-0.5' : 'items-start pt-5 pb-1', editingNow && 'bg-primary/[0.06]')}>
           {dashboard.resolved_theme?.settings.logo_position !== 'right' ? (
             <ThemeLogo
               theme={dashboard.resolved_theme}
@@ -300,13 +302,13 @@ function DashboardScreen({ id }: { id: string }) {
             />
           ) : null}
           {dashboard.resolved_theme?.settings.logo && dashboard.resolved_theme.settings.logo_position !== 'right' ? null : (
-            <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/15">
-              <LayoutDashboard className="size-5" />
+            <span className={cn('flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/15 transition-all duration-200', folded ? 'size-8' : 'mt-0.5 size-11')}>
+              <LayoutDashboard className={cn('transition-all', folded ? 'size-4' : 'size-5')} />
             </span>
           )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h1 className="theme-title truncate text-[26px] leading-tight font-semibold tracking-[-0.02em]">
+              <h1 className={cn('theme-title truncate leading-tight font-semibold tracking-[-0.02em] transition-all duration-200', folded ? 'text-lg' : 'text-[26px]')}>
                 {dashboard.name}
               </h1>
               <Hint label={starred ? $t('Retirer des favoris') : $t('Ajouter aux favoris')}>
@@ -323,7 +325,7 @@ function DashboardScreen({ id }: { id: string }) {
                 </button>
               </Hint>
             </div>
-            <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+            <p className={cn('flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-muted-foreground transition-all duration-200', folded ? 'max-h-0 opacity-0' : 'mt-0.5 max-h-6 opacity-100')}>
               {dashboard.description ? <span className="truncate">{dashboard.description}</span> : null}
               {dashboard.description ? <span className="text-muted-foreground/50">·</span> : null}
               <span className="shrink-0 text-xs">
@@ -364,6 +366,7 @@ function DashboardScreen({ id }: { id: string }) {
             }
             {...(carried ? { initialFilters: carried } : {})}
             restoring={params.get('back') === '1'}
+            onScrolled={setFolded}
             {...(linkValues ? { startValues: linkValues } : {})}
             tab={tab}
             onValuesChange={onValuesChange}

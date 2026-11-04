@@ -48,7 +48,7 @@ export function WorkspaceLogo({ workspace, className, iconClassName }: { workspa
  * to another space — what the screens, the sources and the queries show changes with it —,
  * leads to the space's settings, and lets an administrator of the instance create one.
  */
-export function WorkspaceMenu({ me }: { me: Me | undefined }) {
+export function WorkspaceMenu({ me, rail = false }: { me: Me | undefined; /** Folded sidebar: the logo alone. */ rail?: boolean }) {
   const [creating, setCreating] = useState(false)
   const current = me?.workspace
   const spaces = me?.workspaces ?? []
@@ -59,7 +59,7 @@ export function WorkspaceMenu({ me }: { me: Me | undefined }) {
     <>
       {current ? <WorkspaceLogo workspace={current} className="size-10 text-sm" iconClassName="size-5" /> : <BrandMark size={40} className="size-10 shrink-0" />}
       {/* A space with a face of its own names the project; « insights » steps below it. */}
-      {current && ownIdentity(current) ? (
+      {rail ? null : current && ownIdentity(current) ? (
         <div className="min-w-0 flex-1 text-left leading-tight">
           <div className="truncate text-[15px] font-semibold">{current.name}</div>
           <div className="truncate text-xs text-muted-foreground">insights</div>
@@ -70,16 +70,16 @@ export function WorkspaceMenu({ me }: { me: Me | undefined }) {
           <div className="truncate text-xs text-muted-foreground">{current?.name ?? $t('Toutes les sources')}</div>
         </div>
       )}
-      {choosing ? <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" /> : null}
+      {choosing && !rail ? <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" /> : null}
     </>
   )
-  if (!choosing) return <div className="flex h-[76px] items-center gap-3 border-b px-4">{face}</div>
+  if (!choosing) return <div className={cn('flex h-[76px] items-center gap-3 border-b', rail ? 'justify-center px-0' : 'px-4')}>{face}</div>
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex h-[76px] w-full items-center gap-3 border-b px-4 transition-colors hover:bg-sidebar-accent/70 data-[state=open]:bg-sidebar-accent/70">
+          <button type="button" className={cn('flex h-[76px] w-full items-center gap-3 border-b transition-colors hover:bg-sidebar-accent/70 data-[state=open]:bg-sidebar-accent/70', rail ? 'justify-center px-0' : 'px-4')}>
             {face}
           </button>
         </DropdownMenuTrigger>

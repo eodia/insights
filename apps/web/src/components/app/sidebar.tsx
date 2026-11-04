@@ -24,6 +24,7 @@ import { FolderMenu } from '@/components/app/folder-menu'
 import { folderLabel } from '@/lib/folders'
 import { useFolders, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
+import { Hint } from '@/components/ui/tooltip'
 import { useQuery } from '@tanstack/react-query'
 import { useUi } from '@/lib/store'
 import {
@@ -55,7 +56,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 
 /** The assistant's mark: its ring of light, small. */
 function AssistantIcon({ className }: { className?: string }) {
@@ -80,11 +81,15 @@ function NavItem({
   badge?: React.ReactNode
   children?: React.ReactNode
 }) {
-  return (
+  const rail = useContext(Rail)
+  if (rail && sub) return null
+  const link = (
     <Link
       href={href}
+      aria-label={label}
       className={cn(
         'group relative flex items-center gap-3 rounded-lg text-[14px] transition-all duration-150',
+        rail && 'mx-auto size-10 justify-center gap-0 px-0',
         sub ? 'h-8 pl-10 pr-2 text-[13.5px] text-muted-foreground' : 'h-9 px-3 text-foreground/85',
         // The page one is on: a sheet lifted off the sidebar, its pictogram in the brand's colour.
         active
@@ -93,9 +98,16 @@ function NavItem({
       )}
     >
       {children ?? (Icon ? <Icon className={cn('size-[18px] shrink-0 transition-colors', sub ? 'size-4' : '', active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} /> : null)}
-      <span className="truncate">{label}</span>
-      {badge ? <span className="ml-auto">{badge}</span> : null}
+      {rail ? null : <span className="truncate">{label}</span>}
+      {badge && !rail ? <span className="ml-auto">{badge}</span> : null}
     </Link>
+  )
+  return rail ? (
+    <Hint label={label} side="right">
+      {link}
+    </Hint>
+  ) : (
+    link
   )
 }
 
@@ -202,7 +214,10 @@ export function setTheme(dark: boolean) {
   } catch {}
 }
 
-export function Sidebar() {
+/** The sidebar folded into a rail of pictograms. */
+const Rail = createContext(false)
+
+export function Sidebar({ rail = false }: { rail?: boolean }) {
   const path = usePathname()
   const router = useRouter()
   const { data: me } = useMe()
@@ -221,12 +236,20 @@ export function Sidebar() {
   const role = me?.is_admin ? $t('Administrateur') : me?.can.manage_metadata ? $t('Curateur') : $t('Analyste')
 
   return (
-    <aside className="flex h-full w-[256px] shrink-0 flex-col border-r bg-sidebar">
+    <Rail.Provider value={rail}>
+    <aside className={cn('flex h-full shrink-0 flex-col border-r bg-sidebar transition-[width] duration-200', rail ? 'w-16' : 'w-[256px]')}>
       {/* L'application, et l'espace où l'on travaille */}
-      <WorkspaceMenu me={me} />
+      <WorkspaceMenu me={me} rail={rail} />
 
       {/* Searching, first: everything is a few letters away. */}
-      <div className="px-3 pt-3">
+      <div className={cn('pt-3', rail ? 'flex justify-center px-0' : 'px-3')}>
+        {rail ? (
+          <Hint label={`${$t('Rechercher…')} (Ctrl K)`} side="right">
+            <button type="button" onClick={() => setPalette(true)} className="flex size-10 items-center justify-center rounded-lg border bg-background text-muted-foreground shadow-xs hover:text-foreground" aria-label={$t('Rechercher…')}>
+              <Search className="size-4" />
+            </button>
+          </Hint>
+        ) : (
         <button
           type="button"
           onClick={() => setPalette(true)}
@@ -236,6 +259,7 @@ export function Sidebar() {
           <span className="flex-1 text-left">{$t('Rechercher…')}</span>
           <kbd className="rounded border bg-muted px-1 font-mono text-[10px]">Ctrl K</kbd>
         </button>
+        )}
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
@@ -250,18 +274,20 @@ export function Sidebar() {
           />
         ) : null}
         <NavItem href="/browse" icon={FolderClosed} label={$t('Dossiers')} active={path === '/browse'} />
-        {roots.map((f) => (
-          <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />
-        ))}
-        <QuickList title={$t('Favoris')} items={home?.bookmarks ?? []} path={path} />
-        <QuickList title={$t('Récents')} items={(home?.recent ?? []).filter((r) => !(home?.bookmarks ?? []).some((b) => b.id === r.id))} path={path} />
+        {rail
+          ? null
+          : roots.map((f) => <FolderNode key={f.id} folder={f} folders={folders} depth={0} path={path} me={me?.id} />)}
+        {rail ? null : <QuickList title={$t('Favoris')} items={home?.bookmarks ?? []} path={path} />}
+        {rail ? null : <QuickList title={$t('Récents')} items={(home?.recent ?? []).filter((r) => !(home?.bookmarks ?? []).some((b) => b.id === r.id))} path={path} />}
       </nav>
 
       <div className="border-t px-2 py-2">
         <NavItem href="/data" icon={Database} label={$t('Sources de données')} active={is('/data')} />
         {/* The history goes with the administration — down here for whoever has no such menu. */}
         {me?.is_admin || me?.can.manage_permissions ? null : <NavItem href="/history" icon={History} label={$t('Historique')} active={is('/history')} />}
-        {me?.is_admin || me?.can.manage_permissions ? (
+        {(me?.is_admin || me?.can.manage_permissions) && rail ? (
+          <NavItem href="/admin/people" icon={Settings} label={$t('Administration')} active={is('/admin') || is('/history')} />
+        ) : me?.is_admin || me?.can.manage_permissions ? (
           <>
             <button
               type="button"
@@ -291,13 +317,17 @@ export function Sidebar() {
       {/* Person */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex h-[68px] items-center gap-3 border-t px-4 text-left hover:bg-sidebar-accent/60">
+          <button type="button" className={cn('flex h-[68px] items-center gap-3 border-t text-left hover:bg-sidebar-accent/60', rail ? 'justify-center px-0' : 'px-4')}>
             {me ? <Avatar name={me.name} color={me.color} online /> : <span className="size-8 rounded-full bg-muted" />}
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate text-[15px] font-semibold">{me?.name ?? '…'}</div>
-              <div className="truncate text-sm text-muted-foreground">{role}</div>
-            </div>
-            <ChevronsUpDown className="size-4 text-muted-foreground" />
+            {rail ? null : (
+              <>
+                <div className="min-w-0 flex-1 leading-tight">
+                  <div className="truncate text-[15px] font-semibold">{me?.name ?? '…'}</div>
+                  <div className="truncate text-sm text-muted-foreground">{role}</div>
+                </div>
+                <ChevronsUpDown className="size-4 text-muted-foreground" />
+              </>
+            )}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-60">
@@ -355,5 +385,6 @@ export function Sidebar() {
         </DropdownMenuContent>
       </DropdownMenu>
     </aside>
+    </Rail.Provider>
   )
 }
