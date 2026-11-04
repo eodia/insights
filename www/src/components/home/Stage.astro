@@ -84,6 +84,8 @@ const dash = curve(520, 170, 12, 600, 1250);
 const last12 = measured.slice(N - 12).map((v, i) => [i, v] as [number, number]);
 const dashLine = dash.path(last12);
 const dashArea = `${dashLine} L${dash.x(11).toFixed(1)} 170 L${dash.x(0).toFixed(1)} 170 Z`;
+// The same months a year before: the comparison, dashed beside them.
+const prevLine = dash.path(measured.slice(N - 12).map((v, i) => [i, 610 + (v - 600) * 0.72 + (((i * 29) % 7) - 3) * 8] as [number, number]));
 // The forecast's chart: the two years and the six months.
 const fc = curve(600, 300, N + H, 250, 1350);
 const pastLine = fc.path(measured.map((v, i) => [i, v]));
@@ -147,6 +149,15 @@ const ICON = {
 	bars: '<path d="M5 20V10M12 20V4M19 20v-7"/>',
 	table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M10 4v16"/>',
 	waves: '<path d="M2 12c2.5-4 5-4 7.5 0s5 4 7.5 0 3.5-2.5 5-2"/>',
+	pencil: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>',
+	refresh: '<path d="M20 11a8 8 0 0 0-14.5-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.5 4.5L20 16M20 20v-4h-4"/>',
+	more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+	back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+	forward: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+	bookmark: '<path d="M6 3h12v18l-6-4-6 4z"/>',
+	reset: '<path d="M4 6h16M7 12h6M10 18h2M16 15l5 5M21 15l-5 5"/>',
+	comment: '<path d="M4 5h16v11H9l-5 4z"/>',
+	cart: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M3 4h2l2.6 11h11L21 8H6.3"/>',
 } as const;
 const svg = (name: keyof typeof ICON, size = 15, width = 1.9) =>
 	`<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round">${ICON[name]}</svg>`;
@@ -160,11 +171,6 @@ const folders = [
 	{ name: s.folderNames[0], icon: 'lock', color: '#71717a', on: '' },
 	{ name: s.folderNames[1], icon: 'headset', color: '#8b5cf6', on: '' },
 	{ name: s.folderNames[2], icon: 'bag', color: '#16a34a', on: 'builder dashboard forecast' },
-] as const;
-const tools = [
-	{ key: 'sql', icon: 'sql', on: 'sql' },
-	{ key: 'sources', icon: 'sources', on: '' },
-	{ key: 'history', icon: 'history', on: '' },
 ] as const;
 const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 ---
@@ -206,24 +212,16 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 						</li>
 					))
 				}
-				{
-					tools.map((n) => (
-						<li data-on={n.on || undefined}>
-							<Fragment set:html={svg(n.icon)} />
-							<span class="grow">{s.nav[n.key]}</span>
-						</li>
-					))
-				}
 			</ul>
 			<ul class="nav foot">
+				<li data-on="sql">
+					<Fragment set:html={svg('sources')} />
+					<span class="grow">{s.nav.sources}</span>
+				</li>
 				<li>
 					<Fragment set:html={svg('admin')} />
 					<span class="grow">{s.nav.admin}</span>
 					<Fragment set:html={svg('chevron', 12)} />
-				</li>
-				<li>
-					<Fragment set:html={svg('api')} />
-					<span class="grow">{s.nav.api}</span>
 				</li>
 			</ul>
 			<div class="me">
@@ -404,22 +402,38 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 					<b>{s.dashboard.title}</b>
 					<small>{s.dashboard.description}</small>
 				</span>
-				<span class="btn ghost"><Fragment set:html={svg('share', 12)} />{s.dashboard.share}</span>
-				<span class="btn ghost">{s.dashboard.edit}</span>
+				<span class="refresh"><Fragment set:html={svg('refresh', 13)} /><i></i><Fragment set:html={svg('chevron', 11, 2.4)} /></span>
+				<span class="btn plain"><Fragment set:html={svg('share', 12)} />{s.dashboard.share}</span>
+				<span class="btn green"><Fragment set:html={svg('pencil', 12)} />{s.dashboard.edit}</span>
+				<span class="more" set:html={svg('more', 16)} />
 			</div>
 			<div class="filters">
 				{
 					s.dashboard.filters.map((f, i) => (
 						<span class:list={['filter', f.value && 'set']}>
-							<Fragment set:html={svg(i === 0 ? 'calendar' : 'filter', 12)} />
+							{f.value ? <i class="on-dot" /> : <Fragment set:html={svg(i === 0 ? 'calendar' : 'filter', 12)} />}
 							<span class="fl">{f.label}</span>
-							{f.value ? <b>{f.value}</b> : null}
+							{f.value ? <b>{f.value}</b> : <span class="all">{s.dashboard.all}</span>}
 							<Fragment set:html={svg('chevron', 11, 2.4)} />
 						</span>
 					))
 				}
+				<span class="grow" />
+				<span class="fb" set:html={svg('back', 13)} />
+				<span class="fb dim" set:html={svg('forward', 13)} />
+				<span class="fb views"><Fragment set:html={svg('bookmark', 12)} />{s.dashboard.views}</span>
+				<span class="fb"><Fragment set:html={svg('reset', 13)} /><small>1</small></span>
 			</div>
-			<div class="tabs">{s.dashboard.tabs.map((tab, i) => <span class:list={[i === 0 && 'on']}>{tab}</span>)}</div>
+			<div class="tabs">
+				{
+					s.dashboard.tabs.map((tab, i) => (
+						<span class:list={[i === 0 && 'on']}>
+							{i === 0 ? <Fragment set:html={svg('trend', 12)} /> : i === 1 ? <Fragment set:html={svg('headset', 12)} /> : <Fragment set:html={svg('cart', 12)} />}
+							{tab}
+						</span>
+					))
+				}
+			</div>
 			<div class="kpis">
 				{
 					s.dashboard.kpis.map((k, i) => (
@@ -435,7 +449,11 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 				}
 			</div>
 			<div class="card trend" style="--i:4">
-				<p class="card-title">{s.dashboard.trend}</p>
+				<p class="card-title">
+					<span class="grow">{s.dashboard.trend}</span>
+					<span class="leg"><i class="now"></i>{s.dashboard.now}<i class="prev"></i>{s.dashboard.prev}</span>
+					<span class="cmt"><Fragment set:html={svg('comment', 12)} />2</span>
+				</p>
 				<svg viewBox="0 0 520 172" preserveAspectRatio="none">
 					<defs>
 						<linearGradient id="st-area" x1="0" y1="0" x2="0" y2="1">
@@ -444,6 +462,7 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 						</linearGradient>
 					</defs>
 					{[40, 85, 130].map((y) => <line x1="8" x2="512" y1={y} y2={y} class="grid" />)}
+					<path d={prevLine} class="prev"></path>
 					<path d={dashArea} class="area" fill="url(#st-area)"></path>
 					<path d={dashLine} class="line" pathLength="1"></path>
 				</svg>
@@ -1453,25 +1472,87 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 	.filters {
 		grid-column: 1 / -1;
 		display: flex;
-		gap: 7px;
+		align-items: center;
+		gap: 6px;
+		padding: 4px;
+		border: 1px solid rgba(0, 0, 0, 0.05);
+		border-radius: 11px;
+		background: #f6f6f7;
+	}
+	.filters .grow {
+		flex: 1;
+	}
+	.on-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--green);
+	}
+	.filter .all {
+		color: #a1a1aa;
+	}
+	.fb {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		height: 26px;
+		padding: 0 6px;
+		border-radius: 7px;
+		font-size: 11.5px;
+		color: var(--soft);
+	}
+	.fb.dim {
+		opacity: 0.4;
+	}
+	.fb.views {
+		color: #3f3f46;
+		font-weight: 500;
+	}
+	.fb small {
+		font-size: 10.5px;
+		font-weight: 600;
+	}
+	.refresh {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		height: 28px;
+		padding: 0 7px;
+		border: 1px solid var(--line);
+		border-radius: 7px;
+		color: var(--soft);
+		background: #fff;
+	}
+	.refresh i {
+		width: 1px;
+		height: 13px;
+		background: var(--line);
+	}
+	.btn.plain {
+		color: #3f3f46;
+	}
+	.more {
+		display: grid;
+		place-items: center;
+		width: 26px;
+		color: var(--soft);
 	}
 	.filter {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		height: 28px;
-		padding: 0 10px;
-		border: 1px solid var(--line);
+		height: 26px;
+		padding: 0 9px;
 		border-radius: 8px;
 		font-size: 12px;
 		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 	}
 	.filter :global(svg) {
 		color: var(--soft);
 	}
 	.filter.set {
-		border-color: rgba(45, 163, 30, 0.45);
-		background: #f2faef;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(45, 163, 30, 0.45);
 	}
 	.filter.set .fl {
 		color: var(--soft);
@@ -1485,6 +1566,9 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 		color: var(--soft);
 	}
 	.tabs span {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
 		padding: 0 2px 7px;
 	}
 	.tabs .on {
@@ -1577,6 +1661,51 @@ const VIEWS = ['builder', 'sql', 'assistant', 'dashboard', 'forecast'] as const;
 	.trend .area {
 		opacity: 0;
 		transition: opacity 1s ease 1.4s;
+	}
+	.trend .card-title {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.trend .card-title .grow {
+		flex: 1;
+	}
+	.leg {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 10.5px;
+		font-weight: 500;
+		color: var(--soft);
+	}
+	.leg i {
+		width: 12px;
+		height: 0;
+		border-top: 2px solid var(--blue);
+		margin-left: 4px;
+	}
+	.leg i.prev {
+		border-top: 2px dashed #a1a1aa;
+	}
+	.cmt {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		font-size: 11px;
+		font-weight: 500;
+		color: var(--soft);
+	}
+	.trend .prev {
+		fill: none;
+		stroke: #a1a1aa;
+		stroke-width: 1.8;
+		stroke-dasharray: 5 4;
+		vector-effect: non-scaling-stroke;
+		opacity: 0;
+		transition: opacity 0.8s ease 0.3s;
+	}
+	.stage[data-view='dashboard'] .trend .prev {
+		opacity: 1;
 	}
 	.stage[data-view='dashboard'] .trend .line {
 		stroke-dashoffset: 0;

@@ -351,6 +351,10 @@ const fr = {
 			filters: [{ label: 'Période', value: '12 derniers mois' }, { label: 'Canal' }, { label: 'Région' }] as { label: string; value?: string }[],
 			share: 'Partager',
 			edit: 'Modifier',
+			all: 'Tous',
+			views: 'Vues',
+			now: '12 mois',
+			prev: 'N-1',
 			tabs: ['Ventes', 'Service client', 'Commandes'],
 			kpis: [
 				{ label: 'Chiffre d’affaires', value: '7,29 M€' },

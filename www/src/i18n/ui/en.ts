@@ -322,6 +322,10 @@ export default {
 			filters: [{ label: 'Period', value: 'Last 12 months' }, { label: 'Channel' }, { label: 'Region' }],
 			share: 'Share',
 			edit: 'Edit',
+			all: 'All',
+			views: 'Views',
+			now: '12 months',
+			prev: 'Last year',
 			tabs: ['Sales', 'Customer service', 'Orders'],
 			kpis: [
 				{ label: 'Revenue', value: '€7.29M' },
