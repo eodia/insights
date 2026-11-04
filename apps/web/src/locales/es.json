@@ -2898,5 +2898,13 @@
   "Bonjour": "Buenos días",
   "Bonsoir": "Buenas tardes",
   "Sombre": "Oscura",
-  "Style de la carte": "Estilo de la tarjeta"
+  "Style de la carte": "Estilo de la tarjeta",
+  "Couleur personnalisée": "Color personalizado",
+  "Style de la carte…": "Estilo de la tarjeta…",
+  "Transparente": "Transparente",
+  "Un dégradé discret de la couleur du thème": "Un degradado discreto del color del tema",
+  "Un style prêt à l’emploi, ou une couleur de votre choix.": "Un estilo listo para usar o un color a su elección.",
+  "Une carte blanche, sobre": "Una tarjeta blanca, sobria",
+  "Une carte noire, pour un chiffre clé": "Una tarjeta negra, para una cifra clave",
+  "{share} des lignes": "{share} de las filas"
 }

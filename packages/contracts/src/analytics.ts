@@ -1174,6 +1174,8 @@ export interface DashboardCard {
   readonly icon?: string
   /** How the card stands out: tinted with the brand's colour (`accent`), or dark (`dark`). */
   readonly look?: 'accent' | 'dark'
+  /** A colour of one's own for the card (`#rrggbb`), or `transparent`: it wins over `look`. */
+  readonly background?: string
   /** A saved question, by identifier… */
   readonly question?: string
   /** …or a question kept in the card alone. */

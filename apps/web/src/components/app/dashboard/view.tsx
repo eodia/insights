@@ -120,6 +120,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { SavedViews } from './saved-views'
 import { AnnotateDialog, CommentsButton } from './comments'
 import { TabLabel, TabMark, TabPreview, TabSettingsDialog, pictureTab } from './tabs'
+import { CardStyleDialog, cardSurface } from './card-style'
 import { leaveDashboard, takeReturnPoint } from '@/lib/return-point'
 import { AlertsDialog } from '@/components/app/delivery/alerts'
 import { CardCondition, ConditionDialog, type Runner, TabCondition, conditionSummary, useCardRun } from './conditions'
@@ -330,9 +331,18 @@ function CardFrame(props: CardProps) {
   const values = own
   const { data: question } = useQuestion(isQuestion && card.question && !publicMode ? card.question : null)
   const [alerting, setAlerting] = useState(false)
+  const [styling, setStyling] = useState(false)
+  const surface = cardSurface(card)
   // A chart read as the table of its numbers, for a moment — the card itself unchanged.
   const [asTable, setAsTable] = useState(false)
   const frameRef = useRef<HTMLDivElement>(null)
+  // Reached: its chart is drawn once the card has nearly risen into place, so its bars are seen growing.
+  const [drawn, setDrawn] = useState(props.revealed !== false)
+  useEffect(() => {
+    if (props.revealed !== true || drawn) return
+    const t = setTimeout(() => setDrawn(true), (props.revealDelay ?? 0) + 260)
+    return () => clearTimeout(t)
+  }, [props.revealed, props.revealDelay, drawn])
   /** The card as an image in the clipboard: to paste in a message, a slide. */
   const copyImage = async () => {
     const el = frameRef.current
@@ -474,15 +484,14 @@ function CardFrame(props: CardProps) {
     <div
       ref={frameRef}
       // The wave's delay for rising only: the shadow under the pointer stays immediate.
-      style={props.revealDelay ? { transitionDelay: `${props.revealDelay}ms, ${props.revealDelay}ms, 0ms` } : undefined}
+      style={{ ...surface.style, ...(props.revealDelay ? { transitionDelay: `${props.revealDelay}ms, ${props.revealDelay}ms, 0ms` } : {}) }}
       className={cn(
         'theme-card group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-transparent bg-card shadow-[0_1px_2px_rgba(16,24,40,0.03),0_10px_30px_-20px_rgba(16,24,40,0.18)] transition-shadow duration-200 hover:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_18px_40px_-20px_rgba(16,24,40,0.26)] dark:border-border/60',
         // Set off: the brand's colour, softly. Dark: a black card, its contents drawn for it.
         // Not reached yet: low and transparent; reached, it rises into place.
         props.revealed === false && 'translate-y-4 scale-[0.985] opacity-0',
         props.revealed !== undefined && 'transition-[opacity,transform,box-shadow] duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
-        card.look === 'accent' && 'card-accent',
-        card.look === 'dark' && 'card-dark dark',
+        surface.className,
         editing && 'ring-primary/30 hover:ring-2',
       )}
     >
@@ -631,31 +640,9 @@ function CardFrame(props: CardProps) {
                         <Eye /> {$t('Condition d’affichage…')}
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <Palette className="size-4" /> {$t('Style de la carte')}
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="w-52">
-                        {(
-                          [
-                            [undefined, $t('Normale'), 'bg-card ring-1 ring-border'],
-                            ['accent', $t('Mise en valeur'), 'card-accent'],
-                            ['dark', $t('Sombre'), 'bg-[#0f1110]'],
-                          ] as const
-                        ).map(([look, label, swatch]) => (
-                          <DropdownMenuItem
-                            key={label}
-                            onSelect={() => {
-                              onChange({ look: look ?? undefined } as Partial<DashboardCard>)
-                            }}
-                          >
-                            <span className={cn('size-4 rounded-md', swatch)} />
-                            <span className="flex-1">{label}</span>
-                            {card.look === look ? <Check className="size-4" /> : null}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
+                    <DropdownMenuItem onSelect={() => setStyling(true)}>
+                      <Palette /> {$t('Style de la carte…')}
+                    </DropdownMenuItem>
                   </DropdownMenuGroup>
                 </>
               ) : null}
@@ -781,8 +768,8 @@ function CardFrame(props: CardProps) {
           <div className="flex h-full items-center justify-center gap-2 px-4 text-center text-sm text-destructive">
             <AlertTriangle className="size-4 shrink-0" /> {(run.error as Error).message}
           </div>
-        ) : run.data && props.revealed !== false ? (
-          <DarkSurface.Provider value={card.look === 'dark' ? true : null}>
+        ) : run.data && (props.revealed === undefined || drawn) ? (
+          <DarkSurface.Provider value={surface.dark}>
           <Visualization
             result={run.data}
             viz={asTable ? { ...viz, type: 'table' } : viz}
@@ -815,6 +802,7 @@ function CardFrame(props: CardProps) {
           onApply={onChange}
         />
       ) : null}
+      {styling ? <CardStyleDialog card={card} onSave={(style) => onChange(style as Partial<DashboardCard>)} onClose={() => setStyling(false)} /> : null}
       {alerting && card.question ? <AlertsDialog question={{ id: card.question, name: question?.name ?? title }} onClose={() => setAlerting(false)} /> : null}
     </div>
   )

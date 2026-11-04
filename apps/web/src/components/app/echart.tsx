@@ -139,12 +139,17 @@ export function EChart({
   axisMenu.current = onAxisContextMenu
   const band = useRef(onBandClick)
   band.current = onBandClick
+  const shape = useRef<string | null>(null)
+  const waiting = useRef<typeof option | null>(null)
 
   useEffect(() => {
     const element = host.current
     if (element === null) return
     const instance = echarts.init(element, undefined, { renderer: 'svg' })
     chart.current = instance
+    // A new instance (React mounts twice in development) has drawn nothing yet.
+    shape.current = null
+    waiting.current = null
     instance.on('click', (event) => click.current?.(event as ECElementEvent))
     // The mouse event a mark answered, so that the axis does not answer it a second time.
     let answered: unknown = null
@@ -192,7 +197,21 @@ export function EChart({
         current.handle(Math.round(index), { x: native.clientX, y: native.clientY })
       }
     })
-    const observer = new ResizeObserver(() => instance.resize())
+    // Resized only when the size truly changes: the observer's first call, at once, would
+    // redraw the chart without animation — its bars appearing whole instead of growing.
+    let size = `${element.clientWidth}x${element.clientHeight}`
+    const observer = new ResizeObserver(() => {
+      const now = `${element.clientWidth}x${element.clientHeight}`
+      if (now === size) return
+      size = now
+      instance.resize()
+      // Drawn at last: the option waited for a size, so that it is drawn — and animated — once.
+      if (waiting.current && element.clientWidth > 0 && element.clientHeight > 0) {
+        const next = waiting.current
+        waiting.current = null
+        instance.setOption(next, { notMerge: true })
+      }
+    })
     observer.observe(element)
     return () => {
       observer.disconnect()
@@ -202,11 +221,21 @@ export function EChart({
   }, [])
 
   // New data for the same chart moves its marks (ECharts' dynamic data); another chart is drawn anew.
-  const shape = useRef<string | null>(null)
   useEffect(() => {
     const instance = chart.current
-    if (instance === null) return
+    const element = host.current
+    if (instance === null || element === null) return
     const next = shapeOf(option)
+    // No size yet (a card being laid out): drawn when it has one, not now and again on resizing.
+    if (shape.current === null && (element.clientWidth === 0 || element.clientHeight === 0)) {
+      waiting.current = option
+      shape.current = next
+      return
+    }
+    if (waiting.current) {
+      waiting.current = option
+      return
+    }
     instance.setOption(option, next === shape.current ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: true })
     shape.current = next
   }, [option])

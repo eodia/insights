@@ -266,9 +266,15 @@ export function ParameterBar({
                   const target = ids[j]
                   if (target) onReorder?.(moved(ids, p.id, target, j > i))
                 }}
-                title={sortable ? $t('Glissez pour déplacer (ou Alt + flèches)') : undefined}
+                title={
+                  sortable
+                    ? $t('Glissez pour déplacer (ou Alt + flèches)')
+                    : has && p.type === 'category' && typeof shares[p.id] === 'number'
+                      ? $t('{share} des lignes', { share: new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(shares[p.id] as number) })
+                      : undefined
+                }
                 className={cn(
-                  'inline-flex h-8 items-center gap-1.5 rounded-lg bg-background px-2.5 text-sm shadow-xs ring-1 ring-border/70 transition-shadow hover:ring-border',
+                  'relative inline-flex h-8 items-center gap-1.5 overflow-hidden rounded-lg bg-background px-2.5 text-sm shadow-xs ring-1 ring-border/70 transition-shadow hover:ring-border',
                   has && 'ring-primary/45 hover:ring-primary/70',
                   editing && selected === p.id && 'ring-2 ring-primary',
                   sortable && 'cursor-grab pl-1.5 active:cursor-grabbing',
@@ -278,9 +284,10 @@ export function ParameterBar({
                 {has ? <span className="mx-0.5 size-1.5 shrink-0 rounded-full bg-primary" /> : <Icon className="size-3.5 text-muted-foreground" />}
                 <span className="text-muted-foreground">{filterName(p)}</span>
                 {has ? <span className="font-medium">{valueLabel(p, v)}</span> : <span className="text-muted-foreground/60">{$t('Tous')}</span>}
+                {/* The share of the rows the selection keeps: a gauge along the button's bottom edge. */}
                 {has && p.type === 'category' && typeof shares[p.id] === 'number' ? (
-                  <span className="rounded bg-emerald-500/15 px-1.5 text-[11px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
-                    {new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(shares[p.id] as number)}
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-primary/12">
+                    <span className="block h-full rounded-r-full bg-primary transition-[width] duration-300" style={{ width: `${Math.max(2, (shares[p.id] as number) * 100)}%` }} />
                   </span>
                 ) : null}
                 {has && !editing ? (
