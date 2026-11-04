@@ -93,11 +93,11 @@ function NavItem({
         sub ? 'h-8 pl-10 pr-2 text-[13.5px] text-muted-foreground' : 'h-9 px-3 text-foreground/85',
         // The page one is on: a sheet lifted off the sidebar, its pictogram in the brand's colour.
         active
-          ? 'bg-foreground font-medium text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] dark:bg-foreground dark:text-background'
+          ? 'bg-sidebar-accent font-semibold text-foreground'
           : 'hover:bg-sidebar-accent hover:text-foreground',
       )}
     >
-      {children ?? (Icon ? <Icon className={cn('size-[18px] shrink-0 transition-colors', sub ? 'size-4' : '', active ? 'text-background' : 'text-muted-foreground group-hover:text-foreground')} /> : null)}
+      {children ?? (Icon ? <Icon className={cn('size-[18px] shrink-0 transition-colors', sub ? 'size-4' : '', active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} /> : null)}
       {rail ? null : <span className="truncate">{label}</span>}
       {badge && !rail ? <span className="ml-auto">{badge}</span> : null}
     </Link>
@@ -136,8 +136,8 @@ function FolderNode({ folder, folders, depth, path, me }: { folder: Folder; fold
           style={{ paddingLeft: 16 + depth * 14 }}
           className={cn(
             'group flex h-9 items-center gap-2 rounded-lg pr-2 text-sm text-muted-foreground transition-colors',
-            // The folder open: the dark pill, as every page one is on.
-            active ? 'bg-foreground font-medium text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] [&_svg]:!text-background' : 'hover:bg-sidebar-accent/70',
+            // The folder open: a soft pill, its pictogram in the brand's colour.
+            active ? 'bg-sidebar-accent font-semibold text-foreground [&_svg]:!text-primary' : 'hover:bg-sidebar-accent/70',
             drop.over && 'bg-primary/10 text-foreground ring-2 ring-primary/40',
           )}
         >
@@ -195,7 +195,7 @@ function QuickList({ title, items, path }: { title: string; items: readonly Item
                 href={href}
                 className={cn(
                   'flex h-8 items-center gap-2.5 rounded-lg px-3 text-[13.5px] transition-colors',
-                  active ? 'bg-foreground font-medium text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] dark:bg-foreground dark:text-background' : 'text-foreground/80 hover:bg-sidebar-accent hover:text-foreground',
+                  active ? 'bg-sidebar-accent font-semibold text-foreground' : 'text-foreground/80 hover:bg-sidebar-accent hover:text-foreground',
                 )}
               >
                 <ItemTile kind={i.kind} className="size-5 rounded-md [&_svg]:size-3" />
