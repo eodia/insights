@@ -166,6 +166,13 @@ function withCondition<T extends { condition?: DashboardCard['condition'] }>(x: 
   return rest as T
 }
 
+/** A card's looks: plain, set off, dark — and how each shows in a menu. */
+const LOOKS = [
+  [undefined, msg('Normale'), 'bg-card ring-1 ring-border'],
+  ['accent', msg('Mise en valeur'), 'card-accent'],
+  ['dark', msg('Sombre'), 'bg-[#0f1110]'],
+] as const
+
 /** A menu's group title, as the dashboard's own menu has them. */
 const MENU_LABEL = 'text-[11px] font-medium tracking-wide text-muted-foreground uppercase'
 
@@ -209,6 +216,8 @@ interface CardProps {
   /** The other tabs it can go to, and where else it can go — when it can move. */
   moveTabs?: readonly DashboardTab[]
   onMoveToTab?: (tab: string) => void
+  /** Outside edit mode, for whoever may edit: the card's look, saved at once. */
+  onLook?: (look: DashboardCard['look']) => void
   onMoveElsewhere?: () => void
   /** A card keeping its query to itself (the copilot's): it becomes a question to edit. */
   onEditQuestion?: () => void
@@ -317,7 +326,7 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
 }
 
 function CardFrame(props: CardProps) {
-  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onColumns, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onEditQuestion, onCondition, conditionShown, pane, allCards, summarizer, talk, selection } = props
+  const { card, parameters, tick, fresh, editing, draft, runner, selectedParameter, onResult, onColumns, onPoint, onPointMenu, onChange, onRemove, onDuplicate, onFullscreen, publicMode, moveTabs = [], onMoveToTab, onMoveElsewhere, onLook, onEditQuestion, onCondition, conditionShown, pane, allCards, summarizer, talk, selection } = props
   const isQuestion = card.kind === 'question'
   // The card a selection was clicked on keeps all its categories: one can add to it.
   const own = useMemo(() => (selection?.params.length ? Object.fromEntries(Object.entries(props.values).filter(([k]) => !selection.params.includes(k))) : props.values), [props.values, selection])
@@ -550,6 +559,22 @@ function CardFrame(props: CardProps) {
                   <DropdownMenuItem onSelect={() => void copyImage()}>
                     <ImageDown /> {$t('Copier en image')}
                   </DropdownMenuItem>
+                ) : null}
+                {!editing && onLook ? (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Paintbrush className="size-4" /> {$t('Style de la carte')}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-52">
+                      {LOOKS.map(([look, label, swatch]) => (
+                        <DropdownMenuItem key={label} onSelect={() => onLook(look)}>
+                          <span className={cn('size-4 rounded-md', swatch)} />
+                          <span className="flex-1">{$t(label)}</span>
+                          {card.look === look ? <Check className="size-4" /> : null}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                 ) : null}
                 {isQuestion && !publicMode ? (
                   <DropdownMenuSub>
@@ -1573,6 +1598,20 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     }
   }
 
+  /** A card's look changed outside edit mode: the dashboard saved with it, at once. */
+  const restyle = async (card: DashboardCard, look: DashboardCard['look']) => {
+    if (!onSave) return
+    const cards = draft.cards.map((c) => {
+      if (c.id !== card.id) return c
+      const { look: _gone, ...rest } = c
+      return look ? { ...rest, look } : rest
+    })
+    try {
+      await onSave(named({ ...draft, cards }))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
   const save = async () => {
     if (!onSave) return
     setSaving(true)
@@ -1855,8 +1894,8 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               key={t.id}
               className={cn(
                 'group/tab relative flex items-center rounded-lg transition-all',
-                // The open tab: a dark pill on the canvas.
-                currentTab === t.id ? 'bg-foreground text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] [&_button]:text-background' : 'hover:bg-background/80',
+                // The open tab: a pill in the brand's green.
+                currentTab === t.id ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_-4px_color-mix(in_oklab,var(--primary)_60%,transparent)] [&_button]:text-primary-foreground' : 'hover:bg-background/80',
                 draggedTab === t.id && 'opacity-40',
               )}
               {...(editing && tabs.length > 1
@@ -2047,6 +2086,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
                   onDuplicate={() => addCards([{ ...card, id: newId('c') }])}
+                  {...(editable && !publicMode && onSave ? { onLook: (look: DashboardCard['look']) => void restyle(card, look) } : {})}
                   {...(onMoveCard && editable && !publicMode && card.kind !== 'heading'
                     ? {
                         moveTabs: tabs.filter((t) => t.id !== currentTab),
