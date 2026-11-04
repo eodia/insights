@@ -1855,8 +1855,8 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               key={t.id}
               className={cn(
                 'group/tab relative flex items-center rounded-lg transition-all',
-                // The open tab: a white pill, lifted off the rail.
-                currentTab === t.id ? 'bg-background shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-accent' : 'hover:bg-background/70',
+                // The open tab: a dark pill on the canvas.
+                currentTab === t.id ? 'bg-foreground text-background shadow-[0_2px_8px_-2px_rgba(0,0,0,0.25)] [&_button]:text-background' : 'hover:bg-background/80',
                 draggedTab === t.id && 'opacity-40',
               )}
               {...(editing && tabs.length > 1
