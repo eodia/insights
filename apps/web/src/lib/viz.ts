@@ -776,12 +776,17 @@ function drawn(type: VisualizationType, result: Result, settings: VisualizationS
               itemStyle: { borderColor: c.surface, borderWidth: 0, gapWidth: 3, borderRadius: 8 },
               upperLabel: {
                 show: !single,
-                height: 26,
-                padding: [0, 8],
+                height: 28,
+                // In the middle of its band (ECharts sets it against the frame's top), and in line
+                // with the names of the tiles beneath.
+                position: 'insideLeft',
+                verticalAlign: 'middle',
+                padding: [5, 4, 0, 4],
                 fontSize: 12,
+                lineHeight: 16,
                 fontWeight: 600,
                 formatter: (p: { name: string; value: unknown }) => `${clean(p.name)}  {total|${formatValue(p.value, m, { compact: true })}}`,
-                rich: { total: { fontSize: 11, fontWeight: 400, opacity: 0.8 } },
+                rich: { total: { fontSize: 11, fontWeight: 400, lineHeight: 16, opacity: 0.8 } },
               },
               label: {
                 show: true,
