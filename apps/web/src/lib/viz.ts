@@ -729,8 +729,24 @@ function drawn(type: VisualizationType, result: Result, settings: VisualizationS
           },
         }
       }
-      // A treemap: rectangles as large as their value, nested by dimension.
+      // A treemap: rectangles as large as their value, nested by dimension — rounded tiles, lit
+      // from their top left, named at their top left with their value and their share.
       const single = levels.length === 1
+      const lit = (nodes: TreeNode[]) => {
+        for (const n of nodes) {
+          const color = (n.itemStyle as { color?: string } | undefined)?.color
+          if (color && !n.children) {
+            n.itemStyle = {
+              ...(n.itemStyle as object),
+              color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 1, colorStops: [{ offset: 0, color: mix(color, '#ffffff', 0.1) }, { offset: 1, color: mix(color, '#000000', 0.06) }] },
+            } as unknown as TreeNode['itemStyle']
+          }
+          if (n.children) lit(n.children)
+        }
+      }
+      lit(tree)
+      const share = (v: unknown) => (total ? percentText((Math.abs(Number(v)) / total) * 100) : '')
+      const clean = (t: string) => t.replace(/[{}|]/g, '')
       return {
         targets,
         ...(single ? { clickColumn: first } : {}),
@@ -741,35 +757,50 @@ function drawn(type: VisualizationType, result: Result, settings: VisualizationS
             {
               type: 'treemap',
               name: m.label,
-              top: single ? 2 : 28,
-              left: 2,
-              right: 2,
-              bottom: 2,
+              top: single ? 0 : 30,
+              left: 0,
+              right: 0,
+              bottom: 0,
               roam: false,
               nodeClick: single ? false : 'zoomToNode',
-              squareRatio: 1.2,
+              squareRatio: 1.1,
               breadcrumb: {
                 show: !single,
                 top: 0,
                 left: 0,
                 height: 22,
-                itemStyle: { color: theme.dark ? '#27272a' : '#f4f4f5', borderColor: c.surface, textStyle: { color: c.secondary } },
+                emptyItemWidth: 20,
+                itemStyle: { color: theme.dark ? '#27272a' : '#f4f4f5', borderColor: 'transparent', borderWidth: 0, shadowBlur: 0, textStyle: { color: c.secondary, fontSize: 11 } },
                 emphasis: { itemStyle: { color: theme.dark ? '#3f3f46' : '#e4e4e7' } },
               },
-              itemStyle: { borderColor: c.surface, borderWidth: 1, gapWidth: 1 },
-              upperLabel: { show: !single, height: 20, fontWeight: 600, fontSize: 11, formatter: '{b}' },
+              itemStyle: { borderColor: c.surface, borderWidth: 0, gapWidth: 3, borderRadius: 8 },
+              upperLabel: {
+                show: !single,
+                height: 26,
+                padding: [0, 8],
+                fontSize: 12,
+                fontWeight: 600,
+                formatter: (p: { name: string; value: unknown }) => `${clean(p.name)}  {total|${formatValue(p.value, m, { compact: true })}}`,
+                rich: { total: { fontSize: 11, fontWeight: 400, opacity: 0.8 } },
+              },
               label: {
                 show: true,
-                fontSize: 11,
+                position: 'insideTopLeft',
+                padding: [8, 10],
                 overflow: 'truncate',
-                formatter: (p: { name: string; value: unknown }) => `{name|${p.name}}\n{value|${formatValue(p.value, m, { compact: true })}}`,
-                rich: { name: { fontSize: 12, fontWeight: 600, lineHeight: 16 }, value: { fontSize: 11, opacity: 0.85, lineHeight: 15 } },
+                formatter: (p: { name: string; value: unknown }) => `{name|${clean(p.name)}}\n{value|${formatValue(p.value, m, { compact: true })}}  {share|${share(p.value)}}`,
+                rich: {
+                  name: { fontSize: 12, fontWeight: 500, lineHeight: 17, opacity: 0.92 },
+                  value: { fontSize: 16, fontWeight: 700, lineHeight: 22 },
+                  share: { fontSize: 11, opacity: 0.72, lineHeight: 22 },
+                },
               },
               levels: [
-                { itemStyle: { borderWidth: 0, gapWidth: 3 }, upperLabel: { show: false } },
-                { itemStyle: { borderWidth: 2, gapWidth: 1 } },
-                { itemStyle: { borderWidth: 2, gapWidth: 1 } },
-                { itemStyle: { borderWidth: 0 } },
+                { itemStyle: { borderWidth: 0, gapWidth: single ? 4 : 6 }, upperLabel: { show: false } },
+                // A group: framed in its colour, its name and total in the frame.
+                { itemStyle: single ? { borderWidth: 0, borderRadius: 8 } : { borderWidth: 3, gapWidth: 3, borderRadius: 10 } },
+                { itemStyle: { borderWidth: 0, gapWidth: 2, borderRadius: 6 } },
+                { itemStyle: { borderWidth: 0, borderRadius: 4 } },
               ],
               data: tree as never,
             },
