@@ -293,6 +293,8 @@ function cartesian(result: Result, settings: VisualizationSettings) {
     if (sort !== 'none' || top) order.sort((a, b) => (sort === 'asc' && !top ? (total[a] as number) - (total[b] as number) : (total[b] as number) - (total[a] as number)))
     const kept = top ? order.slice(0, top) : order
     if (top && sort === 'asc') kept.reverse()
+    // By their name, numbers read as numbers: « 5-9 ans » before « 10-14 ans » — age bands, sizes.
+    if (sort === 'label') kept.sort((a, b) => LABEL_ORDER.compare(String(categories[a] ?? ''), String(categories[b] ?? '')))
     const rest = top ? order.slice(top) : []
     const next = kept.map((i) => categories[i])
     for (const s of series) {
@@ -305,6 +307,8 @@ function cartesian(result: Result, settings: VisualizationSettings) {
   }
   return { x, dims, metrics, categories, series, split: split && metrics[0] ? split : undefined }
 }
+
+const LABEL_ORDER = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 interface RaceEntry {
   readonly key: string

@@ -64,6 +64,7 @@ import {
   Radar,
   Sparkles,
   TrendingUpDown,
+  ArrowDownAZ,
   ArrowDownToLine,
   ArrowDownWideNarrow,
   ArrowRightToLine,
@@ -796,6 +797,7 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
                 { value: 'none', label: $t('Résultat'), icon: ListOrdered, hint: $t('L’ordre du résultat') },
                 { value: 'desc', label: $t('Décroissant'), icon: ArrowDownWideNarrow, hint: $t('La plus grande valeur d’abord') },
                 { value: 'asc', label: $t('Croissant'), icon: ArrowUpWideNarrow, hint: $t('La plus petite valeur d’abord') },
+                { value: 'label', label: $t('Libellé'), icon: ArrowDownAZ, hint: $t('Par leur nom, les nombres dans l’ordre : des tranches d’âge, des tailles…') },
               ]}
               aria-label={$t('Ordre des catégories')}
             />

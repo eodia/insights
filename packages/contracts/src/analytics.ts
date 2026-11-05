@@ -417,8 +417,8 @@ export interface VisualizationSettings {
   readonly bar_width?: 'thin' | 'normal' | 'wide'
   /** The total above each stack. */
   readonly stack_totals?: boolean
-  /** The categories by their value rather than in the result's order. */
-  readonly sort_values?: 'none' | 'asc' | 'desc'
+  /** The categories by their value, or by their name (numbers in order), rather than in the result's order. */
+  readonly sort_values?: 'none' | 'asc' | 'desc' | 'label'
   /** Periods without a row drawn at zero — by default. */
   readonly fill_periods?: boolean
 
