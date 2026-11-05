@@ -531,9 +531,15 @@ export interface VisualizationSettings {
  */
 export interface ColorRule {
   readonly column?: string
-  readonly op: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | 'between'
-  readonly value: number
+  readonly op: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | 'between' | 'contains'
+  /** A number, or a text — equal, different, contained. */
+  readonly value: number | string
   readonly value2?: number
+  /**
+   * Compared to another column of the same row, or to a variable of the question (the filter
+   * tied to it on a dashboard), rather than to `value`.
+   */
+  readonly against?: RuleOperandRef
   readonly color: string
   readonly row?: boolean
   /** In a table: the text coloured (`text`, by default) or the cell filled (`fill`). */
@@ -570,37 +576,54 @@ export function scaleColor(palette: ScalePalette, t: number): string {
   return `#${a.map((v, k) => Math.round(v + ((b[k] as number) - v) * f).toString(16).padStart(2, '0')).join('')}`
 }
 
+export type RuleOperandRef = { readonly column: string } | { readonly variable: string }
+/** What a rule's other column or variable holds, where it is drawn: the row's cell, the filter's value. */
+export type RuleOperand = (ref: RuleOperandRef) => unknown
+
 /** The first rule of a column a value meets. */
-export function ruleFor(rules: readonly ColorRule[] | undefined, column: string, value: unknown): ColorRule | null {
+export function ruleFor(rules: readonly ColorRule[] | undefined, column: string, value: unknown, operand?: RuleOperand): ColorRule | null {
   for (const rule of rules ?? []) {
     if (rule.row || (rule.column !== undefined && rule.column !== column)) continue
-    if (ruleHolds(rule, value)) return rule
+    if (ruleHolds(rule, value, operand)) return rule
   }
   return null
 }
 
-/** Whether a number meets a rule. */
-export function ruleHolds(rule: ColorRule, value: unknown): boolean {
+const blank = (v: unknown) => v === null || v === undefined || (typeof v === 'string' && v.trim() === '')
+
+/**
+ * Whether a value meets a rule: compared as numbers when both are, as texts otherwise (equal,
+ * different, contained — whatever the case). A column or a variable without a value meets none.
+ */
+export function ruleHolds(rule: ColorRule, value: unknown, operand?: RuleOperand): boolean {
+  const given = rule.against ? operand?.(rule.against) : rule.value
+  // A filter of several values: its first.
+  const target = Array.isArray(given) ? given[0] : given
+  if (blank(value) || blank(target)) return false
+  if (rule.op === 'contains') return String(value).toLocaleLowerCase().includes(String(target).toLocaleLowerCase())
   const n = typeof value === 'number' ? value : Number(value)
-  if (value === null || value === undefined || value === '' || !Number.isFinite(n)) return false
+  const t = typeof target === 'number' ? target : Number(target)
+  if (!Number.isFinite(n) || !Number.isFinite(t) || typeof value === 'boolean') {
+    const same = String(value).toLocaleLowerCase() === String(target).toLocaleLowerCase()
+    return rule.op === 'eq' ? same : rule.op === 'ne' ? !same : false
+  }
   switch (rule.op) {
     case 'gt':
-      return n > rule.value
+      return n > t
     case 'gte':
-      return n >= rule.value
+      return n >= t
     case 'lt':
-      return n < rule.value
+      return n < t
     case 'lte':
-      return n <= rule.value
+      return n <= t
     case 'eq':
-      return n === rule.value
+      return n === t
     case 'ne':
-      return n !== rule.value
-    case 'between':
-      return (
-        n >= Math.min(rule.value, rule.value2 ?? rule.value) &&
-        n <= Math.max(rule.value, rule.value2 ?? rule.value)
-      )
+      return n !== t
+    case 'between': {
+      const u = rule.value2 ?? t
+      return n >= Math.min(t, u) && n <= Math.max(t, u)
+    }
   }
 }
 
@@ -609,10 +632,11 @@ export function ruleColor(
   rules: readonly ColorRule[] | undefined,
   column: string | undefined,
   value: unknown,
+  operand?: RuleOperand,
 ): string | null {
   for (const rule of rules ?? []) {
     if ((rule.column ?? null) !== (column ?? null) && rule.column !== undefined) continue
-    if (ruleHolds(rule, value)) return rule.color
+    if (ruleHolds(rule, value, operand)) return rule.color
   }
   return null
 }

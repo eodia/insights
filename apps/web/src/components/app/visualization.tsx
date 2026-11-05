@@ -1,7 +1,7 @@
 'use client'
 
 import type { ResultColumn, Visualization as Viz, VisualizationSettings } from '@eodia/contracts'
-import { RULE_ICON_NAMES, type ScalePalette, ruleColor, ruleFor, scaleColor } from '@eodia/contracts'
+import { RULE_ICON_NAMES, type RuleOperand, type ScalePalette, ruleColor, ruleFor, scaleColor } from '@eodia/contracts'
 import { EChart } from '@/components/app/echart'
 import type { ECElementEvent } from 'echarts'
 import { EmptyScene } from '@/components/app/empty-scene'
@@ -91,6 +91,17 @@ export const DarkSurface = createContext<boolean | null>(null)
  * still moving, its bars and its numbers, to the values a filter brings.
  */
 export const StillMotion = createContext(false)
+
+/**
+ * The values of the question's variables where it is shown — those typed in the editor, the
+ * filters tied to them on a dashboard —, which conditional formats can compare to.
+ */
+export const RuleVariables = createContext<Readonly<Record<string, unknown>>>({})
+
+/** What a rule compares to in a row: another of its cells, or a variable's value. */
+function operandIn(columns: readonly ResultColumn[], row: readonly unknown[] | undefined, variables: Readonly<Record<string, unknown>>): RuleOperand {
+  return (ref) => ('variable' in ref ? variables[ref.variable] : row?.[columns.findIndex((c) => c.name === ref.column)])
+}
 
 function useDark(): boolean {
   const forced = useContext(DarkSurface)
@@ -315,8 +326,9 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
   const m = firstMetric(result, settings)
   const value = m ? result.rows[0]?.[m.index] : undefined
   const counted = useCountUp(value, compact)
+  const variables = useContext(RuleVariables)
   if (!m) return null
-  const color = ruleColor(settings.rules, undefined, value) ?? settings.color
+  const color = ruleColor(settings.rules, undefined, value, operandIn(result.columns, result.rows[0], variables)) ?? settings.color
   const shown = formatValue(counted, m.col, { compact: settings.compact ?? (typeof value === 'number' && Math.abs(value) >= 1e7), decimals: settings.decimals ?? null, prefix: settings.prefix, suffix: settings.suffix })
   if (compact) {
     // On a dashboard: the figure on the left, heavy; beneath it, how it compares, as a pill.
@@ -626,6 +638,7 @@ export function DataTable({
   /** Where its search goes, a card's header, rather than a line above the table. */
   toolbarSlot?: HTMLElement | null
 }) {
+  const variables = useContext(RuleVariables)
   const parent = useRef<HTMLDivElement>(null)
   const [sort, setSort] = useState<{ index: number; desc: boolean } | null>(null)
   const [search, setSearch] = useState('')
@@ -852,7 +865,8 @@ export function DataTable({
             {virtualizer.getVirtualItems().length > 0 ? <tr style={{ height: virtualizer.getVirtualItems()[0]?.start ?? 0 }} /> : null}
             {virtualizer.getVirtualItems().map((v) => {
               const row = shown[v.index] as readonly unknown[]
-              const rowColor = (settings.rules ?? []).filter((r) => r.row).map((r) => ruleColor([r], r.column, row[result.columns.findIndex((c) => c.name === r.column)])).find(Boolean)
+              const operand = operandIn(result.columns, row, variables)
+              const rowColor = (settings.rules ?? []).filter((r) => r.row).map((r) => ruleColor([r], r.column, row[result.columns.findIndex((c) => c.name === r.column)], operand)).find(Boolean)
               const stripe = settings.zebra && (offset + v.index) % 2 === 1
               return (
                 <tr
@@ -866,7 +880,7 @@ export function DataTable({
                   {columns.map(({ c, i }, k) => {
                     const value = row[i]
                     const numeric = c.type === 'number' && !c.unit
-                    const rule = ruleFor(settings.rules, c.name, value)
+                    const rule = ruleFor(settings.rules, c.name, value, operand)
                     const scale = scales.get(i)
                     const scaled = scale && typeof value === 'number' ? scaleColor(scale.palette, scale.max === scale.min ? 0.5 : (value - scale.min) / (scale.max - scale.min)) : null
                     const fill = rule?.style === 'fill' ? rule.color : scaled

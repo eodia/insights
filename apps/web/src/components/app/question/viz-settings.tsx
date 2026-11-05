@@ -627,7 +627,20 @@ function Pieces({ settings, set, result, column }: { settings: VisualizationSett
   )
 }
 
-export function VizSettings({ type, settings, result, onChange }: { type: VisualizationType; settings: VisualizationSettings; result: Result | null; onChange: (s: VisualizationSettings) => void }) {
+export function VizSettings({
+  type,
+  settings,
+  result,
+  variables = [],
+  onChange,
+}: {
+  type: VisualizationType
+  settings: VisualizationSettings
+  result: Result | null
+  /** The question's variables: what a conditional format can compare to. */
+  variables?: readonly string[]
+  onChange: (s: VisualizationSettings) => void
+}) {
   const set = (patch: Partial<VisualizationSettings>) => onChange({ ...settings, ...patch })
   const columns = result?.columns.filter((c) => !c.hidden) ?? []
   const pivotAxes = axesOf(settings)
@@ -1231,7 +1244,8 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           <ColumnsPick label={$t('Barres dans les cellules')} columns={numeric} value={settings.cell_bars ?? []} onChange={(v) => set({ cell_bars: v })} />
           <Field label={$t('Mise en forme conditionnelle')}>
             <ConditionalFormats
-              columns={numeric}
+              columns={columns}
+              variables={variables}
               rules={settings.rules ?? []}
               scales={settings.cell_scales ?? []}
               onRules={(rules) => set({ rules: rules.length ? rules : undefined })}

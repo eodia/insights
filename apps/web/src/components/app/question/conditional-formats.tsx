@@ -20,48 +20,105 @@ const OPS: Record<ColorRule['op'], string> = {
   eq: msg('égal à'),
   ne: msg('différent de'),
   between: msg('entre'),
+  contains: msg('contient'),
 }
+const measurable = (c: ResultColumn | undefined) => !!c && c.type === 'number' && !c.unit
 const COLORS = ['#16a34a', '#dc2626', '#f59e0b', '#2563eb', '#7c3aed', '#71717a'] as const
 const PALETTES: Record<ScalePalette, string> = { green_red: msg('Vert → rouge'), red_green: msg('Rouge → vert'), blue: msg('Bleu') }
 
 const gradient = (p: ScalePalette) => `linear-gradient(90deg, ${SCALE_PALETTES[p].join(', ')})`
 
 /**
- * A table's conditional formatting: rules (a colour, a fill, a pictogram when a number meets a
- * test) and colour scales (cells coloured from the smallest value to the largest).
+ * A table's conditional formatting: rules (a colour, a fill, a pictogram when a value meets a
+ * test — against a value written, another column of the row, or a variable of the question)
+ * and colour scales (cells coloured from the smallest value to the largest).
  */
 export function ConditionalFormats({
   columns,
   rules,
   scales,
+  variables = [],
   onRules,
   onScales,
 }: {
   columns: readonly ResultColumn[]
   rules: readonly ColorRule[]
   scales: readonly CellScale[]
+  /** The question's variables, which a rule can compare to. */
+  variables?: readonly string[]
   onRules: (r: ColorRule[]) => void
   onScales: (s: CellScale[]) => void
 }) {
   const first = columns[0]?.name
+  const numbers = columns.filter(measurable)
   const setRule = (i: number, patch: Partial<ColorRule>) => onRules(rules.map((r, j) => (j === i ? { ...r, ...patch } : r)))
   const setScale = (i: number, patch: Partial<CellScale>) => onScales(scales.map((s, j) => (j === i ? { ...s, ...patch } : s)))
   const options = columns.map((c) => ({ value: c.name, label: c.label }))
-  if (!first) return <p className="text-xs text-muted-foreground">{$t('Aucune colonne numérique à mettre en forme.')}</p>
+  const numberOptions = numbers.map((c) => ({ value: c.name, label: c.label }))
+  if (!first) return <p className="text-xs text-muted-foreground">{$t('Aucune colonne à mettre en forme.')}</p>
   return (
     <div className="space-y-2">
-      {rules.map((r, i) => (
+      {rules.map((r, i) => {
+        const column = columns.find((c) => c.name === (r.column ?? first))
+        const numeric = measurable(column)
+        const source = r.against ? ('column' in r.against ? 'column' : 'variable') : 'value'
+        // A text is equal, different or contains; a number is compared; between, only two values written.
+        const ops = (Object.keys(OPS) as ColorRule['op'][]).filter((o) => (numeric ? o !== 'contains' : o === 'eq' || o === 'ne' || o === 'contains') && (o !== 'between' || source === 'value'))
+        return (
         <div key={`rule-${i}`} className="space-y-1.5 rounded-lg border p-2">
           <div className="flex items-center gap-1.5">
-            <Choice value={r.column ?? first} onValueChange={(v) => setRule(i, { column: v })} aria-label={$t('Colonne')} className="min-w-0 flex-1" options={options} />
+            <Choice
+              value={r.column ?? first}
+              onValueChange={(v) => {
+                // A text column keeps only what a text can be: equal, different, contained.
+                const text = !measurable(columns.find((c) => c.name === v))
+                setRule(i, { column: v, ...(text && !['eq', 'ne', 'contains'].includes(r.op) ? { op: 'eq', value: '' } : {}), ...(!text && r.op === 'contains' ? { op: 'eq' } : {}) })
+              }}
+              aria-label={$t('Colonne')}
+              className="min-w-0 flex-1"
+              options={options}
+            />
             <Button type="button" size="icon-sm" variant="ghost" onClick={() => onRules(rules.filter((_, j) => j !== i))} aria-label={$t('Retirer la règle')}>
               <Trash2 className="text-destructive" />
             </Button>
           </div>
           <div className="flex items-center gap-1.5">
-            <Choice value={r.op} onValueChange={(v) => setRule(i, { op: v as ColorRule['op'] })} aria-label={$t('Comparaison')} className="w-32" options={(Object.keys(OPS) as ColorRule['op'][]).map((o) => ({ value: o, label: $t(OPS[o]) }))} />
-            <Input type="number" value={Number.isFinite(r.value) ? r.value : ''} onChange={(e) => setRule(i, { value: Number(e.target.value) })} className="h-8 min-w-0 flex-1" />
-            {r.op === 'between' ? <Input type="number" value={r.value2 ?? ''} onChange={(e) => setRule(i, { value2: Number(e.target.value) })} className="h-8 min-w-0 flex-1" aria-label={$t('et')} /> : null}
+            <Choice value={ops.includes(r.op) ? r.op : 'eq'} onValueChange={(v) => setRule(i, { op: v as ColorRule['op'] })} aria-label={$t('Comparaison')} className="min-w-0 flex-1" options={ops.map((o) => ({ value: o, label: $t(OPS[o]) }))} />
+            <Choice
+              value={source}
+              onValueChange={(v) => {
+                if (v === 'value') {
+                  const { against: _gone, ...rest } = r
+                  onRules(rules.map((x, j) => (j === i ? rest : x)))
+                } else if (v === 'column') {
+                  const other = (numeric ? numbers : columns).find((c) => c.name !== column?.name) ?? column
+                  if (other) setRule(i, { against: { column: other.name }, ...(r.op === 'between' ? { op: 'eq' } : {}) })
+                } else if (variables[0]) {
+                  setRule(i, { against: { variable: variables[0] }, ...(r.op === 'between' ? { op: 'eq' } : {}) })
+                }
+              }}
+              aria-label={$t('Comparé à')}
+              className="w-32"
+              options={[
+                { value: 'value', label: $t('une valeur') },
+                { value: 'column', label: $t('une colonne') },
+                ...(variables.length ? [{ value: 'variable', label: $t('une variable') }] : []),
+              ]}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {r.against && 'column' in r.against ? (
+              <Choice value={r.against.column} onValueChange={(v) => setRule(i, { against: { column: v } })} aria-label={$t('Colonne comparée')} className="min-w-0 flex-1" options={numeric ? numberOptions : options} />
+            ) : r.against && 'variable' in r.against ? (
+              <Choice value={r.against.variable} onValueChange={(v) => setRule(i, { against: { variable: v } })} aria-label={$t('Variable comparée')} className="min-w-0 flex-1" options={variables.map((v) => ({ value: v, label: `{{${v}}}` }))} />
+            ) : numeric ? (
+              <>
+                <Input type="number" value={typeof r.value === 'number' && Number.isFinite(r.value) ? r.value : ''} onChange={(e) => setRule(i, { value: Number(e.target.value) })} className="h-8 min-w-0 flex-1" aria-label={$t('Valeur')} />
+                {r.op === 'between' ? <Input type="number" value={r.value2 ?? ''} onChange={(e) => setRule(i, { value2: Number(e.target.value) })} className="h-8 min-w-0 flex-1" aria-label={$t('et')} /> : null}
+              </>
+            ) : (
+              <Input value={String(r.value ?? '')} onChange={(e) => setRule(i, { value: e.target.value })} placeholder={$t('Texte')} className="h-8 min-w-0 flex-1" aria-label={$t('Valeur')} />
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             {COLORS.map((c) => (
@@ -99,11 +156,12 @@ export function ConditionalFormats({
             <Switch checked={!!r.row} onCheckedChange={(on) => setRule(i, { row: on })} />
           </label>
         </div>
-      ))}
+        )
+      })}
       {scales.map((sc, i) => (
         <div key={`scale-${i}`} className="space-y-1.5 rounded-lg border p-2">
           <div className="flex items-center gap-1.5">
-            <Choice value={sc.column} onValueChange={(v) => setScale(i, { column: v })} aria-label={$t('Colonne')} className="min-w-0 flex-1" options={options} />
+            <Choice value={sc.column} onValueChange={(v) => setScale(i, { column: v })} aria-label={$t('Colonne')} className="min-w-0 flex-1" options={numberOptions} />
             <Button type="button" size="icon-sm" variant="ghost" onClick={() => onScales(scales.filter((_, j) => j !== i))} aria-label={$t('Retirer l’échelle')}>
               <Trash2 className="text-destructive" />
             </Button>
@@ -118,10 +176,10 @@ export function ConditionalFormats({
         </div>
       ))}
       <div className="flex gap-1.5">
-        <Button type="button" size="sm" variant="outline" onClick={() => onRules([...rules, { column: first, op: 'lt', value: 0, color: COLORS[1], style: 'text' }])}>
+        <Button type="button" size="sm" variant="outline" onClick={() => onRules([...rules, numbers[0] ? { column: numbers[0].name, op: 'lt', value: 0, color: COLORS[1], style: 'text' } : { column: first, op: 'eq', value: '', color: COLORS[1], style: 'text' }])}>
           <Plus /> {$t('Règle')}
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => onScales([...scales, { column: first, palette: 'red_green' }])}>
+        <Button type="button" size="sm" variant="outline" disabled={!numbers[0]} onClick={() => numbers[0] && onScales([...scales, { column: numbers[0].name, palette: 'red_green' }])}>
           <Plus /> {$t('Échelle de couleur')}
         </Button>
       </div>

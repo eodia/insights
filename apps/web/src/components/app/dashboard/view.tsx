@@ -25,7 +25,7 @@ import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
-import { DarkSurface, StillMotion, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
+import { DarkSurface, RuleVariables, StillMotion, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
 import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
@@ -856,6 +856,7 @@ function CardFrame(props: CardProps) {
         ) : run.data && (props.revealed === undefined || drawn) ? (
           <StillMotion.Provider value={played}>
           <DarkSurface.Provider value={surface.dark}>
+          <RuleVariables.Provider value={Object.fromEntries((card.mappings ?? []).flatMap((m) => ('variable' in m.target ? [[m.target.variable, values[m.parameter]]] : [])))}>
           <Visualization
             result={run.data}
             viz={asTable ? { ...viz, type: 'table' } : viz}
@@ -868,6 +869,7 @@ function CardFrame(props: CardProps) {
             toolbarSlot={toolbarSlot}
             {...(talk?.annotations.length ? { annotations: talk.annotations } : {})}
           />
+          </RuleVariables.Provider>
           </DarkSurface.Provider>
           </StillMotion.Provider>
         ) : (

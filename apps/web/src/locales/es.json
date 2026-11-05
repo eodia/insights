@@ -3099,5 +3099,11 @@
   "Ouverture": "Apertura",
   "Parts": "Porciones",
   "Retirer « {column} »": "Quitar «{column}»",
-  "Séries": "Series"
+  "Séries": "Series",
+  "Aucune colonne à mettre en forme.": "Ninguna columna que formatear.",
+  "Colonne comparée": "Columna comparada",
+  "Comparé à": "Comparado con",
+  "une colonne": "una columna",
+  "une valeur": "un valor",
+  "Variable comparée": "Variable comparada"
 }

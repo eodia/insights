@@ -9,7 +9,7 @@ import { ShareDialog } from '@/components/app/share-dialog'
 import { AlertsDialog } from '@/components/app/delivery/alerts'
 import { returnHref, returnPointFor } from '@/lib/return-point'
 import { type SqlError, SqlEditor } from '@/components/app/sql-editor'
-import { DataTable, type PointClick, ResultFooter, Visualization } from '@/components/app/visualization'
+import { DataTable, type PointClick, ResultFooter, RuleVariables, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
 import {
@@ -559,15 +559,17 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
             ) : result ? (
               view === 'viz' ? (
                 <ThemeScope theme={saved?.resolved_theme} className="h-full">
-                  <Visualization
-                    result={result}
-                    viz={draft.visualization}
-                    onPointClick={builder ? setPoint : undefined}
-                    onPointMenu={setPoint}
-                    persistKey={`question:${draft.id ?? 'new'}`}
-                    onSettingsChange={(patch) => update({ visualization: { ...draft.visualization, settings: { ...(draft.visualization.settings ?? {}), ...patch } } })}
-                    exportName={draft.name}
-                  />
+                  <RuleVariables.Provider value={values}>
+                    <Visualization
+                      result={result}
+                      viz={draft.visualization}
+                      onPointClick={builder ? setPoint : undefined}
+                      onPointMenu={setPoint}
+                      persistKey={`question:${draft.id ?? 'new'}`}
+                      onSettingsChange={(patch) => update({ visualization: { ...draft.visualization, settings: { ...(draft.visualization.settings ?? {}), ...patch } } })}
+                      exportName={draft.name}
+                    />
+                  </RuleVariables.Provider>
                 </ThemeScope>
               ) : view === 'table' ? (
                 <DataTable result={result} looks={result.looks} onRowMenu={setPoint} exportName={draft.name} />
@@ -651,6 +653,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                     type={draft.visualization.type}
                     settings={draft.visualization.settings ?? {}}
                     result={result}
+                    {...(draft.query.kind === 'sql' ? { variables: sqlVariableNames(draft.query.sql) } : {})}
                     onChange={(settings) => {
                       dirtyViz.current = true
                       update({ visualization: { ...draft.visualization, settings } })

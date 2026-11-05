@@ -3007,5 +3007,11 @@
   "Ouverture": "Open",
   "Parts": "Slices",
   "Retirer « {column} »": "Remove “{column}”",
-  "Séries": "Series"
+  "Séries": "Series",
+  "Aucune colonne à mettre en forme.": "No column to format.",
+  "Colonne comparée": "Compared column",
+  "Comparé à": "Compared to",
+  "une colonne": "a column",
+  "une valeur": "a value",
+  "Variable comparée": "Compared variable"
 }

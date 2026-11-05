@@ -133,7 +133,7 @@ export function DataRoles({
                   className={cn('group flex h-8 cursor-grab items-center gap-1.5 rounded-md border bg-background pr-1 pl-1 text-[13px] shadow-xs active:cursor-grabbing', !role && roles && 'opacity-50')}
                 >
                   <GripVertical className="size-3.5 shrink-0 text-muted-foreground/60" />
-                  <span className="w-20 shrink-0 truncate text-[11px] text-muted-foreground">{role ? $t(role) : roles ? $t('Non utilisée') : ''}</span>
+                  {roles ? <span className="w-20 shrink-0 truncate text-[11px] text-muted-foreground">{role ? $t(role) : $t('Non utilisée')}</span> : null}
                   <span className="min-w-0 flex-1 truncate font-medium">{c?.label ?? name}</span>
                   <button type="button" onClick={() => remove(name)} className="rounded p-0.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-foreground focus-visible:opacity-100" aria-label={$t('Retirer « {column} »', { column: c?.label ?? name })}>
                     <X className="size-3.5" />
