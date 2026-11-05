@@ -558,7 +558,8 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
               </div>
             ) : result ? (
               view === 'viz' ? (
-                <ThemeScope theme={saved?.resolved_theme} className="h-full">
+                // Drawn as on a card of its dashboard: on the theme's card colour, not its page's.
+                <ThemeScope theme={saved?.resolved_theme} className="h-full !bg-[var(--theme-card,transparent)]">
                   <RuleVariables.Provider value={values}>
                     <Visualization
                       result={result}
