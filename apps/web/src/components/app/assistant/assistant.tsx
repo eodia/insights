@@ -32,7 +32,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CONVERSATIONS_KEY, type ConversationSummary, History } from './history'
-import { Orb } from './orb'
+import { Morph, Orb } from './orb'
 import { AnswerParts, type Part } from './parts'
 
 /**
@@ -278,7 +278,7 @@ function Welcome({
   ]
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 pb-16">
-      <Orb size={96} className="ai-rise mb-8" />
+      <Morph size={96} className="ai-rise mb-8" />
       <h1 className="ai-rise bg-gradient-to-br from-foreground to-foreground/55 bg-clip-text text-center text-3xl font-semibold tracking-tight text-transparent sm:text-4xl">
         {hello}
       </h1>

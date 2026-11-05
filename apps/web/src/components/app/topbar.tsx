@@ -1,5 +1,6 @@
 'use client'
 
+import { Orb } from '@/components/app/assistant/orb'
 import { DashboardArt, QuestionArt, SqlArt } from '@/components/app/illustrations'
 import { NotificationsBell } from '@/components/app/notifications'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,7 @@ import { $t } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Database, FolderPlus, PanelLeft, Plus, Search, Sparkles } from 'lucide-react'
+import { Database, FolderPlus, PanelLeft, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Fragment, useEffect } from 'react'
@@ -115,7 +116,7 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
               aria-pressed
               className="inline-flex h-9 items-center gap-2 rounded-full bg-violet-500/10 pr-2 pl-3 text-[13.5px] font-medium text-violet-700 ring-1 ring-violet-500/25 ring-inset transition-colors hover:bg-violet-500/15 dark:text-violet-300"
             >
-              <Sparkles className="size-4 text-violet-500" />
+              <Orb size={16} tone="violet" />
               <span className="hidden sm:inline">{$t('Demander au copilote')}</span>
               <kbd className="hidden rounded-md bg-violet-500/15 px-1.5 py-0.5 font-mono text-[10px] text-violet-700 md:inline dark:text-violet-300">Ctrl J</kbd>
             </button>
@@ -128,7 +129,7 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
           className="group relative inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-500/70 via-fuchsia-400/60 to-primary/70 p-px shadow-[0_6px_20px_-10px_rgba(124,58,237,0.6)] transition-shadow hover:shadow-[0_8px_26px_-8px_rgba(124,58,237,0.7)]"
         >
           <span className="inline-flex h-full items-center gap-2 rounded-full bg-background/95 pr-2 pl-3 text-[13.5px] font-medium text-foreground transition-colors group-hover:bg-background/85">
-            <Sparkles className="size-4 text-violet-500 transition-transform group-hover:rotate-12" />
+            <Orb size={16} tone="violet" className="transition-transform group-hover:rotate-12" />
             <span className="hidden sm:inline">{$t('Demander au copilote')}</span>
             <kbd className="hidden rounded-md bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline">Ctrl J</kbd>
           </span>
