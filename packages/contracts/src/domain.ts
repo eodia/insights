@@ -832,3 +832,41 @@ export interface HomeLayout {
   readonly cards: readonly DashboardCard[]
   readonly parameters?: readonly DashboardParameter[]
 }
+
+/** What a version keeps of a dashboard: all one may change, nothing of who may see it. */
+export interface DashboardSnapshot {
+  readonly name: string
+  readonly description: string | null
+  readonly tabs: readonly DashboardTab[]
+  readonly cards: readonly DashboardCard[]
+  readonly parameters: readonly DashboardParameter[]
+  readonly theme: string | null
+  readonly width: DashboardWidth
+  readonly auto_refresh: number | null
+  readonly cache_ttl: number | null
+  readonly preload: boolean
+}
+
+/** A saved state of a dashboard: who saved it, when — and, for a restore, which one it brought back. */
+export interface DashboardVersion {
+  readonly id: string
+  readonly at: string
+  readonly author: UserSummary | null
+  /** `restore:<date>` when the version brought back an older one. */
+  readonly note: string | null
+  readonly snapshot: DashboardSnapshot
+}
+
+/** Something to tell a person: someone mentioned them. */
+export interface AppNotification {
+  readonly id: string
+  readonly kind: 'mention'
+  readonly actor: UserSummary | null
+  readonly dashboard: { readonly id: string; readonly name: string } | null
+  readonly question: { readonly id: string; readonly name: string } | null
+  readonly card: string | null
+  /** The words, the mentions as « @Name ». */
+  readonly excerpt: string
+  readonly created_at: string
+  readonly read: boolean
+}

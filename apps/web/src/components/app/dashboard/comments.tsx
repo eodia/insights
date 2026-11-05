@@ -12,6 +12,7 @@ import { Hint } from '@/components/ui/tooltip'
 import { LOOK_HEX, formatAgo } from '@/lib/format'
 import { $t, $tp, intlLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { MentionText, useMentions } from '@/components/app/mentions'
 import { Flag, Loader2, MessageSquare, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -35,12 +36,13 @@ export function CommentsButton({
 }) {
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
+  const mentions = useMentions(body, setBody)
   const count = comments.length
   const send = async () => {
     if (!body.trim()) return
     setBusy(true)
     try {
-      await onAdd(body.trim())
+      await onAdd(mentions.encode(body.trim()))
       setBody('')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
@@ -82,7 +84,7 @@ export function CommentsButton({
                     </button>
                   ) : null}
                 </div>
-                <p className="text-sm break-words whitespace-pre-wrap">{c.body}</p>
+                <MentionText text={c.body} className="block text-sm break-words whitespace-pre-wrap" />
               </div>
             </div>
           ))}
@@ -96,7 +98,7 @@ export function CommentsButton({
                     {new Date(`${a.at}T00:00:00`).toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short', year: 'numeric' })}
                     {a.end ? ` → ${new Date(`${a.end}T00:00:00`).toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short' })}` : ''}
                   </span>
-                  <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                  <MentionText text={a.label} className="min-w-0 flex-1 truncate" />
                   {a.mine ? (
                     <button type="button" onClick={() => void onDeleteAnnotation(a.id)} className="opacity-0 group-hover/annotation:opacity-100" aria-label={$t('Supprimer l’annotation')}>
                       <Trash2 className="size-3.5 text-destructive" />
@@ -114,20 +116,25 @@ export function CommentsButton({
             void send()
           }}
         >
-          <Textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault()
-                void send()
-              }
-            }}
-            placeholder={$t('Baisse due à la grève du 12…')}
-            className="min-h-16 text-sm"
-          />
+          <div className="relative">
+            {mentions.menu}
+            <Textarea
+              ref={mentions.field}
+              value={body}
+              onChange={mentions.onChange}
+              onKeyDown={(e) => {
+                if (mentions.onKeyDown(e)) return
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault()
+                  void send()
+                }
+              }}
+              placeholder={$t('Baisse due à la grève du 12… — @ pour mentionner quelqu’un')}
+              className="min-h-16 text-sm"
+            />
+          </div>
           <div className="flex items-center gap-2">
-            <span className="flex-1 text-[11px] text-muted-foreground">{$t('Ctrl + Entrée pour envoyer')}</span>
+            <span className="flex-1 text-[11px] text-muted-foreground">{$t('@ mentionne · Ctrl + Entrée envoie')}</span>
             <Button type="submit" size="sm" disabled={!body.trim() || busy}>
               {busy ? <Loader2 className="animate-spin" /> : null}
               {$t('Commenter')}
@@ -144,6 +151,7 @@ const ANNOTATION_COLORS = ['#3f3f46', LOOK_HEX.red, LOOK_HEX.orange, LOOK_HEX.gr
 /** « Annoter ce point » : a label on a date — or a span — of the chart, seen by everyone. */
 export function AnnotateDialog({ at, onClose, onSave }: { at: string; onClose: () => void; onSave: (a: { at: string; end: string | null; label: string; color: string }) => Promise<void> }) {
   const [label, setLabel] = useState('')
+  const mentions = useMentions(label, setLabel)
   const [from, setFrom] = useState(at)
   const [to, setTo] = useState('')
   const [color, setColor] = useState<string>(ANNOTATION_COLORS[1])
@@ -151,7 +159,7 @@ export function AnnotateDialog({ at, onClose, onSave }: { at: string; onClose: (
   const save = async () => {
     setBusy(true)
     try {
-      await onSave({ at: from, end: to || null, label: label.trim(), color })
+      await onSave({ at: from, end: to || null, label: mentions.encode(label.trim()), color })
       onClose()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
@@ -173,7 +181,17 @@ export function AnnotateDialog({ at, onClose, onSave }: { at: string; onClose: (
             if (label.trim()) void save()
           }}
         >
-          <Input autoFocus value={label} onChange={(e) => setLabel(e.target.value)} placeholder={$t('Grève du 12, lancement de la campagne…')} />
+          <div className="relative">
+            {mentions.menu}
+            <Input
+              ref={mentions.field}
+              autoFocus
+              value={label}
+              onChange={mentions.onChange}
+              onKeyDown={(e) => void mentions.onKeyDown(e)}
+              placeholder={$t('Grève du 12, lancement de la campagne… — @ pour mentionner')}
+            />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">{$t('Le')}</Label>

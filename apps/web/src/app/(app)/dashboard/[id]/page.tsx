@@ -1,6 +1,7 @@
 'use client'
 
 import { Presentation } from '@/components/app/dashboard/presentation'
+import { VersionsDialog } from '@/components/app/dashboard/versions'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
 import { FavoriteIcon } from '@/components/app/favorite-icon'
 import { ConfirmDialog, FolderPicker } from '@/components/app/dialogs'
@@ -61,6 +62,7 @@ import {
   Share2,
   Trash2,
   MonitorPlay,
+  History,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -230,6 +232,7 @@ function DashboardScreen({ id }: { id: string }) {
   const [pasteError, setPasteError] = useState<string | null>(null)
   const [settings, setSettings] = useState(false)
   const [presenting, setPresenting] = useState(false)
+  const [versions, setVersions] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [subscribing, setSubscribing] = useState(false)
   const [remove, setRemove] = useState(false)
@@ -462,6 +465,9 @@ function DashboardScreen({ id }: { id: string }) {
                       <DropdownMenuItem onSelect={() => setExporting(true)}>
                         <FileDown /> {$t('Exporter en PDF…')}
                       </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => setVersions(true)}>
+                        <History /> {$t('Historique des versions')}
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={async () => {
                           await navigator.clipboard.writeText(window.location.href)
@@ -591,6 +597,15 @@ function DashboardScreen({ id }: { id: string }) {
         name={dashboard.name}
       />
       <SettingsDialog open={settings} onOpenChange={setSettings} dashboard={dashboard} />
+      {versions ? (
+        <VersionsDialog
+          dashboard={dashboard}
+          runner={runner}
+          editable={editable}
+          onClose={() => setVersions(false)}
+          onRestored={() => qc.invalidateQueries({ queryKey: keys.dashboard(dashboard.id) })}
+        />
+      ) : null}
       {presenting ? <Presentation dashboard={dashboard} runner={runner} onClose={() => setPresenting(false)} /> : null}
       <ConfirmDialog
         open={remove}

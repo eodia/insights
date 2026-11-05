@@ -4,6 +4,7 @@
  * jamais recyclées ; un seul axe des ordonnées ; marques fines ; légende dès deux séries ;
  * grille discrète ; info-bulle partout.
  */
+import { readableMentions } from './mentions'
 import type { BarFill, ResultColumn, TemporalUnit, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import { TEXT_SCALE } from '@eodia/contracts'
 import type { EChartsOption, SeriesOption } from 'echarts'
@@ -1866,7 +1867,7 @@ export function withAnnotations(model: ChartModel, annotations: readonly ChartAn
     const from = place(a.at)
     if (from === null) continue
     const color = a.color ?? ink
-    const label = { show: true, formatter: a.label, color, fontSize: 11, fontWeight: 600, position: 'insideEndTop' as const }
+    const label = { show: true, formatter: readableMentions(a.label), color, fontSize: 11, fontWeight: 600, position: 'insideEndTop' as const }
     if (a.end) {
       const to = place(a.end)
       if (to !== null) {

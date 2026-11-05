@@ -19,6 +19,10 @@ import {
   cancelExecution,
   createDashboard,
   getHomeLayout,
+  listDashboardVersions,
+  restoreDashboardVersion,
+  listNotifications,
+  readNotifications,
   orderBookmarks,
   saveHomeLayout,
   createFolder,
@@ -102,6 +106,7 @@ const PerformanceQuery = z.object({ days: z.string().optional(), all: z.enum(['0
 const AdviceInput = z.object({ sql: z.string().min(1).max(200_000) })
 const HistoryQuery = z.object({ all: z.enum(['0', '1']).optional(), origin: z.string().optional(), errors: z.enum(['0', '1']).optional(), before: z.string().optional() })
 const SnippetInput = z.object({ name: z.string().min(1).max(80), description: z.string().max(500).nullable().optional(), content: z.string().min(1).max(50_000) })
+const NotificationsRead = z.object({ ids: z.array(z.string().uuid()).max(200).optional() })
 const HomeLayoutPut = z.object({ layout: HomeLayoutSchema.nullable() })
 const BookmarkOrder = z.object({ ids: z.array(z.string().uuid()).max(500) })
 const Bookmark = z.object({ kind: z.enum(['question', 'model', 'metric', 'dashboard', 'folder']), id: z.string(), on: z.boolean() })
@@ -388,6 +393,17 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   })
   route(app, { method: 'delete', path: '/api/v1/dashboards/:id/comments/:comment', tags: dtags, summary: 'Supprimer un commentaire' }, async (c) => {
     await deleteCardComment(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'comment'))
+    return ok(c)
+  })
+  route(app, { method: 'get', path: '/api/v1/dashboards/:id/versions', tags: dtags, summary: 'Versions du tableau de bord (les plus récentes d’abord)' }, async (c) =>
+    ok(c, await listDashboardVersions(c.get('core'), actorOf(c), param(c, 'id'))),
+  )
+  route(app, { method: 'post', path: '/api/v1/dashboards/:id/versions/:version/restore', tags: dtags, summary: 'Restaurer une version du tableau de bord' }, async (c) =>
+    ok(c, await restoreDashboardVersion(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'version'))),
+  )
+  route(app, { method: 'get', path: '/api/v1/notifications', tags: ftags, summary: 'Ses notifications (mentions)' }, async (c) => ok(c, await listNotifications(c.get('core'), actorOf(c))))
+  route(app, { method: 'post', path: '/api/v1/notifications/read', tags: ftags, summary: 'Marquer des notifications comme lues (toutes, sans ids)', body: NotificationsRead }, async (c) => {
+    await readNotifications(c.get('core'), actorOf(c), bodyOf(c, NotificationsRead).ids)
     return ok(c)
   })
   route(app, { method: 'get', path: '/api/v1/dashboards/:id/annotations', tags: dtags, summary: 'Annotations des graphiques du tableau de bord' }, async (c) =>

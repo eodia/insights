@@ -1,6 +1,7 @@
 'use client'
 
 import { DashboardArt, QuestionArt, SqlArt } from '@/components/app/illustrations'
+import { NotificationsBell } from '@/components/app/notifications'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -69,6 +70,7 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
         ))}
       </nav>
 
+      <NotificationsBell />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" className="gap-1.5">

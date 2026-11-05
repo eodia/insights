@@ -8,6 +8,7 @@ import { summaryOf } from '../auth/users'
 import type { Actor, Core } from '../context'
 import { forbidden, invalid, notFound } from '../errors'
 import { getDashboard, getQuestion } from './items'
+import { notifyMentions } from './notifications'
 
 // ── Comments ────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ export async function addCardComment(core: Core, actor: Actor, dashboardId: stri
   const d = await getDashboard(core, actor, dashboardId)
   if (!d.cards.some((c) => c.id === card)) throw notFound('Carte introuvable.')
   await core.db.exec('INSERT INTO card_comment (dashboard_id, card_id, user_id, body) VALUES ($1, $2, $3, $4)', [dashboardId, card, actor.userId, body.trim()])
+  await notifyMentions(core, actor, { dashboard: dashboardId, card }, body)
 }
 
 export async function deleteCardComment(core: Core, actor: Actor, dashboardId: string, id: string): Promise<void> {
@@ -103,6 +105,7 @@ export async function addAnnotation(core: Core, actor: Actor, input: AnnotationI
     'INSERT INTO annotation (workspace_id, question_id, dashboard_id, card_id, at, end_at, label, color, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
     [actor.workspaceId, input.question ?? null, input.question ? null : (input.dashboard ?? null), input.question ? null : (input.card ?? null), input.at, input.end ?? null, input.label.trim(), input.color ?? null, actor.userId],
   )
+  await notifyMentions(core, actor, input.question ? { question: input.question } : { dashboard: input.dashboard as string, card: input.card as string }, input.label)
 }
 
 export async function deleteAnnotation(core: Core, actor: Actor, id: string): Promise<void> {

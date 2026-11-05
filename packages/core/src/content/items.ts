@@ -1,4 +1,5 @@
 /** Questions, modèles, métriques et tableaux de bord : création, lecture, modification, archivage. */
+import { keepVersion } from './versions'
 import type {
   Aggregation,
   BuilderQuery,
@@ -440,10 +441,12 @@ export async function createDashboard(core: Core, actor: Actor, input: Dashboard
   )
   const id = row?.id as string
   await audit(core, actor, 'dashboard.create', { kind: 'dashboard', id }, { name: input.name })
-  return getDashboard(core, actor, id)
+  const created = await getDashboard(core, actor, id)
+  await keepVersion(core, actor, created, 'create')
+  return created
 }
 
-export async function updateDashboard(core: Core, actor: Actor, id: string, input: Partial<DashboardInput> & { archived?: boolean }): Promise<Dashboard> {
+export async function updateDashboard(core: Core, actor: Actor, id: string, input: Partial<DashboardInput> & { archived?: boolean }, note: string | null = null): Promise<Dashboard> {
   const current = await getDashboard(core, actor, id)
   if (!atLeastAccess(current.access, 'edit')) throw forbidden('Vous ne pouvez pas modifier ce tableau de bord.')
   checkCards(input)
@@ -474,7 +477,10 @@ export async function updateDashboard(core: Core, actor: Actor, id: string, inpu
     await core.db.exec('UPDATE question SET archived = NOT (position(id::text IN $2) > 0) WHERE dashboard_id = $1', [id, JSON.stringify(input.cards)])
   }
   await audit(core, actor, 'dashboard.update', { kind: 'dashboard', id }, { fields: Object.keys(input) })
-  return getDashboard(core, actor, id)
+  const saved = await getDashboard(core, actor, id)
+  // Its state kept as a version — but not for a mere archiving, or a refresh's period.
+  if (Object.keys(input).some((k) => k !== 'archived' && k !== 'auto_refresh')) await keepVersion(core, actor, saved, note)
+  return saved
 }
 
 export async function duplicateDashboard(core: Core, actor: Actor, id: string, folder?: string | null): Promise<Dashboard> {
