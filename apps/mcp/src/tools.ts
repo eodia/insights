@@ -509,7 +509,7 @@ export function registerTools(server: McpServer, api: EodiaApi): void {
     {
       title: 'Afficher un graphique',
       description:
-        "Affiche un graphique dans la conversation (MCP Apps), dessiné comme dans eodia insights : soit une question enregistrée (question_id, avec sa visualisation), soit une requête SQL Trino en lecture seule (sql) avec la forme voulue. Le résultat textuel est aussi renvoyé. Pour un graphique par période, groupez par une date tronquée (date_trunc) ; pour des séries, une deuxième dimension. À utiliser quand la personne veut voir des chiffres plutôt que les lire.",
+        "Affiche un graphique dans la conversation (MCP Apps), dessiné comme dans eodia insights : soit une question enregistrée (question_id, avec sa visualisation), soit une requête SQL Trino en lecture seule (sql) avec la forme voulue. Le résultat textuel est aussi renvoyé. Pour un graphique par période, groupez par une date tronquée (date_trunc) ; pour des séries, une deuxième dimension. À utiliser quand la personne veut voir des chiffres plutôt que les lire. Pour le garder dans eodia insights, proposez ensuite save_question.",
       inputSchema: {
         question_id: z.string().optional().describe('Question enregistrée à afficher (voir list_questions)'),
         parameters: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional().describe('Variables de la question, par nom'),
@@ -519,7 +519,8 @@ export function registerTools(server: McpServer, api: EodiaApi): void {
         title: z.string().max(200).optional().describe('Titre affiché au-dessus du graphique'),
       },
       annotations: READ_ONLY,
-      _meta: { ui: { resourceUri: CHART_URI } },
+      // Shown to the model, and callable by the chart's own view (Open WebUI reads both).
+      _meta: { ui: { resourceUri: CHART_URI, visibility: ['model', 'app'] } },
     },
     async ({ question_id, parameters, sql, visualization, stack, title }) => {
       let structured: Record<string, unknown> | undefined
@@ -575,5 +576,43 @@ export function registerTools(server: McpServer, api: EodiaApi): void {
         structuredContent: structured,
       }
     },
+  )
+
+  server.registerTool(
+    'save_question',
+    {
+      title: 'Enregistrer comme question',
+      description:
+        "Enregistre une requête SQL et sa visualisation comme question dans eodia insights — par défaut dans le dossier personnel de la personne —, pour la retrouver, l'ajouter à un tableau de bord ou la partager. À utiliser quand la personne veut garder un graphique ou un résultat (après show_chart par exemple). La requête est exécutée une fois avant d'être enregistrée : une requête qui échoue n'est pas enregistrée.",
+      inputSchema: {
+        name: z.string().min(1).max(200).describe('Nom de la question, parlant (« Chiffre d’affaires par mois »)'),
+        sql: z.string().min(1).max(100_000).describe('Requête SELECT Trino'),
+        visualization: z.enum(CHART_TYPES as [string, ...string[]]).optional().describe('Forme : bar, row, line, area, pie, scalar, table… (défaut : table)'),
+        description: z.string().max(2000).optional().describe('Ce que montre la question, en une phrase'),
+        folder_id: z.string().optional().describe('Dossier où l’enregistrer (défaut : le dossier personnel)'),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    ({ name, sql, visualization, description, folder_id }) =>
+      guarded(async () => {
+        const statement = sql.replace(/^(\s|--[^\n]*\n|\/\*[\s\S]*?\*\/)+/, '')
+        if (!/^(select|with|values|table)\b/i.test(statement)) throw new ToolInputError('save_question enregistre une lecture : SELECT, WITH, VALUES ou TABLE uniquement.')
+        const body = sql.trim().replace(/;+\s*$/, '')
+        // Run once first: a question that fails is not saved.
+        const check = await api.post<QueryResult>('/v1/query', { query: { kind: 'sql', sql: body }, limit: 1 })
+        const folder = folder_id ?? (await api.get<Me>('/v1/me')).personal_folder
+        const q = await api.post<Question>('/v1/questions', {
+          name,
+          ...(description ? { description } : {}),
+          folder,
+          query: { kind: 'sql', sql: body },
+          visualization: { type: visualization ?? 'table' },
+        })
+        const web = webUrl()
+        return [
+          `Question **${q.name}** enregistrée${folder_id ? '' : ' dans le dossier personnel'} (${visualization ?? 'table'}, ${check.columns.length} colonne(s)).`,
+          web ? `Ouvrir : ${web}/question/${q.id}` : `Identifiant : ${q.id}`,
+        ].join('\n')
+      }),
   )
 }
