@@ -151,14 +151,14 @@
     "one": "{count} carte ajoutée : enregistrez le tableau de bord pour la garder.",
     "other": "{count} cartes ajoutées : enregistrez le tableau de bord pour les garder.",
     "where": [
-      "components/app/copilot.tsx:98"
+      "components/app/copilot.tsx:101"
     ]
   },
   "{count} cartes ajoutées au tableau de bord.": {
     "one": "{count} carte ajoutée au tableau de bord.",
     "other": "{count} cartes ajoutées au tableau de bord.",
     "where": [
-      "components/app/copilot.tsx:105"
+      "components/app/copilot.tsx:108"
     ]
   },
   "{count} cartes d’autres onglets : ouvrez-les pour les relier.": {
@@ -1372,7 +1372,7 @@
   },
   "Ajoute une carte du chiffre d’affaires par mois": {
     "where": [
-      "components/app/copilot.tsx:275"
+      "components/app/copilot.tsx:359"
     ]
   },
   "Ajoutée à « {name} ».": {
@@ -1773,7 +1773,7 @@
   },
   "Appliquée": {
     "where": [
-      "components/app/copilot.tsx:170"
+      "components/app/copilot.tsx:173"
     ]
   },
   "Appliquée quand vous ouvrez ce tableau de bord.": {
@@ -1783,7 +1783,7 @@
   },
   "Appliquer": {
     "where": [
-      "components/app/copilot.tsx:170",
+      "components/app/copilot.tsx:173",
       "components/app/dashboard/card-style.tsx:168",
       "components/app/dashboard/cards.tsx:743"
     ]
@@ -1833,7 +1833,7 @@
     "where": [
       "components/app/assistant/assistant.tsx:231",
       "components/app/assistant/assistant.tsx:236",
-      "components/app/copilot.tsx:428"
+      "components/app/copilot.tsx:521"
     ]
   },
   "Arrêter la dictée": {
@@ -2164,6 +2164,11 @@
       "components/app/assistant/history.tsx:177"
     ]
   },
+  "Aucune conversation pour l’instant.": {
+    "where": [
+      "components/app/copilot.tsx:567"
+    ]
+  },
   "Aucune couleur": {
     "where": [
       "components/app/structure/pickers.tsx:44",
@@ -2407,7 +2412,7 @@
   },
   "Autoriser le copilote à exécuter des requêtes, sous vos droits": {
     "where": [
-      "components/app/copilot.tsx:411"
+      "components/app/copilot.tsx:504"
     ]
   },
   "Autoriser le SQL natif": {
@@ -3995,7 +4000,7 @@
   },
   "Construis un tableau de bord du service client.": {
     "where": [
-      "components/app/copilot.tsx:283"
+      "components/app/copilot.tsx:367"
     ]
   },
   "Consultés récemment": {
@@ -4008,6 +4013,11 @@
     "where": [
       "components/app/admin/row-rule-editor.tsx:29",
       "lib/builder.ts:165"
+    ]
+  },
+  "Conversations récentes": {
+    "where": [
+      "components/app/copilot.tsx:565"
     ]
   },
   "Convertir en SQL": {
@@ -4126,7 +4136,8 @@
   "Copilote": {
     "where": [
       "app/(app)/sql/page.tsx:403",
-      "components/app/copilot.tsx:293"
+      "components/app/copilot.tsx:377",
+      "components/app/topbar.tsx:120"
     ]
   },
   "Corps de la requête": {
@@ -4146,7 +4157,7 @@
   },
   "Corrige l’erreur": {
     "where": [
-      "components/app/copilot.tsx:278"
+      "components/app/copilot.tsx:362"
     ]
   },
   "Corriger avec le copilote": {
@@ -4535,7 +4546,7 @@
   },
   "Décris cette table et ses colonnes": {
     "where": [
-      "components/app/copilot.tsx:280"
+      "components/app/copilot.tsx:364"
     ]
   },
   "Décroissant": {
@@ -4583,12 +4594,12 @@
   "Demander au copilote": {
     "where": [
       "components/app/question/editor.tsx:422",
-      "components/app/topbar.tsx:116"
+      "components/app/topbar.tsx:133"
     ]
   },
   "Demandez au copilote…": {
     "where": [
-      "components/app/copilot.tsx:407"
+      "components/app/copilot.tsx:500"
     ]
   },
   "Demandez n’importe quoi sur vos données…": {
@@ -4800,12 +4811,12 @@
   },
   "Description appliquée.": {
     "where": [
-      "components/app/copilot.tsx:124"
+      "components/app/copilot.tsx:127"
     ]
   },
   "Description de la table": {
     "where": [
-      "components/app/copilot.tsx:139",
+      "components/app/copilot.tsx:142",
       "components/app/structure/table-editor.tsx:95"
     ]
   },
@@ -5131,7 +5142,7 @@
     "where": [
       "app/(app)/history/page.tsx:26",
       "app/(app)/sql/page.tsx:262",
-      "components/app/copilot.tsx:263"
+      "components/app/copilot.tsx:347"
     ]
   },
   "Éditeur visuel": {
@@ -5559,7 +5570,7 @@
   "Envoyer": {
     "where": [
       "components/app/assistant/assistant.tsx:247",
-      "components/app/copilot.tsx:442",
+      "components/app/copilot.tsx:535",
       "components/app/home/board.tsx:199"
     ]
   },
@@ -5822,7 +5833,7 @@
   "Exécuter": {
     "where": [
       "app/(app)/sql/page.tsx:386",
-      "components/app/copilot.tsx:422",
+      "components/app/copilot.tsx:515",
       "components/app/login-stage.tsx:350"
     ]
   },
@@ -5844,7 +5855,7 @@
   "Exécution de la requête": {
     "where": [
       "components/app/assistant/parts.tsx:68",
-      "components/app/copilot.tsx:58",
+      "components/app/copilot.tsx:61",
       "components/app/login-stage.tsx:409"
     ]
   },
@@ -5904,7 +5915,7 @@
   },
   "Explique cette requête": {
     "where": [
-      "components/app/copilot.tsx:278"
+      "components/app/copilot.tsx:362"
     ]
   },
   "Exploration automatique": {
@@ -6056,8 +6067,13 @@
   "Fermer": {
     "where": [
       "app/(app)/sql/page.tsx:367",
-      "components/app/copilot.tsx:314",
-      "components/app/copilot.tsx:315"
+      "components/app/copilot.tsx:393",
+      "components/app/copilot.tsx:394"
+    ]
+  },
+  "Fermer le copilote": {
+    "where": [
+      "components/app/topbar.tsx:109"
     ]
   },
   "Figer la première colonne": {
@@ -6151,7 +6167,7 @@
   },
   "Filtres posés sur le tableau de bord": {
     "where": [
-      "components/app/copilot.tsx:63"
+      "components/app/copilot.tsx:66"
     ]
   },
   "Filtres supplémentaires (is, contains, gt, between, date…).": {
@@ -6161,7 +6177,7 @@
   },
   "Filtrez ce tableau de bord en le disant, demandez ce qu’il faut en retenir ou faites-y ajouter des cartes.": {
     "where": [
-      "components/app/copilot.tsx:327"
+      "components/app/copilot.tsx:419"
     ]
   },
   "Fin": {
@@ -7556,7 +7572,7 @@
   },
   "Le copilote peut exécuter des requêtes, sous vos droits": {
     "where": [
-      "components/app/copilot.tsx:411"
+      "components/app/copilot.tsx:504"
     ]
   },
   "Le dernier jour": {
@@ -7728,7 +7744,7 @@
   "Lecture de la table": {
     "where": [
       "components/app/assistant/parts.tsx:66",
-      "components/app/copilot.tsx:56",
+      "components/app/copilot.tsx:59",
       "components/app/login-stage.tsx:409"
     ]
   },
@@ -7740,7 +7756,7 @@
   "Lecture des métriques": {
     "where": [
       "components/app/assistant/parts.tsx:67",
-      "components/app/copilot.tsx:57"
+      "components/app/copilot.tsx:60"
     ]
   },
   "Lecture des tables": {
@@ -9301,7 +9317,7 @@
     "where": [
       "components/app/assistant/assistant.tsx:609",
       "components/app/assistant/history.tsx:160",
-      "components/app/copilot.tsx:299"
+      "components/app/copilot.tsx:388"
     ]
   },
   "Nouvelle question": {
@@ -10152,7 +10168,7 @@
   },
   "Posez une question sur vos données : le copilote cherche les tables, écrit le SQL et vous propose des questions ou des tableaux de bord à appliquer.": {
     "where": [
-      "components/app/copilot.tsx:328"
+      "components/app/copilot.tsx:420"
     ]
   },
   "Posez votre question. L’assistant trouve les bonnes tables, écrit le SQL et vous répond en chiffres et en graphiques.": {
@@ -10340,25 +10356,25 @@
   },
   "Proposition": {
     "where": [
-      "components/app/copilot.tsx:141"
+      "components/app/copilot.tsx:144"
     ]
   },
   "Proposition de description": {
     "where": [
       "components/app/assistant/parts.tsx:72",
-      "components/app/copilot.tsx:61"
+      "components/app/copilot.tsx:64"
     ]
   },
   "Proposition de question": {
     "where": [
       "components/app/assistant/parts.tsx:70",
-      "components/app/copilot.tsx:59"
+      "components/app/copilot.tsx:62"
     ]
   },
   "Proposition de tableau de bord": {
     "where": [
       "components/app/assistant/parts.tsx:71",
-      "components/app/copilot.tsx:60"
+      "components/app/copilot.tsx:63"
     ]
   },
   "Propriétaires de vues": {
@@ -10421,7 +10437,7 @@
   },
   "Que faut-il retenir de ce tableau de bord ?": {
     "where": [
-      "components/app/copilot.tsx:274"
+      "components/app/copilot.tsx:358"
     ]
   },
   "Que puis-je analyser ?": {
@@ -10441,7 +10457,7 @@
   },
   "Que puis-je faire pour vous ?": {
     "where": [
-      "components/app/copilot.tsx:324"
+      "components/app/copilot.tsx:416"
     ]
   },
   "Que voulez-vous savoir ?": {
@@ -10456,7 +10472,7 @@
   },
   "Quel est le chiffre d’affaires par région sur les 6 derniers mois ?": {
     "where": [
-      "components/app/copilot.tsx:282"
+      "components/app/copilot.tsx:366"
     ]
   },
   "Quelles tables sont disponibles ?": {
@@ -10471,7 +10487,7 @@
   },
   "Quels clients ont passé le plus de commandes cette année ?": {
     "where": [
-      "components/app/copilot.tsx:284"
+      "components/app/copilot.tsx:368"
     ]
   },
   "Quels sont les 10 meilleurs clients cette année ?": {
@@ -10508,7 +10524,7 @@
   },
   "Question en cours": {
     "where": [
-      "components/app/copilot.tsx:264"
+      "components/app/copilot.tsx:348"
     ]
   },
   "Question enregistrée, avec sa visualisation.": {
@@ -10630,13 +10646,13 @@
   "Recherche dans le schéma": {
     "where": [
       "components/app/assistant/parts.tsx:65",
-      "components/app/copilot.tsx:55",
+      "components/app/copilot.tsx:58",
       "components/app/login-stage.tsx:409"
     ]
   },
   "Recherche des valeurs du filtre": {
     "where": [
-      "components/app/copilot.tsx:62"
+      "components/app/copilot.tsx:65"
     ]
   },
   "Recherche les questions, modèles, métriques et tableaux de bord enregistrés.": {
@@ -10765,7 +10781,7 @@
   "Réflexion…": {
     "where": [
       "components/app/assistant/assistant.tsx:350",
-      "components/app/copilot.tsx:374"
+      "components/app/copilot.tsx:466"
     ]
   },
   "region": {
@@ -11035,7 +11051,7 @@
   },
   "Rends-la plus rapide": {
     "where": [
-      "components/app/copilot.tsx:278"
+      "components/app/copilot.tsx:362"
     ]
   },
   "Renommer": {
@@ -11485,6 +11501,11 @@
       "app/login/page.tsx:32"
     ]
   },
+  "Sans titre": {
+    "where": [
+      "components/app/copilot.tsx:578"
+    ]
+  },
   "Sarcelle": {
     "where": [
       "components/app/structure/pickers.tsx:29"
@@ -11737,7 +11758,7 @@
   },
   "Seulement les 3 derniers mois": {
     "where": [
-      "components/app/copilot.tsx:273"
+      "components/app/copilot.tsx:357"
     ]
   },
   "Seulement les lignes présentes des deux côtés.": {
@@ -11854,7 +11875,7 @@
     "where": [
       "app/(app)/admin/audit/page.tsx:40",
       "app/(app)/data/[[...path]]/page.tsx:70",
-      "components/app/copilot.tsx:266"
+      "components/app/copilot.tsx:350"
     ]
   },
   "Sous le jeton de l’appelant : le résultat est celui que son propriétaire verrait, en tableau markdown de 50 lignes au plus.": {
@@ -12065,6 +12086,11 @@
       "components/app/dashboard/view.tsx:2091"
     ]
   },
+  "Supprimer la conversation": {
+    "where": [
+      "components/app/copilot.tsx:586"
+    ]
+  },
   "Supprimer la règle": {
     "where": [
       "components/app/admin/row-rule-editor.tsx:154",
@@ -12267,7 +12293,7 @@
     "where": [
       "app/(app)/dashboard/[id]/page.tsx:472",
       "app/login/page.tsx:35",
-      "components/app/copilot.tsx:265"
+      "components/app/copilot.tsx:349"
     ]
   },
   "Tableau de bord copié en JSON : collez-le dans « Coller un JSON » pour en créer un autre.": {
@@ -12810,7 +12836,7 @@
   },
   "Toutes les données": {
     "where": [
-      "components/app/copilot.tsx:262"
+      "components/app/copilot.tsx:346"
     ]
   },
   "Toutes les heures": {

@@ -13,7 +13,7 @@ import { $t } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Database, FolderPlus, PanelLeft, Plus, Search, Sparkles } from 'lucide-react'
+import { Database, FolderPlus, PanelLeft, Plus, Search, Sparkles, PanelRightClose } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Fragment, useEffect } from 'react'
@@ -104,19 +104,37 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
       </DropdownMenu>
 
       {me?.ai_enabled ? (
+        copilotOpen ? (
+          // Open: a quiet pressed pill — it says the copilot is there, and closes it.
+          <Hint label={`${$t('Fermer le copilote')} (Ctrl+J)`}>
+            <button
+              type="button"
+              onClick={toggleCopilot}
+              aria-pressed
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-violet-500/10 pr-2.5 pl-3 text-[13.5px] font-medium text-violet-700 ring-1 ring-violet-500/25 ring-inset transition-colors hover:bg-violet-500/15 dark:text-violet-300"
+            >
+              <span className="relative flex size-2">
+                <span className="absolute inset-0 animate-ping rounded-full bg-violet-500/50" />
+                <span className="relative size-2 rounded-full bg-violet-500" />
+              </span>
+              <span className="hidden sm:inline">{$t('Copilote')}</span>
+              <PanelRightClose className="size-4 opacity-70" />
+            </button>
+          </Hint>
+        ) : (
         <button
           type="button"
           onClick={toggleCopilot}
-          aria-pressed={copilotOpen}
+          aria-pressed={false}
           className="group relative inline-flex h-9 items-center rounded-full bg-gradient-to-r from-violet-500/70 via-fuchsia-400/60 to-primary/70 p-px shadow-[0_6px_20px_-10px_rgba(124,58,237,0.6)] transition-shadow hover:shadow-[0_8px_26px_-8px_rgba(124,58,237,0.7)]"
         >
-          {/* Open, the button is filled: one click more closes the copilot. */}
-          <span className={cn('inline-flex h-full items-center gap-2 rounded-full pr-2 pl-3 text-[13.5px] font-medium transition-colors', copilotOpen ? 'bg-transparent text-white' : 'bg-background/95 text-foreground group-hover:bg-background/85')}>
-            <Sparkles className={cn('size-4 transition-transform group-hover:rotate-12', copilotOpen ? 'text-white' : 'text-violet-500')} />
+          <span className="inline-flex h-full items-center gap-2 rounded-full bg-background/95 pr-2 pl-3 text-[13.5px] font-medium text-foreground transition-colors group-hover:bg-background/85">
+            <Sparkles className="size-4 text-violet-500 transition-transform group-hover:rotate-12" />
             <span className="hidden sm:inline">{$t('Demander au copilote')}</span>
-            <kbd className={cn('hidden rounded-md px-1.5 py-0.5 font-mono text-[10px] md:inline', copilotOpen ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground')}>Ctrl J</kbd>
+            <kbd className="hidden rounded-md bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline">Ctrl J</kbd>
           </span>
         </button>
+        )
       ) : null}
     </header>
   )

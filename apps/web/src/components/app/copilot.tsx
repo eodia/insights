@@ -8,12 +8,13 @@ import { DASHBOARD_COLUMNS, SEMANTIC_LABELS, cardSize, placedAfter } from '@eodi
 import { Button } from '@/components/ui/button'
 import { Hint } from '@/components/ui/tooltip'
 import { api, postStream } from '@/lib/api'
+import { formatAgo } from '@/lib/format'
 import { $t, $tp, msg } from '@/lib/i18n'
 import { keys, useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { VIZ_LABELS } from '@/lib/viz'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
   Database,
@@ -33,6 +34,8 @@ import {
   Play,
   Square,
   SquarePen,
+  History,
+  Trash2,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -174,13 +177,93 @@ export function ProposalCard({ p }: { p: Proposal }) {
   )
 }
 
+/** The panel's conversation, kept while it is closed — and, by its id, across a reload. */
+const kept: { entries: Entry[]; conversation: string | null } = { entries: [], conversation: null }
+const KEPT_KEY = 'eodia:copilot-conversation'
+
+interface ConversationSummary {
+  readonly id: string
+  readonly context_kind: string
+  readonly title: string
+  readonly updated_at: string
+}
+
+type ShownPart =
+  | { type: 'text'; text: string }
+  | { type: 'tool'; name: string; ok: boolean; summary?: string }
+  | { type: 'proposal'; proposal: Proposal }
+  | { type: 'chart' }
+
+/** A conversation read back, in the panel's form: the words, the steps, the proposals. */
+const entriesOf = (turns: readonly ({ role: 'user'; text: string } | { role: 'assistant'; parts: ShownPart[] })[]): Entry[] =>
+  turns.map((t) =>
+    t.role === 'user'
+      ? { role: 'user', text: t.text }
+      : {
+          role: 'assistant',
+          text: t.parts
+            .filter((x): x is Extract<ShownPart, { type: 'text' }> => x.type === 'text')
+            .map((x) => x.text)
+            .join('\n\n'),
+          tools: t.parts.filter((x): x is Extract<ShownPart, { type: 'tool' }> => x.type === 'tool').map((x) => ({ name: x.name, ok: x.ok, ...(x.summary ? { summary: x.summary } : {}) })),
+          proposals: t.parts.filter((x): x is Extract<ShownPart, { type: 'proposal' }> => x.type === 'proposal').map((x) => x.proposal),
+          done: true,
+        },
+  )
+
+const CONTEXT_ICONS: Record<string, typeof Search> = { general: Database, sql: Code2, question: BarChart3, dashboard: LayoutDashboard, structure: Table2 }
+
 export function CopilotPanel() {
   const close = useUi((s) => s.closeCopilot)
   const context = useUi((s) => s.copilotContext)
   const takePrompt = useUi((s) => s.takeCopilotPrompt)
   const prompt = useUi((s) => s.copilotPrompt)
-  const [entries, setEntries] = useState<Entry[]>([])
-  const [conversation, setConversation] = useState<string | null>(null)
+  const qc = useQueryClient()
+  const [entries, setEntries] = useState<Entry[]>(() => kept.entries)
+  const [conversation, setConversation] = useState<string | null>(() => kept.conversation)
+  const [showHistory, setShowHistory] = useState(false)
+  // After a reload: the conversation one had, by the id kept in the browser.
+  const [restoring] = useState<string | null>(() => {
+    if (kept.entries.length) return null
+    try {
+      return localStorage.getItem(KEPT_KEY)
+    } catch {
+      return null
+    }
+  })
+  // Kept for the next opening; its id, for the next visit.
+  useEffect(() => {
+    kept.entries = entries
+    kept.conversation = conversation
+    try {
+      if (conversation) localStorage.setItem(KEPT_KEY, conversation)
+    } catch {}
+  }, [entries, conversation])
+  const load = async (id: string) => {
+    abort.current?.abort()
+    try {
+      const c = await api.get<{ id: string; turns: Parameters<typeof entriesOf>[0] }>(`/v1/copilot/conversations/${id}`)
+      setEntries(entriesOf(c.turns))
+      setConversation(c.id)
+    } catch {
+      setEntries([])
+      setConversation(null)
+    }
+  }
+  // After a reload: the conversation one had, read back once.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the panel first opens
+  useEffect(() => {
+    if (restoring) void load(restoring)
+  }, [])
+  const startOver = () => {
+    abort.current?.abort()
+    setEntries([])
+    setConversation(null)
+    setShowHistory(false)
+    try {
+      localStorage.removeItem(KEPT_KEY)
+    } catch {}
+  }
   const [text, setText] = useState('')
   const [allowRun, setAllowRun] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -201,6 +284,7 @@ export function CopilotPanel() {
 
   const send = async (message: string) => {
     if (!message.trim() || busy) return
+    setShowHistory(false)
     setText('')
     setBusy(true)
     const controller = new AbortController()
@@ -296,18 +380,13 @@ export function CopilotPanel() {
           <span className="truncate">{contextLabel}</span>
         </span>
         <span className="flex-1" />
+        <Hint label={$t('Historique')}>
+          <Button variant="ghost" size="icon-sm" aria-label={$t('Historique')} aria-pressed={showHistory} className={cn(showHistory && 'bg-muted')} onClick={() => setShowHistory((v) => !v)}>
+            <History className="size-4" />
+          </Button>
+        </Hint>
         <Hint label={$t('Nouvelle conversation')}>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={$t('Nouvelle conversation')}
-            disabled={entries.length === 0}
-            onClick={() => {
-              abort.current?.abort()
-              setEntries([])
-              setConversation(null)
-            }}
-          >
+          <Button variant="ghost" size="icon-sm" aria-label={$t('Nouvelle conversation')} disabled={entries.length === 0 && !showHistory} onClick={startOver}>
             <SquarePen className="size-4" />
           </Button>
         </Hint>
@@ -317,6 +396,19 @@ export function CopilotPanel() {
           </Button>
         </Hint>
       </div>
+      {showHistory ? (
+        <CopilotHistory
+          current={conversation}
+          onOpen={(id) => {
+            setShowHistory(false)
+            void load(id)
+          }}
+          onDeleted={(id) => {
+            if (id === conversation) startOver()
+            void qc.invalidateQueries({ queryKey: ['copilot-conversations'] })
+          }}
+        />
+      ) : (
       <div className="relative z-10 flex-1 space-y-5 overflow-y-auto px-4 pt-2 pb-4">
         {entries.length === 0 ? (
           <div className="flex flex-col items-center gap-3 pt-10 text-center">
@@ -383,6 +475,7 @@ export function CopilotPanel() {
         )}
         <div ref={bottom} />
       </div>
+      )}
       {/* The field, as in every chat: the words, and inside it, the microphone and the arrow. */}
       <form
         className="relative z-10 shrink-0 px-3 pt-1 pb-3"
@@ -450,5 +543,56 @@ export function CopilotPanel() {
         </div>
       </form>
     </Pane>
+  )
+}
+
+/** The panel's past conversations: one to take up again, or to delete. */
+function CopilotHistory({ current, onOpen, onDeleted }: { current: string | null; onOpen: (id: string) => void; onDeleted: (id: string) => void }) {
+  const { data: list = [], isLoading } = useQuery({
+    queryKey: ['copilot-conversations', 'panel'],
+    queryFn: () => api.get<ConversationSummary[]>('/v1/copilot/conversations?kind=panel'),
+  })
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/v1/copilot/conversations/${id}`)
+      onDeleted(id)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+  return (
+    <div className="relative z-10 flex-1 overflow-y-auto px-3 pt-1 pb-4">
+      <div className="px-1 pb-2 text-xs font-medium text-muted-foreground">{$t('Conversations récentes')}</div>
+      {isLoading ? <Loader2 className="mx-auto mt-6 size-4 animate-spin text-muted-foreground" /> : null}
+      {!isLoading && list.length === 0 ? <p className="px-1 pt-6 text-center text-sm text-muted-foreground">{$t('Aucune conversation pour l’instant.')}</p> : null}
+      <div className="space-y-0.5">
+        {list.map((c) => {
+          const Icon = CONTEXT_ICONS[c.context_kind] ?? Sparkles
+          return (
+            <div key={c.id} className={cn('group flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-colors hover:bg-muted/70', c.id === current && 'bg-muted')}>
+              <button type="button" onClick={() => onOpen(c.id)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                  <Icon className="size-3.5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13.5px] font-medium">{c.title || $t('Sans titre')}</span>
+                  <span className="block text-[11.5px] text-muted-foreground">{formatAgo(c.updated_at)}</span>
+                </span>
+              </button>
+              <Hint label={$t('Supprimer')}>
+                <button
+                  type="button"
+                  onClick={() => void remove(c.id)}
+                  aria-label={$t('Supprimer la conversation')}
+                  className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background hover:text-destructive focus-visible:opacity-100"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </Hint>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
