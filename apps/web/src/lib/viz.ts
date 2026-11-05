@@ -194,6 +194,10 @@ export function vizFits(type: VisualizationType, result: Result): boolean {
     }
     case 'treemap':
       return metrics.length >= 1 && dims.length >= 1
+    case 'sankey':
+      return metrics.length >= 1 && dims.length >= 2
+    case 'candlestick':
+      return metrics.length >= 4 && dims.length >= 1
     case 'calendar':
       return metrics.length >= 1 && result.columns.some(isTemporal)
     case 'pivot':
@@ -225,6 +229,8 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   bar_race: msg('Course de barres'),
   line_race: msg('Course de courbes'),
   treemap: msg('Carte proportionnelle'),
+  sankey: msg('Flux (Sankey)'),
+  candlestick: msg('Chandeliers'),
   calendar: msg('Calendrier'),
   pivot: msg('Tableau croisé'),
   map: msg('Carte||type de graphique : une carte géographique'),
@@ -772,6 +778,124 @@ function drawn(type: VisualizationType, result: Result, settings: VisualizationS
       }
     }
     if (type === 'treemap') return null
+  }
+
+  if (type === 'sankey') {
+    // Flows from one step to the next — channel, then product, then status —, as wide as their value.
+    const { dims, metrics } = roles(result, settings)
+    const m = metrics[0]
+    const steps = dims.slice(0, 5)
+    if (steps.length < 2 || !m) return null
+    const mi = result.columns.indexOf(m)
+    const at = steps.map((d) => result.columns.indexOf(d))
+    // A value found at two steps is two nodes: each known by its step, shown by its name.
+    const nodes = new Map<string, { label: string; depth: number; raw: unknown }>()
+    const links = new Map<string, { source: string; target: string; value: number }>()
+    const node = (step: number, raw: unknown) => {
+      const id = `${step}\u0001${keyOf(raw)}`
+      if (!nodes.has(id)) nodes.set(id, { label: formatValue(raw, steps[step]) || '∅', depth: step, raw })
+      return id
+    }
+    for (const row of result.rows) {
+      const value = Number(row[mi]) || 0
+      if (value <= 0) continue
+      for (let s = 0; s < steps.length - 1; s++) {
+        const source = node(s, row[at[s] as number])
+        const target = node(s + 1, row[at[s + 1] as number])
+        const key = `${source}\u0002${target}`
+        const link = links.get(key) ?? { source, target, value: 0 }
+        link.value += value
+        links.set(key, link)
+      }
+    }
+    const label = (id: string) => nodes.get(id)?.label ?? id
+    const pal = paletteOf(settings, theme, nodes.size)
+    let next = 0
+    const data = [...nodes.entries()].map(([id, n]) => ({
+      name: id,
+      depth: n.depth,
+      itemStyle: { color: settings.series?.[keyOf(n.raw)]?.color ?? valueColor(result, steps[n.depth], n.raw) ?? pal(next++) },
+      label: { formatter: n.label.replace(/[{}|]/g, '') },
+    }))
+    return {
+      option: {
+        ...base,
+        tooltip: {
+          ...base.tooltip,
+          trigger: 'item',
+          formatter: (p: unknown) => {
+            const q = p as { dataType?: string; name: string; value: number; data: { source?: string; target?: string } }
+            const what = q.dataType === 'edge' ? `${label(q.data.source ?? '')} → ${label(q.data.target ?? '')}` : label(q.name)
+            return `${what}<br/><b>${formatValue(q.value, m)}</b>`
+          },
+        },
+        series: [
+          {
+            type: 'sankey',
+            left: 8,
+            right: 8,
+            top: 8,
+            bottom: 8,
+            nodeWidth: 12,
+            nodeGap: 10,
+            draggable: false,
+            layoutIterations: 32,
+            emphasis: { focus: 'adjacency' },
+            itemStyle: { borderWidth: 0, borderRadius: 2 },
+            lineStyle: { color: 'gradient', curveness: 0.5, opacity: 0.35 },
+            label: { color: c.primary, fontSize: 11 },
+            levels: steps.map((_, depth) => ({ depth, label: depth === steps.length - 1 ? { position: 'left' as const } : {} })),
+            data,
+            links: [...links.values()],
+          },
+        ] as SeriesOption[],
+      },
+    }
+  }
+
+  if (type === 'candlestick') {
+    // Open, high, low, close for each period: found by their names (open, haut, bas, clôture…),
+    // else taken in that order among the measures.
+    const { dims, metrics } = roles(result, settings)
+    const x = dims[0]
+    if (!x || metrics.length < 4) return null
+    const named = (re: RegExp) => metrics.find((col) => re.test(`${col.name} ${col.label}`.toLowerCase()))
+    const guess = [named(/open|ouvert/), named(/high|haut|max/), named(/low|bas\b|min/), named(/close|cl[oô]t|ferm/)]
+    const [open, high, low, close] = (guess.every(Boolean) && new Set(guess).size === 4 ? guess : metrics.slice(0, 4)) as ResultColumn[]
+    const xi = result.columns.indexOf(x)
+    const read = (row: readonly unknown[], col: ResultColumn) => {
+      const v = row[result.columns.indexOf(col)]
+      return v === null || v === undefined || v === '' ? null : Number(v)
+    }
+    const rows = result.rows
+    const data = rows.map((r) => [read(r, open), read(r, close), read(r, low), read(r, high)])
+    const up = theme.dark ? '#22c55e' : '#16a34a'
+    const down = theme.dark ? '#f87171' : '#dc2626'
+    const many = rows.length > 60
+    return {
+      clickColumn: x,
+      categories: rows.map((r) => r[xi]),
+      option: {
+        ...base,
+        grid: { left: 8, right: 12, top: 12, bottom: many ? 30 : 6, containLabel: true },
+        tooltip: {
+          ...base.tooltip,
+          trigger: 'axis',
+          axisPointer: { type: 'line', lineStyle: { color: c.muted } },
+          formatter: (params: unknown) => {
+            const p = (Array.isArray(params) ? params[0] : params) as { dataIndex: number } | undefined
+            const row = p ? rows[p.dataIndex] : undefined
+            if (!row) return ''
+            const line = (col: ResultColumn) => `${col.label} <b style="float:right;margin-left:16px">${formatValue(read(row, col), col)}</b>`
+            return [formatValue(row[xi], x), line(open), line(high), line(low), line(close)].join('<br/>')
+          },
+        },
+        dataZoom: many ? [{ type: 'inside' }, { type: 'slider', height: 16, bottom: 4, borderColor: 'transparent', fillerColor: theme.dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)', showDetail: false }] : undefined,
+        xAxis: { type: 'category', data: rows.map((r) => formatValue(r[xi], x)), axisTick: { show: false }, axisLine: { lineStyle: { color: c.grid } }, axisLabel: { color: c.muted } },
+        yAxis: { type: 'value', scale: true, axisLabel: { color: c.muted, formatter: (v: number) => formatValue(v, open, { compact: true }) }, splitLine: { lineStyle: { color: c.grid, type: 'dashed' } } },
+        series: [{ type: 'candlestick', name: close.label, data, itemStyle: { color: up, color0: down, borderColor: up, borderColor0: down } }] as SeriesOption[],
+      },
+    }
   }
 
   if (type === 'calendar') {

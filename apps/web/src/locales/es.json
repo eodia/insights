@@ -3068,5 +3068,9 @@
   "Au tableau de bord": "Al panel",
   "celui-ci": "este",
   "Réinitialiser le zoom": "Restablecer el zoom",
-  "Par leur nom, les nombres dans l’ordre : des tranches d’âge, des tailles…": "Por su nombre, con los números en orden: franjas de edad, tallas…"
+  "Par leur nom, les nombres dans l’ordre : des tranches d’âge, des tailles…": "Por su nombre, con los números en orden: franjas de edad, tallas…",
+  "Chandeliers": "Velas",
+  "Flux (Sankey)": "Flujos (Sankey)",
+  "Il faut au moins deux dimensions (les étapes) et une mesure.": "Se necesitan al menos dos dimensiones (las etapas) y una medida.",
+  "Il faut une date et quatre mesures : ouverture, haut, bas, clôture.": "Se necesitan una fecha y cuatro medidas: apertura, máximo, mínimo, cierre."
 }

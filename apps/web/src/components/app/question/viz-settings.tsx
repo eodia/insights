@@ -25,6 +25,7 @@ import {
   BarChartHorizontal,
   ChartColumnBig,
   ChartBarDecreasing,
+  ChartCandlestick,
   ChartSpline,
   CalendarDays,
   CaseSensitive,
@@ -81,6 +82,7 @@ import {
   Percent,
   Wand2,
   Waves,
+  Waypoints,
 } from 'lucide-react'
 
 export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
@@ -103,6 +105,8 @@ export const VIZ_ICONS: Record<VisualizationType, LucideIcon> = {
   bar_race: ChartBarDecreasing,
   line_race: ChartSpline,
   treemap: LayoutPanelLeft,
+  sankey: Waypoints,
+  candlestick: ChartCandlestick,
   calendar: CalendarDays,
   pivot: Grid3x3,
   map: MapPin,
@@ -310,8 +314,8 @@ const IconRows1 = rows(3)
 const FAMILIES: { label: string; tone: string; types: VisualizationType[] }[] = [
   { label: msg('Chiffres clés'), tone: 'bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300', types: ['scalar', 'trend', 'progress', 'gauge'] },
   { label: msg('Comparer'), tone: 'bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300', types: ['bar', 'row', 'radar', 'polar'] },
-  { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'bar_race', 'line_race', 'calendar'] },
-  { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'treemap', 'funnel'] },
+  { label: msg('Évolution'), tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300', types: ['line', 'area', 'combo', 'candlestick', 'bar_race', 'line_race', 'calendar'] },
+  { label: msg('Répartition'), tone: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300', types: ['pie', 'treemap', 'funnel', 'sankey'] },
   { label: msg('Relation'), tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300', types: ['scatter', 'bubble'] },
   { label: msg('Détail'), tone: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300', types: ['table', 'pivot', 'map'] },
 ]
@@ -327,16 +331,18 @@ const UNFIT: Partial<Record<VisualizationType, string>> = {
   bar_race: msg('Il faut une date, une mesure, et une seconde dimension ou plusieurs mesures.'),
   line_race: msg('Il faut une date et une mesure.'),
   calendar: msg('Il faut une date et une mesure.'),
+  sankey: msg('Il faut au moins deux dimensions (les étapes) et une mesure.'),
+  candlestick: msg('Il faut une date et quatre mesures : ouverture, haut, bas, clôture.'),
 }
 
 export function VizPicker({ value, result, onChange }: { value: VisualizationType; result: Result | null; onChange: (v: VisualizationType) => void }) {
   const suggested = result ? autoVisualization(result) : null
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {FAMILIES.map((f) => (
-        <div key={f.label} className="space-y-1.5">
+        <div key={f.label} className="space-y-1">
           <div className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{$t(f.label)}</div>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-4 gap-1">
             {f.types.map((v) => {
               const Icon = VIZ_ICONS[v]
               const fits = !result || vizFits(v, result)
@@ -348,13 +354,13 @@ export function VizPicker({ value, result, onChange }: { value: VisualizationTyp
                   onClick={() => onChange(v)}
                   aria-pressed={on}
                   className={cn(
-                    'group relative flex w-full flex-col items-center gap-1.5 rounded-xl border px-1 pt-2.5 pb-2 text-center text-[11px] leading-tight transition-all',
+                    'group relative flex w-full flex-col items-center gap-1 rounded-lg border px-0.5 pt-1.5 pb-1 text-center text-[10.5px] leading-tight transition-all',
                     on ? 'border-primary bg-primary/5 font-semibold text-foreground shadow-sm ring-1 ring-primary/30' : 'border-transparent bg-muted/40 text-muted-foreground hover:-translate-y-px hover:border-border hover:bg-background hover:text-foreground hover:shadow-sm',
                     !fits && !on && 'opacity-45',
                   )}
                 >
-                  <span className={cn('flex size-8 items-center justify-center rounded-lg transition-transform group-hover:scale-105', on ? 'bg-primary text-primary-foreground' : f.tone)}>
-                    <Icon className="size-4" />
+                  <span className={cn('flex size-6 items-center justify-center rounded-md transition-transform group-hover:scale-105', on ? 'bg-primary text-primary-foreground' : f.tone)}>
+                    <Icon className="size-3.5" />
                   </span>
                   <span className="line-clamp-2">{$t(VIZ_LABELS[v])}</span>
                   {on ? (

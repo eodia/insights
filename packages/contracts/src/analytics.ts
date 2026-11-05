@@ -285,6 +285,8 @@ export const VISUALIZATIONS = [
   'bar_race',
   'line_race',
   'treemap',
+  'sankey',
+  'candlestick',
   'calendar',
   'pivot',
   'map',

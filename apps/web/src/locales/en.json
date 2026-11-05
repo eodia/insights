@@ -2976,5 +2976,9 @@
   "Au tableau de bord": "To a dashboard",
   "celui-ci": "this one",
   "Réinitialiser le zoom": "Reset zoom",
-  "Par leur nom, les nombres dans l’ordre : des tranches d’âge, des tailles…": "By name, numbers in order: age bands, sizes…"
+  "Par leur nom, les nombres dans l’ordre : des tranches d’âge, des tailles…": "By name, numbers in order: age bands, sizes…",
+  "Chandeliers": "Candlestick",
+  "Flux (Sankey)": "Flows (Sankey)",
+  "Il faut au moins deux dimensions (les étapes) et une mesure.": "Needs at least two dimensions (the steps) and a measure.",
+  "Il faut une date et quatre mesures : ouverture, haut, bas, clôture.": "Needs a date and four measures: open, high, low, close."
 }

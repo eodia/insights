@@ -16,6 +16,7 @@ import {
 } from '@modelcontextprotocol/ext-apps/app-with-deps'
 import {
   BarChart,
+  CandlestickChart,
   CustomChart,
   FunnelChart,
   GraphChart,
@@ -26,6 +27,7 @@ import {
   LineChart,
   PieChart,
   RadarChart,
+  SankeyChart,
   ScatterChart,
 } from 'echarts/charts'
 import {
@@ -51,6 +53,8 @@ import { autoVisualization, chartOption } from '../../web/src/lib/viz'
 import { $t } from '../../web/src/lib/i18n'
 
 echarts.use([
+  CandlestickChart,
+  SankeyChart,
   CustomChart,
   GraphChart,
   PolarComponent,

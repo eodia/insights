@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import type { ECElementEvent, EChartsOption } from 'echarts'
 import {
   BarChart,
+  CandlestickChart,
   CustomChart,
   FunnelChart,
   GraphChart,
@@ -16,6 +17,7 @@ import {
   MapChart,
   PieChart,
   RadarChart,
+  SankeyChart,
   ScatterChart,
 } from 'echarts/charts'
 import {
@@ -48,6 +50,8 @@ import { useEffect, useRef, useState } from 'react'
  */
 
 echarts.use([
+  CandlestickChart,
+  SankeyChart,
   CustomChart,
   GraphChart,
   PolarComponent,
