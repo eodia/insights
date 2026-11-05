@@ -3,6 +3,7 @@
  * ce que l'assistant voit est exactement ce que son propriétaire voit dans l'application,
  * lignes et colonnes filtrées par Trino comprises.
  */
+import { chartPng } from './render'
 import type {
   Breakout,
   BuilderQuery,
@@ -565,7 +566,14 @@ export function registerTools(server: McpServer, api: EodiaApi): void {
         }
         return `**${title ?? name}**${viz ? ` (${viz.type})` : ''} — graphique affiché à la personne.\n\n${resultMarkdown(result)}`
       })
-      return structured && !out.isError ? { ...out, structuredContent: structured } : out
+      if (!structured || out.isError) return out
+      // For clients without MCP Apps (Open WebUI…): the chart as an image too, beside its text.
+      const png = await chartPng(structured as unknown as Parameters<typeof chartPng>[0])
+      return {
+        ...out,
+        content: png ? [{ type: 'image', data: png.toString('base64'), mimeType: 'image/png' }, ...out.content] : out.content,
+        structuredContent: structured,
+      }
     },
   )
 }
