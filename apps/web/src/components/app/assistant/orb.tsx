@@ -39,27 +39,40 @@ export function Orb({ size, busy = false, tone = 'green', className }: { size: n
 }
 
 // The same four anchors (top, right, bottom, left) drawn inward — the star — or outward — a drop
-// slowly changing shape —: point by point, one melts into the other.
+// changing shape —: point by point, one melts into the other.
 const STAR = 'M12 1.5C12.7 7.1 16.9 11.3 22.5 12C16.9 12.7 12.7 16.9 12 22.5C11.3 16.9 7.1 12.7 1.5 12C7.1 11.3 11.3 7.1 12 1.5Z'
-const DROPS = [
-  'M12 1.2C18.4 1.4 22.8 6.6 22.4 12.4C22 18.2 17.2 22.6 11.6 22.4C5.8 22.2 1.4 17.4 1.6 11.6C1.8 5.8 6 1 12 1.2Z',
-  'M12.6 1.8C18 1.4 22.6 5.8 22.2 11.6C21.8 17.6 17.8 22.8 11.8 22.6C6 22.4 1.2 18.2 1.6 12.4C2 6.6 6.8 2.2 12.6 1.8Z',
-  'M12 1.5C17.8 1.5 22.5 6.2 22.5 12C22.5 17.8 17.8 22.5 12 22.5C6.2 22.5 1.5 17.8 1.5 12C1.5 6.2 6.2 1.5 12 1.5Z',
-]
 const points = (d: string) => (d.match(/\d*\.?\d+/g) ?? []).map(Number)
 const STAR_POINTS = points(STAR)
-const DROP_POINTS = DROPS.map(points)
 const smooth = (t: number) => t * t * (3 - 2 * t)
 const mix = (a: readonly number[], b: readonly number[], t: number) => a.map((v, i) => v + ((b[i] ?? v) - v) * t)
 const draw = (n: readonly number[]) => {
   const f = n.map((v) => v.toFixed(2))
   return `M${f[0]} ${f[1]}${[0, 1, 2, 3].map((c) => `C${f.slice(2 + c * 6, 8 + c * 6).join(' ')}`).join('')}Z`
 }
-/** The drop at a given moment: from one of its shapes to the next. */
+/**
+ * The drop at a given moment: four points around a circle, each swelling, shrinking and sliding
+ * at its own pace — never twice the same shape. In seconds, at rest; faster while working.
+ */
+const WAVES = [
+  [1.7, 0],
+  [2.3, 1.9],
+  [1.9, 3.7],
+  [2.6, 5.1],
+] as const
 const drop = (time: number) => {
-  const at = time % DROP_POINTS.length
-  const from = Math.floor(at)
-  return mix(DROP_POINTS[from]!, DROP_POINTS[(from + 1) % DROP_POINTS.length]!, smooth(at - from))
+  const around = WAVES.map(([f, phase], i) => {
+    const r = 10.5 * (1 + 0.15 * Math.sin(time * f + phase))
+    const a = ((i - 1) * Math.PI) / 2 + 0.16 * Math.sin(time * f * 0.8 + phase * 1.3)
+    // How round the curve leaves this point: fuller, or nearly a corner.
+    const h = r * 0.5523 * (1 + 0.28 * Math.sin(time * f * 1.2 + phase * 0.7))
+    return { x: 12 + r * Math.cos(a), y: 12 + r * Math.sin(a), tx: -Math.sin(a) * h, ty: Math.cos(a) * h }
+  })
+  const n: number[] = [around[0]!.x, around[0]!.y]
+  around.forEach((p, i) => {
+    const q = around[(i + 1) % 4]!
+    n.push(p.x + p.tx, p.y + p.ty, q.x - q.tx, q.y - q.ty, q.x, q.y)
+  })
+  return n
 }
 // At rest, a cycle of 12 s: the star, a little; the drop, long; the star again.
 const CYCLE = 12
@@ -109,7 +122,7 @@ export function Morph({ size, busy = false, cycling = false, className }: { size
       }
       clock = (clock + dt) % CYCLE
       // The drop moves faster while the AI works.
-      wobble += dt / (working ? 0.9 : 2.6)
+      wobble += dt * (working ? 2.4 : 1.3)
       const target = working ? 1 : cycles ? restingDrop(clock) : 0
       amount += (target - amount) * (1 - Math.exp(-dt * 5))
       shape.current?.setAttribute('d', draw(mix(STAR_POINTS, drop(wobble), amount)))
