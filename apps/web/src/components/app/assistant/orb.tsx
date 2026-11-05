@@ -142,7 +142,8 @@ export function Morph({ size, busy = false, cycling = false, className }: { size
       width={size}
       height={size}
       className={cn('shrink-0 overflow-visible', className)}
-      style={{ filter: `drop-shadow(0 ${size * 0.04}px ${size * 0.12}px rgb(45 163 30 / 0.35))` }}
+      // A shadow for the large one only: on a small one it blurs it.
+      style={size >= 40 ? { filter: `drop-shadow(0 ${size * 0.04}px ${size * 0.12}px rgb(45 163 30 / 0.35))` } : undefined}
     >
       <defs>
         <linearGradient id={`${id}f`} x1="4" y1="1" x2="20" y2="23" gradientUnits="userSpaceOnUse">
