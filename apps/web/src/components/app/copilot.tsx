@@ -512,7 +512,7 @@ export function CopilotPanel() {
                   )}
                 >
                   <Play className={cn('size-3', allowRun && 'fill-current')} />
-                  {$t('Exécuter')}
+                  {$t('Autoriser l’accès')}
                 </button>
               </Hint>
               <span className="flex-1" />

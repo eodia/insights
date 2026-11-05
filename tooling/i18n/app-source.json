@@ -2410,6 +2410,11 @@
       "components/app/data/view-owners-panel.tsx:100"
     ]
   },
+  "Autoriser l’accès": {
+    "where": [
+      "components/app/copilot.tsx:515"
+    ]
+  },
   "Autoriser le copilote à exécuter des requêtes, sous vos droits": {
     "where": [
       "components/app/copilot.tsx:504"
@@ -4136,8 +4141,7 @@
   "Copilote": {
     "where": [
       "app/(app)/sql/page.tsx:403",
-      "components/app/copilot.tsx:377",
-      "components/app/topbar.tsx:120"
+      "components/app/copilot.tsx:377"
     ]
   },
   "Corps de la requête": {
@@ -4594,7 +4598,8 @@
   "Demander au copilote": {
     "where": [
       "components/app/question/editor.tsx:422",
-      "components/app/topbar.tsx:133"
+      "components/app/topbar.tsx:117",
+      "components/app/topbar.tsx:130"
     ]
   },
   "Demandez au copilote…": {
@@ -5833,8 +5838,8 @@
   "Exécuter": {
     "where": [
       "app/(app)/sql/page.tsx:386",
-      "components/app/copilot.tsx:515",
-      "components/app/login-stage.tsx:350"
+      "components/app/login-stage.tsx:350",
+      "components/app/question/editor.tsx:401"
     ]
   },
   "Exécuter du SQL": {
