@@ -518,7 +518,7 @@ async function contextText(core: Core, actor: Actor, context: CopilotContext): P
       const filters = context.filters ?? []
       if (filters.length) {
         parts.push(
-          "Quand elle demande d'afficher, de restreindre ou de ne voir qu'une partie (« seulement la Bretagne le trimestre dernier »), pose les filtres du tableau de bord avec set_filters (après find_filter_values pour une valeur de liste) : ils s'appliquent aussitôt. Réponds alors en une phrase.",
+          "Quand elle demande de changer ce qu'affiche le tableau de bord — n'en voir qu'une partie (« seulement la Bretagne le trimestre dernier »), une autre période, retirer un filtre —, pose ses filtres avec set_filters (après find_filter_values pour une valeur de liste) : ils s'appliquent aussitôt ; réponds alors en une phrase. Pour une simple question sur les données (« quel canal vend le plus ? »), réponds sans toucher aux filtres. Pour « toutes les valeurs », retire le filtre (null) plutôt que de les choisir une à une.",
         )
         parts.push(
           `Ses filtres :\n${filters

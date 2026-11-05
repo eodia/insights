@@ -1,12 +1,11 @@
 'use client'
 
 import { VoiceButton } from '@/components/app/voice-button'
+import { Orb } from '@/components/app/assistant/orb'
 import { speakReply } from '@/lib/voice'
 import type { Dashboard, DashboardCard, TableMeta } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, SEMANTIC_LABELS, cardSize, placedAfter } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
 import { api, postStream } from '@/lib/api'
 import { $t, $tp, msg } from '@/lib/i18n'
@@ -18,21 +17,25 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   Check,
   Database,
-  History,
   LayoutDashboard,
   Loader2,
   Plus,
   Search,
-  Send,
   Sparkles,
   Table2,
   Wrench,
   X,
   BarChart3,
   ListFilter,
+  ArrowRight,
+  ArrowUp,
+  Code2,
+  Play,
+  Square,
+  SquarePen,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import { tidyFences } from '@/lib/markdown'
 import remarkGfm from 'remark-gfm'
@@ -183,6 +186,14 @@ export function CopilotPanel() {
   const [busy, setBusy] = useState(false)
   const abort = useRef<AbortController | null>(null)
   const bottom = useRef<HTMLDivElement>(null)
+  const field = useRef<HTMLTextAreaElement>(null)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the field grows with what is typed
+  useLayoutEffect(() => {
+    const el = field.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }, [text])
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: 'end' })
@@ -254,47 +265,79 @@ export function CopilotPanel() {
     dashboard: $t('Tableau de bord'),
     structure: $t('Sources de données'),
   }[context.kind]
+  const ContextIcon = { general: Database, sql: Code2, question: BarChart3, dashboard: LayoutDashboard, structure: Table2 }[context.kind]
+  // What one may ask from here: the screen decides.
+  const suggestions =
+    context.kind === 'dashboard'
+      ? [
+          context.filters?.length ? $t('Seulement les 3 derniers mois') : null,
+          $t('Que faut-il retenir de ce tableau de bord ?'),
+          $t('Ajoute une carte du chiffre d’affaires par mois'),
+        ].filter((x): x is string => !!x)
+      : context.kind === 'sql'
+        ? [$t('Explique cette requête'), $t('Corrige l’erreur'), $t('Rends-la plus rapide')]
+        : context.kind === 'structure'
+          ? [$t('Décris cette table et ses colonnes')]
+          : [
+              $t('Quel est le chiffre d’affaires par région sur les 6 derniers mois ?'),
+              $t('Construis un tableau de bord du service client.'),
+              $t('Quels clients ont passé le plus de commandes cette année ?'),
+            ]
 
   return (
-    <Pane as="aside" id="copilot" side="right" defaultSize={420} min={320} max={760} className="flex flex-col border-l bg-background">
-      <div className="flex h-[54px] items-center gap-2 border-b px-4">
-        <Sparkles className="size-4 text-violet-500" />
-        <span className="font-semibold">{$t('Copilote')}</span>
-        <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">{contextLabel}</span>
+    <Pane as="aside" id="copilot" side="right" defaultSize={420} min={320} max={760} className="relative flex flex-col overflow-hidden border-l bg-background">
+      {/* A light from the top, as on the assistant's screen. */}
+      <div aria-hidden className="ai-glow pointer-events-none absolute inset-x-0 top-0 h-72" />
+      <div className="relative z-10 flex h-[54px] shrink-0 items-center gap-2.5 px-4">
+        <Orb size={22} busy={busy} />
+        <span className="text-[15px] font-semibold tracking-tight">{$t('Copilote')}</span>
+        <span className="inline-flex min-w-0 items-center gap-1 truncate rounded-full bg-muted/80 px-2 py-0.5 text-[11.5px] text-muted-foreground">
+          <ContextIcon className="size-3 shrink-0" />
+          <span className="truncate">{contextLabel}</span>
+        </span>
         <span className="flex-1" />
         <Hint label={$t('Nouvelle conversation')}>
           <Button
             variant="ghost"
             size="icon-sm"
             aria-label={$t('Nouvelle conversation')}
+            disabled={entries.length === 0}
             onClick={() => {
               abort.current?.abort()
               setEntries([])
               setConversation(null)
             }}
           >
-            <History className="size-4" />
+            <SquarePen className="size-4" />
           </Button>
         </Hint>
-        <Button variant="ghost" size="icon-sm" onClick={close} aria-label={$t('Fermer')}>
-          <X className="size-4" />
-        </Button>
+        <Hint label={`${$t('Fermer')} (Ctrl+J)`}>
+          <Button variant="ghost" size="icon-sm" onClick={close} aria-label={$t('Fermer')}>
+            <X className="size-4" />
+          </Button>
+        </Hint>
       </div>
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+      <div className="relative z-10 flex-1 space-y-5 overflow-y-auto px-4 pt-2 pb-4">
         {entries.length === 0 ? (
-          <div className="space-y-3 pt-6 text-center">
-            <span className="mx-auto inline-flex size-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-950">
-              <Sparkles className="size-5" />
-            </span>
-            <p className="text-sm text-muted-foreground">{$t('Posez une question sur vos données : le copilote cherche les tables, écrit le SQL et vous propose des questions ou des tableaux de bord à appliquer.')}</p>
-            <div className="space-y-2 pt-2">
-              {[
-                $t('Quel est le chiffre d’affaires par région sur les 6 derniers mois ?'),
-                $t('Construis un tableau de bord du service client.'),
-                $t('Quels clients ont passé le plus de commandes cette année ?'),
-              ].map((s) => (
-                <button key={s} type="button" onClick={() => send(s)} className="block w-full rounded-lg border px-3 py-2 text-left text-sm hover:bg-accent">
-                  {s}
+          <div className="flex flex-col items-center gap-3 pt-10 text-center">
+            <Orb size={56} />
+            <h3 className="mt-2 text-lg font-semibold tracking-tight">{$t('Que puis-je faire pour vous ?')}</h3>
+            <p className="max-w-[300px] text-[13px] leading-relaxed text-muted-foreground">
+              {context.kind === 'dashboard'
+                ? $t('Filtrez ce tableau de bord en le disant, demandez ce qu’il faut en retenir ou faites-y ajouter des cartes.')
+                : $t('Posez une question sur vos données : le copilote cherche les tables, écrit le SQL et vous propose des questions ou des tableaux de bord à appliquer.')}
+            </p>
+            <div className="mt-3 flex w-full flex-col gap-2">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => void send(s)}
+                  className="group flex w-full items-center gap-2.5 rounded-xl border bg-card/80 px-3.5 py-2.5 text-left text-[13.5px] backdrop-blur transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-[0_8px_24px_-16px_rgba(31,138,58,0.5)]"
+                >
+                  <Sparkles className="size-3.5 shrink-0 text-violet-500" />
+                  <span className="flex-1">{s}</span>
+                  <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
               ))}
             </div>
@@ -302,76 +345,108 @@ export function CopilotPanel() {
         ) : null}
         {entries.map((e, i) =>
           e.role === 'user' ? (
-            <div key={i} className="ml-10 rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground">
+            <div key={i} className="ai-rise ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-[13.5px] leading-relaxed text-primary-foreground shadow-[0_6px_16px_-10px_color-mix(in_oklab,var(--primary)_70%,transparent)]">
               {e.text}
             </div>
           ) : (
-            <div key={i} className="space-y-2">
+            <div key={i} className="ai-rise flex gap-2.5">
+              <Orb size={18} busy={!e.done} className="mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1 space-y-2">
               {e.tools.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {e.tools.map((t, j) => {
                     const [label, Icon] = TOOL_LABELS[t.name] ?? [t.name, Wrench]
                     return (
-                      <span key={j} className={cn('inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs', t.ok === false ? 'border-red-200 text-red-600' : 'text-muted-foreground')}>
-                        {t.ok === undefined ? <Loader2 className="size-3 animate-spin" /> : <Icon className="size-3" />}
-                        {$t(label)}
-                        {t.summary ? <span className="opacity-70">· {t.summary}</span> : null}
+                      <span key={j} className={cn('inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px]', t.ok === false ? 'bg-red-500/10 text-red-600' : 'bg-muted/70 text-muted-foreground')}>
+                        {t.ok === undefined ? <Loader2 className="size-3 shrink-0 animate-spin" /> : <Icon className="size-3 shrink-0" />}
+                        <span className="truncate">{$t(label)}</span>
+                        {t.summary ? <span className="truncate opacity-70">· {t.summary}</span> : null}
                       </span>
                     )
                   })}
                 </div>
               ) : null}
               {e.text ? (
-                <div className="prose-sm max-w-none text-sm leading-relaxed [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_li]:ml-4 [&_ol]:list-decimal [&_p]:my-1.5 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-code [&_pre]:p-3 [&_pre]:text-code-foreground [&_pre_code]:bg-transparent [&_table]:my-2 [&_table]:text-xs [&_td]:border [&_td]:px-2 [&_th]:border [&_th]:px-2 [&_ul]:list-disc">
+                <div className="prose-sm max-w-none text-[13.5px] leading-relaxed [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_li]:ml-4 [&_ol]:list-decimal [&_p]:my-1.5 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-code [&_pre]:p-3 [&_pre]:text-code-foreground [&_pre_code]:bg-transparent [&_table]:my-2 [&_table]:text-xs [&_td]:border [&_td]:px-2 [&_th]:border [&_th]:px-2 [&_ul]:list-disc">
                   <Markdown remarkPlugins={[remarkGfm]}>{tidyFences(e.text)}</Markdown>
                 </div>
               ) : !e.done && e.tools.length === 0 ? (
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                <span className="ai-shimmer text-[13px]">{$t('Réflexion…')}</span>
               ) : null}
               {e.proposals.map((p) => (
                 <ProposalCard key={p.id} p={p} />
               ))}
               {e.error ? <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{e.error}</p> : null}
+              </div>
             </div>
           ),
         )}
         <div ref={bottom} />
       </div>
+      {/* The field, as in every chat: the words, and inside it, the microphone and the arrow. */}
       <form
-        className="space-y-2 border-t p-3"
+        className="relative z-10 shrink-0 px-3 pt-1 pb-3"
         onSubmit={(e) => {
           e.preventDefault()
           void send(text)
         }}
       >
-        <Textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              void send(text)
-            }
-          }}
-          rows={3}
-          placeholder={$t('Demandez au copilote…')}
-          className="resize-none"
-        />
-        <div className="flex items-center gap-2">
-          <label className="flex flex-1 items-center gap-2 text-xs text-muted-foreground">
-            <Switch checked={allowRun} onCheckedChange={setAllowRun} />
-            {$t('Autoriser l’exécution de requêtes (sous vos droits)')}
-          </label>
-          <VoiceButton onText={setText} onSend={(t) => void send(t)} disabled={busy} className="size-8" />
-          {busy ? (
-            <Button type="button" size="sm" variant="outline" onClick={() => abort.current?.abort()}>
-              {$t('Arrêter')}
-            </Button>
-          ) : (
-            <Button type="submit" size="sm" disabled={!text.trim()}>
-              <Send /> {$t('Envoyer')}
-            </Button>
-          )}
+        <div className="rounded-[22px] bg-gradient-to-r from-primary/35 via-cyan-400/35 to-violet-500/35 p-px shadow-[0_8px_28px_-14px_rgba(0,0,0,.25)] transition-shadow focus-within:from-primary focus-within:via-cyan-400 focus-within:to-violet-500">
+          <div className="rounded-[21px] bg-background">
+            <textarea
+              ref={field}
+              value={text}
+              rows={1}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault()
+                  void send(text)
+                }
+              }}
+              placeholder={$t('Demandez au copilote…')}
+              className="block max-h-40 w-full resize-none bg-transparent px-4 pt-3 pb-1 text-[14px] leading-6 outline-none placeholder:text-muted-foreground/70"
+            />
+            <div className="flex items-center gap-1 px-2 pb-2">
+              <Hint label={allowRun ? $t('Le copilote peut exécuter des requêtes, sous vos droits') : $t('Autoriser le copilote à exécuter des requêtes, sous vos droits')}>
+                <button
+                  type="button"
+                  onClick={() => setAllowRun((v) => !v)}
+                  aria-pressed={allowRun}
+                  className={cn(
+                    'inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium transition-colors',
+                    allowRun ? 'bg-primary/12 text-primary' : 'text-muted-foreground hover:bg-muted',
+                  )}
+                >
+                  <Play className={cn('size-3', allowRun && 'fill-current')} />
+                  {$t('Exécuter')}
+                </button>
+              </Hint>
+              <span className="flex-1" />
+              <VoiceButton onText={setText} onSend={(t) => void send(t)} disabled={busy} className="size-8" />
+              {busy ? (
+                <Hint label={$t('Arrêter')}>
+                  <button
+                    type="button"
+                    onClick={() => abort.current?.abort()}
+                    aria-label={$t('Arrêter')}
+                    className="flex size-8 items-center justify-center rounded-full bg-foreground text-background transition-transform hover:scale-105"
+                  >
+                    <Square className="size-3 fill-current" />
+                  </button>
+                </Hint>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!text.trim()}
+                  aria-label={$t('Envoyer')}
+                  className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all hover:scale-105 disabled:scale-100 disabled:bg-muted disabled:text-muted-foreground"
+                >
+                  <ArrowUp className="size-4" strokeWidth={2.4} />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </form>
     </Pane>

@@ -2878,5 +2878,16 @@
   "La dictée s’est interrompue ({reason}).": "Dictation stopped ({reason}).",
   "Le micro n’est pas autorisé pour ce site.": "The microphone is not allowed for this site.",
   "Parler": "Speak",
-  "Parler (la réponse est lue à voix haute)": "Speak (the answer is read aloud)"
+  "Parler (la réponse est lue à voix haute)": "Speak (the answer is read aloud)",
+  "Ajoute une carte du chiffre d’affaires par mois": "Add a card of revenue by month",
+  "Autoriser le copilote à exécuter des requêtes, sous vos droits": "Let the copilot run queries, under your rights",
+  "Corrige l’erreur": "Fix the error",
+  "Décris cette table et ses colonnes": "Describe this table and its columns",
+  "Explique cette requête": "Explain this query",
+  "Filtrez ce tableau de bord en le disant, demandez ce qu’il faut en retenir ou faites-y ajouter des cartes.": "Filter this dashboard by saying so, ask what to take away from it, or have cards added to it.",
+  "Le copilote peut exécuter des requêtes, sous vos droits": "The copilot may run queries, under your rights",
+  "Que faut-il retenir de ce tableau de bord ?": "What should I take away from this dashboard?",
+  "Que puis-je faire pour vous ?": "What can I do for you?",
+  "Rends-la plus rapide": "Make it faster",
+  "Seulement les 3 derniers mois": "Only the last 3 months"
 }

@@ -2967,5 +2967,16 @@
   "La dictée s’est interrompue ({reason}).": "El dictado se interrumpió ({reason}).",
   "Le micro n’est pas autorisé pour ce site.": "El micrófono no está permitido para este sitio.",
   "Parler": "Hablar",
-  "Parler (la réponse est lue à voix haute)": "Hablar (la respuesta se lee en voz alta)"
+  "Parler (la réponse est lue à voix haute)": "Hablar (la respuesta se lee en voz alta)",
+  "Ajoute une carte du chiffre d’affaires par mois": "Añade una tarjeta de facturación por mes",
+  "Autoriser le copilote à exécuter des requêtes, sous vos droits": "Permitir que el copiloto ejecute consultas, con sus permisos",
+  "Corrige l’erreur": "Corrige el error",
+  "Décris cette table et ses colonnes": "Describe esta tabla y sus columnas",
+  "Explique cette requête": "Explica esta consulta",
+  "Filtrez ce tableau de bord en le disant, demandez ce qu’il faut en retenir ou faites-y ajouter des cartes.": "Filtre este panel diciéndolo, pregunte qué retener de él o haga añadir tarjetas.",
+  "Le copilote peut exécuter des requêtes, sous vos droits": "El copiloto puede ejecutar consultas, con sus permisos",
+  "Que faut-il retenir de ce tableau de bord ?": "¿Qué hay que retener de este panel?",
+  "Que puis-je faire pour vous ?": "¿Qué puedo hacer por usted?",
+  "Rends-la plus rapide": "Hazla más rápida",
+  "Seulement les 3 derniers mois": "Solo los 3 últimos meses"
 }
