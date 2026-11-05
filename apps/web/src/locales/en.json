@@ -2895,5 +2895,11 @@
   "Fermer le copilote": "Close the copilot",
   "Sans titre": "Untitled",
   "Supprimer la conversation": "Delete the conversation",
-  "Autoriser l’accès": "Allow access"
+  "Autoriser l’accès": "Allow access",
+  "Mode présentation": "Presentation mode",
+  "Onglet précédent": "Previous tab",
+  "Onglet suivant": "Next tab",
+  "Pause": "Pause",
+  "Quitter la présentation": "Leave the presentation",
+  "Reprendre": "Resume"
 }

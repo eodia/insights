@@ -2984,5 +2984,11 @@
   "Fermer le copilote": "Cerrar el copiloto",
   "Sans titre": "Sin título",
   "Supprimer la conversation": "Eliminar la conversación",
-  "Autoriser l’accès": "Permitir el acceso"
+  "Autoriser l’accès": "Permitir el acceso",
+  "Mode présentation": "Modo presentación",
+  "Onglet précédent": "Pestaña anterior",
+  "Onglet suivant": "Pestaña siguiente",
+  "Pause": "Pausa",
+  "Quitter la présentation": "Salir de la presentación",
+  "Reprendre": "Reanudar"
 }

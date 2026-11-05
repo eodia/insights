@@ -674,3 +674,13 @@
     animation: none;
   }
 }
+
+/* The presentation mode's bar: the time left on a tab. */
+@keyframes tv-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

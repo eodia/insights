@@ -1,5 +1,6 @@
 'use client'
 
+import { Presentation } from '@/components/app/dashboard/presentation'
 import { DashboardView, type Runner } from '@/components/app/dashboard/view'
 import { FavoriteIcon } from '@/components/app/favorite-icon'
 import { ConfirmDialog, FolderPicker } from '@/components/app/dialogs'
@@ -59,6 +60,7 @@ import {
   Settings2,
   Share2,
   Trash2,
+  MonitorPlay,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -227,6 +229,7 @@ function DashboardScreen({ id }: { id: string }) {
   const [pasted, setPasted] = useState('')
   const [pasteError, setPasteError] = useState<string | null>(null)
   const [settings, setSettings] = useState(false)
+  const [presenting, setPresenting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [subscribing, setSubscribing] = useState(false)
   const [remove, setRemove] = useState(false)
@@ -453,6 +456,9 @@ function DashboardScreen({ id }: { id: string }) {
                       <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
                         <Maximize /> {$t('Plein écran')}
                       </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => setPresenting(true)}>
+                        <MonitorPlay /> {$t('Mode présentation')}
+                      </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setExporting(true)}>
                         <FileDown /> {$t('Exporter en PDF…')}
                       </DropdownMenuItem>
@@ -585,6 +591,7 @@ function DashboardScreen({ id }: { id: string }) {
         name={dashboard.name}
       />
       <SettingsDialog open={settings} onOpenChange={setSettings} dashboard={dashboard} />
+      {presenting ? <Presentation dashboard={dashboard} runner={runner} onClose={() => setPresenting(false)} /> : null}
       <ConfirmDialog
         open={remove}
         onOpenChange={setRemove}
