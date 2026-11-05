@@ -2873,5 +2873,10 @@
   "Objectif non atteint": "Goal not met",
   "Plus bas est mieux": "Lower is better",
   "Une jauge sous le chiffre montre où il en est ; une alerte peut prévenir quand il s’en écarte (menu de la carte › Alertes).": "A gauge under the figure shows where it stands; an alert can tell you when it drifts away (card menu › Alerts).",
-  "Valeur à atteindre": "Target value"
+  "Valeur à atteindre": "Target value",
+  "Arrêter la dictée": "Stop dictation",
+  "La dictée s’est interrompue ({reason}).": "Dictation stopped ({reason}).",
+  "Le micro n’est pas autorisé pour ce site.": "The microphone is not allowed for this site.",
+  "Parler": "Speak",
+  "Parler (la réponse est lue à voix haute)": "Speak (the answer is read aloud)"
 }

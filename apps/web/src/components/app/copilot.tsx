@@ -1,5 +1,7 @@
 'use client'
 
+import { VoiceButton } from '@/components/app/voice-button'
+import { speakReply } from '@/lib/voice'
 import type { Dashboard, DashboardCard, TableMeta } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, SEMANTIC_LABELS, cardSize, placedAfter } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
@@ -200,12 +202,19 @@ export function CopilotPanel() {
         if (last?.role === 'assistant') copy[copy.length - 1] = fn(last)
         return copy
       })
+    // The answer's last words — after its last tool —, read aloud if the question was spoken.
+    let said = ''
     try {
       for await (const { event, data } of postStream('/v1/copilot', { ...(conversation ? { conversation } : {}), message, allow_run: allowRun, context }, controller.signal)) {
         const d = data as Record<string, unknown>
         if (event === 'conversation') setConversation(String(d.id))
-        else if (event === 'text') update((a) => ({ ...a, text: a.text + String(d.delta) }))
-        else if (event === 'tool') update((a) => ({ ...a, tools: [...a.tools, { name: String(d.name) }] }))
+        else if (event === 'text') {
+          said += String(d.delta)
+          update((a) => ({ ...a, text: a.text + String(d.delta) }))
+        } else if (event === 'tool') {
+          said = ''
+          update((a) => ({ ...a, tools: [...a.tools, { name: String(d.name) }] }))
+        }
         else if (event === 'tool_result')
           update((a) => {
             const tools = [...a.tools]
@@ -223,6 +232,7 @@ export function CopilotPanel() {
     } finally {
       update((a) => ({ ...a, done: true }))
       setBusy(false)
+      if (!controller.signal.aborted) speakReply(said)
     }
   }
 
@@ -352,6 +362,7 @@ export function CopilotPanel() {
             <Switch checked={allowRun} onCheckedChange={setAllowRun} />
             {$t('Autoriser l’exécution de requêtes (sous vos droits)')}
           </label>
+          <VoiceButton onText={setText} onSend={(t) => void send(t)} disabled={busy} className="size-8" />
           {busy ? (
             <Button type="button" size="sm" variant="outline" onClick={() => abort.current?.abort()}>
               {$t('Arrêter')}

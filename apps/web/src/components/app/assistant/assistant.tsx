@@ -1,5 +1,7 @@
 'use client'
 
+import { VoiceButton } from '@/components/app/voice-button'
+import { speakReply } from '@/lib/voice'
 import { EngineBadge } from '@/components/app/data/source-look'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Hint } from '@/components/ui/tooltip'
@@ -144,6 +146,7 @@ function Composer({
   value,
   onChange,
   onSend,
+  onSendText,
   onStop,
   busy,
   disabled,
@@ -155,6 +158,8 @@ function Composer({
   value: string
   onChange: (v: string) => void
   onSend: () => void
+  /** A question said aloud: sent as soon as one stops speaking. */
+  onSendText: (text: string) => void
   onStop: () => void
   busy: boolean
   disabled: boolean
@@ -221,6 +226,7 @@ function Composer({
           <span className="hidden text-[11px] text-muted-foreground/70 md:inline">
             {$t('Entrée pour envoyer · Maj+Entrée pour aller à la ligne')}
           </span>
+          <VoiceButton onText={onChange} onSend={onSendText} disabled={disabled || busy} />
           {busy ? (
             <Hint label={$t('Arrêter')}>
               <button
@@ -466,6 +472,8 @@ export function Assistant() {
         if (last?.role === 'assistant') copy[copy.length - 1] = fn(last)
         return copy
       })
+    // The answer's last words — after its last tool —, read aloud if the question was spoken.
+    let said = ''
     try {
       const body = {
         ...(current ? { conversation: current } : {}),
@@ -475,6 +483,8 @@ export function Assistant() {
       }
       for await (const { event, data } of postStream('/v1/copilot', body, controller.signal)) {
         const d = data as Record<string, unknown>
+        if (event === 'text') said += String(d.delta)
+        else if (event === 'tool') said = ''
         if (event === 'conversation') {
           const id = String(d.id)
           if (id !== current) {
@@ -522,6 +532,7 @@ export function Assistant() {
       update((a) => ({ ...a, done: true }))
       setBusy(false)
       streaming.current = null
+      if (!controller.signal.aborted) speakReply(said)
       await qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY })
     }
   }
@@ -551,6 +562,7 @@ export function Assistant() {
       value={text}
       onChange={setText}
       onSend={() => void send(text)}
+      onSendText={(t) => void send(t)}
       onStop={() => abort.current?.abort()}
       busy={busy}
       disabled={!enabled}

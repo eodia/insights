@@ -2962,5 +2962,10 @@
   "Objectif non atteint": "Objetivo no alcanzado",
   "Plus bas est mieux": "Cuanto más bajo, mejor",
   "Une jauge sous le chiffre montre où il en est ; une alerte peut prévenir quand il s’en écarte (menu de la carte › Alertes).": "Un medidor bajo la cifra muestra dónde está; una alerta puede avisar cuando se aleje (menú de la tarjeta › Alertas).",
-  "Valeur à atteindre": "Valor que alcanzar"
+  "Valeur à atteindre": "Valor que alcanzar",
+  "Arrêter la dictée": "Detener el dictado",
+  "La dictée s’est interrompue ({reason}).": "El dictado se interrumpió ({reason}).",
+  "Le micro n’est pas autorisé pour ce site.": "El micrófono no está permitido para este sitio.",
+  "Parler": "Hablar",
+  "Parler (la réponse est lue à voix haute)": "Hablar (la respuesta se lee en voz alta)"
 }

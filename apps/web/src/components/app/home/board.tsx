@@ -11,6 +11,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowUp, Plus, Sparkles } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
+import { VoiceButton } from '@/components/app/voice-button'
 import { type BlockContext, type HomeData, HomeBlock } from './widgets'
 
 /** The home page's content width: wide, but not across a whole large screen. */
@@ -192,6 +193,7 @@ function HomeTop({ firstName, ai, folded, actions }: { firstName: string; ai: bo
             aria-label={$t('Votre question')}
             className="min-w-0 flex-1 bg-transparent text-[15.5px] outline-none placeholder:text-muted-foreground/70"
           />
+          <VoiceButton onText={setText} onSend={ask} />
           <button
             type="submit"
             aria-label={$t('Envoyer')}
