@@ -673,141 +673,51 @@
   color: oklch(0.6 0.15 50);
 }
 
-/* ── The AI's orb (`components/app/assistant/orb.tsx`) ─────────────────────── */
+/* ── The AI's orb (`components/app/assistant/orb.tsx`): a drop of eodia's green, morphing. ── */
 .ai-orb {
   position: relative;
   display: inline-block;
   flex-shrink: 0;
 }
-/* A halo that breathes around it. */
-.ai-orb-glow {
-  position: absolute;
-  inset: -28%;
-  border-radius: 9999px;
-  background: radial-gradient(closest-side, color-mix(in oklab, var(--primary) 38%, transparent), rgba(34, 211, 238, 0.18) 58%, transparent 78%);
-  filter: blur(calc(var(--orb) * 0.1));
-  animation: ai-orb-breathe 4.5s ease-in-out infinite;
-}
-/* The sphere: deep at its foot, glassy at its edge. */
-.ai-orb-ball {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 9999px;
-  isolation: isolate;
-  background: radial-gradient(circle at 34% 30%, #6ee7b7, #10b981 34%, #0e7490 70%, #1e1b4b 100%);
-  box-shadow:
-    inset 0 0 calc(var(--orb) * 0.16) rgba(15, 23, 42, 0.45),
-    inset 0 calc(var(--orb) * -0.1) calc(var(--orb) * 0.22) rgba(6, 30, 26, 0.45),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-    0 calc(var(--orb) * 0.06) calc(var(--orb) * 0.22) -2px rgba(6, 95, 70, 0.35);
-}
-/* The colours turning inside. */
-.ai-orb-swirl {
-  position: absolute;
-  inset: -15%;
-  background:
-    radial-gradient(circle at 28% 38%, rgba(34, 211, 238, 0.95), transparent 42%),
-    radial-gradient(circle at 72% 64%, rgba(168, 85, 247, 0.9), transparent 44%),
-    radial-gradient(circle at 60% 22%, rgba(74, 222, 128, 0.8), transparent 36%);
-  filter: blur(calc(var(--orb) * 0.07));
-  animation: ai-orb-turn 8s linear infinite;
-}
-/* Two lights drifting across it. */
 .ai-orb-blob {
   position: absolute;
-  width: 62%;
-  height: 62%;
-  border-radius: 9999px;
-  filter: blur(calc(var(--orb) * 0.14));
+  inset: 4%;
+  background: linear-gradient(140deg, #a3e635 0%, #4ade80 30%, var(--primary) 62%, #15803d 100%);
+  box-shadow:
+    inset calc(var(--orb) * 0.06) calc(var(--orb) * 0.08) calc(var(--orb) * 0.14) rgba(255, 255, 255, 0.45),
+    inset calc(var(--orb) * -0.05) calc(var(--orb) * -0.07) calc(var(--orb) * 0.14) rgba(5, 46, 22, 0.35),
+    0 calc(var(--orb) * 0.08) calc(var(--orb) * 0.3) calc(var(--orb) * -0.06) color-mix(in oklab, var(--primary) 70%, transparent);
+  border-radius: 58% 42% 46% 54% / 52% 58% 42% 48%;
+  animation:
+    ai-orb-morph 7s ease-in-out infinite,
+    ai-orb-spin 14s linear infinite;
 }
-.ai-orb-blob-a {
-  top: -12%;
-  left: -8%;
-  background: #34d399;
-  opacity: 0.55;
-  animation: ai-orb-drift-a 5.5s ease-in-out infinite alternate;
+.ai-orb-busy .ai-orb-blob {
+  animation-duration: 1.6s, 3s;
+  filter: saturate(1.25) brightness(1.05);
 }
-.ai-orb-blob-b {
-  right: -14%;
-  bottom: -16%;
-  background: #6366f1;
-  opacity: 0.55;
-  animation: ai-orb-drift-b 6.5s ease-in-out infinite alternate;
+@keyframes ai-orb-morph {
+  0%,
+  100% {
+    border-radius: 58% 42% 46% 54% / 52% 58% 42% 48%;
+  }
+  25% {
+    border-radius: 44% 56% 60% 40% / 58% 44% 56% 42%;
+  }
+  50% {
+    border-radius: 52% 48% 38% 62% / 42% 56% 44% 58%;
+  }
+  75% {
+    border-radius: 40% 60% 52% 48% / 56% 40% 60% 44%;
+  }
 }
-/* The glass's reflection, top left. */
-.ai-orb-shine {
-  position: absolute;
-  inset: 0;
-  border-radius: 9999px;
-  background:
-    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.2) 12%, transparent 26%),
-    radial-gradient(circle at 72% 86%, rgba(255, 255, 255, 0.22), transparent 30%);
-}
-/* Small, a sharper drawing: less blur, a firmer edge. */
-.ai-orb-small .ai-orb-swirl {
-  filter: blur(calc(var(--orb) * 0.09));
-}
-.ai-orb-small .ai-orb-blob {
-  filter: blur(calc(var(--orb) * 0.08));
-}
-.ai-orb-small .ai-orb-glow {
-  inset: -20%;
-}
-/* Working: faster, and beating softly. */
-.ai-orb-busy .ai-orb-swirl {
-  animation-duration: 1.8s;
-}
-.ai-orb-busy .ai-orb-blob-a {
-  animation-duration: 1.6s;
-}
-.ai-orb-busy .ai-orb-blob-b {
-  animation-duration: 1.9s;
-}
-.ai-orb-busy .ai-orb-ball {
-  animation: ai-orb-beat 1.3s ease-in-out infinite;
-}
-.ai-orb-busy .ai-orb-glow {
-  animation-duration: 1.3s;
-}
-@keyframes ai-orb-turn {
+@keyframes ai-orb-spin {
   to {
     transform: rotate(360deg);
   }
 }
-@keyframes ai-orb-breathe {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.92);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-}
-@keyframes ai-orb-beat {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.93);
-  }
-}
-@keyframes ai-orb-drift-a {
-  to {
-    transform: translate(28%, 34%) scale(1.15);
-  }
-}
-@keyframes ai-orb-drift-b {
-  to {
-    transform: translate(-30%, -26%) scale(0.9);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .ai-orb *,
-  .ai-orb-busy .ai-orb-ball {
-    animation: none !important;
+  .ai-orb-blob {
+    animation: none;
   }
 }
