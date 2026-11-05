@@ -71,6 +71,7 @@ import { Notebook } from './notebook'
 import { VizPicker, VizSettings } from './viz-settings'
 import { Pane } from '@/components/ui/pane'
 import { TabRow } from '@/components/ui/tab-row'
+import { SectionPills } from './section-pills'
 
 export interface Draft {
   readonly id: string | null
@@ -140,6 +141,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
   const [running, setRunning] = useState(false)
   const [view, setView] = useState<'viz' | 'table' | 'sql'>('viz')
   const [panel, setPanel] = useState<'viz' | 'details' | null>('viz')
+  const settingsBody = useRef<HTMLDivElement>(null)
   const [values, setValues] = useState<Record<string, string>>({})
   const [saveOpen, setSaveOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -620,25 +622,31 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
         {/* Right: settings */}
         {panel ? (
           <Pane as="aside" id="question.settings" side="right" defaultSize={320} min={260} max={600} className="overflow-y-auto border-l">
-            <TabRow className="h-12 items-center gap-6 border-b px-5 text-[15px]">
-              {(['viz', 'details'] as const).map((p) => (
-                <button key={p} type="button" onClick={() => setPanel(p)} className={cn('relative py-3', panel === p ? 'font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary' : 'text-muted-foreground')}>
-                  {p === 'viz' ? $t('Visualisation') : $t('Détails')}
-                </button>
-              ))}
-            </TabRow>
-            <div className="space-y-6 p-5">
+            {/* Pinned: the tabs, and the way to each section of the settings. */}
+            <div data-pinned className="sticky top-0 z-10 border-b bg-background">
+              <TabRow className="h-12 items-center gap-6 border-b px-5 text-[15px]">
+                {(['viz', 'details'] as const).map((p) => (
+                  <button key={p} type="button" onClick={() => setPanel(p)} className={cn('relative py-3', panel === p ? 'font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary' : 'text-muted-foreground')}>
+                    {p === 'viz' ? $t('Visualisation') : $t('Détails')}
+                  </button>
+                ))}
+              </TabRow>
+              {panel === 'viz' ? <SectionPills content={settingsBody} /> : null}
+            </div>
+            <div ref={settingsBody} className="space-y-6 p-5">
               {panel === 'viz' ? (
                 <>
-                  <VizPicker
-                    value={draft.visualization.type}
-                    result={result}
-                    onChange={(type: VisualizationType) => {
-                      dirtyViz.current = true
-                      update({ visualization: { ...draft.visualization, type } })
-                      setView('viz')
-                    }}
-                  />
+                  <div data-anchor={$t('Type')}>
+                    <VizPicker
+                      value={draft.visualization.type}
+                      result={result}
+                      onChange={(type: VisualizationType) => {
+                        dirtyViz.current = true
+                        update({ visualization: { ...draft.visualization, type } })
+                        setView('viz')
+                      }}
+                    />
+                  </div>
                   <VizSettings
                     type={draft.visualization.type}
                     settings={draft.visualization.settings ?? {}}

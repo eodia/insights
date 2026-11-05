@@ -387,7 +387,7 @@ export function VizPicker({ value, result, onChange }: { value: VisualizationTyp
 /** A titled group of settings. */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 border-t pt-4 first:border-t-0 first:pt-0">
+    <section data-anchor={title} className="space-y-3 border-t pt-4 first:border-t-0 first:pt-0">
       <h4 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{title}</h4>
       {children}
     </section>
