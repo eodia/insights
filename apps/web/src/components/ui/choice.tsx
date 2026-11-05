@@ -5,12 +5,13 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 /**
  * Choosing one value among options — the one field the interface uses for it.
@@ -30,6 +31,8 @@ export interface ChoiceOption {
   readonly label: string
   /** What the list shows instead of the label — the label stays what is searched. */
   readonly render?: ReactNode
+  /** A line under it: it stands apart from the options after it. */
+  readonly divider?: boolean
 }
 
 const SIZES = {
@@ -116,9 +119,10 @@ export function Choice({
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (
-          <SelectItem key={o.value} value={encode(o.value)}>
-            {o.render ?? o.label}
-          </SelectItem>
+          <Fragment key={o.value}>
+            <SelectItem value={encode(o.value)}>{o.render ?? o.label}</SelectItem>
+            {o.divider ? <SelectSeparator /> : null}
+          </Fragment>
         ))}
       </SelectContent>
     </Select>

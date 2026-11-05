@@ -104,6 +104,7 @@ import {
   X,
   Pin,
   LayoutGrid,
+  Unlink,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
@@ -304,7 +305,17 @@ function MappingSelect({ card, result, parameter, onChange, variables, sourceCol
   const fitsKind = (k: string) =>
     parameter.type === 'date' || parameter.type === 'temporal_unit' ? k === 'date' || k === 'datetime' : parameter.type === 'number' ? k === 'number' : ['text', 'number', 'boolean'].includes(k)
   const options = [
-    { value: 'none', label: $t('Non relié') },
+    // Unlinked first, apart: choosing it switches the filter off for this card.
+    {
+      value: 'none',
+      label: $t('Non relié'),
+      divider: true,
+      render: (
+        <span className="flex items-center gap-2 text-muted-foreground">
+          <Unlink className="size-3.5" /> {$t('Non relié')}
+        </span>
+      ),
+    },
     ...sourceColumns.filter((o) => fitsKind(o.kind)).map((o) => ({ value: `c:${refKey(o.ref)}`, label: o.join ? `${o.group} → ${o.label}` : o.label })),
     ...cols.map((c) => ({ value: `c:${refKey({ field: c.source?.field ?? c.name, ...(c.source?.join ? { join: c.source.join } : {}) })}`, label: c.label.replace(/ : .*$/, '') })),
     ...variables.map((v) => ({ value: `v:${v}`, label: `{{${v}}}` })),

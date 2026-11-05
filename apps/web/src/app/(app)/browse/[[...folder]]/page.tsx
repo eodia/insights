@@ -582,7 +582,8 @@ export default function BrowsePage({ params }: { params: Promise<{ folder?: stri
   })
   const bookmark = async (item: ItemSummary) => {
     await api.post('/v1/bookmarks', { kind: item.kind, id: item.id, on: !item.bookmarked })
-    await qc.invalidateQueries({ queryKey: ['folder-items'] })
+    // The folder's list, and the favourites shown elsewhere (side bar, home page).
+    await Promise.all([qc.invalidateQueries({ queryKey: ['folder-items'] }), qc.invalidateQueries({ queryKey: ['home'] })])
   }
   // Outside a field, a dialog or a menu: Escape unticks them all, Delete deletes them.
   useEffect(() => {

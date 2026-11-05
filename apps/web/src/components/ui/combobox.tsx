@@ -4,11 +4,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Check, ChevronDownIcon, LoaderCircle, Search } from 'lucide-react'
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 export interface ComboboxOption {
   readonly value: string
   readonly label: string
+  /** A line under it: it stands apart from the options after it (« Non relié », then the columns). */
+  readonly divider?: boolean
   /**
    * What the list shows for this option instead of its label — a coloured chip, say. The
    * label stays what is searched, and what a screen reader hears through the row's text.
@@ -228,10 +230,10 @@ export function Combobox({
             const selected =
               entry !== null && (multiple ? checked.has(entry.value) : entry.value === value)
             return (
-              // biome-ignore lint/a11y/useFocusableInteractive: the options never take focus — see the list
-              // biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard belongs to the search box, which drives this list through aria-activedescendant
+              <Fragment key={entry === null ? 'clear-entry' : `option:${entry.value}`}>
+              {/* biome-ignore lint/a11y/useFocusableInteractive: the options never take focus — see the list */}
+              {/* biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard belongs to the search box, which drives this list through aria-activedescendant */}
               <div
-                key={entry === null ? 'clear-entry' : `option:${entry.value}`}
                 id={`${listId}-${index}`}
                 // biome-ignore lint/a11y/useSemanticElements: an <option> cannot live outside a <select> — see the trigger
                 role="option"
@@ -255,6 +257,8 @@ export function Combobox({
                 )}
                 {selected && <Check className="absolute right-2 size-4" />}
               </div>
+              {entry?.divider ? <div role="separator" className="-mx-1 my-1 h-px bg-border" /> : null}
+              </Fragment>
             )
           })}
 

@@ -479,11 +479,12 @@ function DashboardScreen({ id }: { id: string }) {
                       ) : null}
                       <DropdownMenuItem
                         onSelect={async () => {
-                          await api.post('/v1/bookmarks', { kind: 'dashboard', id, on: true })
-                          toast.success($t('Ajouté aux favoris.'))
+                          await api.post('/v1/bookmarks', { kind: 'dashboard', id, on: !starred })
+                          await qc.invalidateQueries({ queryKey: ['home'] })
+                          toast.success(starred ? $t('Retiré des favoris.') : $t('Ajouté aux favoris.'))
                         }}
                       >
-                        <FavoriteIcon /> {$t('Ajouter aux favoris')}
+                        <FavoriteIcon active={starred} /> {starred ? $t('Retirer des favoris') : $t('Ajouter aux favoris')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={async () => {
