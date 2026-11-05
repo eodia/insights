@@ -458,3 +458,13 @@ export const HomeLayoutSchema = z.object({
   cards: z.array(z.record(z.string(), z.unknown())).max(60),
   parameters: z.array(z.record(z.string(), z.unknown())).max(16).optional(),
 })
+
+/** « Pourquoi ça bouge ? » : a card's built query, its date and grain, the two periods compared. */
+export const ExplainInputSchema = z.object({
+  query: BuilderQuerySchema,
+  constraints: z.array(z.record(z.string(), z.unknown())).max(32).optional(),
+  time: z.object({ field: z.string().min(1).max(256), join: z.string().max(128).optional(), unit: z.enum(['minute', 'hour', 'day', 'week', 'month', 'quarter', 'year']) }),
+  previous: z.string().min(1).max(64),
+  current: z.string().min(1).max(64),
+  labels: z.object({ previous: z.string().max(80), current: z.string().max(80) }),
+})

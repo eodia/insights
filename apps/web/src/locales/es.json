@@ -3052,5 +3052,15 @@
   "un volet de filtre": "un panel de filtro",
   "Détailler par…": "Desglosar por…",
   "Exploration": "Exploración",
-  "Explorer cette période": "Explorar este periodo"
+  "Explorer cette période": "Explorar este periodo",
+  "(vide)": "(vacío)",
+  "Analyse de l’écart, colonne par colonne…": "Analizando la diferencia, columna por columna…",
+  "Aucune colonne de catégories à décomposer dans cette table.": "Ninguna columna de categorías para desglosar en esta tabla.",
+  "comparé à": "comparado con",
+  "Conclusion rédigée par l’IA à partir des chiffres ci-dessous.": "Conclusión redactada por la IA a partir de las cifras siguientes.",
+  "Conclusion tirée des chiffres ci-dessous.": "Conclusión extraída de las cifras siguientes.",
+  "et {count} autre(s) valeur(s)": "y {count} valor(es) más",
+  "Explique le plus": "Explica más",
+  "Par {column}": "Por {column}",
+  "Pourquoi ça bouge ?": "¿Por qué se mueve?"
 }

@@ -52,7 +52,8 @@ import { valueLabel as valueLabelFor } from './parameters'
 import { $t, $tp, msg } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
 import { keys, useFolders, useMe, useModelColumns, useModels, useModelsColumns, useQuestion, useTable, useTables } from '@/lib/queries'
-import { type DrillStep, canDrillBy, canDrillTime, drillBy, drillTime } from './drill'
+import { type DrillStep, canDrillBy, canDrillTime, drillBy, drillTime, periodsIn, timeOf } from './drill'
+import { ExplainDialog, type ExplainRequest } from './explain'
 import { type ColumnOption, type ModelColumns, columnOptions } from '@/lib/builder'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -248,6 +249,8 @@ interface CardProps {
   allCards?: readonly DashboardCard[]
   summarizer?: Summarizer
   /** What people say of the card: its comments, its chart's annotations. */
+  /** « Pourquoi ça bouge ? » on its last period, when it moves along a date. */
+  onExplain?: () => void
   /** The card drilled into: the way back, step by step (« Tout › 2026 › mars »). */
   trail?: { readonly steps: readonly string[]; readonly onGo: (depth: number) => void }
   talk?: {
@@ -613,6 +616,11 @@ function CardFrame(props: CardProps) {
                 {isQuestion ? (
                   <DropdownMenuItem onSelect={() => void copyImage()}>
                     <ImageDown /> {$t('Copier en image')}
+                  </DropdownMenuItem>
+                ) : null}
+                {props.onExplain && !editing ? (
+                  <DropdownMenuItem onSelect={props.onExplain}>
+                    <Sparkles className="text-violet-500" /> {$t('Pourquoi ça bouge ?')}
                   </DropdownMenuItem>
                 ) : null}
                 {isQuestion && card.question && !publicMode && props.dashboardId !== HOME_DASHBOARD ? (
@@ -1690,6 +1698,18 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     const { question: _q, ...rest } = card
     return { ...rest, title: card.title || q?.name || '', query: step.query, ...(card.visualization ?? q?.visualization ? { visualization: card.visualization ?? q?.visualization } : {}) }
   }
+  const [explaining, setExplaining] = useState<ExplainRequest | null>(null)
+  /** What « Pourquoi ça bouge ? » compares on a card: the period chosen (or its last) and the one before. */
+  const explainFor = (card: DashboardCard, chosen?: unknown): ExplainRequest | null => {
+    const query = builderOf(card)
+    const time = timeOf(query)
+    const result = results.current.get(card.id)
+    if (!query || !time || !result || !query.aggregations?.length) return null
+    const periods = periodsIn(result, time, chosen)
+    if (!periods) return null
+    const q = card.question ? qc.getQueryData<Question>(keys.question(card.question)) : undefined
+    return { title: card.title || q?.name || '', query, constraints: cardConstraints(card.mappings, draft.parameters, values), time, ...periods }
+  }
   const drillInto = (cardId: string, step: DrillStep | null) => {
     if (step) setDrills((d) => ({ ...d, [cardId]: [...(d[cardId] ?? []), step] }))
   }
@@ -2218,6 +2238,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               <div key={card.id} data-card-id={card.id} className={cn('rounded-xl', landing === card.id && 'card-landed')}>
                 <CardFrame
                   card={drilled(card)}
+                  {...(!editing && explainFor(drilled(card)) ? { onExplain: () => setExplaining(explainFor(drilled(card))) } : {})}
                   {...(!editing && drills[card.id]?.length
                     ? {
                         trail: {
@@ -2435,6 +2456,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           }}
         />
       ) : null}
+      {explaining ? <ExplainDialog request={explaining} onClose={() => setExplaining(null)} /> : null}
       {menu ? (
         <PointMenu point={menu.point} onClose={() => setMenu(null)}>
           {readsRecords && recordPicks(menu.point) ? (
@@ -2450,6 +2472,11 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
           {talking && dayOf(menu.point) ? (
             <DropdownMenuItem onSelect={() => setAnnotating({ card: menu.card, at: dayOf(menu.point) as string })}>
               <Flag /> {$t('Annoter ce point…')}
+            </DropdownMenuItem>
+          ) : null}
+          {!editing && menu.point.column.unit && explainFor(menu.card, menu.point.value) ? (
+            <DropdownMenuItem onSelect={() => setExplaining(explainFor(menu.card, menu.point.value))}>
+              <Sparkles className="text-violet-500" /> {$t('Pourquoi ça bouge ?')}
             </DropdownMenuItem>
           ) : null}
           {!editing && canDrillTime(builderOf(menu.card), menu.point.column) ? (

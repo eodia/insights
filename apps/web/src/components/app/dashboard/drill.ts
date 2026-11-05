@@ -21,13 +21,14 @@ function breakoutOf(query: BuilderQuery, column: ResultColumn): Breakout | null 
 const pad = (n: number) => String(n).padStart(2, '0')
 
 /** The period a value of a date grouping stands for, as a filter writes it: `2026`, `2026-Q1`, `2026-03`, a week's span. */
-function periodOf(value: unknown, unit: TemporalUnit): string | null {
+export function periodOf(value: unknown, unit: TemporalUnit): string | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value ?? ''))
   if (!m) return null
   const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
   if (unit === 'year') return String(y)
   if (unit === 'quarter') return `${y}-Q${Math.floor((mo - 1) / 3) + 1}`
   if (unit === 'month') return `${y}-${pad(mo)}`
+  if (unit === 'day') return `${y}-${pad(mo)}-${pad(d)}`
   if (unit === 'week') {
     const end = new Date(Date.UTC(y, mo - 1, d + 6))
     return `${y}-${pad(mo)}-${pad(d)}~${end.getUTCFullYear()}-${pad(end.getUTCMonth() + 1)}-${pad(end.getUTCDate())}`
@@ -85,4 +86,33 @@ export function drillBy(query: BuilderQuery, column: ResultColumn, value: unknow
       breakouts: (query.breakouts ?? []).map((x) => (x === b ? { field: by.field, ...(b.join ? { join: b.join } : {}) } : x)),
     },
   }
+}
+
+/** The date a query moves along: its grouping cut to a period. */
+export function timeOf(query: BuilderQuery | null): { field: string; join?: string; unit: TemporalUnit } | null {
+  const b = query?.breakouts?.find((x) => x.unit && ['day', 'week', 'month', 'quarter', 'year'].includes(x.unit))
+  return b ? { field: b.field, ...(b.join ? { join: b.join } : {}), unit: b.unit as TemporalUnit } : null
+}
+
+/**
+ * The two periods to compare in a result: the one chosen (or the last) and the one before it —
+ * as filters write them, and as one reads them.
+ */
+export function periodsIn(
+  result: { readonly columns: readonly ResultColumn[]; readonly rows: ReadonlyArray<readonly unknown[]> },
+  time: { field: string; join?: string; unit: TemporalUnit },
+  chosen?: unknown,
+): { previous: { expr: string; label: string }; current: { expr: string; label: string } } | null {
+  const i = result.columns.findIndex((c) => c.source?.field === time.field && (c.source.join ?? '') === (time.join ?? '') && c.unit)
+  const column = result.columns[i]
+  if (i < 0 || !column) return null
+  const values = [...new Set(result.rows.map((r) => String(r[i] ?? '')).filter(Boolean))].sort()
+  const at = chosen === undefined ? values.length - 1 : values.indexOf(String(chosen))
+  if (at < 1) return null
+  const cur = values[at] as string
+  const prev = values[at - 1] as string
+  const ce = periodOf(cur, time.unit)
+  const pe = periodOf(prev, time.unit)
+  if (!ce || !pe) return null
+  return { previous: { expr: pe, label: formatValue(prev, column) }, current: { expr: ce, label: formatValue(cur, column) } }
 }

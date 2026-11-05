@@ -2960,5 +2960,15 @@
   "un volet de filtre": "a filter pane",
   "Détailler par…": "Break down by…",
   "Exploration": "Drill-down",
-  "Explorer cette période": "Drill into this period"
+  "Explorer cette période": "Drill into this period",
+  "(vide)": "(empty)",
+  "Analyse de l’écart, colonne par colonne…": "Analysing the change, column by column…",
+  "Aucune colonne de catégories à décomposer dans cette table.": "No category column to break this table down by.",
+  "comparé à": "compared with",
+  "Conclusion rédigée par l’IA à partir des chiffres ci-dessous.": "Conclusion written by the AI from the figures below.",
+  "Conclusion tirée des chiffres ci-dessous.": "Conclusion drawn from the figures below.",
+  "et {count} autre(s) valeur(s)": "and {count} more value(s)",
+  "Explique le plus": "Explains most",
+  "Par {column}": "By {column}",
+  "Pourquoi ça bouge ?": "Why is it moving?"
 }

@@ -1,6 +1,7 @@
 import { z } from '@hono/zod-openapi'
 import {
   DashboardInputSchema,
+  ExplainInputSchema,
   HomeLayoutSchema,
   type HomeLayout,
   DashboardPasteSchema,
@@ -19,6 +20,8 @@ import {
   cancelExecution,
   createDashboard,
   getHomeLayout,
+  explainChange,
+  type ExplainInput,
   listDashboardVersions,
   restoreDashboardVersion,
   listNotifications,
@@ -394,6 +397,18 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
   route(app, { method: 'delete', path: '/api/v1/dashboards/:id/comments/:comment', tags: dtags, summary: 'Supprimer un commentaire' }, async (c) => {
     await deleteCardComment(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'comment'))
     return ok(c)
+  })
+  route(app, {
+    method: 'post',
+    path: '/api/v1/explain',
+    tags: qtags,
+    summary: 'Pourquoi ça bouge ? — ce qui explique l’écart d’un chiffre entre deux périodes',
+    description: "Décompose la variation de la première mesure d'une requête construite par les colonnes de catégories de sa table, sous l'identité de l'appelant ; l'IA, si elle est configurée, rédige la conclusion.",
+    body: ExplainInputSchema,
+  }, async (c) => {
+    const input = bodyOf(c, ExplainInputSchema)
+    const locale = requestLocaleOf(c.req.header('cookie'), c.req.header('accept-language'))
+    return ok(c, await explainChange(c.get('core'), actorOf(c), { ...(input as unknown as ExplainInput), locale }))
   })
   route(app, { method: 'get', path: '/api/v1/dashboards/:id/versions', tags: dtags, summary: 'Versions du tableau de bord (les plus récentes d’abord)' }, async (c) =>
     ok(c, await listDashboardVersions(c.get('core'), actorOf(c), param(c, 'id'))),

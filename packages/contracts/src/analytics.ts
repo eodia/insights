@@ -1719,3 +1719,27 @@ export function mergeCompared<T extends QueryResult>(current: T, previous: Query
   })
   return { ...current, columns, rows }
 }
+
+/** « Pourquoi ça bouge ? » : a figure's change between two periods, and what explains it. */
+export interface ExplainResult {
+  /** The measure, to format its values. */
+  readonly measure: ResultColumn
+  readonly labels: { readonly previous: string; readonly current: string }
+  readonly previous: number
+  readonly current: number
+  readonly change: number
+  /** The change against the previous value (`-0.12` is −12 %); null from zero. */
+  readonly ratio: number | null
+  /** The columns that explain it, the best first: each value's change and share of the whole. */
+  readonly dimensions: ReadonlyArray<{
+    readonly column: { readonly name: string; readonly label: string }
+    readonly score: number
+    readonly contributors: ReadonlyArray<{ readonly value: string; readonly previous: number; readonly current: number; readonly change: number; readonly share: number }>
+    /** Values beyond those shown. */
+    readonly others: number
+  }>
+  /** The conclusion, in a sentence or two. */
+  readonly summary: string
+  /** Written by the AI (or, without one, by the figures alone). */
+  readonly ai: boolean
+}
