@@ -7,6 +7,7 @@
  * la ligne et la colonne qu'il désigne.
  */
 import { searchPanel } from '@/components/app/sql-search'
+import { ALL_SQL_KEYWORDS } from '@/lib/trino-sql'
 import { $t } from '@/lib/i18n'
 import type { SchemaTree } from '@/lib/queries'
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
@@ -55,8 +56,6 @@ function namespaceOf(tree: SchemaTree | undefined): SQLNamespace {
   return out
 }
 
-const TRINO_KEYWORDS =
-  'approx_distinct approx_percentile date_trunc date_add date_diff date_format format_datetime from_iso8601_timestamp at time zone interval unnest cross join lateral try_cast try coalesce nullif array_agg map_agg count_if bool_and bool_or arbitrary any_value max_by min_by histogram regexp_like regexp_extract split_part strpos json_extract_scalar json_extract greatest least row_number rank dense_rank lag lead ntile over partition rows range preceding following unbounded current row tablesample bernoulli system table query'
 
 const highlight = HighlightStyle.define([
   { tag: tags.keyword, color: 'var(--primary)', fontWeight: '600' },
@@ -94,7 +93,7 @@ export function statementOf(view: EditorView): string {
 
 const dialect = (tree: SchemaTree | undefined) =>
   sql({
-    dialect: { ...StandardSQL, spec: { ...StandardSQL.spec, keywords: `${StandardSQL.spec.keywords ?? ''} ${TRINO_KEYWORDS}`, identifierQuotes: '"' } } as typeof StandardSQL,
+    dialect: { ...StandardSQL, spec: { ...StandardSQL.spec, keywords: ALL_SQL_KEYWORDS, identifierQuotes: '"' } } as typeof StandardSQL,
     schema: namespaceOf(tree),
     upperCaseKeywords: true,
   })

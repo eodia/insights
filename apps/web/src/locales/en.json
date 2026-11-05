@@ -2970,5 +2970,9 @@
   "et {count} autre(s) valeur(s)": "and {count} more value(s)",
   "Explique le plus": "Explains most",
   "Par {column}": "By {column}",
-  "Pourquoi ça bouge ?": "Why is it moving?"
+  "Pourquoi ça bouge ?": "Why is it moving?",
+  "Ajouté à « {name} ».": "Added to “{name}”.",
+  "Ajouté au tableau de bord en cours de modification.": "Added to the dashboard being edited.",
+  "Au tableau de bord": "To a dashboard",
+  "celui-ci": "this one"
 }

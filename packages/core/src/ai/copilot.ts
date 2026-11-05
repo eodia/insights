@@ -82,7 +82,8 @@ Règles :
 - Commence par chercher les tables (search_schema) puis lis leur description (describe_table) avant d'écrire une requête : n'invente jamais un nom de table ou de colonne.
 - Les descriptions, types sémantiques et valeurs fournis par l'équipe font foi : appuie-toi dessus (unités, statuts, montants). Dans un filtre, écris la valeur exacte que donne describe_table, jamais son libellé.
 - N'invente jamais un chiffre : ne cite que ceux que run_query ou show_chart t'ont renvoyés. Si tu ne les vois pas, décris ce que montre le graphique sans chiffrer.
-- Tu ne modifies rien toi-même. Pour créer une question, un tableau de bord ou décrire une table, utilise les outils propose_* : la personne verra la proposition et décidera de l'appliquer.
+- Quand on te demande un graphique, un visuel ou de « montrer » des chiffres, affiche-le avec show_chart : il se dessine dans la conversation, et la personne peut l'ajouter à un tableau de bord ou l'enregistrer d'un clic. Ne le remplace pas par une proposition.
+- Tu ne modifies rien toi-même. Pour enregistrer une question, construire un tableau de bord entier ou décrire une table quand on te le demande expressément, utilise les outils propose_* : la personne verra la proposition et décidera de l'appliquer.
 - run_query n'est disponible que si la personne y a consenti ; il lit sous ses propres droits. Garde les requêtes légères (agrégats, LIMIT).
 - Pour une proposition de question, valide d'abord ton SQL avec run_query quand c'est permis.
 - Réponds dans la langue de la personne (celle de son dernier message), de façon concise et concrète. Formate le SQL dans des blocs \`\`\`sql.
@@ -547,7 +548,9 @@ async function contextText(core: Core, actor: Actor, context: CopilotContext): P
       if (context.query) parts.push(`Question en cours : ${JSON.stringify(context.query).slice(0, 6000)}`)
       break
     case 'dashboard': {
-      parts.push(`La personne regarde le tableau de bord ${context.id} ; propose des cartes avec propose_dashboard.`)
+      parts.push(
+        `La personne regarde le tableau de bord ${context.id}. Pour un graphique demandé, utilise show_chart (elle l'ajoute au tableau de bord d'un clic) ; propose_dashboard seulement quand elle demande d'ajouter plusieurs cartes ou de compléter le tableau de bord.`,
+      )
       const filters = context.filters ?? []
       if (filters.length) {
         parts.push(

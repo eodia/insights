@@ -3062,5 +3062,9 @@
   "et {count} autre(s) valeur(s)": "y {count} valor(es) más",
   "Explique le plus": "Explica más",
   "Par {column}": "Por {column}",
-  "Pourquoi ça bouge ?": "¿Por qué se mueve?"
+  "Pourquoi ça bouge ?": "¿Por qué se mueve?",
+  "Ajouté à « {name} ».": "Añadido a «{name}».",
+  "Ajouté au tableau de bord en cours de modification.": "Añadido al panel en edición.",
+  "Au tableau de bord": "Al panel",
+  "celui-ci": "este"
 }

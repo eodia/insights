@@ -1,5 +1,6 @@
 'use client'
 
+import { SqlCode } from '@/components/app/sql-code'
 import { type Proposal, ProposalCard, stashDraft } from '@/components/app/copilot'
 import { VIZ_ICONS } from '@/components/app/question/viz-settings'
 import { Visualization } from '@/components/app/visualization'
@@ -10,15 +11,20 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Hint } from '@/components/ui/tooltip'
 import { type RunResult, api } from '@/lib/api'
 import { formatCount } from '@/lib/format'
 import { $t, $tp, msg } from '@/lib/i18n'
+import { keys } from '@/lib/queries'
+import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { VIZ_LABELS, vizFits } from '@/lib/viz'
-import type { VisualizationType } from '@eodia/contracts'
-import { useQuery } from '@tanstack/react-query'
+import { DASHBOARD_COLUMNS, type Dashboard, type ItemSummary, type VisualizationType, cardSize, placedAfter } from '@eodia/contracts'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
   BarChart3,
@@ -115,11 +121,13 @@ export function Steps({ steps }: { steps: readonly Extract<Part, { type: 'tool' 
   )
 }
 
-function CodeBlock({ language, children }: { language: string; children: string }) {
+export function CodeBlock({ language, children }: { language: string; children: string }) {
   const [done, setDone] = useState(false)
+  // SQL as the editor shows it: laid out and coloured, on the page's light.
+  const isSql = language.toLowerCase() === 'sql'
   return (
-    <div className="my-3 overflow-hidden rounded-xl border bg-code text-code-foreground">
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-1.5 text-[11px] text-code-foreground/60">
+    <div className={cn('my-3 overflow-hidden rounded-xl border', isSql ? 'bg-muted/40' : 'bg-code text-code-foreground')}>
+      <div className={cn('flex items-center justify-between border-b px-3 py-1.5 text-[11px]', isSql ? 'text-muted-foreground' : 'border-white/10 text-code-foreground/60')}>
         <span className="font-mono uppercase tracking-wide">{language || 'code'}</span>
         <button
           type="button"
@@ -128,15 +136,19 @@ function CodeBlock({ language, children }: { language: string; children: string 
             setDone(true)
             setTimeout(() => setDone(false), 1500)
           }}
-          className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-white/10"
+          className={cn('flex items-center gap-1 rounded px-1.5 py-0.5', isSql ? 'hover:bg-muted' : 'hover:bg-white/10')}
         >
           {done ? <Check className="size-3" /> : <Copy className="size-3" />}{' '}
           {done ? $t('Copié') : $t('Copier')}
         </button>
       </div>
-      <pre className="overflow-x-auto p-3.5 font-mono text-[12.5px] leading-relaxed">
-        <code>{children}</code>
-      </pre>
+      {isSql ? (
+        <SqlCode sql={children} className="p-3.5" />
+      ) : (
+        <pre className="overflow-x-auto p-3.5 font-mono text-[12.5px] leading-relaxed">
+          <code>{children}</code>
+        </pre>
+      )}
     </div>
   )
 }
@@ -226,6 +238,7 @@ const QUICK: readonly VisualizationType[] = ['bar', 'line', 'area', 'pie', 'tabl
 /** A chart in the conversation: run here, switchable, and taken further in a click. */
 export function ChartPart({ chart }: { chart: Chart }) {
   const router = useRouter()
+  const qc = useQueryClient()
   const [type, setType] = useState<VisualizationType>(chart.visualization.type as VisualizationType)
   const [sql, setSql] = useState(false)
   const run = useQuery({
@@ -246,6 +259,55 @@ export function ChartPart({ chart }: { chart: Chart }) {
     })
     router.push('/question/new?draft=1')
   }
+  // Onto a dashboard, as it is: a card keeping this query, in this shape — into the one on
+  // screen when it is being edited, saved straight into the one chosen otherwise.
+  const context = useUi((s) => s.copilotContext)
+  const editingSink = useUi((s) => s.dashboardDraft)
+  const dashboards = useQuery({
+    queryKey: ['all-dashboards'],
+    queryFn: () => api.get<{ items: ItemSummary[] }>('/v1/search?q=').then((r) => r.items.filter((i) => i.kind === 'dashboard')),
+    staleTime: 60_000,
+  })
+  const here = context.kind === 'dashboard' ? context.id : null
+  const addTo = async (id: string, name: string) => {
+    const size = cardSize('question', type)
+    const card = { id: `c${Date.now().toString(36)}`, kind: 'question' as const, title: chart.title, query: chart.query as never, visualization: { type }, w: Math.min(size.w, DASHBOARD_COLUMNS), h: size.h }
+    try {
+      if (editingSink && editingSink.id === id) {
+        editingSink.add([card])
+        toast.success($t('Ajouté au tableau de bord en cours de modification.'))
+        return
+      }
+      const dash = await api.get<Dashboard>(`/v1/dashboards/${id}`)
+      const tab = dash.tabs[0]?.id ?? null
+      const [placed] = placedAfter(dash.cards, tab, [{ ...card, tab }])
+      await api.patch(`/v1/dashboards/${id}`, { cards: [...dash.cards, placed] })
+      await qc.invalidateQueries({ queryKey: keys.dashboard(id) })
+      toast.success($t('Ajouté à « {name} ».', { name }), { action: { label: $t('Ouvrir'), onClick: () => router.push(`/dashboard/${id}`) } })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+  const targets = [
+    ...(here ? (dashboards.data ?? []).filter((d) => d.id === here) : []),
+    ...(dashboards.data ?? []).filter((d) => d.id !== here),
+  ]
+  const addMenu = (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <LayoutDashboard className="size-4" /> {$t('Ajouter à un tableau de bord')}
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
+        {targets.length === 0 ? <DropdownMenuItem disabled>{$t('Aucun tableau de bord')}</DropdownMenuItem> : null}
+        {targets.map((d) => (
+          <DropdownMenuItem key={d.id} onSelect={() => void addTo(d.id, d.name)}>
+            <span className="min-w-0 flex-1 truncate">{d.name}</span>
+            {d.id === here ? <span className="shrink-0 text-[11px] text-primary">{$t('celui-ci')}</span> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  )
   let body: ReactNode
   if (run.isPending) {
     body = (
@@ -308,10 +370,11 @@ export function ChartPart({ chart }: { chart: Chart }) {
               <Ellipsis />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuItem onSelect={open}>
               <ExternalLink /> {$t('Ouvrir comme question')}
             </DropdownMenuItem>
+            {addMenu}
             <DropdownMenuItem onSelect={() => setSql((v) => !v)}>
               <Code2 /> {sql ? $t('Masquer le SQL') : $t('Voir le SQL')}
             </DropdownMenuItem>
@@ -324,9 +387,9 @@ export function ChartPart({ chart }: { chart: Chart }) {
       </div>
       <div className={cn('px-2 pb-2', type === 'table' ? 'h-80' : 'h-72')}>{body}</div>
       {sql ? (
-        <pre className="max-h-52 overflow-auto border-t bg-code px-4 py-3 font-mono text-xs text-code-foreground">
-          {chart.query.sql}
-        </pre>
+        <div className="max-h-52 overflow-auto border-t bg-muted/30 px-4 py-3">
+          <SqlCode sql={chart.query.sql ?? ''} className="text-xs" />
+        </div>
       ) : null}
       <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2 text-[11px] text-muted-foreground">
         <Database className="size-3" />
@@ -336,12 +399,30 @@ export function ChartPart({ chart }: { chart: Chart }) {
             })
           : $t('Exécution sous vos droits…')}
         <span className="flex-1" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button type="button" title={$t('Ajouter à un tableau de bord')} className="flex shrink-0 items-center gap-1 font-medium whitespace-nowrap text-foreground/80 hover:text-primary">
+              <LayoutDashboard className="size-3" /> {$t('Au tableau de bord')}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="max-h-80 w-64 overflow-y-auto">
+            {targets.length === 0 ? <DropdownMenuItem disabled>{$t('Aucun tableau de bord')}</DropdownMenuItem> : null}
+            {targets.map((d) => (
+              <DropdownMenuItem key={d.id} onSelect={() => void addTo(d.id, d.name)}>
+                <span className="min-w-0 flex-1 truncate">{d.name}</span>
+                {d.id === here ? <span className="shrink-0 text-[11px] text-primary">{$t('celui-ci')}</span> : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="text-muted-foreground/40">·</span>
         <button
           type="button"
           onClick={open}
-          className="flex items-center gap-1 font-medium text-foreground/80 hover:text-primary"
+          title={$t('Enregistrer comme question')}
+          className="flex shrink-0 items-center gap-1 font-medium whitespace-nowrap text-foreground/80 hover:text-primary"
         >
-          {$t('Enregistrer comme question')} <ChevronDown className="size-3 -rotate-90" />
+          {$t('Enregistrer')} <ChevronDown className="size-3 -rotate-90" />
         </button>
       </div>
     </div>

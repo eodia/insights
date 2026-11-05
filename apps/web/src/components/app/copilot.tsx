@@ -2,7 +2,8 @@
 
 import { VoiceButton } from '@/components/app/voice-button'
 import { Orb } from '@/components/app/assistant/orb'
-import { type Chart, ChartPart } from '@/components/app/assistant/parts'
+import { type Chart, ChartPart, CodeBlock } from '@/components/app/assistant/parts'
+import { SqlCode } from '@/components/app/sql-code'
 import { speakReply } from '@/lib/voice'
 import type { Dashboard, DashboardCard, TableMeta } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, SEMANTIC_LABELS, cardSize, placedAfter } from '@eodia/contracts'
@@ -146,7 +147,7 @@ export function ProposalCard({ p }: { p: Proposal }) {
       </div>
       <div className="max-h-56 space-y-1 overflow-y-auto px-3 py-2 text-xs">
         {p.kind === 'question' ? (
-          <pre className="font-mono whitespace-pre-wrap text-muted-foreground">{(p.query as { sql?: string }).sql}</pre>
+          <SqlCode sql={(p.query as { sql?: string }).sql ?? ''} className="text-[11.5px]" />
         ) : p.kind === 'dashboard' ? (
           p.cards.map((c) => (
             <div key={c.title} className="flex items-center gap-2">
@@ -464,7 +465,21 @@ export function CopilotPanel() {
               ) : null}
               {e.text ? (
                 <div className="prose-sm max-w-none text-[13.5px] leading-relaxed [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_li]:ml-4 [&_ol]:list-decimal [&_p]:my-1.5 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-code [&_pre]:p-3 [&_pre]:text-code-foreground [&_pre_code]:bg-transparent [&_table]:my-2 [&_table]:text-xs [&_td]:border [&_td]:px-2 [&_th]:border [&_th]:px-2 [&_ul]:list-disc">
-                  <Markdown remarkPlugins={[remarkGfm]}>{tidyFences(e.text)}</Markdown>
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      // A block of code — SQL above all — as the assistant shows it: laid out, coloured, to copy.
+                      code: ({ className, children }) => {
+                        const text = String(children ?? '')
+                        const language = /language-(\w+)/.exec(className ?? '')?.[1]
+                        if (language || text.includes('\n')) return <CodeBlock language={language ?? ''}>{text.replace(/\n$/, '')}</CodeBlock>
+                        return <code>{children}</code>
+                      },
+                      pre: ({ children }) => <>{children}</>,
+                    }}
+                  >
+                    {tidyFences(e.text)}
+                  </Markdown>
                 </div>
               ) : !e.done && e.tools.length === 0 ? (
                 <span className="ai-shimmer text-[13px]">{$t('Réflexion…')}</span>

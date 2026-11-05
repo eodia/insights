@@ -684,3 +684,31 @@
     transform: scaleX(1);
   }
 }
+
+/* SQL shown in an answer, in the editor's colours (`components/app/sql-code.tsx`). */
+.sqlh-kw {
+  color: var(--primary);
+  font-weight: 600;
+}
+.sqlh-str {
+  color: oklch(0.55 0.14 35);
+}
+.sqlh-num {
+  color: oklch(0.52 0.15 265);
+}
+.sqlh-com {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.sqlh-fn {
+  color: oklch(0.55 0.13 300);
+}
+.sqlh-op {
+  color: var(--muted-foreground);
+}
+.sqlh-type {
+  color: oklch(0.55 0.1 200);
+}
+.sqlh-name {
+  color: oklch(0.6 0.15 50);
+}

@@ -398,11 +398,6 @@ function SqlWorkspace() {
             className="w-64"
           />
           <span className="flex-1" />
-          {me?.ai_enabled ? (
-            <Button size="sm" variant="ghost" onClick={() => openCopilot({ kind: 'sql', sql: tab?.sql ?? '' })}>
-              <Sparkles className="text-violet-500" /> {$t('Copilote')}
-            </Button>
-          ) : null}
           {me?.can.manage_sources && !tab?.native ? (
             <Button size="sm" variant={tab?.view ? 'default' : 'outline'} disabled={!tab?.sql.trim()} onClick={() => setViewOpen(true)}>
               <Eye /> {tab?.view ? $t('Enregistrer la vue') : $t('Enregistrer comme vue')}
