@@ -227,7 +227,9 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
     },
     [draft.query, draft.id, values, maxRows, compare],
   )
-  const dirtyViz = useRef(!!initial.id)
+  // Chosen already: a saved question's, or one brought from the assistant in its shape — only a
+  // blank question (a table, nothing set) takes the one its first result suggests.
+  const dirtyViz = useRef(!!initial.id || initial.visualization.type !== 'table' || !!initial.visualization.settings)
 
   // The builder runs as it is edited; SQL waits for Ctrl+Entrée — but an opened question shows
   // its result straight away.
