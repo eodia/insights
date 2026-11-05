@@ -363,7 +363,7 @@ export function VizPicker({ value, result, onChange }: { value: VisualizationTyp
                   <span className={cn('flex size-6 items-center justify-center rounded-md transition-transform group-hover:scale-105', on ? 'bg-primary text-primary-foreground' : f.tone)}>
                     <Icon className="size-3.5" />
                   </span>
-                  <span className="line-clamp-2">{$t(VIZ_LABELS[v])}</span>
+                  <span className="line-clamp-2 w-full hyphens-auto [overflow-wrap:anywhere]">{$t(VIZ_LABELS[v])}</span>
                   {on ? (
                     <span className="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground">
                       <Check className="size-2.5" />

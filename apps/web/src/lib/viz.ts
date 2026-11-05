@@ -228,7 +228,7 @@ export const VIZ_LABELS: Record<VisualizationType, string> = {
   polar: msg('Barres polaires'),
   bar_race: msg('Course de barres'),
   line_race: msg('Course de courbes'),
-  treemap: msg('Carte proportionnelle'),
+  treemap: msg('Mosaïque||type de graphique : des rectangles proportionnels (treemap)'),
   sankey: msg('Flux (Sankey)'),
   candlestick: msg('Chandeliers'),
   calendar: msg('Calendrier'),
