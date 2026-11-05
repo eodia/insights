@@ -1,5 +1,6 @@
 'use client'
 
+import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ECElementEvent, EChartsOption } from 'echarts'
 import {
@@ -36,7 +37,8 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { useEffect, useRef } from 'react'
+import { ZoomOut } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * One chart, drawn by echarts — only the pieces the dashboards use, rendered in SVG: crisp
@@ -104,6 +106,29 @@ function withSeriesIds(option: EChartsOption): EChartsOption {
   return { ...option, series } as EChartsOption
 }
 
+/**
+ * A chart on axes zooms with the mouse: Ctrl + wheel (a pinch on a touchpad) along its categories
+ * or its dates — both axes for a cloud of points —, then a drag moves along. The wheel alone still
+ * scrolls the page: a dashboard is read by scrolling past its charts.
+ */
+function withZoom(option: EChartsOption): EChartsOption {
+  const o = option as Record<string, unknown>
+  const one = (v: unknown) => (Array.isArray(v) ? (v.length === 1 ? v[0] : undefined) : v) as { type?: string } | undefined
+  const x = one(o.xAxis)
+  const y = one(o.yAxis)
+  if (o.baseOption !== undefined || x === undefined || y === undefined) return option
+  const mouse = { type: 'inside', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false, moveOnMouseMove: true, preventDefaultMouseMove: false }
+  if (o.dataZoom !== undefined) {
+    const list = (Array.isArray(o.dataZoom) ? o.dataZoom : [o.dataZoom]) as Record<string, unknown>[]
+    return { ...option, dataZoom: list.map((z) => (z.type === 'inside' ? { ...z, ...mouse } : z)) } as EChartsOption
+  }
+  // Framed, not filtered: the marks keep their rank, which the tooltips and the clicks read.
+  const frame = { ...mouse, filterMode: 'none' }
+  const along = (a: { type?: string }) => a.type === 'category' || a.type === 'time'
+  const dataZoom = along(x) ? [{ ...frame, xAxisIndex: 0 }] : along(y) ? [{ ...frame, yAxisIndex: 0 }] : [{ ...frame, xAxisIndex: 0 }, { ...frame, yAxisIndex: 0 }]
+  return { ...option, dataZoom } as EChartsOption
+}
+
 /** A map's regions, registered once for every chart that draws it. */
 export function registerMap(name: string, geo: unknown): void {
   if (echarts.getMap(name) !== undefined && echarts.getMap(name) !== null) return
@@ -151,6 +176,7 @@ export function EChart({
   const band = useRef(onBandClick)
   band.current = onBandClick
   const shape = useRef<string | null>(null)
+  const [zoomed, setZoomed] = useState(false)
   const waiting = useRef<typeof option | null>(null)
 
   useEffect(() => {
@@ -162,6 +188,10 @@ export function EChart({
     shape.current = null
     waiting.current = null
     instance.on('click', (event) => click.current?.(event as ECElementEvent))
+    instance.on('datazoom', () => {
+      const zooms = ((instance.getOption() as { dataZoom?: { start?: number; end?: number }[] }).dataZoom ?? [])
+      setZoomed(zooms.some((z) => (z.start ?? 0) > 0 || (z.end ?? 100) < 100))
+    })
     // The mouse event a mark answered, so that the axis does not answer it a second time.
     let answered: unknown = null
     instance.on('contextmenu', (event) => {
@@ -220,7 +250,7 @@ export function EChart({
       if (waiting.current && element.clientWidth > 0 && element.clientHeight > 0) {
         const next = waiting.current
         waiting.current = null
-        instance.setOption(withSeriesIds(next), { notMerge: true })
+        instance.setOption(withZoom(withSeriesIds(next)), { notMerge: true })
       }
     })
     observer.observe(element)
@@ -247,20 +277,36 @@ export function EChart({
       waiting.current = option
       return
     }
-    instance.setOption(withSeriesIds(option), next === shape.current ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: true })
+    if (next !== shape.current) setZoomed(false)
+    instance.setOption(withZoom(withSeriesIds(option)), next === shape.current ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: true })
     shape.current = next
   }, [option])
 
+  const unzoom = () => {
+    const instance = chart.current
+    if (instance === null) return
+    const zooms = (instance.getOption() as { dataZoom?: unknown[] }).dataZoom ?? []
+    zooms.forEach((_, dataZoomIndex) => instance.dispatchAction({ type: 'dataZoom', dataZoomIndex, start: 0, end: 100 }))
+    setZoomed(false)
+  }
+
   return (
-    <div
-      ref={host}
-      role="img"
-      aria-label={label}
-      className={cn(
-        'size-full min-h-0',
-        (onClick !== undefined || onBandClick !== undefined) && '[&_path]:cursor-pointer',
-        className,
-      )}
-    />
+    <div className={cn('relative size-full min-h-0', className)}>
+      <div
+        ref={host}
+        role="img"
+        aria-label={label}
+        className={cn('absolute inset-0', (onClick !== undefined || onBandClick !== undefined) && '[&_path]:cursor-pointer')}
+      />
+      {zoomed ? (
+        <button
+          type="button"
+          onClick={unzoom}
+          className="absolute top-1 right-1 z-10 inline-flex items-center gap-1 rounded-md border bg-background/90 px-2 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur transition-colors hover:text-foreground"
+        >
+          <ZoomOut className="size-3.5" /> {$t('Réinitialiser le zoom')}
+        </button>
+      ) : null}
+    </div>
   )
 }
