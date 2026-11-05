@@ -56,7 +56,6 @@ import {
   LayoutDashboard,
   Link2,
   Loader2,
-  Maximize,
   Plus,
   Settings2,
   Share2,
@@ -456,9 +455,6 @@ function DashboardScreen({ id }: { id: string }) {
                   <DropdownMenuContent align="end" className="w-60">
                     <DropdownMenuLabel className={MENU_LABEL}>{$t('Affichage')}</DropdownMenuLabel>
                     <DropdownMenuGroup>
-                      <DropdownMenuItem onSelect={() => root.current?.requestFullscreen?.()}>
-                        <Maximize /> {$t('Plein écran')}
-                      </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setPresenting(true)}>
                         <MonitorPlay /> {$t('Mode présentation')}
                       </DropdownMenuItem>

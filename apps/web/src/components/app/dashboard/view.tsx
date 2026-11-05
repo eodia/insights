@@ -3,6 +3,7 @@
 import 'react-grid-layout/css/styles.css'
 import type {
   Annotation,
+  BuilderQuery,
   CardComment,
   CardMapping,
   ColumnRef,
@@ -19,7 +20,7 @@ import type {
   Visualization as Viz,
   HomeBlockKind,
 } from '@eodia/contracts'
-import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, applyConstraints, cardConstraints, cardSize, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
+import { DASHBOARD_COLUMNS, DASHBOARD_ROW_HEIGHT, applyConstraints, cardConstraints, cardSize, kindOfTrinoType, parameterHasValue, periodExpression, placedAfter } from '@eodia/contracts'
 import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
@@ -50,7 +51,8 @@ import { api, download } from '@/lib/api'
 import { valueLabel as valueLabelFor } from './parameters'
 import { $t, $tp, msg } from '@/lib/i18n'
 import { folderLabel } from '@/lib/folders'
-import { useFolders, useMe, useModelColumns, useModels, useModelsColumns, useQuestion, useTables } from '@/lib/queries'
+import { keys, useFolders, useMe, useModelColumns, useModels, useModelsColumns, useQuestion, useTable, useTables } from '@/lib/queries'
+import { type DrillStep, canDrillBy, canDrillTime, drillBy, drillTime } from './drill'
 import { type ColumnOption, type ModelColumns, columnOptions } from '@/lib/builder'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -105,8 +107,11 @@ import {
   Pin,
   LayoutGrid,
   Unlink,
+  ZoomIn,
+  ZoomOut,
+  ChevronRight,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -243,6 +248,8 @@ interface CardProps {
   allCards?: readonly DashboardCard[]
   summarizer?: Summarizer
   /** What people say of the card: its comments, its chart's annotations. */
+  /** The card drilled into: the way back, step by step (« Tout › 2026 › mars »). */
+  trail?: { readonly steps: readonly string[]; readonly onGo: (depth: number) => void }
   talk?: {
     readonly comments: readonly CardComment[]
     readonly annotations: readonly Annotation[]
@@ -755,6 +762,25 @@ function CardFrame(props: CardProps) {
             </Popover>
           ) : null}
         </div>
+      ) : null}
+      {props.trail ? (
+        <nav aria-label={$t('Exploration')} className="card-still -mt-1 flex min-w-0 shrink-0 items-center gap-1 overflow-hidden px-4 pb-1.5 text-xs">
+          <button type="button" onClick={() => props.trail?.onGo(0)} className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 font-medium text-primary hover:bg-primary/10">
+            <ZoomOut className="size-3.5" /> {$t('Tout')}
+          </button>
+          {props.trail.steps.map((label, i) => (
+            <Fragment key={i}>
+              <ChevronRight className="size-3 shrink-0 text-muted-foreground" />
+              {i === (props.trail?.steps.length ?? 0) - 1 ? (
+                <span className="truncate rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary">{label}</span>
+              ) : (
+                <button type="button" onClick={() => props.trail?.onGo(i + 1)} className="truncate rounded-md px-1.5 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+                  {label}
+                </button>
+              )}
+            </Fragment>
+          ))}
+        </nav>
       ) : null}
       <div className={cn('card-still relative min-h-0 flex-1', isQuestion || card.kind === 'block' ? 'px-3 pb-3' : card.kind === 'filter' || card.kind === 'summary' ? 'flex flex-col gap-2 px-3 pb-3' : ['buttons', 'link', 'variable'].includes(card.kind) ? 'flex flex-col px-3 py-2' : card.kind === 'image' ? 'p-2' : 'p-4')}>
         {card.kind === 'block' ? (
@@ -1648,6 +1674,25 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
 
   // A right click on a point: its menu, then perhaps its rows.
   const [menu, setMenu] = useState<{ card: DashboardCard; point: PointClick; values: Values; title: string } | null>(null)
+  // Exploring a card: the steps taken into it, its query at each. Gone in edit mode.
+  const [drills, setDrills] = useState<Record<string, readonly DrillStep[]>>({})
+  /** The query a card shows, when it is built (not SQL): its own, or its saved question's. */
+  const builderOf = (card: DashboardCard): BuilderQuery | null => {
+    const q = card.query ?? (card.question ? qc.getQueryData<Question>(keys.question(card.question))?.query : undefined)
+    return q?.kind === 'builder' ? q : null
+  }
+  /** The card as it shows while explored: its question turned into the step's query, its look kept. */
+  const drilled = (card: DashboardCard): DashboardCard => {
+    const steps = drills[card.id]
+    const step = steps?.[steps.length - 1]
+    if (editing || !step) return card
+    const q = card.question ? qc.getQueryData<Question>(keys.question(card.question)) : undefined
+    const { question: _q, ...rest } = card
+    return { ...rest, title: card.title || q?.name || '', query: step.query, ...(card.visualization ?? q?.visualization ? { visualization: card.visualization ?? q?.visualization } : {}) }
+  }
+  const drillInto = (cardId: string, step: DrillStep | null) => {
+    if (step) setDrills((d) => ({ ...d, [cardId]: [...(d[cardId] ?? []), step] }))
+  }
   // The card's question as it was drawn: the filters it is tied to applied, as the kernel does.
   const readRecords = (card: DashboardCard, point: PointClick, values: Values, title: string) =>
     openRecords(point, title || undefined, async () => {
@@ -2172,7 +2217,15 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
             {cards.map((card) => (
               <div key={card.id} data-card-id={card.id} className={cn('rounded-xl', landing === card.id && 'card-landed')}>
                 <CardFrame
-                  card={card}
+                  card={drilled(card)}
+                  {...(!editing && drills[card.id]?.length
+                    ? {
+                        trail: {
+                          steps: (drills[card.id] ?? []).map((x) => x.label),
+                          onGo: (depth: number) => setDrills((d) => ({ ...d, [card.id]: (d[card.id] ?? []).slice(0, depth) })),
+                        },
+                      }
+                    : {})}
                   renderBlock={blocks?.render}
                   dashboardId={dashboard.id}
                   parameters={draft.parameters}
@@ -2399,6 +2452,18 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
               <Flag /> {$t('Annoter ce point…')}
             </DropdownMenuItem>
           ) : null}
+          {!editing && canDrillTime(builderOf(menu.card), menu.point.column) ? (
+            <DropdownMenuItem onSelect={() => drillInto(menu.card.id, drillTime(builderOf(menu.card) as BuilderQuery, menu.point.column, menu.point.value))}>
+              <ZoomIn /> {$t('Explorer cette période')}
+            </DropdownMenuItem>
+          ) : null}
+          {!editing && canDrillBy(builderOf(menu.card), menu.point.column) && menu.point.column.source ? (
+            <DrillByMenu
+              table={menu.point.column.source.table}
+              exclude={menu.point.column.source.field}
+              onPick={(by) => drillInto(menu.card.id, drillBy(builderOf(menu.card) as BuilderQuery, menu.point.column, menu.point.value, by))}
+            />
+          ) : null}
         </PointMenu>
       ) : null}
       <Dialog open={!!fullscreenCard} onOpenChange={(o) => !o && setFullscreenCard(null)}>
@@ -2417,5 +2482,31 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+/** « Détailler par… » : the columns of the value's table that hold categories, to break it down by. */
+function DrillByMenu({ table, exclude, onPick }: { table: string; exclude: string; onPick: (by: { field: string; label: string }) => void }) {
+  const { data } = useTable(table)
+  // Categories first: a column with its list of values, or said to hold categories, places,
+  // statuses — not a name, an e-mail or an address, as many as there are rows.
+  const text = (data?.columns ?? []).filter((c) => c.name !== exclude && c.visibility === 'normal' && !c.pk && !c.fk && kindOfTrinoType(c.type) === 'text')
+  const categories = text.filter((c) => c.has_values || ['category', 'status', 'country', 'region', 'city'].includes(c.semantic ?? ''))
+  const plain = text.filter((c) => !['entity_name', 'title', 'description', 'comment', 'email', 'url', 'image_url', 'avatar_url', 'phone', 'json', 'address', 'zip'].includes(c.semantic ?? ''))
+  const columns = (categories.length ? categories : plain).slice(0, 14)
+  if (!columns.length) return null
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <ZoomIn className="size-4" /> {$t('Détailler par…')}
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="max-h-80 w-56 overflow-y-auto">
+        {columns.map((c) => (
+          <DropdownMenuItem key={c.id} onSelect={() => onPick({ field: c.name, label: c.label || c.name })}>
+            {c.label || c.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
   )
 }
