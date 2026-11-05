@@ -14,5 +14,10 @@
   },
   "0.4.10": {
     "0008_abonnements_alertes.sql": "b52120a7e0f5509aba0651d556d0c90e4d2301700a85770bec1714b6402ef50e"
+  },
+  "0.6.0": {
+    "0009_accueil_largeur.sql": "6787121d4be5181e6f364acc5d706f5e5c1047f2d1d4d4581b62a933e1922bb6",
+    "0010_ordre_favoris.sql": "0b2b43fcdba9dcea57c42f92bef2e82cb821cf12e39d34eafd4eeb73f4da7a96",
+    "0011_versions_mentions.sql": "5a8473be91a17583b5ae215ec18bd7c6b6e6ce1e817bc36db457fc6fb0759a05"
   }
 }
