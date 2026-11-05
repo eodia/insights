@@ -2,6 +2,7 @@
 
 import { VoiceButton } from '@/components/app/voice-button'
 import { Orb } from '@/components/app/assistant/orb'
+import { type Chart, ChartPart } from '@/components/app/assistant/parts'
 import { speakReply } from '@/lib/voice'
 import type { Dashboard, DashboardCard, TableMeta } from '@eodia/contracts'
 import { DASHBOARD_COLUMNS, SEMANTIC_LABELS, cardSize, placedAfter } from '@eodia/contracts'
@@ -52,7 +53,7 @@ export type Proposal =
 
 type Entry =
   | { role: 'user'; text: string }
-  | { role: 'assistant'; text: string; tools: { name: string; ok?: boolean; summary?: string }[]; proposals: Proposal[]; error?: string; done: boolean }
+  | { role: 'assistant'; text: string; tools: { name: string; ok?: boolean; summary?: string }[]; proposals: Proposal[]; charts?: Chart[]; error?: string; done: boolean }
 
 const TOOL_LABELS: Record<string, [string, typeof Search]> = {
   search_schema: [msg('Recherche dans le schéma'), Search],
@@ -192,7 +193,7 @@ type ShownPart =
   | { type: 'text'; text: string }
   | { type: 'tool'; name: string; ok: boolean; summary?: string }
   | { type: 'proposal'; proposal: Proposal }
-  | { type: 'chart' }
+  | { type: 'chart'; chart: Chart }
 
 /** A conversation read back, in the panel's form: the words, the steps, the proposals. */
 const entriesOf = (turns: readonly ({ role: 'user'; text: string } | { role: 'assistant'; parts: ShownPart[] })[]): Entry[] =>
@@ -207,6 +208,7 @@ const entriesOf = (turns: readonly ({ role: 'user'; text: string } | { role: 'as
             .join('\n\n'),
           tools: t.parts.filter((x): x is Extract<ShownPart, { type: 'tool' }> => x.type === 'tool').map((x) => ({ name: x.name, ok: x.ok, ...(x.summary ? { summary: x.summary } : {}) })),
           proposals: t.parts.filter((x): x is Extract<ShownPart, { type: 'proposal' }> => x.type === 'proposal').map((x) => x.proposal),
+          charts: t.parts.filter((x): x is Extract<ShownPart, { type: 'chart' }> => x.type === 'chart').map((x) => x.chart),
           done: true,
         },
   )
@@ -318,6 +320,8 @@ export function CopilotPanel() {
             return { ...a, tools }
           })
         else if (event === 'proposal') update((a) => ({ ...a, proposals: [...a.proposals, d.proposal as Proposal] }))
+        // A chart the copilot shows: drawn here, its query run under the person's identity.
+        else if (event === 'chart') update((a) => ({ ...a, charts: [...(a.charts ?? []), d.chart as Chart] }))
         // Filters for the dashboard on screen: set at once, Back undoes them.
         else if (event === 'filters') useUi.getState().dashboardFilters?.apply(d.values as Record<string, unknown>)
         else if (event === 'error') update((a) => ({ ...a, error: String(d.message) }))
@@ -465,6 +469,9 @@ export function CopilotPanel() {
               ) : !e.done && e.tools.length === 0 ? (
                 <span className="ai-shimmer text-[13px]">{$t('Réflexion…')}</span>
               ) : null}
+              {(e.charts ?? []).map((c) => (
+                <ChartPart key={c.id} chart={c} />
+              ))}
               {e.proposals.map((p) => (
                 <ProposalCard key={p.id} p={p} />
               ))}

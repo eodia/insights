@@ -412,7 +412,7 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
       const seen = env.allowRun
         ? `Voici ce qu'il montre, pour le commenter :\n${resultText(r)}`
         : "Tu ne vois pas ses chiffres (la personne n'a pas autorisé leur lecture) : décris ce qu'il montre sans en citer."
-      return { ok: true, text: `Graphique « ${p.title} » affiché sous ta réponse (${r.rows.length} ligne(s)) ; ne recopie pas ses chiffres en tableau. ${seen}`, summary: p.title }
+      return { ok: true, text: `Graphique « ${p.title} » affiché sous ta réponse (${r.rows.length} ligne(s)) ; ne recopie ni ses chiffres en tableau ni sa requête SQL (la personne peut l'ouvrir depuis le graphique). ${seen}`, summary: p.title }
     }
     case 'propose_dashboard': {
       const p = parsed.data as z.infer<typeof Inputs.propose_dashboard>
