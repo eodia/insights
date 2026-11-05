@@ -449,7 +449,7 @@ export function CopilotPanel() {
                   {e.tools.map((t, j) => {
                     const [label, Icon] = TOOL_LABELS[t.name] ?? [t.name, Wrench]
                     return (
-                      <span key={j} className={cn('inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px]', t.ok === false ? 'bg-red-500/10 text-red-600' : 'bg-muted/70 text-muted-foreground')}>
+                      <span key={j} className={cn('inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px]', t.ok === false ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-muted/70 text-muted-foreground')}>
                         {t.ok === undefined ? <Loader2 className="size-3 shrink-0 animate-spin" /> : <Icon className="size-3 shrink-0" />}
                         <span className="truncate">{$t(label)}</span>
                         {t.summary ? <span className="truncate opacity-70">· {t.summary}</span> : null}

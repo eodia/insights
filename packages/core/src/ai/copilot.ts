@@ -14,7 +14,7 @@ import {
 } from '@eodia/contracts'
 import { z } from 'zod'
 import { audit } from '../audit'
-import type { Actor, Core } from '../context'
+import { type Actor, type Core, principalOf } from '../context'
 import { listByType, metricDefinition } from '../content/items'
 import { AppError } from '../errors'
 import { runQuery } from '../query/run'
@@ -270,6 +270,26 @@ async function tableIdOf(core: Core, actor: Actor, ref: string): Promise<string>
   return found.id
 }
 
+/**
+ * What is wrong with a query before it is shown to the person — null when Trino accepts it.
+ * Checked under their identity, by `EXPLAIN (TYPE VALIDATE)`: no data is read, and a table they
+ * may not read fails as it would for them. A proposal they would see fail is never shown.
+ */
+async function sqlProblem(core: Core, actor: Actor, sql: string): Promise<string | null> {
+  const body = sql.trim().replace(/;+\s*$/, '')
+  const bare = body.replace(/--[^\n]*|\/\*[\s\S]*?\*\//g, ' ').trim()
+  if (!/^(select|with|values|\()/i.test(bare)) return 'seul un SELECT (ou WITH …) peut être proposé'
+  if (body.includes(';')) return 'une seule requête à la fois'
+  // Variables are checked once filled in, as the question runs.
+  if (/\{\{|\[\[/.test(body)) return null
+  try {
+    await core.engine.run(`EXPLAIN (TYPE VALIDATE) ${body}`, { user: principalOf(actor), timeoutMs: 30_000 })
+    return null
+  } catch (err) {
+    return err instanceof Error ? err.message : String(err)
+  }
+}
+
 let proposalSeq = 0
 const proposalId = () => `p${Date.now().toString(36)}${(proposalSeq++).toString(36)}`
 
@@ -348,6 +368,10 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
     }
     case 'propose_question': {
       const p = parsed.data as z.infer<typeof Inputs.propose_question>
+      const problem = await sqlProblem(core, actor, p.sql)
+      if (problem) {
+        return { ok: false, text: `Requête refusée par Trino, rien n'a été présenté : ${problem}\nCorrige-la (describe_table donne les noms exacts des colonnes) puis rappelle propose_question.`, summary: 'requête à corriger' }
+      }
       const proposal: Proposal = {
         id: proposalId(),
         kind: 'question',
@@ -392,6 +416,15 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
     }
     case 'propose_dashboard': {
       const p = parsed.data as z.infer<typeof Inputs.propose_dashboard>
+      // Every card checked: one failing card would show the person an error.
+      const problems = (await Promise.all(p.cards.map(async (c) => ({ title: c.title, problem: await sqlProblem(core, actor, c.sql) })))).filter((x) => x.problem)
+      if (problems.length) {
+        return {
+          ok: false,
+          text: `Requêtes refusées par Trino, rien n'a été présenté :\n${problems.map((x) => `- « ${x.title} » : ${x.problem}`).join('\n')}\nCorrige-les (describe_table donne les noms exacts des colonnes) puis rappelle propose_dashboard avec toutes les cartes.`,
+          summary: `${problems.length} carte(s) à corriger`,
+        }
+      }
       const proposal: Proposal = {
         id: proposalId(),
         kind: 'dashboard',
@@ -598,7 +631,8 @@ export async function copilotTurn(
   const env: ToolEnv = { core, actor, allowRun: input.allowRun || input.context.kind === 'assistant', context: input.context, emit }
   const usedTools: string[] = []
   // On a dashboard with filters, the model may also set them.
-  const tools = input.context.kind === 'dashboard' && input.context.filters?.length ? [...TOOLS, ...FILTER_TOOLS] : TOOLS
+  const offered = env.allowRun ? TOOLS : TOOLS.filter((t) => t.name !== 'run_query')
+  const tools = input.context.kind === 'dashboard' && input.context.filters?.length ? [...offered, ...FILTER_TOOLS] : offered
   const started = Date.now()
   let usage = { input: 0, output: 0 }
   let error: string | null = null

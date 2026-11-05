@@ -33,6 +33,8 @@ export function newApp() {
     defaultHook: (result, c) => {
       if (!result.success) {
         const issues = result.error.issues.map((i) => `${i.path.join('.') || 'corps'} : ${i.message}`)
+        // In development, a request the page built wrong is said in the console.
+        if (process.env.NODE_ENV !== 'production') console.warn(`[400] ${c.req.method} ${c.req.path} — ${issues.slice(0, 3).join(' ; ')}`)
         return c.json({ error: { code: 'INVALID_INPUT', message: `Entrée invalide — ${issues.slice(0, 3).join(' ; ')}`, details: result.error.issues } }, 400)
       }
     },

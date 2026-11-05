@@ -95,7 +95,7 @@ export function Steps({ steps }: { steps: readonly Extract<Part, { type: 'tool' 
             className={cn(
               'ai-rise inline-flex items-center gap-1.5 rounded-full border bg-background/70 px-2.5 py-1 text-xs backdrop-blur',
               s.ok === false
-                ? 'border-red-200 text-red-600 dark:border-red-900 dark:text-red-400'
+                ? 'border-amber-200 text-amber-700 dark:border-amber-900 dark:text-amber-400'
                 : 'text-muted-foreground',
             )}
           >

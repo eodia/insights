@@ -89,6 +89,10 @@ export async function createApp() {
 
   app.onError((err, c) => {
     if (err instanceof AppError) {
+      // In development, every refusal is said in the console: what was asked, and why not.
+      if (process.env.NODE_ENV !== 'production' && err.status >= 400 && err.status < 500 && err.status !== 401) {
+        console.warn(`[${err.status}] ${c.req.method} ${c.req.path} — ${err.code}: ${err.message}`)
+      }
       return c.json({ error: { code: err.code, message: err.message, ...(err.details ? { details: err.details } : {}) } }, err.status as 400)
     }
     console.error(err)
