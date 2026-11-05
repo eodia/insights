@@ -439,6 +439,23 @@
     opacity: 1;
   }
 }
+@keyframes ai-twinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(0.82) rotate(45deg);
+  }
+}
+.ai-star-busy > path:first-of-type {
+  transform-origin: 12px 12px;
+  animation: ai-twinkle 1.6s ease-in-out infinite;
+}
+.ai-star-busy > path:last-of-type {
+  transform-origin: 19.5px 5px;
+  animation: ai-twinkle 1.6s ease-in-out 0.4s infinite;
+}
 @keyframes ai-shimmer {
   to {
     background-position: -200% 0;
