@@ -1,7 +1,7 @@
 'use client'
 
 import { VoiceButton } from '@/components/app/voice-button'
-import { Orb } from '@/components/app/assistant/orb'
+import { Morph } from '@/components/app/assistant/orb'
 import { type Chart, ChartPart, CodeBlock } from '@/components/app/assistant/parts'
 import { SqlCode } from '@/components/app/sql-code'
 import { speakReply } from '@/lib/voice'
@@ -378,7 +378,7 @@ export function CopilotPanel() {
       {/* A light from the top, as on the assistant's screen. */}
       <div aria-hidden className="ai-glow pointer-events-none absolute inset-x-0 top-0 h-72" />
       <div className="relative z-10 flex h-[54px] shrink-0 items-center gap-2.5 px-4">
-        <Orb size={22} busy={busy} />
+        <Morph size={22} busy={busy} />
         <span className="text-[15px] font-semibold tracking-tight">{$t('Copilote')}</span>
         <span className="inline-flex min-w-0 items-center gap-1 truncate rounded-full bg-muted/80 px-2 py-0.5 text-[11.5px] text-muted-foreground">
           <ContextIcon className="size-3 shrink-0" />
@@ -417,7 +417,7 @@ export function CopilotPanel() {
       <div className="relative z-10 flex-1 space-y-5 overflow-y-auto px-4 pt-2 pb-4">
         {entries.length === 0 ? (
           <div className="flex flex-col items-center gap-3 pt-10 text-center">
-            <Orb size={56} />
+            <Morph size={56} cycling />
             <h3 className="mt-2 text-lg font-semibold tracking-tight">{$t('Que puis-je faire pour vous ?')}</h3>
             <p className="max-w-[300px] text-[13px] leading-relaxed text-muted-foreground">
               {context.kind === 'dashboard'
@@ -447,7 +447,7 @@ export function CopilotPanel() {
             </div>
           ) : (
             <div key={i} className="ai-rise flex gap-2.5">
-              <Orb size={18} busy={!e.done} className="mt-0.5 shrink-0" />
+              <Morph size={18} busy={!e.done} className="mt-0.5 shrink-0" />
               <div className="min-w-0 flex-1 space-y-2">
               {e.tools.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">

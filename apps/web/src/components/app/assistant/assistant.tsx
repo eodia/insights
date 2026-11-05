@@ -278,7 +278,7 @@ function Welcome({
   ]
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 pb-16">
-      <Morph size={96} className="ai-rise mb-8" />
+      <Morph size={96} cycling className="ai-rise mb-8" />
       <h1 className="ai-rise bg-gradient-to-br from-foreground to-foreground/55 bg-clip-text text-center text-3xl font-semibold tracking-tight text-transparent sm:text-4xl">
         {hello}
       </h1>
@@ -345,7 +345,7 @@ const Answer = memo(function Answer({ turn }: { turn: Extract<Turn, { role: 'ass
     .join('\n\n')
   return (
     <div className="ai-rise group flex gap-4">
-      <Orb size={28} busy={!turn.done} className="mt-0.5 self-start" />
+      <Morph size={28} busy={!turn.done} className="mt-0.5 self-start" />
       <div className="min-w-0 flex-1 space-y-2 pt-0.5">
         {thinking ? <div className="ai-shimmer text-sm font-medium">{$t('Réflexion…')}</div> : null}
         <AnswerParts parts={turn.parts} />

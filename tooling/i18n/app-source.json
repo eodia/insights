@@ -1373,7 +1373,7 @@
   },
   "Afficher ou masquer le menu": {
     "where": [
-      "components/app/topbar.tsx:53"
+      "components/app/topbar.tsx:54"
     ]
   },
   "Afficher par": {
@@ -4704,8 +4704,8 @@
   "Demander au copilote": {
     "where": [
       "components/app/question/editor.tsx:422",
-      "components/app/topbar.tsx:119",
-      "components/app/topbar.tsx:132"
+      "components/app/topbar.tsx:120",
+      "components/app/topbar.tsx:133"
     ]
   },
   "Demandez au copilote…": {
@@ -4867,7 +4867,7 @@
   },
   "Des cartes à placer sur une grille": {
     "where": [
-      "components/app/topbar.tsx:91"
+      "components/app/topbar.tsx:92"
     ]
   },
   "Des colonnes reliées par des bandes qui disent la conversion de chaque étape": {
@@ -6089,7 +6089,7 @@
     "where": [
       "components/app/home/sections.tsx:61",
       "components/app/home/widgets.tsx:315",
-      "components/app/topbar.tsx:83"
+      "components/app/topbar.tsx:84"
     ]
   },
   "Explorez vos données, posez vos questions et partagez vos tableaux de bord. Open source, avec un copilot IA.": {
@@ -6225,7 +6225,7 @@
   },
   "Fermer le copilote": {
     "where": [
-      "components/app/topbar.tsx:111"
+      "components/app/topbar.tsx:112"
     ]
   },
   "Figer la première colonne": {
@@ -6235,7 +6235,7 @@
   },
   "Fil d'Ariane": {
     "where": [
-      "components/app/topbar.tsx:58"
+      "components/app/topbar.tsx:59"
     ]
   },
   "Filtre": {
@@ -8687,7 +8687,7 @@
   },
   "Menu": {
     "where": [
-      "components/app/topbar.tsx:54"
+      "components/app/topbar.tsx:55"
     ]
   },
   "Mes favoris": {
@@ -11157,6 +11157,11 @@
       "components/app/pivot-axis.tsx:91"
     ]
   },
+  "Réinitialiser le zoom": {
+    "where": [
+      "components/app/echart.tsx:305"
+    ]
+  },
   "Réinitialiser les filtres": {
     "where": [
       "components/app/dashboard/view.tsx:1990",
@@ -12134,7 +12139,7 @@
   },
   "Source de données": {
     "where": [
-      "components/app/topbar.tsx:101"
+      "components/app/topbar.tsx:102"
     ]
   },
   "Source supprimée.": {
@@ -13293,7 +13298,7 @@
     "where": [
       "components/app/home/sections.tsx:65",
       "components/app/home/widgets.tsx:316",
-      "components/app/topbar.tsx:87"
+      "components/app/topbar.tsx:88"
     ]
   },
   "Tuile": {
