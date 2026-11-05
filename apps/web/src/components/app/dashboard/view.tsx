@@ -1288,8 +1288,9 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
       const own = d.cards.filter((c) => c.tab === id)
       const ids = new Map(own.map((c) => [c.id, newId('c')]))
       const remap = (x: string) => ids.get(x) ?? x
+      // Each copy keeps its question's query to itself (when known), so as not to share it.
       const cards = own.map((c) => ({
-        ...c,
+        ...(ownCopy(c) ?? c),
         id: remap(c.id),
         tab: copyId,
         ...(c.summary ? { summary: { ...c.summary, cards: c.summary.cards.map(remap) } } : {}),
@@ -1559,6 +1560,26 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
   // A card just added is brought into view and glows a moment: placed below the others,
   // it would otherwise land out of sight.
   const [landing, setLanding] = useState<string | null>(null)
+  /**
+   * A copy of a card that shows a saved question keeps that question's query and look to itself:
+   * sharing the question, a change to one would change the other. Edited, it becomes a question
+   * of its own. `null` while the question is not known yet.
+   */
+  const ownCopy = (card: DashboardCard, question?: Question): DashboardCard | null => {
+    if (card.kind !== 'question' || !card.question) return card
+    const q = question ?? qc.getQueryData<Question>(keys.question(card.question))
+    if (!q) return null
+    const { question: _shared, ...rest } = card
+    return { ...rest, title: card.title || q.name, query: q.query, visualization: card.visualization ?? q.visualization }
+  }
+  const duplicateCard = async (card: DashboardCard) => {
+    try {
+      const copy = ownCopy(card) ?? ownCopy(card, await api.get<Question>(`/v1/questions/${card.question}`))
+      if (copy) addCards([{ ...copy, id: newId('c') }])
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
   const addCards = (items: Omit<DashboardCard, 'x' | 'y' | 'tab'>[]) => {
     setDraft((d) => ({ ...d, cards: [...d.cards, ...placedAfter(d.cards, currentTab, items.map((i) => ({ ...i, tab: currentTab })))] as DashboardCard[] }))
     if (items[0]) setLanding(items[0].id)
@@ -2267,7 +2288,7 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
                   {...(card.question ? { onLeave: () => leaveFor(card.question as string) } : {})}
                   onChange={(patch) => setCard(card.id, patch)}
                   onRemove={() => setDraft((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== card.id) }))}
-                  onDuplicate={() => addCards([{ ...card, id: newId('c') }])}
+                  onDuplicate={() => void duplicateCard(card)}
                   {...(onMoveCard && editable && !publicMode && card.kind !== 'heading'
                     ? {
                         moveTabs: tabs.filter((t) => t.id !== currentTab),
