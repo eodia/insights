@@ -1,6 +1,7 @@
 'use client'
 
 import { ConditionalFormats } from './conditional-formats'
+import { DataRoles } from './data-roles'
 import type { ColorScheme, ResultColumn, TextSize, VisualizationSettings, VisualizationType } from '@eodia/contracts'
 import { TEXT_SIZES, THEME_FONTS, VISUALIZATIONS } from '@eodia/contracts'
 import { loadFont } from '@/lib/theme'
@@ -654,10 +655,15 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
 
   return (
     <div className="space-y-4">
-      {cartesian || race || type === 'polar' || type === 'bubble' || type === 'treemap' || type === 'calendar' || type === 'pie' || type === 'funnel' || type === 'trend' || type === 'scatter' ? (
+      {cartesian || race || ['polar', 'bubble', 'treemap', 'sankey', 'candlestick', 'calendar', 'pie', 'funnel', 'trend', 'scatter'].includes(type) ? (
         <Section title={$t('Données')}>
-          <ColumnsPick label={$t('Dimensions (axe, puis séries)')} columns={columns} value={settings.dimensions ?? detected.dims.map((d) => d.name)} onChange={(v) => set({ dimensions: v })} />
-          <ColumnsPick label={$t('Mesures')} columns={numeric} value={settings.metrics ?? detected.metrics.map((d) => d.name)} onChange={(v) => set({ metrics: v })} />
+          <DataRoles
+            type={type}
+            columns={columns}
+            dims={settings.dimensions ?? detected.dims.map((d) => d.name)}
+            metrics={settings.metrics ?? detected.metrics.map((d) => d.name)}
+            onChange={({ dimensions, metrics }) => set({ dimensions, metrics })}
+          />
         </Section>
       ) : null}
 
