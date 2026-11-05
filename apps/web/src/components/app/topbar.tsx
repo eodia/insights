@@ -13,7 +13,7 @@ import { $t } from '@/lib/i18n'
 import { useMe } from '@/lib/queries'
 import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Database, FolderPlus, PanelLeft, Plus, Search, Sparkles, PanelRightClose } from 'lucide-react'
+import { Database, FolderPlus, PanelLeft, Plus, Search, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Fragment, useEffect } from 'react'
@@ -111,14 +111,11 @@ export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => voi
               type="button"
               onClick={toggleCopilot}
               aria-pressed
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-violet-500/10 pr-2.5 pl-3 text-[13.5px] font-medium text-violet-700 ring-1 ring-violet-500/25 ring-inset transition-colors hover:bg-violet-500/15 dark:text-violet-300"
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-violet-500/10 pr-2 pl-3 text-[13.5px] font-medium text-violet-700 ring-1 ring-violet-500/25 ring-inset transition-colors hover:bg-violet-500/15 dark:text-violet-300"
             >
-              <span className="relative flex size-2">
-                <span className="absolute inset-0 animate-ping rounded-full bg-violet-500/50" />
-                <span className="relative size-2 rounded-full bg-violet-500" />
-              </span>
-              <span className="hidden sm:inline">{$t('Copilote')}</span>
-              <PanelRightClose className="size-4 opacity-70" />
+              <Sparkles className="size-4 text-violet-500" />
+              <span className="hidden sm:inline">{$t('Demander au copilote')}</span>
+              <kbd className="hidden rounded-md bg-violet-500/15 px-1.5 py-0.5 font-mono text-[10px] text-violet-700 md:inline dark:text-violet-300">Ctrl J</kbd>
             </button>
           </Hint>
         ) : (
