@@ -13,9 +13,10 @@ import { Hint } from '@/components/ui/tooltip'
 import { type RunResult, api } from '@/lib/api'
 import { formatAgo } from '@/lib/format'
 import { $t, intlLocale, msg } from '@/lib/i18n'
+import { useQuestion } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BellRing, Loader2, Pencil, Plus, RefreshCw, Trash2, TriangleAlert } from 'lucide-react'
+import { BellRing, Loader2, Pencil, Plus, RefreshCw, Target, Trash2, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { type ChannelDraft, ChannelsEditor, ScheduleEditor, channelDrafts, channelInputs, defaultSchedule, scheduleSummary } from './editors'
@@ -41,6 +42,45 @@ export function AlertsDialog({ question, onClose }: { question: { id: string; na
   const columns = result?.columns ?? []
   const [editing, setEditing] = useState<Alert | 'new' | null>(null)
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: key }), qc.invalidateQueries({ queryKey: ['alerts'] })])
+  // A figure with a goal: the alert that says when it is not met, ready to create in one click.
+  const { data: saved } = useQuestion(question.id)
+  const viz = saved?.visualization
+  const goal = viz && ['scalar', 'trend', 'progress'].includes(viz.type) ? viz.settings?.goal : null
+  const measure = (viz?.settings?.metrics?.[0] && columns.find((c) => c.name === viz.settings?.metrics?.[0])) || columns.find((c) => c.type === 'number')
+  const goalAlert: AlertCondition | null =
+    goal !== null && goal !== undefined && measure
+      ? { kind: 'threshold', column: measure.name, read: viz?.type === 'trend' ? 'last' : 'first', op: viz?.settings?.invert ? 'gt' : 'lt', value: goal }
+      : null
+  const hasGoalAlert = goalAlert !== null && list.some((a) => a.condition.kind === 'threshold' && a.condition.value === goalAlert.value && a.condition.op === goalAlert.op)
+  // Checked every morning: the day's figure against its goal.
+  const daily = (() => {
+    const { weekdays: _w, day: _d, ...rest } = defaultSchedule('daily')
+    return rest
+  })()
+  const [creating, setCreating] = useState(false)
+  const createGoalAlert = async () => {
+    if (!goalAlert) return
+    setCreating(true)
+    try {
+      await api.post('/v1/alerts', {
+        question: question.id,
+        name: $t('Objectif non atteint'),
+        condition: goalAlert,
+        schedule: daily,
+        mode: 'change',
+        email: true,
+        channels: [],
+        message: '',
+        enabled: true,
+      })
+      toast.success($t('Alerte créée : vous serez prévenu quand l’objectif n’est plus tenu.'))
+      await refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    } finally {
+      setCreating(false)
+    }
+  }
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
@@ -61,6 +101,22 @@ export function AlertsDialog({ question, onClose }: { question: { id: string; na
               <DialogTitle>{$t('Alertes')}</DialogTitle>
               <DialogDescription>{$t('Être prévenu quand « {name} » dit ce que vous attendez : un seuil franchi, des lignes qui reviennent.', { name: question.name })}</DialogDescription>
             </DialogHeader>
+            {goalAlert && !hasGoalAlert && !isLoading ? (
+              <div className="flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.05] p-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <Target className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1 text-sm">
+                  <div className="font-medium">{$t('Être prévenu quand l’objectif n’est plus tenu')}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {conditionSummary(goalAlert, columns)} · {scheduleSummary(daily)}
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => void createGoalAlert()} disabled={creating}>
+                  {creating ? <Loader2 className="animate-spin" /> : <Plus />} {$t('Créer')}
+                </Button>
+              </div>
+            ) : null}
             {isLoading ? <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" /> : null}
             {!isLoading && list.length === 0 ? <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">{$t('Aucune alerte sur cette question.')}</p> : null}
             <div className="space-y-2">

@@ -283,6 +283,34 @@ function firstMetric(result: Result, settings: VisualizationSettings) {
   return m ? { col: m, index: result.columns.indexOf(m) } : null
 }
 
+/**
+ * How far a figure is from its goal: a thin bar filling up, the share reached — green once it is
+ * reached (above it, or below it when lower is better), amber until then.
+ */
+function GoalMeter({ value, settings, col, className }: { value: number; settings: VisualizationSettings; col: ResultColumn; className?: string }) {
+  const goal = settings.goal
+  if (goal === undefined || goal === null || goal === 0 || !Number.isFinite(value)) return null
+  const lowerBetter = !!settings.invert
+  const reached = lowerBetter ? value <= goal : value >= goal
+  const fill = Math.max(0, Math.min(1, lowerBetter ? (value <= 0 ? 1 : goal / value) : value / goal))
+  const share = new Intl.NumberFormat(intlLocale(), { style: 'percent', maximumFractionDigits: 0 }).format(value / goal)
+  return (
+    <div className={cn('flex min-w-0 flex-col gap-1', className)}>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div className={cn('viz-grow-x h-full rounded-full transition-[width] duration-500', reached ? 'bg-green-500' : 'bg-amber-500')} style={{ width: `${fill * 100}%` }} />
+      </div>
+      <div className="flex min-w-0 items-baseline justify-between gap-2 text-[11px] text-muted-foreground">
+        <span className={cn('shrink-0 font-medium tabular-nums', reached ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400')}>
+          {reached ? $t('Objectif atteint · {share}', { share }) : $t('{share} de l’objectif', { share })}
+        </span>
+        <span className="truncate">
+          {settings.goal_label || $t('Objectif')} {formatValue(goal, col, { compact: Math.abs(goal) >= 1e4 })}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 function Scalar({ result, settings, compact }: { result: Result; settings: VisualizationSettings; compact: boolean }) {
   const m = firstMetric(result, settings)
   const value = m ? result.rows[0]?.[m.index] : undefined
@@ -313,6 +341,7 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
         ) : settings.caption ? (
           <div className="truncate text-xs text-muted-foreground">{settings.caption}</div>
         ) : null}
+        <GoalMeter value={now} settings={settings} col={m.col} className="mt-1" />
       </div>
     )
   }
@@ -326,6 +355,7 @@ function Scalar({ result, settings, compact }: { result: Result; settings: Visua
         {formatValue(value, m.col, { compact: settings.compact ?? (typeof value === 'number' && Math.abs(value) >= 1e7), decimals: settings.decimals ?? null, prefix: settings.prefix, suffix: settings.suffix })}
       </div>
       {settings.caption ? <div className="text-sm text-muted-foreground">{settings.caption}</div> : null}
+      <GoalMeter value={Number(value)} settings={settings} col={m.col} className="mt-2 w-full max-w-72" />
     </div>
   )
 }
@@ -459,6 +489,7 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
         <div className="truncate text-[min(34px,13cqw)] leading-none font-bold tracking-[-0.035em] tabular-nums">{formatValue(lastShown, m.col, { compact: Math.abs(last) >= 1e6 })}</div>
         {delta}
         {period ? <div className="text-xs text-muted-foreground">{period}</div> : null}
+        <GoalMeter value={last} settings={settings} col={m.col} className="mt-1" />
       </div>
     )
   }
@@ -480,6 +511,7 @@ function Trend({ result, settings }: { result: Result; settings: VisualizationSe
       ) : period ? (
         <div className="text-xs text-muted-foreground">{period}</div>
       ) : null}
+      <GoalMeter value={last} settings={settings} col={m.col} className="mt-1" />
     </div>
   )
 }

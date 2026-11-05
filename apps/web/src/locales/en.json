@@ -2865,5 +2865,13 @@
   "Glissez pour déplacer": "Drag to move",
   "Retiré des favoris.": "Removed from favourites.",
   "Filtres posés sur le tableau de bord": "Filters set on the dashboard",
-  "Recherche des valeurs du filtre": "Looking up the filter's values"
+  "Recherche des valeurs du filtre": "Looking up the filter's values",
+  "{share} de l’objectif": "{share} of goal",
+  "Alerte créée : vous serez prévenu quand l’objectif n’est plus tenu.": "Alert created: you will be told when the goal is no longer met.",
+  "Être prévenu quand l’objectif n’est plus tenu": "Be told when the goal is no longer met",
+  "Objectif atteint · {share}": "Goal reached · {share}",
+  "Objectif non atteint": "Goal not met",
+  "Plus bas est mieux": "Lower is better",
+  "Une jauge sous le chiffre montre où il en est ; une alerte peut prévenir quand il s’en écarte (menu de la carte › Alertes).": "A gauge under the figure shows where it stands; an alert can tell you when it drifts away (card menu › Alerts).",
+  "Valeur à atteindre": "Target value"
 }

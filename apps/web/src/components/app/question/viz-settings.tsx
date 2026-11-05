@@ -1053,6 +1053,18 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           <Field label={$t('Légende sous le nombre')}>
             <Input value={settings.caption ?? ''} onChange={(e) => set({ caption: e.target.value })} className="h-8" />
           </Field>
+          <Section title={$t('Objectif')}>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label={$t('Valeur à atteindre')}>
+                <Input type="number" value={settings.goal ?? ''} onChange={(e) => set({ goal: num(e.target.value) })} className="h-8" />
+              </Field>
+              <Field label={$t('Libellé')}>
+                <Input value={settings.goal_label ?? ''} onChange={(e) => set({ goal_label: e.target.value })} placeholder={$t('Objectif')} className="h-8" />
+              </Field>
+            </div>
+            <Toggle label={$t('Plus bas est mieux')} checked={!!settings.invert} onChange={(v) => set({ invert: v })} />
+            <p className="text-xs text-muted-foreground">{$t('Une jauge sous le chiffre montre où il en est ; une alerte peut prévenir quand il s’en écarte (menu de la carte › Alertes).')}</p>
+          </Section>
         </>
       ) : null}
 
@@ -1073,6 +1085,20 @@ export function VizSettings({ type, settings, result, onChange }: { type: Visual
           </Field>
           <Toggle label={$t('Une baisse est une bonne nouvelle')} checked={!!settings.invert} onChange={(v) => set({ invert: v })} />
         </Section>
+      ) : null}
+      {type === 'trend' ? (
+          <Section title={$t('Objectif')}>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label={$t('Valeur à atteindre')}>
+                <Input type="number" value={settings.goal ?? ''} onChange={(e) => set({ goal: num(e.target.value) })} className="h-8" />
+              </Field>
+              <Field label={$t('Libellé')}>
+                <Input value={settings.goal_label ?? ''} onChange={(e) => set({ goal_label: e.target.value })} placeholder={$t('Objectif')} className="h-8" />
+              </Field>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">{$t('Une jauge sous le chiffre montre où il en est ; une alerte peut prévenir quand il s’en écarte (menu de la carte › Alertes).')}</p>
+          </Section>
       ) : null}
 
       {type === 'funnel' ? (
