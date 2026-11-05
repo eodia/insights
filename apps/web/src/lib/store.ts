@@ -10,6 +10,27 @@ export interface DashboardDraftSink {
   add(cards: readonly Omit<DashboardCard, 'x' | 'y' | 'tab'>[]): void
 }
 
+/**
+ * The dashboard on screen, as the copilot may filter it: « seulement la Bretagne le trimestre
+ * dernier » sets its filters at once — Back undoes it.
+ */
+export interface DashboardFiltersSink {
+  readonly id: string
+  apply(values: Readonly<Record<string, unknown>>): void
+}
+
+/** A filter of the dashboard on screen, as the copilot is told it. */
+export interface DashboardFilterInfo {
+  readonly id: string
+  readonly label: string
+  readonly type: string
+  readonly multiple?: boolean
+  readonly operator?: string
+  readonly units?: readonly string[]
+  readonly value: unknown
+  readonly column: string | null
+}
+
 export interface Crumb {
   readonly label: string
   readonly href?: string
@@ -20,7 +41,7 @@ export type CopilotContext =
   | { kind: 'general' }
   | { kind: 'sql'; sql?: string; error?: string }
   | { kind: 'question'; id?: string; query?: unknown }
-  | { kind: 'dashboard'; id: string }
+  | { kind: 'dashboard'; id: string; filters?: readonly DashboardFilterInfo[] }
   | { kind: 'structure'; table: string }
 
 interface UiState {
@@ -32,6 +53,7 @@ interface UiState {
   /** A message the copilot sends as soon as it opens — « Décrire avec le copilot ». */
   copilotPrompt: string | null
   dashboardDraft: DashboardDraftSink | null
+  dashboardFilters: DashboardFiltersSink | null
   toggleSidebar(): void
   setCrumbs(crumbs: readonly Crumb[]): void
   setPalette(open: boolean): void
@@ -40,6 +62,7 @@ interface UiState {
   setCopilotContext(context: CopilotContext): void
   takeCopilotPrompt(): string | null
   setDashboardDraft(sink: DashboardDraftSink | null): void
+  setDashboardFilters(sink: DashboardFiltersSink | null): void
 }
 
 export const useUi = create<UiState>((set, get) => ({
@@ -50,7 +73,9 @@ export const useUi = create<UiState>((set, get) => ({
   copilotContext: { kind: 'general' },
   copilotPrompt: null,
   dashboardDraft: null,
+  dashboardFilters: null,
   setDashboardDraft: (dashboardDraft) => set({ dashboardDraft }),
+  setDashboardFilters: (dashboardFilters) => set({ dashboardFilters }),
   toggleSidebar: () => set((s) => ({ sidebar: !s.sidebar })),
   setCrumbs: (crumbs) => set({ crumbs }),
   setPalette: (palette) => set({ palette }),

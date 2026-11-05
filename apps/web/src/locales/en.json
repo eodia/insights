@@ -2863,5 +2863,7 @@
   "Gérer les alertes": "Manage alerts",
   "Rechercher un tableau de bord, une question…": "Search a dashboard, a question…",
   "Glissez pour déplacer": "Drag to move",
-  "Retiré des favoris.": "Removed from favourites."
+  "Retiré des favoris.": "Removed from favourites.",
+  "Filtres posés sur le tableau de bord": "Filters set on the dashboard",
+  "Recherche des valeurs du filtre": "Looking up the filter's values"
 }

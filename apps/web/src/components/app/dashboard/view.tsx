@@ -1477,7 +1477,36 @@ export function DashboardView({ dashboard, runner, editable, publicMode = false,
     if (before !== JSON.stringify(cols)) force((x) => x + 1)
   }, [])
 
-  const columnFor = (paramId: string) => {
+  // The copilot sees the filters — their values, and where a list's values come from — and may
+  // set them: « seulement la Bretagne le trimestre dernier ». Not on a shared page, nor at home.
+  const copilotFilters = JSON.stringify(
+    draft.parameters.map((p) => ({
+      id: p.id,
+      label: filterName(p),
+      type: p.type,
+      ...(p.multiple === false ? { multiple: false } : {}),
+      ...(p.operator ? { operator: p.operator } : {}),
+      ...(p.units?.length ? { units: p.units } : {}),
+      value: values[p.id] ?? null,
+      column: p.type === 'category' || p.type === 'text' ? (columnFor(p.id) ?? null) : null,
+    })),
+  )
+  const copilotHere = !publicMode && dashboard.id !== HOME_DASHBOARD
+  useEffect(() => {
+    if (copilotHere) useUi.getState().setCopilotContext({ kind: 'dashboard', id: dashboard.id, filters: JSON.parse(copilotFilters) })
+  }, [copilotHere, dashboard.id, copilotFilters])
+  useEffect(() => {
+    if (!copilotHere) return
+    useUi.getState().setDashboardFilters({
+      id: dashboard.id,
+      apply: (next) => {
+        setValues((cur) => ({ ...cur, ...(next as Values) }))
+        setOrigins((o) => Object.fromEntries(Object.entries(o).filter(([k]) => !(k in next))))
+      },
+    })
+    return () => useUi.getState().setDashboardFilters(null)
+  }, [copilotHere, dashboard.id])
+  function columnFor(paramId: string) {
     for (const c of draft.cards) {
       const known = columnIds.current.get(c.id)?.[paramId]
       if (known && (c.mappings ?? []).some((m) => m.parameter === paramId)) return known

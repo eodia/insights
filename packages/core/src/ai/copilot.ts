@@ -10,6 +10,7 @@ import {
   SEMANTIC_LABELS,
   SEMANTIC_TYPES,
   VISUALIZATIONS,
+  resolveDateExpression,
 } from '@eodia/contracts'
 import { z } from 'zod'
 import { audit } from '../audit'
@@ -17,17 +18,32 @@ import type { Actor, Core } from '../context'
 import { listByType, metricDefinition } from '../content/items'
 import { AppError } from '../errors'
 import { runQuery } from '../query/run'
-import { getTable, listRelations, listTables } from '../sources/metadata'
+import { columnValues, getTable, listRelations, listTables } from '../sources/metadata'
 import { type ContentBlock, type MessageParam, type ToolSpec, providerFor } from './providers'
 
 export type CopilotContext =
   | { readonly kind: 'general' }
   | { readonly kind: 'sql'; readonly sql?: string; readonly error?: string }
   | { readonly kind: 'question'; readonly id?: string; readonly query?: unknown }
-  | { readonly kind: 'dashboard'; readonly id: string }
+  | { readonly kind: 'dashboard'; readonly id: string; readonly filters?: readonly DashboardFilterContext[] }
   | { readonly kind: 'structure'; readonly table: string }
   /** The assistant's own screen: it answers, and shows data as charts, within the chosen sources. */
   | { readonly kind: 'assistant'; readonly sources?: readonly string[] }
+
+/**
+ * A filter of the dashboard one looks at, as the page tells it: what it is called, what it takes,
+ * what it holds now, and — for a list of values — the column its values come from.
+ */
+export interface DashboardFilterContext {
+  readonly id: string
+  readonly label: string
+  readonly type: string
+  readonly multiple?: boolean
+  readonly operator?: string
+  readonly units?: readonly string[]
+  readonly value?: unknown
+  readonly column?: string | null
+}
 
 export type CopilotEvent =
   | { type: 'conversation'; id: string }
@@ -36,6 +52,8 @@ export type CopilotEvent =
   | { type: 'tool_result'; name: string; ok: boolean; summary: string }
   | { type: 'proposal'; proposal: Proposal }
   | { type: 'chart'; chart: Chart }
+  /** Filters to set on the dashboard one looks at — by filter id; null clears one. */
+  | { type: 'filters'; values: Record<string, unknown>; summary: string }
   | { type: 'done' }
   | { type: 'error'; message: string }
 
@@ -172,6 +190,33 @@ const TOOLS: readonly ToolSpec[] = [
   },
 ]
 
+/** Filtering the dashboard one looks at: what the page applies at once, the person keeping Back to undo it. */
+const FILTER_TOOLS: readonly ToolSpec[] = [
+  {
+    name: 'find_filter_values',
+    description:
+      "Cherche les valeurs réelles d'un filtre de liste du tableau de bord (ex. « bretagne » → « Bretagne »). À appeler avant set_filters pour toute valeur dont tu n'es pas sûr de l'écriture exacte.",
+    input_schema: {
+      type: 'object',
+      properties: { filter: { type: 'string', description: 'id du filtre' }, search: { type: 'string', description: 'texte cherché, vide pour les plus fréquentes' } },
+      required: ['filter'],
+    },
+  },
+  {
+    name: 'set_filters',
+    description:
+      "Pose des filtres sur le tableau de bord que la personne regarde : ils s'appliquent aussitôt, sans rien enregistrer. Clé : l'id du filtre ; valeur : liste de valeurs exactes pour une liste, expression de période pour une date (lastquarter, past12months, 2026-Q1, 2026-01-01~2026-03-31…), [min, max] pour un nombre (null pour une borne ouverte), une unité (day, week, month, quarter, year) pour un pas de temps ; null retire le filtre. Ne touche pas aux filtres dont la demande ne parle pas.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        values: { type: 'object', description: 'id du filtre → valeur, ou null', additionalProperties: true },
+        summary: { type: 'string', description: 'ce que les filtres montrent, en quelques mots (« Bretagne, trimestre dernier »)' },
+      },
+      required: ['values', 'summary'],
+    },
+  },
+]
+
 const Inputs = {
   search_schema: z.object({ query: z.string() }),
   describe_table: z.object({ table_id: z.string() }),
@@ -183,6 +228,8 @@ const Inputs = {
     name: z.string(),
     cards: z.array(z.object({ title: z.string(), sql: z.string(), visualization: z.enum(VISUALIZATIONS), width: z.number().int().min(2).max(24).optional() })).min(1).max(20),
   }),
+  find_filter_values: z.object({ filter: z.string(), search: z.string().optional() }),
+  set_filters: z.object({ values: z.record(z.string(), z.unknown()), summary: z.string().max(200) }),
   propose_metadata: z.object({
     table_id: z.string(),
     label: z.string().optional(),
@@ -369,7 +416,88 @@ async function runTool(env: ToolEnv, name: string, raw: unknown): Promise<{ ok: 
       return { ok: true, text: `Description de ${p.columns.length} colonne(s) présentée à la personne.`, summary: `${p.columns.length} colonne(s)` }
     }
   }
+  if (name === 'find_filter_values' || name === 'set_filters') return filterTool(env, name, parsed.data)
   return { ok: false, text: 'Outil non géré.', summary: '' }
+}
+
+const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+
+/** The values a list filter offers that match a text, read under the person's rights. */
+async function filterValues(env: ToolEnv, f: DashboardFilterContext, search: string) {
+  if (!f.column) return []
+  const { values } = await columnValues(env.core, env.actor, f.column, search)
+  return values
+}
+
+async function filterTool(env: ToolEnv, name: 'find_filter_values' | 'set_filters', data: unknown): Promise<{ ok: boolean; text: string; summary: string }> {
+  if (env.context.kind !== 'dashboard') return { ok: false, text: "Ces outils ne servent que sur un tableau de bord ouvert.", summary: 'hors tableau de bord' }
+  const filters = env.context.filters ?? []
+  const byId = new Map(filters.map((f) => [f.id, f]))
+  if (name === 'find_filter_values') {
+    const { filter, search } = data as z.infer<typeof Inputs.find_filter_values>
+    const f = byId.get(filter)
+    if (!f) return { ok: false, text: `Filtre « ${filter} » inconnu : ids possibles ${filters.map((x) => x.id).join(', ')}.`, summary: 'filtre inconnu' }
+    const values = await filterValues(env, f, search ?? '')
+    if (!values.length) return { ok: true, text: f.column ? 'Aucune valeur trouvée.' : "Ce filtre n'a pas de liste de valeurs connue : écris la valeur telle que la donnée l'écrit.", summary: '0 valeur' }
+    return { ok: true, text: values.slice(0, 30).map((v) => (v.label && v.label !== v.value ? `${v.value} (${v.label})` : v.value)).join('\n'), summary: `${values.length} valeur(s)` }
+  }
+  const { values, summary } = data as z.infer<typeof Inputs.set_filters>
+  const out: Record<string, unknown> = {}
+  const problems: string[] = []
+  const today = new Date().toISOString().slice(0, 10)
+  for (const [id, raw] of Object.entries(values)) {
+    const f = byId.get(id) ?? filters.find((x) => fold(x.label) === fold(id))
+    if (!f) {
+      problems.push(`« ${id} » n'est pas un filtre de ce tableau de bord.`)
+      continue
+    }
+    if (raw === null) {
+      out[f.id] = null
+      continue
+    }
+    switch (f.type) {
+      case 'category': {
+        const asked = (Array.isArray(raw) ? raw : [raw]).map(String)
+        const exact: string[] = []
+        for (const a of asked) {
+          // The value as the data writes it: « bretagne » is « Bretagne », a label gives its value.
+          const found = (await filterValues(env, f, a)).find((v) => fold(v.value) === fold(a) || (v.label && fold(v.label) === fold(a)))
+          if (found) exact.push(found.value)
+          else if (!f.column) exact.push(a)
+          else problems.push(`« ${a} » n'est pas une valeur de « ${f.label} » (find_filter_values les donne).`)
+        }
+        if (exact.length) out[f.id] = f.multiple === false ? exact.slice(0, 1) : exact
+        break
+      }
+      case 'date': {
+        const text = String(raw).trim()
+        if (resolveDateExpression(text, today) === null) problems.push(`« ${text} » n'est pas une période lisible pour « ${f.label} ».`)
+        else out[f.id] = text
+        break
+      }
+      case 'number': {
+        const pair = Array.isArray(raw) ? raw : [raw, raw]
+        const nums = pair.slice(0, 2).map((x) => (x === null || x === undefined || x === '' ? null : Number(x)))
+        if (nums.some((n) => n !== null && !Number.isFinite(n))) problems.push(`« ${JSON.stringify(raw)} » n'est pas un intervalle de nombres.`)
+        else out[f.id] = nums
+        break
+      }
+      case 'temporal_unit': {
+        const unit = String(raw)
+        if (f.units?.length && !f.units.includes(unit)) problems.push(`« ${unit} » n'est pas proposé par « ${f.label} » (${f.units.join(', ')}).`)
+        else out[f.id] = unit
+        break
+      }
+      default:
+        out[f.id] = String(raw)
+    }
+  }
+  if (!Object.keys(out).length) return { ok: false, text: problems.join('\n') || 'Aucun filtre à poser.', summary: 'aucun filtre' }
+  env.emit({ type: 'filters', values: out, summary })
+  const done = Object.entries(out)
+    .map(([id, v]) => `${byId.get(id)?.label ?? id} = ${v === null ? 'tous' : JSON.stringify(v)}`)
+    .join(' ; ')
+  return { ok: true, text: `Filtres posés sur le tableau de bord : ${done}.${problems.length ? `\nNon posés : ${problems.join(' ')}` : ''}`, summary }
 }
 
 async function contextText(core: Core, actor: Actor, context: CopilotContext): Promise<string> {
@@ -385,9 +513,21 @@ async function contextText(core: Core, actor: Actor, context: CopilotContext): P
       parts.push('La personne construit une question.')
       if (context.query) parts.push(`Question en cours : ${JSON.stringify(context.query).slice(0, 6000)}`)
       break
-    case 'dashboard':
+    case 'dashboard': {
       parts.push(`La personne regarde le tableau de bord ${context.id} ; propose des cartes avec propose_dashboard.`)
+      const filters = context.filters ?? []
+      if (filters.length) {
+        parts.push(
+          "Quand elle demande d'afficher, de restreindre ou de ne voir qu'une partie (« seulement la Bretagne le trimestre dernier »), pose les filtres du tableau de bord avec set_filters (après find_filter_values pour une valeur de liste) : ils s'appliquent aussitôt. Réponds alors en une phrase.",
+        )
+        parts.push(
+          `Ses filtres :\n${filters
+            .map((f) => `- id ${f.id} : « ${f.label} », ${f.type}${f.multiple === false ? ' (une seule valeur)' : ''}${f.units?.length ? ` (unités : ${f.units.join(', ')})` : ''} — actuellement ${f.value === null || f.value === undefined ? 'tous' : JSON.stringify(f.value)}`)
+            .join('\n')}`,
+        )
+      }
       break
+    }
     case 'assistant': {
       parts.push(
         "La personne te parle dans l’assistant IA. Réponds en Markdown soigné (titres courts, listes, tableaux quand c'est utile) ; dès qu'il y a des données à montrer, exécute la requête puis affiche-la avec show_chart, et commente ce qu'on y voit.",
@@ -457,12 +597,14 @@ export async function copilotTurn(
   // In its own screen, the assistant runs its queries — under the person's identity, as always.
   const env: ToolEnv = { core, actor, allowRun: input.allowRun || input.context.kind === 'assistant', context: input.context, emit }
   const usedTools: string[] = []
+  // On a dashboard with filters, the model may also set them.
+  const tools = input.context.kind === 'dashboard' && input.context.filters?.length ? [...TOOLS, ...FILTER_TOOLS] : TOOLS
   const started = Date.now()
   let usage = { input: 0, output: 0 }
   let error: string | null = null
   try {
     for (let step = 0; step < MAX_STEPS; step++) {
-      const turn = await provider.turn({ system: SYSTEM, tools: TOOLS, messages, onText: (delta) => emit({ type: 'text', delta }), ...(signal ? { signal } : {}) })
+      const turn = await provider.turn({ system: SYSTEM, tools, messages, onText: (delta) => emit({ type: 'text', delta }), ...(signal ? { signal } : {}) })
       usage = { input: usage.input + turn.usage.input, output: usage.output + turn.usage.output }
       // Appended whole and unchanged — thinking blocks included — so the history stays append-only.
       messages.push({ role: 'assistant', content: turn.content })

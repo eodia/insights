@@ -13,7 +13,22 @@ import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { VIZ_LABELS } from '@/lib/viz'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, Database, History, LayoutDashboard, Loader2, Plus, Search, Send, Sparkles, Table2, Wrench, X, BarChart3 } from 'lucide-react'
+import {
+  Check,
+  Database,
+  History,
+  LayoutDashboard,
+  Loader2,
+  Plus,
+  Search,
+  Send,
+  Sparkles,
+  Table2,
+  Wrench,
+  X,
+  BarChart3,
+  ListFilter,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
@@ -39,6 +54,8 @@ const TOOL_LABELS: Record<string, [string, typeof Search]> = {
   propose_question: [msg('Proposition de question'), BarChart3],
   propose_dashboard: [msg('Proposition de tableau de bord'), LayoutDashboard],
   propose_metadata: [msg('Proposition de description'), Table2],
+  find_filter_values: [msg('Recherche des valeurs du filtre'), Search],
+  set_filters: [msg('Filtres posés sur le tableau de bord'), ListFilter],
 }
 
 /** Hands a draft question to the question page, which opens it. */
@@ -197,6 +214,8 @@ export function CopilotPanel() {
             return { ...a, tools }
           })
         else if (event === 'proposal') update((a) => ({ ...a, proposals: [...a.proposals, d.proposal as Proposal] }))
+        // Filters for the dashboard on screen: set at once, Back undoes them.
+        else if (event === 'filters') useUi.getState().dashboardFilters?.apply(d.values as Record<string, unknown>)
         else if (event === 'error') update((a) => ({ ...a, error: String(d.message) }))
       }
     } catch (err) {

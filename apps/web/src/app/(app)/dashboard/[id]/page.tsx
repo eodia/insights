@@ -278,7 +278,11 @@ function DashboardScreen({ id }: { id: string }) {
     },
     { label: dashboard?.name ?? '…' },
   ])
-  useEffect(() => setCopilotContext({ kind: 'dashboard', id }), [id, setCopilotContext])
+  // Until the dashboard is drawn — it then tells its filters too.
+  useEffect(() => {
+    const c = useUi.getState().copilotContext
+    if (c.kind !== 'dashboard' || c.id !== id) setCopilotContext({ kind: 'dashboard', id })
+  }, [id, setCopilotContext])
   useEffect(() => {
     if (dashboard) setRefresh(dashboard.auto_refresh)
   }, [dashboard])
