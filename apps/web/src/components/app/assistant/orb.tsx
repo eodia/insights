@@ -1,21 +1,22 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import type { CSSProperties } from 'react'
+import { Sparkles } from 'lucide-react'
 
 /**
- * L'orbe de l'IA : une goutte du vert d'eodia insights qui change lentement de forme, en
- * tournant sur elle-même. Plus vive et plus rapide quand l'IA travaille ; immobile quand la
- * personne a demandé moins de mouvement. Dessinée en CSS (`globals.css`, `.ai-orb`).
+ * Le pictogramme de l'IA : des étincelles, dans le vert d'eodia insights. En grand (l'accueil de
+ * l'assistant, du copilote), posées sur une pastille vert pâle ; elles battent doucement quand
+ * l'IA travaille.
  */
 export function Orb({ size, busy = false, className }: { size: number; busy?: boolean; className?: string }) {
+  const tile = size >= 40
   return (
     <span
       aria-hidden="true"
-      className={cn('ai-orb', busy && 'ai-orb-busy', className)}
-      style={{ width: size, height: size, '--orb': `${size}px` } as CSSProperties}
+      className={cn('inline-flex shrink-0 items-center justify-center text-primary', tile && 'rounded-[28%] bg-primary/10', busy && 'animate-pulse', className)}
+      style={{ width: size, height: size }}
     >
-      <span className="ai-orb-blob" />
+      <Sparkles style={{ width: tile ? size * 0.5 : size, height: tile ? size * 0.5 : size }} strokeWidth={tile ? 1.75 : 2} />
     </span>
   )
 }
