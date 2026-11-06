@@ -690,3 +690,50 @@
   color: oklch(0.6 0.15 50);
 }
 
+/* ── Navigation (`components/app/navigation-progress.tsx`): the next page on its way. ── */
+.nav-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  height: 2px;
+  pointer-events: none;
+  /* A fast page shows no bar: it appears only past a short wait. */
+  animation: nav-appear 0.15s 0.12s both;
+}
+.nav-progress::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--primary) 30%, color-mix(in oklab, var(--primary) 60%, #a3e635));
+  box-shadow: 0 0 8px color-mix(in oklab, var(--primary) 60%, transparent);
+  transform-origin: left;
+  animation: nav-advance 8s cubic-bezier(0.1, 0.7, 0.2, 1) both;
+}
+@keyframes nav-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Quick at first, then ever slower: never quite there until the page is. */
+@keyframes nav-advance {
+  from {
+    transform: scaleX(0.05);
+  }
+  to {
+    transform: scaleX(0.92);
+  }
+}
+html.navigating,
+html.navigating * {
+  cursor: progress;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-progress::before {
+    animation: none;
+    transform: scaleX(0.6);
+  }
+}

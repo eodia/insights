@@ -3,7 +3,8 @@
 import { NewSourceDialog } from '@/components/app/data/new-source-dialog'
 import { StructureTree } from '@/components/app/structure/tree'
 import { useDatasources, useMe, useTables } from '@/lib/queries'
-import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { type ReactNode, Suspense } from 'react'
 
 /**

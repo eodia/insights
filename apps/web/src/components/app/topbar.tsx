@@ -17,7 +17,7 @@ import { useUi } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { Database, FolderPlus, PanelLeft, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { Fragment, useEffect } from 'react'
 
 export function Topbar({ onNewFolder, onNewDashboard }: { onNewFolder: () => void; onNewDashboard: () => void }) {

@@ -3,6 +3,7 @@
 import { CopilotPanel } from '@/components/app/copilot'
 import { DemoBanner } from '@/components/app/demo-banner'
 import { DocumentIdentity } from '@/components/app/document-identity'
+import { NavigationProgress } from '@/components/app/navigation-progress'
 import { SaveDialog } from '@/components/app/dialogs'
 import { Palette } from '@/components/app/palette'
 import { Sidebar } from '@/components/app/sidebar'
@@ -14,7 +15,8 @@ import { useUi } from '@/lib/store'
 import type { Dashboard, Folder } from '@eodia/contracts'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useEffect, useState } from 'react'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -55,6 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <Palette />
+      <NavigationProgress />
       <SaveDialog
         open={newFolder}
         onOpenChange={setNewFolder}

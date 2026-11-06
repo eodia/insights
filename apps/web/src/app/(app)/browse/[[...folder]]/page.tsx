@@ -50,7 +50,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { use, useEffect, useMemo, useState } from 'react'
 import { Pane } from '@/components/ui/pane'
 import { TabRow } from '@/components/ui/tab-row'

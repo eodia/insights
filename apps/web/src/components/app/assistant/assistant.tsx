@@ -28,7 +28,8 @@ import {
   TableProperties,
   X,
 } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CONVERSATIONS_KEY, type ConversationSummary, History } from './history'

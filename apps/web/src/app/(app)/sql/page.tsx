@@ -42,7 +42,8 @@ import {
   FolderTree,
   Eye,
 } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Pane } from '@/components/ui/pane'

@@ -55,7 +55,8 @@ import {
   UsersRound,
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { createContext, useContext, useState } from 'react'
 
 /** The assistant's mark: its ring of light, small. */

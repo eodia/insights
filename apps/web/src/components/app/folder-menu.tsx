@@ -36,7 +36,8 @@ import { api } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { type ReactElement, useState } from 'react'
 
 const CONTEXT = {

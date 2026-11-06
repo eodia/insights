@@ -10,7 +10,7 @@ import { $t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AtSign, Bell } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useState } from 'react'
 
 const KEY = ['notifications'] as const

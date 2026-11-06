@@ -40,7 +40,7 @@ import {
   Table2,
   Wrench,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { type ReactNode, useState } from 'react'
 import Markdown from 'react-markdown'
 import { tidyFences } from '@/lib/markdown'

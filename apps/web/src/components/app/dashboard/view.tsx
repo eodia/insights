@@ -115,7 +115,7 @@ import {
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGridLayout, { type Layout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'

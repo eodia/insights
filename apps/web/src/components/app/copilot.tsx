@@ -39,7 +39,7 @@ import {
   History,
   Trash2,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import { tidyFences } from '@/lib/markdown'

@@ -10,7 +10,7 @@ import { useUi } from '@/lib/store'
 import { useQuery } from '@tanstack/react-query'
 import { Command } from 'cmdk'
 import { Code2, Database, Home, Search } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useEffect, useState } from 'react'
 
 export const itemHref = (item: Pick<ItemSummary, 'kind' | 'id'>) =>

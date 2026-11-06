@@ -34,7 +34,7 @@ import { useQuery } from '@tanstack/react-query'
 import { AlignCenter, AlignLeft, AlignRight, ArrowRight, ImageOff, ImagePlus, Loader2, Palette, RefreshCw, Sparkles, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { shrinkImage } from '@/components/app/structure/pickers'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useEffect, useState } from 'react'
 import { type Values, filterName } from './parameters'
 

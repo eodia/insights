@@ -18,7 +18,7 @@ import { keys, useEngines, useMe } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Pencil, Share2, Trash2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 

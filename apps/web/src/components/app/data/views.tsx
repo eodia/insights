@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Code2, Eye, Layers, Loader2, Pencil, RefreshCw, ShieldAlert, Table2, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 

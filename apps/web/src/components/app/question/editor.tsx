@@ -64,7 +64,7 @@ import {
   CircleHelp,
 } from 'lucide-react'
 import { Segmented } from '@/components/ui/segmented'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Notebook } from './notebook'
