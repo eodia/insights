@@ -36,31 +36,58 @@ To do so, it has tools:
 | `describe_table` | read a table: columns, Trino types, semantic types, descriptions, values, relationships |
 | `list_metrics` | list the metrics and models defined by the team |
 | `run_query` | run a read-only query, under your permissions — if you allow it |
+| `show_chart` | show a chart in the conversation |
 | `propose_question` | suggest a question: SQL and visualization |
 | `propose_dashboard` | suggest a dashboard, or cards to add to the open dashboard |
 | `propose_metadata` | suggest metadata for a table |
+| `find_filter_values`, `set_filters` | on a dashboard: find a filter's values, then set the filters |
 
 The descriptions, semantic types and values you enter in
 [Structure](/insights/en/fonctionnalites/sources/#the-structure-screen) are part of its context:
 the better your tables are described, the more accurate its answers.
 
-Answers arrive **continuously** (streaming), and conversations are **kept per person**: **New
-conversation** starts another one.
+Answers arrive **continuously** (streaming), and conversations are **kept per person**: the
+panel takes its conversation along from one screen to the next, **New conversation** starts
+another one, and **History** lists the recent conversations, to reopen or delete.
+
+It **shows charts** in its answers — **Add to a dashboard** turns one into a card, in one click —
+and its SQL is formatted and coloured as in the editor. The SQL it suggests is first **checked by
+Trino**, under your permissions and without reading any data: a suggestion that would fail is
+never shown to you.
+
+## Filtering by voice
+
+On a dashboard, the copilot **sets the filters** from a sentence: “show me Brittany in March”. It
+looks up the filters' actual values (“brittany” → “Bretagne”), sets them, and says so in one
+sentence; “all regions” removes the filter. The filters apply at once, as if you had chosen them —
+a question about the data (“which channel sells most?”) leaves them alone.
+
+The **microphone**, in the input area, dictates the question: the text is written as you speak,
+and is sent when you stop. The answer to a question asked aloud is **read aloud**, without its
+code or tables. Voice mode works in the [assistant](/insights/en/fonctionnalites/assistant/) too.
+
+:::note[Dictation depends on the browser]
+Speech recognition is the browser's own: Chrome and Edge send the sound to their maker's service
+to be written down; Firefox has none, and the microphone is then not offered. Reading aloud
+happens on the device.
+:::
 
 ## It suggests, you apply
 
 The copilot **changes nothing by itself**. A suggestion appears in the panel with an **Apply**
 (or **Open**) button: the question opens in the editor, the cards are
-added to the dashboard, the description is written into Structure — only when you click.
+added to the dashboard, the description is written into Structure — only when you click. Only a
+dashboard's filters, when you ask it to set them, apply directly: they change only what you see,
+nothing is saved.
 
 ## Its safeguards
 
 - **It reads under your permissions.** `run_query` goes through Trino under your identity, like
   any other query: your row rules apply, hidden columns do not exist for it, and masked columns
   reach it masked.
-- **It runs nothing without your consent.** The **Allow running queries (with your
-  permissions)** switch, off by default,
-  applies to the conversation. When it is off, the copilot writes queries without running them.
+- **It reads nothing without your consent.** The **Allow access** button, in the input area, off
+  by default, lets it run queries under your permissions. When it is off, the copilot writes
+  queries without running them.
 - **It only receives an excerpt** of each result: 40 rows at most.
 - **A quota** limits the number of messages per person per hour.
 - **Every call is logged**: provider, model, screen, tokens consumed, tools used, duration, any

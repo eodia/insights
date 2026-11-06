@@ -156,7 +156,7 @@ A date accepts a date (`2026-03-01`), a relative period (`today`, `yesterday`,
 
 ## Visualizations
 
-Sixteen chart types, organized by purpose — key figures, compare (including the **radar**), trend,
+Twenty-four chart types, organized by purpose — key figures, compare (including the **radar**), trend,
 distribution, relationship, detail —, with color-blind-safe palettes, highlighting
 of a value, the average, sorting, top N… and **forecasts** that extend a
 line in green dashes. Everything is described in [Visualizations](/insights/en/fonctionnalites/visualisations/)

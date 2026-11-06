@@ -1,6 +1,6 @@
 ---
 title: Visualisations
-description: Seize formes de graphiques, des palettes lisibles par tous, la mise en avant, la moyenne, le tri et le top N.
+description: Vingt-quatre formes de graphiques, des palettes lisibles par tous, la mise en avant, la moyenne, le tri et le top N.
 ---
 
 Le panneau **Visualisation** d’une question — ou d’une carte de tableau de bord — choisit la
@@ -16,8 +16,8 @@ résultat ; une forme qui ne lui convient pas est atténuée, et son info-bulle 
 |---|---|---|
 | **Chiffres clés** | Nombre, Tendance, Progression, Jauge | un chiffre, son évolution, sa part d’un objectif |
 | **Comparer** | Barres, Barres horizontales, **Radar**, **Barres polaires** | des catégories entre elles ; le radar compare des profils sur 3 à 30 critères, sur une échelle commune |
-| **Évolution** | Lignes, Aires, Combiné, **Course de barres**, **Course de courbes**, **Calendrier** | suivre dans le temps — et [prévoir](/insights/fonctionnalites/previsions/) ; les courses rejouent l’histoire période après période |
-| **Répartition** | Camembert (sur plusieurs anneaux), **Carte proportionnelle**, Entonnoir | des parts, des parts de parts, des étapes |
+| **Évolution** | Lignes, Aires, Combiné, **Chandeliers**, **Course de barres**, **Course de courbes**, **Calendrier** | suivre dans le temps — et [prévoir](/insights/fonctionnalites/previsions/) ; les courses rejouent l’histoire période après période |
+| **Répartition** | Camembert (sur plusieurs anneaux), **Mosaïque**, Entonnoir, **Flux (Sankey)** | des parts, des parts de parts, des étapes, des parcours |
 | **Relation** | Nuage de points, **Bulles** | deux mesures l’une contre l’autre |
 | **Détail** | Tableau, Tableau croisé, Carte | des lignes, une mesure croisée, des valeurs par région |
 
@@ -25,10 +25,9 @@ résultat ; une forme qui ne lui convient pas est atténuée, et son info-bulle 
 
 Un **camembert à plusieurs dimensions** — par exemple type, motif, sous-motif — devient des
 anneaux : le premier niveau au centre, chaque niveau suivant autour, dans les teintes de sa
-part parente. Un clic sur une part zoome dessus ; un clic au centre revient. La **carte
-proportionnelle** (*treemap*) range les mêmes niveaux en rectangles imbriqués, chacun aussi
-grand que sa valeur, avec le nom de chaque groupe dans son bandeau ; un clic zoome, le fil
-d’Ariane en haut revient en arrière. Trois niveaux au plus.
+part parente. Un clic sur une part zoome dessus ; un clic au centre revient. La **mosaïque**
+(*treemap*) range les mêmes niveaux en tuiles imbriquées, chacune aussi grande que sa valeur ;
+un clic zoome, le fil d’Ariane en haut revient en arrière. Trois niveaux au plus.
 
 ### Le calendrier
 
@@ -67,6 +66,37 @@ une course au total plutôt qu’à la valeur du mois, et le départ à l’ouve
   chaque étape.
 - **Remplissage des barres** : plein, hachuré ou en dégradé — pour un graphique, ou pour tous
   par le [thème](/insights/fonctionnalites/themes/), avec l’arrondi des barres.
+
+## Flux, chandeliers et mosaïque
+
+- **Flux (Sankey)** : chaque dimension est une **étape** — jusqu’à cinq, par exemple segment →
+  canal → statut — et des bandes relient les valeurs d’une étape à la suivante, aussi larges que
+  leur valeur. Au survol d’une valeur, ses flux ressortent.
+- **Chandeliers** : une date, puis quatre mesures — ouverture, haut, bas, clôture. Elles sont
+  reconnues à leur nom (*open*, *ouverture*, *high*, *haut*, *low*, *bas*, *close*, *clôture*),
+  sinon prises dans l’ordre. Une période en hausse est verte, une baisse rouge ; au-delà de 60
+  périodes, une réglette en bas fait défiler.
+- **Mosaïque** : des tuiles arrondies, légèrement dégradées, avec en haut à gauche leur nom, leur
+  valeur et leur part du total. Avec plusieurs niveaux, chaque groupe est encadré à sa couleur,
+  son nom et son total dans le cadre.
+
+## Les données
+
+La section **Données** des réglages montre les colonnes que dessine le graphique, chacune à sa
+**place** — qui dépend de la forme :
+
+| Forme | Places |
+|---|---|
+| Barres, lignes, aires, combiné | **Axe**, **Séries** |
+| Flux (Sankey) | **Étape 1** à **Étape 5** |
+| Chandeliers | **Date** ; **Ouverture**, **Haut**, **Bas**, **Clôture** |
+| Nuage de points, bulles | **Axe horizontal**, **Axe vertical**, **Taille** |
+| Camembert | **Parts**, **Anneau 2**, **Anneau 3** ; **Valeur** |
+| Mosaïque | **Niveau 1** à **Niveau 3** ; **Valeur** |
+
+Une colonne se déplace d’une place à l’autre **par glisser-déposer**, ou vient des **Autres
+colonnes** — en la glissant, ou d’un clic qui la met où elle va le plus sûrement : un nombre parmi
+les mesures, le reste parmi les dimensions.
 
 ## Comparer à une autre période
 
@@ -107,7 +137,7 @@ rouge, dans tous les graphiques), puis la palette. « Autres » reste gris.
 | **Faire ressortir** | la plus haute, la plus basse ou la dernière valeur ressort ; les autres s’estompent |
 | **Ligne de la moyenne**, **de la médiane** | une ligne de référence, avec sa valeur |
 | **Objectif** | une ligne à la valeur visée, avec son libellé |
-| **Ordre des catégories** | celui du résultat, décroissant ou croissant |
+| **Ordre des catégories** | celui du résultat, décroissant, croissant, ou **Libellé** : par leur nom, les nombres dans l’ordre (« 5-9 » avant « 10-14 ») — pour une pyramide des âges, des tailles |
 | **Seulement les premières** | les N plus grandes catégories ; le reste en « Autres » (qui ne compte ni dans la moyenne, ni dans la mise en avant) |
 | **Prolonger la tendance** | voir [Prévisions](/insights/fonctionnalites/previsions/) |
 
@@ -133,6 +163,13 @@ Les choix de quatre options au plus se font d’un clic, sur des boutons illustr
 Dans un tableau de bord, un clic sur une barre ou une part filtre le tableau, et **Maj** + clic
 ajoute d’autres catégories : voir [Tableaux de bord](/insights/fonctionnalites/tableaux-de-bord/#cliquer-sur-un-graphique-pour-filtrer).
 Dans l’éditeur, il propose de filtrer la question sur la valeur, ou de l’exclure.
+
+## Zoomer
+
+Sur un graphique à axes, **Ctrl** + molette (ou un pincement sur un pavé tactile) zoome le long
+des catégories ou des dates — sur les deux axes pour un nuage de points —, puis un glisser se
+déplace. **Réinitialiser le zoom**, en haut à droite, revient à l’ensemble. La molette seule fait
+toujours défiler la page.
 
 ## Les textes
 
@@ -160,12 +197,18 @@ Sur une carte, la recherche de la table prend place dans l’en-tête, entre le 
 Dans les réglages d’une table, **Mise en forme conditionnelle** colore les cellules selon leur
 valeur :
 
-- une **règle** : une colonne, un test (inférieur à, au moins, entre…), une couleur ; elle
-  colore le texte ou **remplit la cellule**, ajoute un **pictogramme** au choix (une icône, un
-  emoji, une image) devant la valeur, et peut colorer **toute la ligne** ;
+- une **règle** : une colonne, un test (inférieur à, au moins, entre… ; pour un texte, **égal
+  à**, **différent de**, **contient**), une couleur ; elle colore le texte ou **remplit la
+  cellule**, ajoute un **pictogramme** au choix (une icône, un emoji, une image) devant la valeur,
+  et peut colorer **toute la ligne** ;
 - une **échelle de couleur** : du rouge au vert (ou l’inverse, ou en bleu), de la plus petite
   valeur de la colonne à la plus grande ;
 - des **barres** dans les cellules, proportionnelles à la valeur.
+
+Une règle compare la cellule à **une valeur** écrite, à **une colonne** de la même ligne (le
+réalisé contre l’objectif), ou à **une variable** de la question (`{{seuil}}`) : sur un tableau de
+bord, c’est la valeur du filtre relié à cette variable qui compte — le lecteur déplace le seuil,
+les couleurs suivent.
 
 Au survol de l’en-tête d’une colonne, sa **description** (saisie dans Sources de données)
 s’affiche ; les colonnes décrites sont soulignées en pointillés.

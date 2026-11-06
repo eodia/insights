@@ -1,10 +1,9 @@
 ---
 /**
  * What is new, in six cards — each with a small drawing of the thing itself, most of them
- * moving: a dashboard sent on Monday morning and an alert that rings, this year against last
- * year, a note on a curve, selections walked back and forth, a table that colours itself,
- * a summary the assistant writes. Pure HTML, SVG and CSS; every card links to its page of the
- * documentation.
+ * moving: a home page of one's own, a change explained, a chart drilled into, flows from step
+ * to step, a copilot that listens, a mention and a version kept. Pure HTML, SVG and CSS; every
+ * card links to its page of the documentation.
  */
 import { type Locale, i18n } from '../../i18n';
 
@@ -17,19 +16,34 @@ const { t, href } = i18n(locale);
 const n = t.news;
 const items = Object.entries(n.items).map(([key, item]) => ({ key, ...item, href: href(item.href) }));
 
-// Monthly revenue, this year and last: the drawing of a comparison.
-const NOW = [38, 44, 41, 52, 49, 58, 63, 60, 70];
-const PREV = [34, 36, 39, 40, 44, 43, 47, 50, 52];
-const line = (v: readonly number[]) => v.map((y, i) => `${i * 30},${90 - y}`).join(' ');
-// A table coloured by its values: a share from 0 to 1 for each row.
-const ROWS = [0.92, 0.66, 0.41, 0.18];
-const scale = (x: number) => {
-	const a = [220, 38, 38];
-	const b = [250, 204, 21];
-	const c = [22, 163, 74];
-	const [from, to, f] = x < 0.5 ? [a, b, x * 2] : [b, c, (x - 0.5) * 2];
-	return `rgba(${from.map((v, k) => Math.round(v + ((to[k] as number) - v) * f)).join(',')}, 0.3)`;
-};
+// What moved a figure: each part's share of the change, as on the app's « Pourquoi ça bouge ? ».
+const PARTS = [52, 41, -9];
+const widest = Math.max(...PARTS.map(Math.abs));
+
+// Orders from a channel to their status: the drawing of a Sankey.
+const LEFT = [50, 30, 20];
+const RIGHT = [70, 18, 12];
+const FLOWS = [
+	[36, 9, 5],
+	[22, 5, 3],
+	[12, 4, 4],
+];
+const COLORS = ['#2a78d6', '#e8743b', '#19a979'];
+const GAP = 4;
+const tops = (values: readonly number[]) => values.map((_, i) => values.slice(0, i).reduce((s, v) => s + v + GAP, 0));
+const leftTop = tops(LEFT);
+const rightTop = tops(RIGHT);
+const rightUsed = RIGHT.map(() => 0);
+const bands = FLOWS.flatMap((row, i) => {
+	let used = 0;
+	return row.map((v, j) => {
+		const a = (leftTop[i] as number) + used;
+		const b = (rightTop[j] as number) + (rightUsed[j] as number);
+		used += v;
+		rightUsed[j] = (rightUsed[j] as number) + v;
+		return { d: `M10 ${a}C120 ${a} 120 ${b} 230 ${b}L230 ${b + v}C120 ${b + v} 120 ${a + v} 10 ${a + v}Z`, color: COLORS[i] as string, k: i * 3 + j };
+	});
+});
 ---
 
 <section class="tm-section news" data-news>
@@ -47,94 +61,130 @@ const scale = (x: number) => {
 			items.map((item, i) => (
 				<a href={item.href} class:list={['card', 'tm-rise', `k-${item.key}`, { lead: i === 0 }]} style={`transition-delay:${(i % 3) * 0.07}s`}>
 					<div class="art" aria-hidden="true">
-						{item.key === 'subscriptions' && (
-							<div class="mail">
-								<div class="env">
-									<p class="when">
-										<span class="dot" />
-										{n.art.when}
-									</p>
-									<p class="subject">{n.art.subject}</p>
-									<span class="mini">
-										<i style="--h:40%" />
-										<i style="--h:62%" />
-										<i style="--h:52%" />
-										<i style="--h:78%" />
-										<i style="--h:90%" />
-									</span>
-									<span class="chans">
-										<b class="teams">Teams</b>
-										<b class="slack">Slack</b>
-										<b class="pdf">PDF</b>
-									</span>
-								</div>
-								<p class="ring">
-									<span class="bell">🔔</span>
-									{n.art.alert}
-								</p>
-							</div>
-						)}
-						{item.key === 'compare' && (
-							<div class="cmp">
-								<svg viewBox="0 0 240 96" width="250" height="100">
-									<polyline class="prev" points={line(PREV)} />
-									<polyline class="now" points={line(NOW)} pathLength="100" />
-								</svg>
-								<span class="legend">
-									<b class="l-now">{n.art.now}</b>
-									<b class="l-prev">{n.art.prev}</b>
-									<b class="delta">+18 %</b>
+						{item.key === 'home' && (
+							<div class="hm">
+								<p class="hello">{n.art.hello}</p>
+								<span class="pins">
+									{n.art.kpis.map((k, j) => (
+										<span class="pin" style={`--j:${j}`}>
+											<em>{k.label}</em>
+											<b>{k.value}</b>
+											<i class:list={[{ down: k.delta.startsWith('−') }]}>{k.delta}</i>
+										</span>
+									))}
 								</span>
-							</div>
-						)}
-						{item.key === 'talk' && (
-							<div class="tk">
-								<svg viewBox="0 0 240 96" width="250" height="100">
-									<rect x="120" y="4" width="44" height="88" class="span" />
-									<line x1="120" y1="4" x2="120" y2="92" class="mark" />
-									<polyline class="curve" points="0,40 30,44 60,38 90,46 120,78 150,70 180,48 210,42 240,36" />
-								</svg>
-								<span class="flag">⚑ {n.art.flag}</span>
-								<span class="bubble">
-									<b>MJ</b>
-									{n.art.comment}
-								</span>
-							</div>
-						)}
-						{item.key === 'selections' && (
-							<div class="ql">
-								<span class="bar">
-									<b class="nav">←</b>
-									<b class="nav">→</b>
-									<b class="chip on">● {n.art.chip}</b>
-									<b class="view">🔖 {n.art.view}</b>
-								</span>
-								<span class="pane">
-									{n.art.values.map((v, j) => (
-										<i class:list={[{ sel: j === 1, off: j === 3 }]}>{v}</i>
+								<span class="favs">
+									{n.art.favs.map((f) => (
+										<span class="fav">
+											<span class="bars">
+												<i style="--h:45%" />
+												<i style="--h:60%" />
+												<i style="--h:52%" />
+												<i style="--h:75%" />
+												<i style="--h:92%" />
+											</span>
+											<b>★ {f}</b>
+										</span>
 									))}
 								</span>
 							</div>
 						)}
-						{item.key === 'formats' && (
-							<div class="fmt">
-								{ROWS.map((x, j) => (
-									<p class="row">
-										<span class="name">{n.art.rows[j]}</span>
-										<span class="val" style={`--bg:${scale(x)}`}>
-											<em style={`color:${x >= 0.5 ? '#15803d' : '#b91c1c'}`}>{x >= 0.5 ? '▲' : '▼'}</em>
-											{Math.round(400 + x * 900)} k€
+						{item.key === 'explain' && (
+							<div class="ex">
+								<p class="ex-head">
+									<b>{n.art.explainHead}</b>
+									<span>{n.art.explainDelta}</span>
+								</p>
+								{PARTS.map((v, j) => (
+									<p class="part" style={`--j:${j}`}>
+										<span class="who">{n.art.parts[j]}</span>
+										<span class="track">
+											<i class:list={[{ neg: v < 0 }]} style={`--w:${(Math.abs(v) / widest) * 100}%`} />
 										</span>
+										<span class:list={['by', { neg: v < 0 }]}>{v > 0 ? '+' : '−'}{Math.abs(v)} k€</span>
 									</p>
 								))}
+								<p class="why">✦ {n.art.because}</p>
 							</div>
 						)}
-						{item.key === 'summary' && (
-							<div class="sum">
-								<p class="s-head">✦ {n.art.brief}</p>
-								{n.art.lines.map((l, j) => (
-									<p class="s-line" style={`--j:${j}`} set:html={l} />
-								))}
+						{item.key === 'drill' && (
+							<div class="dr">
+								<span class="crumbs">
+									{n.art.crumbs.map((c, j) => (
+										<b style={`--j:${j}`}>
+											{j > 0 && <em>›</em>}
+											{c}
+										</b>
+									))}
+								</span>
+								<span class="cols">
+									{[40, 55, 48, 70, 62, 84, 58, 66, 74, 50, 61, 79].map((h, j) => (
+										<i class:list={[{ hot: j === 2 }]} style={`--h:${h}%;--j:${j}`} />
+									))}
+								</span>
+								<span class="cursor">👆</span>
+							</div>
+						)}
+						{item.key === 'flows' && (
+							<div class="fl">
+								<svg viewBox="0 0 240 116" width="180" height="87">
+									{bands.map((b) => (
+										<path d={b.d} fill={b.color} class="band" style={`--k:${b.k}`} />
+									))}
+									{LEFT.map((v, i) => (
+										<rect x="2" y={leftTop[i]} width="8" height={v} rx="2" fill={COLORS[i]} />
+									))}
+									{RIGHT.map((v, j) => (
+										<rect x="230" y={rightTop[j]} width="8" height={v} rx="2" fill="#a1a1aa" />
+									))}
+									{n.art.channels.map((c, i) => (
+										<text x="-4" y={(leftTop[i] as number) + (LEFT[i] as number) / 2} text-anchor="end" dominant-baseline="middle" class="name">
+											{c}
+										</text>
+									))}
+									{n.art.statuses.map((c, j) => (
+										<text x="244" y={(rightTop[j] as number) + (RIGHT[j] as number) / 2} dominant-baseline="middle" class="name">
+											{c}
+										</text>
+									))}
+								</svg>
+							</div>
+						)}
+						{item.key === 'voice' && (
+							<div class="vo">
+								<span class="mic">
+									<i />
+									<i />
+									<b>
+										<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<rect x="9" y="2" width="6" height="12" rx="3" />
+											<path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4" />
+										</svg>
+									</b>
+								</span>
+								<p class="heard">« {n.art.heard} »</p>
+								<span class="chips">
+									{n.art.chips.map((c, j) => (
+										<b style={`--j:${j}`}>{c}</b>
+									))}
+								</span>
+							</div>
+						)}
+						{item.key === 'together' && (
+							<div class="tg">
+								<p class="note">
+									<b class="who">MJ</b>
+									<span set:html={n.art.mention} />
+								</p>
+								<p class="notif">
+									<span class="bell">🔔</span>
+									{n.art.notif}
+								</p>
+								<p class="ver">
+									<span class="clock">↺</span>
+									<span>{n.art.version}</span>
+									<b>{n.art.restore}</b>
+								</p>
 							</div>
 						)}
 					</div>
@@ -227,340 +277,413 @@ const scale = (x: number) => {
 		margin: 0;
 	}
 
-	/* A dashboard sent on Monday morning, and an alert that rings. */
-	.mail {
-		position: relative;
-		width: 250px;
-		height: 160px;
-	}
-	.env {
-		position: absolute;
-		inset: 6px 20px 30px 0;
+	/* A home page of one's own: key figures pinned one after the other, favourites beneath. */
+	.hm {
 		display: flex;
 		flex-direction: column;
-		gap: 5px;
-		padding: 10px 12px;
-		border-radius: 12px;
-		background: #fff;
-		box-shadow: 0 10px 28px -14px rgba(16, 40, 16, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-		animation: n-arrive 7s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		gap: 8px;
+		width: 262px;
+		/* Beneath the « Nouveau » badge, not under it. */
+		margin-top: 14px;
 	}
-	.when {
+	.hello {
+		font-size: 17px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: #18181b;
+	}
+	.pins {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 6px;
+	}
+	.pin {
 		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		padding: 6px 8px;
+		border-radius: 10px;
+		background: #fff;
+		box-shadow: 0 6px 16px -10px rgba(16, 40, 16, 0.4), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+		animation: n-pin 7s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		animation-delay: calc(var(--j) * 0.35s);
+	}
+	.pin em {
+		font-size: 9.5px;
+		font-style: normal;
+		color: #71717a;
+	}
+	.pin b {
+		font-size: 14px;
+		color: #18181b;
+	}
+	.pin i {
+		font-size: 9.5px;
+		font-style: normal;
+		font-weight: 600;
+		color: #15803d;
+	}
+	.pin i.down {
+		color: #b91c1c;
+	}
+	@keyframes n-pin {
+		0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+		8%, 92% { opacity: 1; transform: none; }
+		100% { opacity: 0; }
+	}
+	.favs {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+	.fav {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 6px 8px;
+		border-radius: 10px;
+		background: linear-gradient(#f0fdf4, #fff);
+		box-shadow: inset 0 0 0 1px rgba(45, 163, 30, 0.15);
+	}
+	.fav b {
+		font-size: 10.5px;
+		color: #3f3f46;
+	}
+	.bars {
+		display: flex;
+		align-items: flex-end;
+		gap: 3px;
+		height: 30px;
+	}
+	.bars i {
+		flex: 1;
+		height: var(--h);
+		border-radius: 3px 3px 0 0;
+		background: linear-gradient(#5fcf4d, #bbf7d0);
+	}
+
+	/* « Pourquoi ça bouge ? »: the change, part by part, then the AI's word on it. */
+	.ex {
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+		width: 256px;
+	}
+	.ex-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 8px;
+		font-size: 12px;
+	}
+	.ex-head b {
+		color: #18181b;
+	}
+	.ex-head span {
+		font-weight: 700;
+		color: #15803d;
+	}
+	.part {
+		display: grid;
+		grid-template-columns: 70px 1fr 52px;
 		align-items: center;
 		gap: 6px;
 		font-size: 11px;
-		color: #71717a;
 	}
-	.when .dot {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: #2da31d;
+	.who {
+		color: #3f3f46;
 	}
-	.subject {
-		font-size: 13px;
+	.track {
+		height: 9px;
+		border-radius: 999px;
+		background: #f4f4f5;
+		overflow: hidden;
+	}
+	.track i {
+		display: block;
+		width: var(--w);
+		height: 100%;
+		border-radius: 999px;
+		background: linear-gradient(90deg, #86efac, #16a34a);
+		transform-origin: left;
+		animation: n-grow 7s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		animation-delay: calc(var(--j) * 0.25s);
+	}
+	.track i.neg {
+		background: linear-gradient(90deg, #fca5a5, #dc2626);
+	}
+	.by {
+		text-align: right;
 		font-weight: 700;
+		color: #15803d;
+	}
+	.by.neg {
+		color: #b91c1c;
+	}
+	@keyframes n-grow {
+		0% { transform: scaleX(0); }
+		12%, 100% { transform: scaleX(1); }
+	}
+	.why {
+		margin-top: 2px !important;
+		padding: 7px 10px;
+		border-radius: 10px;
+		background: linear-gradient(160deg, rgba(124, 58, 237, 0.08), #fff 70%);
+		box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.18);
+		font-size: 11px;
+		line-height: 1.4;
+		color: #5b21b6;
+		animation: n-say 7s ease-in-out infinite;
+	}
+	@keyframes n-say {
+		0%, 25% { opacity: 0; transform: translateY(4px); }
+		35%, 92% { opacity: 1; transform: none; }
+		100% { opacity: 0; }
+	}
+
+	/* A chart drilled into: the way back grows step by step, the bars come anew. */
+	.dr {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 250px;
+	}
+	.crumbs {
+		display: flex;
+		gap: 4px;
+		font-size: 11.5px;
+	}
+	.crumbs b {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: #2a78d6;
+		animation: n-crumb 8s ease-in-out infinite;
+		animation-delay: calc(var(--j) * 1.2s);
+	}
+	.crumbs b:last-child {
 		color: #18181b;
 	}
-	.mini {
+	.crumbs em {
+		font-style: normal;
+		color: #a1a1aa;
+	}
+	@keyframes n-crumb {
+		0% { opacity: 0; transform: translateX(-4px); }
+		6%, 90% { opacity: 1; transform: none; }
+		100% { opacity: 0; }
+	}
+	.cols {
 		display: flex;
 		align-items: flex-end;
 		gap: 5px;
-		height: 38px;
+		height: 96px;
+		padding-bottom: 2px;
+		border-bottom: 1px solid #e4e4e7;
 	}
-	.mini i {
-		width: 16px;
+	.cols i {
+		flex: 1;
 		height: var(--h);
 		border-radius: 4px 4px 0 0;
-		background: linear-gradient(#2a78d6, #8bb9f0);
+		background: linear-gradient(#5b9be6, #c7dcf6);
+		transform-origin: bottom;
+		animation: n-rise 4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		animation-delay: calc(var(--j) * 0.04s);
 	}
-	.chans {
-		display: flex;
-		gap: 5px;
+	.cols i.hot {
+		background: linear-gradient(#2da31d, #a7e59c);
 	}
-	.chans b {
-		padding: 1px 7px;
-		border-radius: 999px;
-		font-size: 10px;
-		color: #fff;
+	@keyframes n-rise {
+		0% { transform: scaleY(0.1); }
+		18%, 100% { transform: scaleY(1); }
 	}
-	.teams { background: #5059c9; }
-	.slack { background: #4a154b; }
-	.pdf { background: #dc2626; }
-	.ring {
+	.cursor {
 		position: absolute;
-		right: 0;
-		bottom: 0;
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 7px 11px;
-		border-radius: 12px;
-		background: #fef3c7;
-		color: #92400e;
-		font-size: 11.5px;
-		font-weight: 600;
-		box-shadow: 0 10px 24px -12px rgba(146, 64, 14, 0.5);
-		animation: n-ring 7s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		left: 46px;
+		bottom: 34px;
+		font-size: 18px;
+		animation: n-tap 4s ease-in-out infinite;
 	}
-	.bell {
-		display: inline-block;
-		animation: n-bell 7s ease-in-out infinite;
-		transform-origin: 50% 10%;
-	}
-	@keyframes n-arrive {
-		0% { transform: translateY(-14px); opacity: 0; }
-		10%, 100% { transform: none; opacity: 1; }
-	}
-	@keyframes n-ring {
-		0%, 40% { transform: translateY(18px) scale(0.95); opacity: 0; }
-		50%, 92% { transform: none; opacity: 1; }
-		100% { transform: translateY(18px); opacity: 0; }
-	}
-	@keyframes n-bell {
-		0%, 50% { transform: rotate(0); }
-		54% { transform: rotate(18deg); }
-		58% { transform: rotate(-14deg); }
-		62% { transform: rotate(8deg); }
-		66%, 100% { transform: rotate(0); }
+	@keyframes n-tap {
+		0%, 70% { transform: none; }
+		80% { transform: translateY(4px) scale(0.9); }
+		90%, 100% { transform: none; }
 	}
 
-	/* This year against last year: the dashed past, the present drawing itself. */
-	.cmp {
-		display: grid;
-		justify-items: center;
-		gap: 10px;
-	}
-	.cmp polyline {
-		fill: none;
-		stroke-width: 3;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.cmp .prev {
-		stroke: #a1a1aa;
-		stroke-dasharray: 5 5;
-		stroke-width: 2.2;
-	}
-	.cmp .now {
-		stroke: #2a78d6;
-		stroke-dasharray: 100;
-		animation: n-draw 6s ease-in-out infinite;
-	}
-	@keyframes n-draw {
-		0% { stroke-dashoffset: 100; }
-		35%, 100% { stroke-dashoffset: 0; }
-	}
-	.legend {
-		display: flex;
-		gap: 12px;
-		font-size: 11.5px;
-	}
-	.legend b { font-weight: 600; }
-	.l-now { color: #2a78d6; }
-	.l-prev { color: #71717a; }
-	.delta {
-		padding: 0 7px;
-		border-radius: 999px;
-		background: rgba(45, 163, 29, 0.12);
-		color: #15803d;
-	}
-
-	/* A note on a curve, and a comment beside it. */
-	.tk {
+	/* Flows from a channel to a status, each lit in turn. */
+	.fl {
 		position: relative;
-		width: 250px;
-		height: 150px;
-		display: grid;
-		place-items: center;
+		width: 180px;
+		/* Room for the names, drawn outside the flows. */
+		padding: 0 72px;
+		box-sizing: content-box;
 	}
-	.tk .curve {
-		fill: none;
-		stroke: #2a78d6;
-		stroke-width: 3;
-		stroke-linejoin: round;
+	.fl svg {
+		display: block;
+		overflow: visible;
 	}
-	.tk .span { fill: rgba(239, 68, 68, 0.1); }
-	.tk .mark {
-		stroke: #ef4444;
-		stroke-width: 1.5;
-		stroke-dasharray: 4 3;
+	.band {
+		opacity: 0.28;
+		animation: n-flow 6s ease-in-out infinite;
+		animation-delay: calc(var(--k) * 0.18s);
 	}
-	.flag {
-		position: absolute;
-		top: 14px;
-		left: 128px;
-		font-size: 11px;
+	@keyframes n-flow {
+		0%, 100% { opacity: 0.26; }
+		12% { opacity: 0.6; }
+		30% { opacity: 0.3; }
+	}
+	.name {
+		font-size: 13px;
 		font-weight: 600;
-		color: #dc2626;
+		fill: #3f3f46;
 	}
-	.bubble {
-		position: absolute;
-		left: 0;
-		bottom: 2px;
+
+	/* A copilot that listens: the microphone, what it heard, the filters it set. */
+	.vo {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		gap: 6px;
-		max-width: 200px;
-		padding: 6px 10px 6px 6px;
-		border-radius: 14px 14px 14px 4px;
-		background: #fff;
-		box-shadow: 0 8px 22px -12px rgba(16, 40, 16, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-		font-size: 11px;
-		color: #3f3f46;
-		animation: n-pop 6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		gap: 10px;
+		width: 250px;
 	}
-	.bubble b {
+	.mic {
+		position: relative;
 		display: grid;
 		place-items: center;
+		width: 44px;
+		height: 44px;
+	}
+	.mic b {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		background: linear-gradient(160deg, #8b5cf6, #6d28d9);
+		font-size: 18px;
+		box-shadow: 0 10px 24px -10px rgba(109, 40, 217, 0.7);
+	}
+	.mic i {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		border: 2px solid rgba(139, 92, 246, 0.5);
+		animation: n-listen 2.4s ease-out infinite;
+	}
+	.mic i + i {
+		animation-delay: 1.2s;
+	}
+	@keyframes n-listen {
+		0% { transform: scale(0.9); opacity: 0.9; }
+		100% { transform: scale(1.9); opacity: 0; }
+	}
+	.heard {
+		padding: 7px 12px;
+		border-radius: 14px 14px 4px 14px;
+		background: #f5f3ff;
+		font-size: 12px;
+		font-weight: 600;
+		color: #4c1d95;
+		animation: n-say 7s ease-in-out infinite;
+		animation-delay: -1.2s;
+	}
+	.chips {
+		display: flex;
+		gap: 6px;
+	}
+	.chips b {
+		padding: 3px 9px;
+		border-radius: 999px;
+		background: #fff;
+		box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.35);
+		font-size: 11px;
+		color: #6d28d9;
+		animation: n-pin 7s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+		animation-delay: calc(1.6s + var(--j) * 0.3s);
+	}
+
+	/* Together: a mention that rings, a version to go back to. */
+	.tg {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 256px;
+	}
+	.note {
+		display: flex;
+		align-items: flex-start;
+		gap: 7px;
+		padding: 8px 10px;
+		border-radius: 12px;
+		background: #fff;
+		box-shadow: 0 8px 20px -14px rgba(16, 40, 16, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+		font-size: 11.5px;
+		line-height: 1.4;
+		color: #3f3f46;
+	}
+	.note :global(b) {
+		color: #2a78d6;
+	}
+	.note .who {
 		flex: none;
+		display: grid;
+		place-items: center;
 		width: 22px;
 		height: 22px;
 		border-radius: 50%;
-		background: #14b8a6;
-		color: #fff;
+		background: #dcfce7;
+		color: #15803d;
 		font-size: 9px;
 	}
-	@keyframes n-pop {
-		0%, 20% { transform: translateY(10px); opacity: 0; }
-		30%, 90% { transform: none; opacity: 1; }
-		100% { opacity: 0; }
-	}
-
-	/* Selections walked back and forth, a pane of values, a view kept under a name. */
-	.ql {
-		display: grid;
-		gap: 10px;
-		width: 260px;
-	}
-	.ql .bar {
+	.notif {
+		align-self: flex-end;
 		display: flex;
 		align-items: center;
-		gap: 5px;
-		padding: 5px;
-		border-radius: 12px;
-		background: #f4f4f5;
+		gap: 6px;
+		padding: 6px 10px;
+		border-radius: 10px;
+		background: #eff6ff;
+		color: #1e40af;
 		font-size: 11px;
-	}
-	.ql .bar b {
 		font-weight: 600;
-		white-space: nowrap;
+		animation: n-say 7s ease-in-out infinite;
 	}
-	.nav {
-		display: grid;
-		place-items: center;
-		width: 22px;
-		height: 22px;
-		border-radius: 7px;
-		color: #52525b;
+	.notif .bell {
+		display: inline-block;
+		transform-origin: 50% 10%;
+		animation: n-bell 7s ease-in-out infinite;
 	}
-	.nav:first-child { animation: n-press 5s ease-in-out infinite; }
-	@keyframes n-press {
-		0%, 40% { background: transparent; }
-		45%, 55% { background: #fff; color: #18181b; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
-		60%, 100% { background: transparent; }
+	@keyframes n-bell {
+		0%, 34% { transform: rotate(0); }
+		38% { transform: rotate(18deg); }
+		42% { transform: rotate(-14deg); }
+		46% { transform: rotate(8deg); }
+		50%, 100% { transform: rotate(0); }
 	}
-	.chip {
-		padding: 3px 8px;
-		border-radius: 8px;
-		background: #fff;
-		box-shadow: inset 0 0 0 1px rgba(45, 163, 29, 0.45);
-		color: #18181b;
-	}
-	.chip.on::first-letter { color: #2da31d; }
-	.view {
-		margin-left: auto;
-		color: #52525b;
-	}
-	.pane {
+	.ver {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 5px;
+		align-items: center;
+		gap: 7px;
+		padding: 7px 10px;
+		border-radius: 10px;
+		background: #fafafa;
+		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+		font-size: 11px;
+		color: #52525b;
 	}
-	.pane i {
-		padding: 5px 10px;
+	.ver .clock {
+		color: #2da31d;
+		font-weight: 700;
+	}
+	.ver b {
+		margin-left: auto;
+		padding: 2px 8px;
 		border-radius: 999px;
-		background: #fff;
-		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-		font-size: 11.5px;
-		font-style: normal;
-		color: #3f3f46;
-	}
-	.pane i.sel {
 		background: #2da31d;
 		color: #fff;
-		box-shadow: none;
-		animation: n-select 5s ease-in-out infinite;
-	}
-	.pane i.off {
-		background: #e4e4e7;
-		color: #a1a1aa;
-	}
-	@keyframes n-select {
-		0%, 40% { background: #2da31d; color: #fff; }
-		50%, 90% { background: #fff; color: #3f3f46; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1); }
-		100% { background: #2da31d; color: #fff; }
-	}
-
-	/* A table that colours itself. */
-	.fmt {
-		display: grid;
-		gap: 4px;
-		width: 230px;
-	}
-	.fmt .row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 4px 0 10px;
-		height: 30px;
-		border-radius: 8px;
-		background: #fafafa;
-		font-size: 12px;
-		color: #3f3f46;
-	}
-	.fmt .val {
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		min-width: 92px;
-		justify-content: flex-end;
-		padding: 4px 8px;
-		border-radius: 6px;
-		font-weight: 600;
-		font-variant-numeric: tabular-nums;
-		background: var(--bg);
-	}
-	.fmt em { font-style: normal; font-size: 10px; }
-
-	/* A summary the assistant writes, line after line. */
-	.sum {
-		display: grid;
-		gap: 7px;
-		width: 250px;
-		padding: 12px 14px;
-		border-radius: 14px;
-		background: linear-gradient(160deg, rgba(124, 58, 237, 0.07), #fff 60%);
-		box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.18);
-	}
-	.s-head {
-		font-size: 12px;
-		font-weight: 700;
-		color: #7c3aed;
-	}
-	.s-line {
-		font-size: 11.5px;
-		line-height: 1.45;
-		color: #3f3f46;
-		animation: n-write 8s ease-in-out infinite;
-		animation-delay: calc(var(--j) * 0.6s);
-	}
-	.s-line :global(b) { color: #18181b; }
-	@keyframes n-write {
-		0%, 5% { opacity: 0; transform: translateY(4px); }
-		15%, 92% { opacity: 1; transform: none; }
-		100% { opacity: 0; }
+		font-size: 10px;
 	}
 
 	@media (max-width: 980px) {
@@ -577,14 +700,17 @@ const scale = (x: number) => {
 		.art * {
 			animation: none !important;
 		}
-		.ring,
-		.bubble,
-		.s-line {
+		.pin,
+		.why,
+		.crumbs b,
+		.heard,
+		.chips b,
+		.notif {
 			opacity: 1;
 			transform: none;
 		}
-		.cmp .now {
-			stroke-dashoffset: 0;
+		.band {
+			opacity: 0.35;
 		}
 	}
 </style>

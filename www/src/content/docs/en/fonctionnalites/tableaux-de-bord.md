@@ -39,6 +39,10 @@ In edit mode, the header takes a tint and a floating bar, at the bottom, adds ca
 **Title**, **Text**, **Filter pane**, **Buttons**, and **More** for the others. A card's settings
 (its filter, its link, its image, its instruction…) are in its menu, **Settings…**.
 
+**Card style…**, in the same menu, changes its background: **Normal**, **Highlight** (a subtle
+gradient of the theme's colour), **Dark** (a black card, for a key figure), or a colour of your
+choice — transparent included. Texts and chart adapt to it.
+
 **The AI summary** reads, for each chosen card (eight at most), a few dozen rows of its result —
 with the rights of whoever looks, filters applied — and nothing else: enough to say what matters
 without spending too much. The same text is kept ten minutes for the same filters; **Rewrite**
@@ -57,6 +61,9 @@ the question —, and **move** it:
 - **To another dashboard…** places it on another dashboard,
   in the chosen tab. Its links to filters stay behind: filters are not the same from one
   dashboard to another.
+
+A duplicated card — on its own, or with its tab — is an **independent copy**: it keeps its own
+query, and editing it makes it a question of its own. The original does not change.
 
 The open tab is part of the URL (`?tab=…`): a link opens the right tab, and the browser’s
 **Back** / **Forward** buttons move from one tab to another.
@@ -180,6 +187,37 @@ highlighting, average, sorting, top N… — see
 [Visualizations](/insights/en/fonctionnalites/visualisations/) — and can **extend its trend**:
 see [Forecasts](/insights/en/fonctionnalites/previsions/).
 
+**A goal on a key figure.** A **Number** or **Trend** card takes a **goal** (a value to reach, a
+label, and whether lower is better): a gauge under the figure shows where it stands — “82% of
+goal”, then **Goal reached** in green. The card's menu › **Alerts…** then offers, in one click, to
+**be told when the goal is no longer met**.
+
+## Explaining a change
+
+**Why is it moving?**, in a card's menu or on a right click on a point of a curve over time,
+compares the period — the latest, or the one clicked — with the one before. The difference is
+broken down **column by column**: for each, the values that moved it most, with their change and
+their share of the difference; the column that explains it best comes first. On top, the AI
+writes a short conclusion from these figures (without an AI provider, a conclusion drawn from the
+figures alone).
+
+It is computed under your permissions, with the dashboard's filters applied. It is offered only
+for cards whose question — built with the visual editor — moves along a date.
+
+## Drilling down
+
+Outside edit mode, a right click on a bar or a point of a question built with the visual editor
+opens its detail, **within the card**:
+
+- **Drill into this period** goes one time unit down: a year opens on its months, a month on its
+  days;
+- **Break down by…** splits the clicked value by another column of its table — “Brittany” by
+  city, by product.
+
+A breadcrumb shows under the title (“All › 2026 › March”): each step leads back to it, **All**
+returns to the start. Drilling lives in the card only: the saved question is not changed, and
+the other cards are not filtered.
+
 ## Refresh and display
 
 - **Auto-refresh**: the timer in the toolbar — never, every minute, every 5 or 15 minutes, or
@@ -188,7 +226,11 @@ see [Forecasts](/insights/en/fonctionnalites/previsions/).
   recomputed: their marks slide to the new values, as when you change a filter.
 - **Export to PDF**: an A4 layout in the dashboard's [theme](/insights/en/fonctionnalites/themes/),
   with a cover page, applied filters and page numbers.
-- **Full screen**, for a wall display.
+- **⋯ › Presentation mode**, for a meeting room or a wall display: the dashboard full screen,
+  its tabs following one another (every 15, 30, 60 or 120 seconds), its figures refreshing by
+  themselves, the time in a corner. The arrows change tab, **Space** pauses, **Escape** leaves.
+- **Width**, in the dashboard's **Settings**: **Full width** (the whole screen) or **A4 page**,
+  centred at the width of a landscape page — it reads as it prints.
 - **Duplicate**, **Add to favorites**, **Share** (see
   [Sharing](/insights/en/fonctionnalites/partage/)).
 
@@ -197,7 +239,7 @@ see [Forecasts](/insights/en/fonctionnalites/previsions/).
 In edit mode, a tab's **handle** ⋮⋮ moves it (or Alt + ← / →); its settings icon — or a
 double click, or a right click — opens its settings: its name, a **pictogram** and a **colour**
 (taken up by its underline), a **description**, its display condition. There you **duplicate** a
-tab, its cards with it, or delete it.
+tab, its cards with it — each an independent copy —, or delete it.
 
 Hovering a tab shows a **tooltip** with its description and a preview of what it holds: a
 picture of the tab as last seen, or else the map of its cards.
@@ -227,6 +269,17 @@ Right click on a point of a curve over time › **Annotate this point…**: a **
 period — with a label and a colour, drawn on the chart. Set on a saved question, it follows it
 wherever it shows.
 
+## Versions and mentions
+
+Every save keeps a **version** of the dashboard. **⋯ › Version history** lists them, newest
+first: who saved it, when, and what it changed (“Added: Sales by channel”, “Tab “Customers”
+removed”, “Switched to A4 page”…). A version you pick shows as it was; **Restore this version**
+puts it back — it becomes the latest, nothing is lost.
+
+In a comment or an annotation, **@** followed by a name **mentions** someone in the workspace.
+They are told in the application (the bell in the top bar) and by e-mail when a mail server is
+configured — only if they can open the dashboard.
+
 ## Data cards
 
 A question card's ⋯ menu offers, besides refresh and expand:
@@ -243,6 +296,27 @@ A question card's ⋯ menu offers, besides refresh and expand:
 and a note, then opens the preview. Each page carries the theme's logo and its number at the
 foot. **⋯ › Subscriptions…** sends the dashboard at set times: see
 [Subscriptions and alerts](/insights/en/fonctionnalites/abonnements/).
+
+## A home page of your own
+
+The **home** page is a dashboard of your own, edited like any other. **Customise** opens the
+editor: the same toolbar to add cards, **Ctrl + Z** to step back, headings, texts, questions,
+card styles. Nobody else sees it.
+
+Its blocks can be removed and added back from the toolbar:
+
+| Block | What it shows |
+|---|---|
+| **My favourites** | the starred dashboards and questions — reorder them by dragging, or remove them |
+| **Recently viewed** | what you opened last |
+| **What's new** | what changed over the last two months |
+| **To watch** | your triggered alerts, and the figures going down |
+| **Shortcuts**, **Tables**, **Data sources** | create a question, a SQL query, a dashboard; the largest tables; the state of the sources |
+
+At the top, a strip keeps your **key figures**: **Pin a key figure** picks one from your
+questions, or **Pin to home page** in a card's menu. They are computed again on each visit,
+under your permissions. All of it on a quiet background — a fine grid and two soft lights, green
+and violet.
 
 ## Result caching
 

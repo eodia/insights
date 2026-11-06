@@ -1,6 +1,6 @@
 ---
 title: Visualizations
-description: Sixteen chart types, palettes everyone can read, highlighting, average, sorting and top N.
+description: Twenty-four chart types, palettes everyone can read, highlighting, average, sorting and top N.
 ---
 
 The **Visualization** panel of a question — or of a dashboard card — chooses the
@@ -16,8 +16,8 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 |---|---|---|
 | **Key figures** | Number, Trend, Progress, Gauge | a figure, its change, its share of a goal |
 | **Compare** | Bar, Row, **Radar**, **Polar bar** | categories against each other; the radar compares profiles across 3 to 30 criteria, on a common scale |
-| **Trend** | Line, Area, Combo, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
-| **Distribution** | Pie (on several rings), **Treemap**, Funnel | shares, shares of shares, stages |
+| **Trend** | Line, Area, Combo, **Candlestick**, **Bar race**, **Line race**, **Calendar** | tracking over time — and [forecasting](/insights/en/fonctionnalites/previsions/); races replay history period by period |
+| **Distribution** | Pie (on several rings), **Treemap**, Funnel, **Flows (Sankey)** | shares, shares of shares, stages, paths |
 | **Relationship** | Scatter, **Bubble** | two measures against each other |
 | **Detail** | Table, Pivot table, Map | rows, a cross-tabulated measure, values by region |
 
@@ -26,8 +26,8 @@ result; a type that doesn't suit it is dimmed, and its tooltip explains why.
 A **pie with several dimensions** — say type, reason, sub-reason — becomes rings: the first
 level in the center, each next level around it, in shades of its parent slice. Click a slice to
 zoom into it; click the center to go back. The **treemap** lays out the same levels as nested
-rectangles, each as large as its value, with each group's name in its header; click to zoom,
-and the breadcrumb at the top takes you back. Three levels at most.
+tiles, each as large as its value; click to zoom, and the breadcrumb at the top takes you back.
+Three levels at most.
 
 ### Calendar
 
@@ -63,6 +63,37 @@ rather than each month's value, and **Start the race on open**.
 - **Funnel as columns**: columns joined by bands showing each step's conversion.
 - **Bar fill**: solid, hatched or gradient — for one chart, or for all of them through the
   [theme](/insights/en/fonctionnalites/themes/), along with the bar radius.
+
+## Flows, candlesticks and treemaps
+
+- **Flows (Sankey)**: each dimension is a **step** — up to five, say segment → channel →
+  status — and bands join the values of one step to the next, as wide as their value. Hovering a
+  value brings out its flows.
+- **Candlestick**: a date, then four measures — open, high, low, close. They are recognised by
+  their name (*open*, *ouverture*, *high*, *haut*, *low*, *bas*, *close*, *clôture*), otherwise
+  taken in that order. A period that went up is green, one that went down red; beyond 60
+  periods, a slider at the bottom scrolls through them.
+- **Treemap**: rounded tiles, slightly shaded, with their name, value and share of the total in
+  the top left corner. With several levels, each group is framed in its colour, its name and
+  total in the frame.
+
+## Data
+
+The **Data** section of the settings shows the columns the chart draws, each in its **place** —
+which depends on the chart type:
+
+| Type | Places |
+|---|---|
+| Bar, line, area, combo | **Axis**, **Series** |
+| Flows (Sankey) | **Step 1** to **Step 5** |
+| Candlestick | **Date**; **Open**, **High**, **Low**, **Close** |
+| Scatter, bubble | **Horizontal axis**, **Vertical axis**, **Size** |
+| Pie | **Slices**, **Ring 2**, **Ring 3**; **Value** |
+| Treemap | **Level 1** to **Level 3**; **Value** |
+
+A column moves from one place to another by **drag and drop**, or comes from **Other columns** —
+dragged, or with a click that puts it where it most likely belongs: a number among the measures,
+anything else among the dimensions.
 
 ## Compare to another period
 
@@ -101,7 +132,7 @@ red, in every chart), then the palette. "Other" stays gray.
 | **Highlight** | the highest, the lowest or the latest value stands out; the others fade |
 | **Average line**, **median line** | a reference line, with its value |
 | **Goal** | a line at the target value, with its label |
-| **Category order** | that of the result, descending or ascending |
+| **Category order** | that of the result, descending, ascending, or **Label**: by name, numbers in order (“5-9” before “10-14”) — for an age pyramid, sizes |
 | **Only the top ones** | the N largest categories; the rest in "Other" (which counts neither in the average nor in the highlight) |
 | **Extend the trend by** | see [Forecasts](/insights/en/fonctionnalites/previsions/) |
 
@@ -128,6 +159,12 @@ In a dashboard, clicking a bar or a slice filters the dashboard, and **Shift** +
 adds more categories: see [Dashboards](/insights/en/fonctionnalites/tableaux-de-bord/#click-a-chart-to-filter).
 In the editor, it offers to filter the question on the value, or to exclude it.
 
+## Zooming
+
+On a chart with axes, **Ctrl** + mouse wheel (or a pinch on a touchpad) zooms along the
+categories or dates — on both axes for a scatter —, then dragging moves along. **Reset zoom**, at
+the top right, goes back to the whole. The wheel alone still scrolls the page.
+
 ## Texts
 
 A chart's **Texts** section: the **font** (one of the themes' fonts, the theme's by default), the
@@ -152,12 +189,18 @@ On a card, the table's search sits in the header, between the title and the ⋯ 
 
 In a table's settings, **Conditional formatting** colours cells by their value:
 
-- a **rule**: a column, a test (less than, at least, between…), a colour; it colours the text or
-  **fills the cell**, adds a **pictogram** of your choice (an icon, an emoji, an image) before the
-  value, and can colour **the whole row**;
+- a **rule**: a column, a test (less than, at least, between…; for a text, **equal to**,
+  **different from**, **contains**), a colour; it colours the text or **fills the cell**, adds a
+  **pictogram** of your choice (an icon, an emoji, an image) before the value, and can colour
+  **the whole row**;
 - a **colour scale**: red to green (or the reverse, or in blue), from the column's smallest value
   to its largest;
 - **bars** in the cells, proportional to the value.
+
+A rule compares the cell with **a value** written down, with **a column** of the same row (actual
+against target), or with **a variable** of the question (`{{threshold}}`): on a dashboard, what
+counts is the value of the filter tied to that variable — the reader moves the threshold, the
+colours follow.
 
 Hovering a column header shows its **description** (entered in Data sources); described columns
 are underlined with dots.

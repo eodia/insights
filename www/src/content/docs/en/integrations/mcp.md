@@ -1,11 +1,12 @@
 ---
 title: MCP server
-description: Connect Claude or any MCP client to eodia insights, over HTTP or stdio, and the ten tools it exposes.
+description: Connect Claude or any MCP client to eodia insights, over HTTP or stdio, and the twelve tools it exposes.
 ---
 
 eodia insights exposes an **MCP server** (Model Context Protocol): Claude, a coding assistant
 or your own agent can discover your sources, read your metrics and questions, and
-write Trino SQL — **read-only**, with the token's permissions.
+write Trino SQL — **read-only**, with the token's permissions. Only one tool writes:
+`save_question`, which keeps a result as a question.
 
 The server holds **no secret** and never reads the data itself: it relays each call's
 token to the [REST API](/insights/en/integrations/api-rest/), and therefore to Trino and its
@@ -88,10 +89,11 @@ For a client that launches the server itself, from a clone of the repository, wi
 | `EODIA_URL` | `http://localhost:4100` | the application address (the API is under `/api`) |
 | `EODIA_TOKEN` | — | the token; without it, the server refuses to start |
 
-## The ten tools
+## The twelve tools
 
 | Tool | Purpose |
 |---|---|
+| `whoami` | who the token acts for and in which workspace: its owner, their role, their groups, their other workspaces |
 | `list_datasources` | the readable sources, their engine and their Trino catalog |
 | `search_schema` | search tables and columns by keywords (name, label, description) |
 | `describe_table` | a table: qualified name, columns (type, semantic type, keys, description) and values of category columns |
@@ -102,8 +104,9 @@ For a client that launches the server itself, from a clone of the repository, wi
 | `run_sql` | run read-only Trino SQL: `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, `EXPLAIN`, `VALUES` or `TABLE` |
 | `get_dashboard` | summarize a dashboard: tabs, filters, cards and the ID of their question |
 | `show_chart` | **display a chart in the conversation**: a saved question (with its visualization) or Trino SQL, with the desired chart type, stacking and title |
+| `save_question` | **save a SQL query and its visualization as a question**, in the person's personal folder (or the one given): to find again, put on a dashboard, share. The query is run once first: a query that fails is not saved |
 
-All are annotated as read-only. The server advises the agent to prefer an existing metric or
+All are annotated as read-only, except `save_question`. The server advises the agent to prefer an existing metric or
 question, then to locate the tables before writing SQL. Results reach it
 as Markdown tables of at most 50 rows; `run_sql` reads 200 rows by default, 10,000
 at most.
@@ -117,7 +120,9 @@ the application: same chart types (radar included), same palettes, same formats,
 colors; it follows the client's light or dark theme, and **Open ↗** leads to the question in
 eodia insights (`PUBLIC_URL`).
 
-A client without MCP Apps receives the same result as a Markdown table. The page is a single HTML
+A client without MCP Apps — Open WebUI, for instance — receives the same result as a Markdown
+table, and **the chart as a PNG image**, drawn on the server as in the application: the client
+shows it, and the model can read it. The page is a single HTML
 file, with no external resource: the clients' default security policy is enough.
 
 ```text
@@ -126,8 +131,8 @@ Show me the orders by month and by status, as stacked bars.
 
 ## What an agent does not do
 
-- **It writes nothing**: no tool creates, modifies or deletes. Trino, in any case,
-  only accepts reads from people.
+- **It changes nothing**: only `save_question` creates a question, in folders the person can
+  write to; no tool modifies or deletes. Trino, in any case, only accepts reads from people.
 - **It never has more permissions** than its token's owner: row rules, masked and hidden
   columns apply as in the interface.
 - **It loses access immediately** when the token is revoked.

@@ -12,11 +12,17 @@ engine in a screen of its own, to talk with your data without leaving the page.
   description, **writes the SQL** and **runs it with your permissions**: Trino applies your
   permissions, masked columns and row rules included.
 - It **shows the data as charts**, right in the conversation: each chart is interactive, switches
-  type in one click (bar, line, area, pie, table), shows its SQL and can be **saved as a
-  question** to end up on a dashboard.
+  type in one click (bar, line, area, pie, table), shows its SQL — formatted and coloured as in
+  the editor — and can be **saved as a question**, or go straight to a dashboard with **Add to a
+  dashboard**.
 - It **writes** its answer: what you see, the highlights, tables when useful.
 - Each step shows while it works: searching the schema, reading a table, running the query,
   preparing the chart.
+
+## Talking to the assistant
+
+The **microphone**, in the input area, dictates the question; the answer to a question asked aloud
+is read aloud. See [the copilot's voice mode](/insights/en/fonctionnalites/copilot/#filtering-by-voice).
 
 ## Filtering sources
 

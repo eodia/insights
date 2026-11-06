@@ -44,9 +44,9 @@ tableau de bord, une requête écrite à la main ou un assistant branché sur le
 - Un écran **Structure** pour décrire les tables : libellés, descriptions, types sémantiques,
   formats, valeurs, relations.
 - Des [questions](/insights/fonctionnalites/questions/) construites avec l’éditeur visuel (avec
-  ses jointures), en SQL Trino ou en SQL natif, et vingt-deux
+  ses jointures), en SQL Trino ou en SQL natif, et vingt-quatre
   [visualisations](/insights/fonctionnalites/visualisations/) — radar, barres polaires, bulles,
-  carte proportionnelle, calendrier, courses de barres et de courbes, chiffres clés avec courbe
+  mosaïque, flux (Sankey), chandeliers, calendrier, courses de barres et de courbes, chiffres clés avec courbe
   miniature — aux palettes lisibles par tous.
 - Des [prévisions](/insights/fonctionnalites/previsions/) qui prolongent une courbe en pointillés
   verts, avec la saison et un intervalle de confiance.

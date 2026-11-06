@@ -1,11 +1,12 @@
 ---
 title: Serveur MCP
-description: Brancher Claude ou tout client MCP sur eodia insights, en HTTP ou en stdio, et les dix outils qu’il expose.
+description: Brancher Claude ou tout client MCP sur eodia insights, en HTTP ou en stdio, et les douze outils qu’il expose.
 ---
 
 eodia insights expose un **serveur MCP** (Model Context Protocol) : Claude, un assistant de code
 ou votre propre agent y découvrent vos sources, lisent vos métriques et vos questions, et
-écrivent du SQL Trino — **en lecture seule**, sous les droits du jeton.
+écrivent du SQL Trino — **en lecture seule**, sous les droits du jeton. Un seul outil écrit :
+`save_question`, qui garde un résultat comme question.
 
 Le serveur ne détient **aucun secret** et ne lit jamais les données lui-même : il relaie le
 jeton de chaque appel à l’[API REST](/insights/integrations/api-rest/), donc à Trino et à ses
@@ -88,10 +89,11 @@ Pour un client qui lance le serveur lui-même, depuis un clone du dépôt, avec 
 | `EODIA_URL` | `http://localhost:4100` | l’adresse de l’application (l’API est sous `/api`) |
 | `EODIA_TOKEN` | — | le jeton ; sans lui, le serveur refuse de démarrer |
 
-## Les dix outils
+## Les douze outils
 
 | Outil | Rôle |
 |---|---|
+| `whoami` | pour qui et dans quel espace agit le jeton : son propriétaire, son rôle, ses groupes, ses autres espaces |
 | `list_datasources` | les sources lisibles, leur moteur et leur catalogue Trino |
 | `search_schema` | chercher des tables et des colonnes par mots-clés (nom, libellé, description) |
 | `describe_table` | une table : nom qualifié, colonnes (type, type sémantique, clés, description) et valeurs des colonnes de catégorie |
@@ -102,8 +104,9 @@ Pour un client qui lance le serveur lui-même, depuis un clone du dépôt, avec 
 | `run_sql` | exécuter du SQL Trino en lecture seule : `SELECT`, `WITH`, `SHOW`, `DESCRIBE`, `EXPLAIN`, `VALUES` ou `TABLE` |
 | `get_dashboard` | résumer un tableau de bord : onglets, filtres, cartes et l’identifiant de leur question |
 | `show_chart` | **afficher un graphique dans la conversation** : une question enregistrée (avec sa visualisation) ou du SQL Trino, avec la forme, l’empilement et le titre voulus |
+| `save_question` | **enregistrer une requête SQL et sa visualisation comme question**, dans le dossier personnel de la personne (ou celui indiqué) : à retrouver, à mettre dans un tableau de bord, à partager. La requête est exécutée une fois avant : une requête qui échoue n’est pas enregistrée |
 
-Tous sont annotés en lecture seule. Le serveur conseille à l’agent de préférer une métrique ou
+Tous sont annotés en lecture seule, sauf `save_question`. Le serveur conseille à l’agent de préférer une métrique ou
 une question existante, puis de repérer les tables avant d’écrire du SQL. Les résultats lui
 arrivent en tableaux Markdown de 50 lignes au plus ; `run_sql` lit 200 lignes par défaut, 10 000
 au plus.
@@ -117,7 +120,9 @@ l’application : mêmes formes (radar compris), mêmes palettes, mêmes formats
 valeurs ; il suit le thème clair ou sombre du client, et **Ouvrir ↗** mène à la question dans
 eodia insights (`PUBLIC_URL`).
 
-Un client sans MCP Apps reçoit le même résultat en tableau Markdown. La page est un seul fichier
+Un client sans MCP Apps — Open WebUI par exemple — reçoit le même résultat en tableau Markdown,
+et **le graphique en image PNG**, dessiné côté serveur comme dans l’application : le client
+l’affiche, et le modèle peut le lire. La page est un seul fichier
 HTML, sans ressource externe : la politique de sécurité par défaut des clients suffit.
 
 ```text
@@ -126,7 +131,8 @@ Montre-moi les commandes par mois et par statut, en barres empilées.
 
 ## Ce qu’un agent ne fait pas
 
-- **Il n’écrit rien** : aucun outil ne crée, ne modifie ni ne supprime. Trino, de toute façon,
+- **Il ne modifie rien** : seul `save_question` crée une question, dans les dossiers où la
+  personne peut écrire ; aucun outil ne modifie ni ne supprime. Trino, de toute façon,
   n’accepte que des lectures de la part des personnes.
 - **Il n’a jamais plus de droits** que le propriétaire de son jeton : règles de ligne, colonnes
   masquées et cachées s’appliquent comme dans l’interface.

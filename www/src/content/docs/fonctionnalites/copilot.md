@@ -36,31 +36,60 @@ Pour y parvenir, il dispose d’outils :
 | `describe_table` | lire une table : colonnes, types Trino, types sémantiques, descriptions, valeurs, relations |
 | `list_metrics` | lister les métriques et les modèles définis par l’équipe |
 | `run_query` | exécuter une requête en lecture seule, sous vos droits — si vous l’y autorisez |
+| `show_chart` | montrer un graphique dans la conversation |
 | `propose_question` | proposer une question : SQL et visualisation |
 | `propose_dashboard` | proposer un tableau de bord, ou des cartes à ajouter au tableau ouvert |
 | `propose_metadata` | proposer des métadonnées pour une table |
+| `find_filter_values`, `set_filters` | sur un tableau de bord : trouver les valeurs d’un filtre, puis poser les filtres |
 
 Les descriptions, types sémantiques et valeurs que vous saisissez dans
 [Structure](/insights/fonctionnalites/sources/#lécran-structure) font partie de son contexte :
 plus vos tables sont décrites, plus ses réponses sont justes.
 
 Les réponses arrivent **en continu** (streaming), et les conversations sont **gardées par
-personne** : **Nouvelle conversation** en ouvre une autre.
+personne** : le panneau reprend la sienne d’un écran à l’autre, **Nouvelle conversation** en ouvre
+une autre, et **Historique** liste les conversations récentes, à rouvrir ou à supprimer.
+
+Il **montre des graphiques** dans ses réponses — **Ajouter à un tableau de bord** en fait une
+carte, d’un clic — et son SQL est mis en forme et coloré comme dans l’éditeur. Le SQL qu’il
+propose est d’abord **vérifié par Trino**, sous vos droits et sans lire de données : une requête
+qui ne passerait pas ne vous est pas montrée.
+
+## Filtrer à la voix
+
+Sur un tableau de bord, le copilot **pose les filtres** à partir d’une phrase : « montre-moi la
+Bretagne en mars ». Il cherche les valeurs réelles des filtres (« bretagne » → « Bretagne »), les
+pose, et le dit en une phrase ; « toutes les régions » retire le filtre. Les filtres s’appliquent
+aussitôt, comme si vous les aviez choisis — une question sur les données (« quel canal vend le
+plus ? ») ne les touche pas.
+
+Le **micro**, dans la zone de saisie, dicte la question : le texte s’écrit pendant que vous
+parlez, et part quand vous vous arrêtez. La réponse à une question posée à voix haute est **lue à
+voix haute**, sans son code ni ses tableaux. Le mode vocal marche aussi dans
+l’[assistant](/insights/fonctionnalites/assistant/).
+
+:::note[La dictée dépend du navigateur]
+La reconnaissance vocale est celle du navigateur : Chrome et Edge envoient le son au service de
+leur éditeur pour l’écrire ; Firefox n’en a pas, et le micro n’est alors pas proposé. La lecture
+à voix haute se fait sur l’appareil.
+:::
 
 ## Il propose, vous appliquez
 
 Le copilot **ne modifie rien lui-même**. Une proposition s’affiche dans le panneau avec un bouton
 **Appliquer** (ou **Ouvrir**) : la question s’ouvre dans l’éditeur, les cartes s’ajoutent au
-tableau, la description s’écrit dans Structure — seulement sur votre clic.
+tableau, la description s’écrit dans Structure — seulement sur votre clic. Seuls les filtres d’un
+tableau de bord, que vous lui demandez de poser, s’appliquent directement : ils ne changent que
+votre affichage, rien n’est enregistré.
 
 ## Ses garde-fous
 
 - **Il lit sous vos droits.** `run_query` passe par Trino sous votre identité, comme toute autre
   requête : vos règles de ligne s’appliquent, les colonnes cachées n’existent pas pour lui et les
   colonnes masquées lui arrivent masquées.
-- **Il n’exécute rien sans votre accord.** L’interrupteur **Autoriser l’exécution de requêtes
-  (sous vos droits)**, éteint par défaut, vaut pour la conversation. Éteint, le copilot écrit les
-  requêtes sans les lancer.
+- **Il ne lit rien sans votre accord.** Le bouton **Autoriser l’accès**, dans la zone de
+  saisie, éteint par défaut, lui permet d’exécuter des requêtes sous vos droits. Éteint, le
+  copilot écrit les requêtes sans les lancer.
 - **Il ne reçoit qu’un extrait** de chaque résultat : 40 lignes au plus.
 - **Un quota** limite le nombre de messages par personne et par heure.
 - **Chaque appel est journalisé** : fournisseur, modèle, écran, jetons consommés, outils

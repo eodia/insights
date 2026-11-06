@@ -42,9 +42,9 @@ a hand-written query or an assistant connected to the MCP server. See
 - A **Structure** screen to describe tables: labels, descriptions, semantic types, formats,
   values, relationships.
 - [Questions](/insights/en/fonctionnalites/questions/) built with the visual editor (joins
-  included), in Trino SQL or in native SQL, and twenty-two
+  included), in Trino SQL or in native SQL, and twenty-four
   [visualizations](/insights/en/fonctionnalites/visualisations/) — radar, polar bars, bubbles,
-  treemap, calendar, bar and line races, key figures with a sparkline — with palettes everyone
+  treemap, flows (Sankey), candlesticks, calendar, bar and line races, key figures with a sparkline — with palettes everyone
   can read.
 - [Forecasts](/insights/en/fonctionnalites/previsions/) that extend a line in dotted green, with
   seasonality and a confidence interval.

@@ -13,10 +13,16 @@ dans un écran à lui, pour converser avec ses données sans quitter la page.
   permissions, colonnes masquées et règles de lignes comprises.
 - Il **montre les données en graphiques**, dans la conversation : chaque graphique est
   interactif, change de forme d’un clic (barres, courbes, aires, camembert, tableau), montre son
-  SQL et s’**enregistre comme question** pour finir dans un tableau de bord.
+  SQL — mis en forme et coloré comme dans l’éditeur — et s’**enregistre comme question**, ou va
+  droit sur un tableau de bord par **Ajouter à un tableau de bord**.
 - Il **rédige** sa réponse : ce qu’on voit, les points saillants, des tableaux quand c’est utile.
 - Chaque étape s’affiche pendant qu’il travaille : recherche dans le schéma, lecture d’une
   table, exécution de la requête, préparation du graphique.
+
+## Parler à l’assistant
+
+Le **micro**, dans la zone de saisie, dicte la question ; la réponse à une question posée à voix
+haute est lue à voix haute. Voir [le mode vocal du copilot](/insights/fonctionnalites/copilot/#filtrer-à-la-voix).
 
 ## Filtrer les sources
 

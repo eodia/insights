@@ -158,7 +158,7 @@ Une date accepte une date (`2026-03-01`), une période relative (`today`, `yeste
 
 ## Les visualisations
 
-Seize formes, rangées par usage — chiffres clés, comparer (dont le **radar**), évolution,
+Vingt-quatre formes, rangées par usage — chiffres clés, comparer (dont le **radar**), évolution,
 répartition, relation, détail —, avec des palettes validées pour les daltoniens, la mise en
 avant d’une valeur, la moyenne, le tri, le top N… et des **prévisions** qui prolongent une
 courbe en pointillés verts. Tout est décrit dans [Visualisations](/insights/fonctionnalites/visualisations/)

@@ -41,6 +41,10 @@ En mode édition, l’en-tête prend une teinte et une barre flottante, en bas, 
 autres. Les réglages d’une carte (son filtre, son lien, son image, sa consigne…) sont dans son
 menu, **Réglages…**.
 
+**Style de la carte…**, dans le même menu, change son fond : **Normale**, **Mise en valeur** (un
+dégradé discret de la couleur du thème), **Sombre** (une carte noire, pour un chiffre clé), ou une
+couleur de votre choix — transparente comprise. Les textes et le graphique s’y accordent.
+
 **Le résumé par l’IA** lit, pour chaque carte choisie (huit au plus), quelques dizaines de lignes
 de son résultat — sous les droits de qui regarde, filtres appliqués — et rien d’autre : de quoi
 dire l’essentiel sans dépenser trop. Le même texte est gardé dix minutes pour les mêmes filtres ;
@@ -58,6 +62,9 @@ carte ne supprime pas la question —, et de la **déplacer** :
 - **Vers un autre tableau de bord…** la place sur un autre tableau, dans l’onglet choisi. Ses
   liens aux filtres restent derrière elle : les filtres ne sont pas les mêmes d’un tableau à
   l’autre.
+
+Une carte dupliquée — seule, ou avec son onglet — est une **copie indépendante** : elle garde sa
+propre requête, et la modifier en fait sa propre question. L’original ne bouge pas.
 
 L’onglet ouvert fait partie de l’adresse (`?tab=…`) : un lien ouvre le bon onglet, et
 **Précédent** / **Suivant** du navigateur vont d’un onglet à l’autre.
@@ -183,6 +190,37 @@ Chaque carte se règle comme une question : forme (dont le **radar**), palette, 
 série, mise en avant, moyenne, tri, top N… — voir [Visualisations](/insights/fonctionnalites/visualisations/)
 — et peut **prolonger sa tendance** : voir [Prévisions](/insights/fonctionnalites/previsions/).
 
+**Un objectif sur un chiffre clé.** Une carte **Nombre** ou **Tendance** prend un **objectif**
+(une valeur à atteindre, un libellé, et si plus bas est mieux) : une jauge sous le chiffre montre
+où il en est — « 82 % de l’objectif », puis **Objectif atteint** en vert. Le menu de la carte ›
+**Alertes…** propose alors, d’un clic, d’**être prévenu quand l’objectif n’est plus tenu**.
+
+## Expliquer un écart
+
+**Pourquoi ça bouge ?**, dans le menu d’une carte ou au clic droit sur un point d’une courbe
+dans le temps, compare la période — la dernière, ou celle cliquée — à celle d’avant. L’écart est
+décomposé **colonne par colonne** : pour chacune, les valeurs qui l’ont le plus fait bouger, avec
+leur variation et leur part de l’écart ; la colonne qui l’explique le mieux vient en premier.
+En tête, l’IA écrit une courte conclusion à partir de ces chiffres (sans fournisseur d’IA, une
+conclusion tirée des chiffres seuls).
+
+Le calcul se fait sous vos droits, filtres du tableau appliqués. Il n’est proposé que pour les
+cartes dont la question — construite avec l’éditeur visuel — avance le long d’une date.
+
+## Explorer en profondeur
+
+Hors édition, un clic droit sur une barre ou un point d’une question construite avec l’éditeur
+visuel ouvre son détail, **dans la carte** :
+
+- **Explorer cette période** descend d’une unité de temps : une année s’ouvre sur ses mois, un
+  mois sur ses jours ;
+- **Détailler par…** décompose la valeur cliquée par une autre colonne de sa table — la
+  « Bretagne » par ville, par produit.
+
+Un fil d’Ariane s’affiche sous le titre (« Tout › 2026 › mars ») : chaque étape y ramène, **Tout**
+revient au départ. L’exploration ne vit que dans la carte : la question enregistrée n’est pas
+modifiée, et les autres cartes ne sont pas filtrées.
+
 ## Rafraîchissement et affichage
 
 - **Rafraîchissement automatique** : le chronomètre de la barre — jamais, toutes les minutes,
@@ -193,7 +231,12 @@ série, mise en avant, moyenne, tri, top N… — voir [Visualisations](/insight
   change un filtre.
 - **Exporter en PDF** : une mise en pages A4 au [thème](/insights/fonctionnalites/themes/) du
   tableau, avec page de garde, filtres appliqués et pagination.
-- **Plein écran**, pour un écran mural.
+- **⋯ › Mode présentation**, pour une salle de réunion ou un écran mural : le tableau en plein
+  écran, ses onglets qui se succèdent (toutes les 15, 30, 60 ou 120 secondes), ses chiffres qui
+  se rafraîchissent seuls, l’heure dans un coin. Les flèches changent d’onglet, **Espace** met en
+  pause, **Échap** en sort.
+- **Largeur**, dans les **Réglages** du tableau : **Pleine largeur** (tout l’écran) ou **Page A4**,
+  centré à la largeur d’une page à l’italienne — il se lit comme il s’imprime.
 - **Dupliquer**, **Ajouter aux favoris**, **Partager** (voir
   [Partage](/insights/fonctionnalites/partage/)).
 
@@ -202,7 +245,8 @@ série, mise en avant, moyenne, tri, top N… — voir [Visualisations](/insight
 En mode modification, la **poignée** ⋮⋮ d’un onglet le déplace (ou Alt + ← / →), l’icône de
 réglages — ou un double-clic, ou un clic droit — ouvre ses réglages : son nom, un
 **pictogramme** et une **couleur** (reprise par son soulignement), une **description**, sa
-condition d’affichage. On y **duplique** un onglet, ses cartes avec lui, ou on le supprime.
+condition d’affichage. On y **duplique** un onglet, ses cartes avec lui — chacune une copie
+indépendante —, ou on le supprime.
 
 Au survol d’un onglet, une **infobulle** montre sa description et un aperçu de ce qu’il
 contient : une capture de l’onglet tel qu’on l’a vu la dernière fois, ou à défaut le plan de ses
@@ -234,6 +278,18 @@ Clic droit sur un point d’une courbe dans le temps › **Annoter ce point…**
 — ou une période — avec un libellé et une couleur, tracé sur le graphique. Posé sur une question
 enregistrée, il la suit partout où elle s’affiche.
 
+## Versions et mentions
+
+Chaque enregistrement garde une **version** du tableau. **⋯ › Historique des versions** les liste,
+de la plus récente à la plus ancienne : qui l’a enregistrée, quand, et ce qu’elle a changé
+(« Ajouté : Ventes par canal », « Onglet « Clients » retiré », « Passé en page A4 »…). Une
+version choisie s’affiche telle qu’elle était ; **Restaurer cette version** la remet en place —
+elle devient la plus récente, rien ne se perd.
+
+Dans un commentaire ou une annotation, **@** suivi d’un nom **mentionne** une personne de
+l’espace. Elle est prévenue dans l’application (la cloche de la barre du haut) et par e-mail
+quand un serveur d’e-mails est configuré — seulement si elle peut ouvrir le tableau.
+
 ## Les cartes de données
 
 Le menu ⋯ d’une carte de question propose, en plus de rafraîchir et agrandir :
@@ -251,6 +307,27 @@ Le menu ⋯ d’une carte de question propose, en plus de rafraîchir et agrandi
 de garde, un titre et une note, puis ouvre l’aperçu. Chaque page porte en pied le logo du thème
 et son numéro. **⋯ › Abonnements…** envoie le tableau à heure fixe : voir
 [Abonnements et alertes](/insights/fonctionnalites/abonnements/).
+
+## Un accueil à soi
+
+La page d’**accueil** est un tableau de bord à vous, qui se modifie comme les autres.
+**Personnaliser** ouvre l’éditeur : la même barre d’ajout, **Ctrl + Z** pour revenir en arrière,
+des titres, des textes, des questions, les styles de carte. Personne d’autre ne la voit.
+
+Ses blocs se retirent et se remettent depuis la barre d’ajout :
+
+| Bloc | Ce qu’il montre |
+|---|---|
+| **Mes favoris** | les tableaux de bord et questions étoilés — à réordonner en les glissant, ou à retirer |
+| **Consultés récemment** | ce que vous avez ouvert en dernier |
+| **Nouveautés** | ce qui a changé ces deux derniers mois |
+| **À surveiller** | vos alertes déclenchées, et les chiffres qui baissent |
+| **Raccourcis**, **Tables**, **Sources** | créer une question, une requête SQL, un tableau ; les plus grandes tables ; l’état des sources |
+
+En haut, une bande garde vos **chiffres clés** : **Épingler un indicateur** en choisit un parmi vos
+questions, ou **Épingler à l’accueil** dans le menu d’une carte. Ils sont recalculés à chaque
+visite, sous vos droits. Le tout sur un fond discret — une grille fine et deux lueurs, verte et
+violette.
 
 ## Le cache des résultats
 
