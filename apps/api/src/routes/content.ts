@@ -8,6 +8,7 @@ import {
   FolderInputSchema,
   QuestionInputSchema,
   RunQuerySchema,
+  TableSearchSchema,
   ShareInputSchema,
   ThemeInputSchema,
   SavedViewInputSchema,
@@ -93,9 +94,10 @@ const RunSaved = z.object({
   constraints: z.array(z.any()).optional(),
   fresh: z.boolean().optional(),
   execution_id: z.string().max(64).optional(),
+  search: TableSearchSchema.optional(),
 })
 const CardMove = z.object({ dashboard: z.string().min(1).max(64), tab: z.string().max(60).nullable().optional() })
-const CardRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional() })
+const CardRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional(), search: TableSearchSchema.optional() })
 const CardSummaryRun = z.object({ values: z.record(z.string(), z.any()).optional(), fresh: z.boolean().optional(), card: z.record(z.string(), z.unknown()).optional() })
 const ExportInput = Run.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(120).optional() })
 /** A table as it shows — its columns, its titles, its filters and its order —, to save as a file. */
@@ -153,6 +155,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
         ...(input.execution_id ? { executionId: input.execution_id } : {}),
         ...(input.question ? { questionId: input.question } : {}),
         ...(input.compare ? { compare: input.compare } : {}),
+        ...(input.search ? { search: input.search } : {}),
       }),
     )
   })
@@ -176,6 +179,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
       limit: Math.min(input.limit ?? 100_000, 100_000),
       ...(input.parameters ? { parameters: input.parameters as never } : {}),
       ...(input.constraints ? { constraints: input.constraints as never } : {}),
+      ...(input.search ? { search: input.search } : {}),
     })
     return download(c, input.format, input.name ?? '', result)
   })
@@ -321,6 +325,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
         ...(input.constraints ? { constraints: input.constraints } : {}),
         ...(input.fresh ? { fresh: true } : {}),
         ...(input.execution_id ? { executionId: input.execution_id } : {}),
+        ...(input.search ? { search: input.search } : {}),
       }),
     )
   })
@@ -329,7 +334,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
     const core = c.get('core')
     const actor = actorOf(c)
     const q = await getQuestion(core, actor, param(c, 'id'))
-    const result = await runQuestion(core, actor, q.id, { limit: 100_000, ...(input.parameters ? { parameters: input.parameters } : {}), ...(input.constraints ? { constraints: input.constraints } : {}) })
+    const result = await runQuestion(core, actor, q.id, { limit: 100_000, ...(input.parameters ? { parameters: input.parameters } : {}), ...(input.constraints ? { constraints: input.constraints } : {}), ...(input.search ? { search: input.search } : {}) })
     return download(c, input.format, q.name, result)
   })
 
@@ -369,7 +374,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
     body: CardRun,
   }, async (c) => {
     const input = bodyOf(c, CardRun)
-    return ok(c, await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { ...(input.fresh ? { fresh: true } : {}) }))
+    return ok(c, await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { ...(input.fresh ? { fresh: true } : {}), ...(input.search ? { search: input.search } : {}) }))
   })
   route(
     app,
@@ -382,7 +387,7 @@ export function contentRoutes(app: ReturnType<typeof newApp>) {
     },
     async (c) => {
       const input = bodyOf(c, CardRun.extend({ format: z.enum(['csv', 'json', 'xlsx']), name: z.string().max(200).optional() }))
-      const result = await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { limit: 100_000 })
+      const result = await runCard(c.get('core'), actorOf(c), param(c, 'id'), param(c, 'card'), input.values ?? {}, { limit: 100_000, ...(input.search ? { search: input.search } : {}) })
       return download(c, input.format, input.name ?? '', result)
     },
   )

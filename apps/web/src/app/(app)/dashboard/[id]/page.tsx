@@ -297,7 +297,7 @@ function DashboardScreen({ id }: { id: string }) {
   if (!dashboard)
     return <Loader2 className="m-auto mt-20 size-5 animate-spin text-muted-foreground" />
 
-  const runner: Runner = async (card, values, { fresh, draft }) => {
+  const runner: Runner = async (card, values, { fresh, draft, search }) => {
     // A display condition's query, as saved: the server finds it in the dashboard, and ties it.
     const saved = parseConditionCardId(card.id) ? savedConditionCard(dashboard, card) : dashboard.cards.some((c) => c.id === card.id && JSON.stringify(c) === JSON.stringify(card))
     if (draft || !saved) {
@@ -308,13 +308,14 @@ function DashboardScreen({ id }: { id: string }) {
         values,
       )
       if (card.question)
-        return api.post<RunResult>(`/v1/questions/${card.question}/run`, { constraints, fresh })
+        return api.post<RunResult>(`/v1/questions/${card.question}/run`, { constraints, fresh, ...(search ? { search } : {}) })
       const compare = (card.visualization?.settings as { compare?: string } | undefined)?.compare
-      return api.post<RunResult>('/v1/query', { query: card.query, constraints, fresh, ...(compare && card.query?.kind === 'builder' ? { compare } : {}) })
+      return api.post<RunResult>('/v1/query', { query: card.query, constraints, fresh, ...(compare && card.query?.kind === 'builder' ? { compare } : {}), ...(search ? { search } : {}) })
     }
     return api.post<RunResult>(`/v1/dashboards/${dashboard.id}/cards/${card.id}/run`, {
       values,
       fresh,
+      ...(search ? { search } : {}),
     })
   }
   const editable = dashboard.access !== 'view'

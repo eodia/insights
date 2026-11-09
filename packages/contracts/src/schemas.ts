@@ -192,6 +192,11 @@ export const ConstraintSchema = z.object({
   value: ParameterValueSchema,
 })
 
+export const TableSearchSchema = z.object({
+  text: z.string().trim().min(1).max(200),
+  columns: z.array(z.string().min(1).max(300)).min(1).max(200),
+})
+
 export const RunQuerySchema = z.object({
   query: QuestionQuerySchema,
   /** Values of the SQL variables, by name. */
@@ -202,6 +207,8 @@ export const RunQuerySchema = z.object({
   limit: z.number().int().positive().max(100_000).optional(),
   /** Beside each measure, its value in the period compared to. */
   compare: z.enum(COMPARE_MODES).optional(),
+  /** Only the rows where one of these result columns holds this text: a table's search over all its rows. */
+  search: TableSearchSchema.optional(),
 })
 
 export const ColumnFormatSchema = z

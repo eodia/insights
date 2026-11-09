@@ -9,7 +9,7 @@ import { ShareDialog } from '@/components/app/share-dialog'
 import { AlertsDialog } from '@/components/app/delivery/alerts'
 import { returnHref, returnPointFor } from '@/lib/return-point'
 import { type SqlError, SqlEditor } from '@/components/app/sql-editor'
-import { DataTable, type PointClick, ResultFooter, RuleVariables, Visualization } from '@/components/app/visualization'
+import { DataTable, type PointClick, ResultFooter, RuleVariables, TableRemote, type TableRemoteApi, Visualization } from '@/components/app/visualization'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
 import {
@@ -301,6 +301,16 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
     update({ query: { kind: 'sql', sql: result.sql } })
   }
 
+  // The result's table, holding its first rows only: the server searches and exports all of them,
+  // the question as it is run here (its variables, its row limit).
+  const tableRemote = useMemo<TableRemoteApi>(() => {
+    const parameters = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''))
+    return {
+      search: (search) => api.post<RunResult>('/v1/query', { query: draft.query, parameters, search, ...(maxRows ? { limit: maxRows } : {}), ...(draft.id ? { question: draft.id } : {}) }),
+      export: (format, search) => download('/v1/query/export', { query: draft.query, parameters, format, name: draft.name || $t('resultat||nom du fichier exporté, sans accent'), ...(search ? { search } : {}) }),
+    }
+  }, [draft.query, draft.id, draft.name, values, maxRows])
+
   const exportAs = async (format: 'csv' | 'xlsx' | 'json') => {
     try {
       const parameters = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''))
@@ -562,6 +572,7 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
               view === 'viz' ? (
                 // Drawn as on a card of its dashboard: on the theme's card colour, not its page's.
                 <ThemeScope theme={saved?.resolved_theme} className="h-full !bg-[var(--theme-card,transparent)]">
+                  <TableRemote.Provider value={tableRemote}>
                   <RuleVariables.Provider value={values}>
                     <Visualization
                       result={result}
@@ -573,9 +584,12 @@ export function QuestionEditor({ initial }: { initial: Draft }) {
                       exportName={draft.name}
                     />
                   </RuleVariables.Provider>
+                  </TableRemote.Provider>
                 </ThemeScope>
               ) : view === 'table' ? (
-                <DataTable result={result} looks={result.looks} onRowMenu={setPoint} exportName={draft.name} />
+                <TableRemote.Provider value={tableRemote}>
+                  <DataTable result={result} looks={result.looks} onRowMenu={setPoint} exportName={draft.name} />
+                </TableRemote.Provider>
               ) : (
                 <pre className="h-full overflow-auto rounded-xl bg-code p-4 font-mono text-xs text-code-foreground">{result.sql}</pre>
               )

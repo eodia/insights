@@ -796,6 +796,15 @@ export interface CardMapping {
   readonly target: ParameterTarget
 }
 
+/**
+ * A table's search, run by the server over every row rather than over those loaded: the rows
+ * where one of `columns` (result columns, by name) holds `text`, whatever the case.
+ */
+export interface TableSearch {
+  readonly text: string
+  readonly columns: readonly string[]
+}
+
 /** A filter with its value, as a card asks the kernel to apply it. */
 export interface Constraint {
   readonly target: ParameterTarget

@@ -1,7 +1,7 @@
 'use client'
 
 import 'react-grid-layout/css/styles.css'
-import type {
+import type { TableSearch,
   Annotation,
   BuilderQuery,
   CardComment,
@@ -25,7 +25,7 @@ import { EmptyScene } from '@/components/app/empty-scene'
 import { ItemTile, LookIcon } from '@/components/app/look'
 import { IconPicker } from '@/components/app/structure/pickers'
 import { VizPicker } from '@/components/app/question/viz-settings'
-import { DarkSurface, RuleVariables, StillMotion, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
+import { DarkSurface, RuleVariables, TableRemote, type TableRemoteApi, StillMotion, ResultFooter, Visualization, type PointClick } from '@/components/app/visualization'
 import { PointMenu, openRecords, recordPicks } from '@/components/app/point-menu'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
@@ -426,6 +426,19 @@ function CardFrame(props: CardProps) {
     if (run.data) onResult(card.id, run.data, viz)
   }, [run.data, card.id, onResult, viz])
   const title = card.title || question?.name || (card.kind === 'filter' && pane?.parameter ? filterName(pane.parameter) : '')
+  // Its table, holding the first rows only: searched over every row, exported whole, by the server.
+  const tableRemote = useMemo<TableRemoteApi | null>(
+    () =>
+      isQuestion && !publicMode
+        ? {
+            search: (search) => runner(card, values, { fresh: false, draft, search }),
+            ...(draft
+              ? {}
+              : { export: (format: 'csv' | 'xlsx', search?: TableSearch) => download(`/v1/dashboards/${props.dashboardId}/cards/${card.id}/export`, { values, format, name: title, ...(search ? { search } : {}) }) }),
+          }
+        : null,
+    [isQuestion, publicMode, runner, card, values, draft, props.dashboardId, title],
+  )
   const [editingTitle, setEditingTitle] = useState(false)
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -837,7 +850,23 @@ function CardFrame(props: CardProps) {
           </>
         ) : card.kind === 'text' ? (
           editing ? (
-            <Textarea value={card.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} className="h-full resize-none text-sm" placeholder={$t('Texte en Markdown ; citez un filtre par son nom, entre doubles accolades : {{Région}}')} />
+            // A text has no header: its bar to take hold of it — the whole bar —, to copy or remove it.
+            <div className="flex h-full min-h-0 flex-col gap-1">
+              <div className="-mx-1 flex h-7 shrink-0 items-center gap-1">
+                <span className="card-handle flex h-full min-w-0 flex-1 cursor-move items-center text-muted-foreground" title={$t('Déplacer')}>
+                  <GripVertical className="size-4 shrink-0" />
+                </span>
+                <Hint label={$t('Dupliquer')}>
+                  <button type="button" onClick={onDuplicate} className="card-still rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-foreground" aria-label={$t('Dupliquer')}>
+                    <Copy className="size-4" />
+                  </button>
+                </Hint>
+                <button type="button" onClick={onRemove} className="card-still rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive" aria-label={$t('Retirer')}>
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+              <Textarea value={card.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} className="card-still min-h-0 flex-1 resize-none text-sm" placeholder={$t('Texte en Markdown ; citez un filtre par son nom, entre doubles accolades : {{Région}}')} />
+            </div>
           ) : (
             <div className="prose-sm h-full overflow-auto text-sm leading-relaxed text-muted-foreground [&_a]:text-primary [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_li]:ml-4 [&_ul]:list-disc [&_strong]:text-foreground">
               <Markdown remarkPlugins={[remarkGfm]}>{substitute(card.text ?? '', parameters, values)}</Markdown>
@@ -856,6 +885,7 @@ function CardFrame(props: CardProps) {
         ) : run.data && (props.revealed === undefined || drawn) ? (
           <StillMotion.Provider value={played}>
           <DarkSurface.Provider value={surface.dark}>
+          <TableRemote.Provider value={tableRemote}>
           <RuleVariables.Provider value={Object.fromEntries((card.mappings ?? []).flatMap((m) => ('variable' in m.target ? [[m.target.variable, values[m.parameter]]] : [])))}>
           <Visualization
             result={run.data}
@@ -870,6 +900,7 @@ function CardFrame(props: CardProps) {
             {...(talk?.annotations.length ? { annotations: talk.annotations } : {})}
           />
           </RuleVariables.Provider>
+          </TableRemote.Provider>
           </DarkSurface.Provider>
           </StillMotion.Provider>
         ) : (

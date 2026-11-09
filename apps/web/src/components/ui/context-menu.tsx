@@ -1,5 +1,6 @@
 'use client'
 
+import { fitHeight } from '@/lib/fit'
 import { cn } from '@/lib/utils'
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { ChevronRightIcon } from 'lucide-react'
@@ -20,14 +21,19 @@ const ContextMenuSub = ContextMenuPrimitive.Sub
 
 function ContextMenuContent({
   className,
+  collisionPadding = 8,
+  style,
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Content>) {
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
         data-slot="context-menu-content"
+        collisionPadding={collisionPadding}
+        // Never taller than the room left on screen: a long menu scrolls instead of running off it.
+        style={{ maxHeight: fitHeight('--radix-context-menu-content-available-height', className), ...style }}
         className={cn(
-          'z-50 min-w-[12rem] overflow-hidden rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
+          'z-50 min-w-[12rem] overflow-x-hidden overflow-y-auto rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           className,
         )}
@@ -84,14 +90,18 @@ function ContextMenuSubTrigger({
 
 function ContextMenuSubContent({
   className,
+  collisionPadding = 8,
+  style,
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.SubContent>) {
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.SubContent
         data-slot="context-menu-sub-content"
+        collisionPadding={collisionPadding}
+        style={{ maxHeight: fitHeight('--radix-context-menu-content-available-height', className), ...style }}
         className={cn(
-          'z-50 min-w-[10rem] overflow-hidden rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
+          'z-50 min-w-[10rem] overflow-x-hidden overflow-y-auto rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
           className,
         )}
         {...props}

@@ -6,6 +6,7 @@ import {
   type BuilderQuery,
   type Constraint,
   type ParameterValue,
+  type TableSearch,
   type QueryResult,
   type QuestionQuery,
   type ResultColumn,
@@ -63,6 +64,8 @@ export interface RunInput {
   readonly executionId?: string
   /** Column metadata of a model, applied to the result. */
   readonly columnsMeta?: Record<string, Partial<{ label: string; semantic: string | null; format: Record<string, unknown> }>> | null
+  /** Only the rows where one of these result columns holds this text: a table's search over all its rows. */
+  readonly search?: TableSearch
   /** Beside each measure, its value in the period compared to (a builder question over time). */
   readonly compare?: CompareMode
 }
@@ -310,13 +313,15 @@ async function runOnce(core: Core, actor: Actor, input: RunInput): Promise<RunRe
     }
   }
   const limit = Math.min(input.limit ?? core.config.maxRows, 1_000_000)
-  const key = cacheKey(compiled.sql, accessFingerprint(snap, principalOf(actor)), limit)
+  // A table's search: the statement wrapped, still run by Trino as the person — their rights hold.
+  const statement = input.search ? searched(compiled.sql, input.search) : compiled.sql
+  const key = cacheKey(statement, accessFingerprint(snap, principalOf(actor)), limit)
   const useCache = input.origin !== 'editor' && !input.fresh
   if (useCache) {
     const hit = await cacheGet(core, key)
     if (hit) {
-      void logExecution(core, actor, input, compiled.sql, hit.duration_ms, hit.rows.length, null, true)
-      return { ...hit, sql: compiled.sql }
+      void logExecution(core, actor, input, statement, hit.duration_ms, hit.rows.length, null, true)
+      return { ...hit, sql: statement }
     }
   }
 
@@ -327,7 +332,7 @@ async function runOnce(core: Core, actor: Actor, input: RunInput): Promise<RunRe
   try {
     let res: Awaited<ReturnType<typeof core.engine.run>>
     const run = () =>
-      core.engine.run(compiled.sql, {
+      core.engine.run(statement, {
         user: principalOf(actor),
         maxRows: limit,
         timeoutMs: core.config.queryTimeoutMs,
@@ -363,7 +368,7 @@ async function runOnce(core: Core, actor: Actor, input: RunInput): Promise<RunRe
       rows,
       truncated: res.truncated,
       duration_ms: Date.now() - started,
-      sql: compiled.sql,
+      sql: statement,
     }
     const columnIds = dressed.map((c) => c.source?.column).filter((x): x is string => !!x)
     const looks = await valueLooks(core, columnIds)
@@ -372,11 +377,11 @@ async function runOnce(core: Core, actor: Actor, input: RunInput): Promise<RunRe
       const ttl = await ttlFor(core, input, prepared)
       if (ttl !== 0) void cachePut(core, key, withLooks, ttl)
     }
-    void logExecution(core, actor, input, compiled.sql, result.duration_ms, rows.length, null, false)
+    void logExecution(core, actor, input, statement, result.duration_ms, rows.length, null, false)
     return withLooks
   } catch (err) {
     const mapped = mapError(err, core.config.queryTimeoutMs)
-    void logExecution(core, actor, input, compiled.sql, Date.now() - started, null, mapped.message, false)
+    void logExecution(core, actor, input, statement, Date.now() - started, null, mapped.message, false)
     throw mapped
   } finally {
     if (execKey) core.running.delete(execKey)
@@ -438,6 +443,16 @@ async function logExecution(core: Core, actor: Actor, input: RunInput, sql: stri
 
 // ── Questions et cartes ─────────────────────────────────────────────────────
 
+/**
+ * The statement with only the rows where one of the columns holds the text, whatever the case.
+ * The columns are quoted names and the text a literal: nothing of them reaches the SQL as code.
+ */
+export function searched(sql: string, search: TableSearch): string {
+  const literal = `'${search.text.toLowerCase().replace(/'/g, "''")}'`
+  const holds = search.columns.map((c) => `strpos(lower(try(CAST("${c.replace(/"/g, '""')}" AS varchar))), ${literal}) > 0`)
+  return `SELECT * FROM (\n${sql}\n) AS "__search" WHERE ${holds.join(' OR ')}`
+}
+
 /** The rows a question reads, as its table's « Limite de lignes » sets them; none: the instance's. */
 export function rowLimitOf(visualization: unknown): number | undefined {
   const n = Number((visualization as { settings?: { max_rows?: unknown } } | null | undefined)?.settings?.max_rows)
@@ -448,7 +463,7 @@ export async function runQuestion(
   core: Core,
   actor: Actor,
   id: string,
-  opts: { parameters?: Record<string, ParameterValue | null>; constraints?: readonly Constraint[]; fresh?: boolean; origin?: Origin; dashboardId?: string; executionId?: string; limit?: number } = {},
+  opts: { parameters?: Record<string, ParameterValue | null>; constraints?: readonly Constraint[]; fresh?: boolean; origin?: Origin; dashboardId?: string; executionId?: string; limit?: number; search?: TableSearch } = {},
 ): Promise<RunResult> {
   const q = await getQuestion(core, actor, id)
   return runQuery(core, actor, {
@@ -461,6 +476,7 @@ export async function runQuestion(
     ...(opts.fresh ? { fresh: true } : {}),
     ...(opts.dashboardId ? { dashboardId: opts.dashboardId } : {}),
     ...(opts.executionId ? { executionId: opts.executionId } : {}),
+    ...(opts.search ? { search: opts.search } : {}),
     ...(opts.limit ?? rowLimitOf(q.visualization) ? { limit: opts.limit ?? rowLimitOf(q.visualization) } : {}),
     cacheTtl: q.cache_ttl,
     // A model's column metadata, or a saved question's own (labels and formats of its SQL).
@@ -479,7 +495,7 @@ export async function runCard(
   dashboardId: string,
   cardId: string,
   values: Readonly<Record<string, ParameterValue | null>>,
-  opts: { fresh?: boolean; origin?: Origin; locked?: Readonly<Record<string, ParameterValue | null>>; /** An export's rows, rather than the card's own. */ limit?: number } = {},
+  opts: { fresh?: boolean; origin?: Origin; locked?: Readonly<Record<string, ParameterValue | null>>; /** An export's rows, rather than the card's own. */ limit?: number; search?: TableSearch } = {},
 ): Promise<RunResult> {
   const d = await getDashboard(core, actor, dashboardId)
   // A query rule of a card's or a tab's display condition runs as a card of its own.
@@ -490,7 +506,7 @@ export async function runCard(
   if (!card || card.kind !== 'question') throw new AppError('NOT_FOUND', 'Carte introuvable.')
   const merged = { ...values, ...(opts.locked ?? {}) }
   const constraints = cardConstraints(card.mappings, d.parameters, merged)
-  const common = { origin: opts.origin ?? ('card' as const), dashboardId, constraints, ...(opts.fresh ? { fresh: true } : {}) }
+  const common = { origin: opts.origin ?? ('card' as const), dashboardId, constraints, ...(opts.fresh ? { fresh: true } : {}), ...(opts.search ? { search: opts.search } : {}) }
   if (card.question) {
     const q = await getQuestion(core, actor, card.question)
     const limit = opts.limit ?? rowLimitOf(card.visualization ?? q.visualization)

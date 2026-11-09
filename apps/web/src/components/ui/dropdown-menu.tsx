@@ -1,5 +1,6 @@
 'use client'
 
+import { fitHeight } from '@/lib/fit'
 import { cn } from '@/lib/utils'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon } from 'lucide-react'
@@ -14,6 +15,8 @@ const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
 function DropdownMenuContent({
   className,
   sideOffset = 6,
+  collisionPadding = 8,
+  style,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
@@ -21,8 +24,11 @@ function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
+        // Never taller than the room left on screen: a long menu scrolls instead of running off it.
+        style={{ maxHeight: fitHeight('--radix-dropdown-menu-content-available-height', className), ...style }}
         className={cn(
-          'z-50 min-w-[12rem] overflow-hidden rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
+          'z-50 min-w-[12rem] overflow-x-hidden overflow-y-auto rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           className,
         )}
@@ -138,14 +144,18 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
   className,
+  collisionPadding = 8,
+  style,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.SubContent
         data-slot="dropdown-menu-sub-content"
+        collisionPadding={collisionPadding}
+        style={{ maxHeight: fitHeight('--radix-dropdown-menu-content-available-height', className), ...style }}
         className={cn(
-          'z-50 min-w-[10rem] overflow-hidden rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
+          'z-50 min-w-[10rem] overflow-x-hidden overflow-y-auto rounded-lg border bg-popover p-1.5 text-popover-foreground shadow-lg',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           className,
         )}

@@ -10,9 +10,9 @@ import { searchPanel } from '@/components/app/sql-search'
 import { ALL_SQL_KEYWORDS } from '@/lib/trino-sql'
 import { $t } from '@/lib/i18n'
 import type { SchemaTree } from '@/lib/queries'
-import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
+import { type CompletionContext, autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap, snippet } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
-import { type SQLNamespace, StandardSQL, sql } from '@codemirror/lang-sql'
+import { type SQLNamespace, StandardSQL, keywordCompletionSource, sql } from '@codemirror/lang-sql'
 import { HighlightStyle, bracketMatching, foldGutter, indentOnInput, syntaxHighlighting } from '@codemirror/language'
 import { type Diagnostic, lintGutter, linter } from '@codemirror/lint'
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search'
@@ -34,8 +34,15 @@ interface Props {
   readonly onChange: (value: string) => void
   readonly onRun: (statement: string) => void
   readonly error?: SqlError | null
-  readonly onReady?: (api: { format: () => void; insert: (text: string) => void; focus: () => void }) => void
+  readonly onReady?: (api: { format: () => void; insert: (text: string) => void; snippet: (template: string) => void; focus: () => void }) => void
   readonly className?: string
+  /**
+   * Names completed besides the schema's: the columns an expression is written over, which
+   * stand alone rather than behind a table.
+   */
+  readonly words?: readonly { readonly label: string; readonly detail?: string; readonly type?: string }[]
+  /** Without the gutters (line numbers, folding): a short expression rather than a query. */
+  readonly bare?: boolean
 }
 
 /** The completion namespace: catalogs → schemas → tables → columns, and bare table names. */
@@ -91,12 +98,36 @@ export function statementOf(view: EditorView): string {
   return from !== to ? view.state.sliceDoc(from, to) : view.state.doc.toString()
 }
 
+const TRINO = { ...StandardSQL, spec: { ...StandardSQL.spec, keywords: ALL_SQL_KEYWORDS, identifierQuotes: '"' } } as typeof StandardSQL
+
 const dialect = (tree: SchemaTree | undefined) =>
   sql({
-    dialect: { ...StandardSQL, spec: { ...StandardSQL.spec, keywords: ALL_SQL_KEYWORDS, identifierQuotes: '"' } } as typeof StandardSQL,
+    dialect: TRINO,
     schema: namespaceOf(tree),
     upperCaseKeywords: true,
   })
+
+/** The given words that start like the one being typed. */
+const wordsSource = (words: NonNullable<Props['words']>) => (ctx: CompletionContext) => {
+  const word = ctx.matchBefore(/[A-Za-z_\u00C0-\u024F][\w\u00C0-\u024F]*/)
+  if (!word && !ctx.explicit) return null
+  return {
+    from: word?.from ?? ctx.pos,
+    options: words.map((w) => ({ label: w.label, detail: w.detail, type: w.type ?? 'property', boost: 2 })),
+    validFor: /^[\w\u00C0-\u024F]*$/,
+  }
+}
+
+/**
+ * The language and its completion: the schema's catalogs, tables and columns, the keywords —
+ * or, for an expression over a table's columns, those columns standing alone, then the keywords.
+ */
+const languageOf = (tree: SchemaTree | undefined, words: Props['words']) => [
+  dialect(tree),
+  words?.length
+    ? autocompletion({ activateOnTyping: true, icons: true, override: [wordsSource(words), keywordCompletionSource(TRINO, true)] })
+    : autocompletion({ activateOnTyping: true, icons: true }),
+]
 
 function diagnosticsFor(view: EditorView, error: SqlError | null | undefined): Diagnostic[] {
   if (!error) return []
@@ -144,7 +175,7 @@ const phrases = () => ({
   unfold: $t('déplier'),
 })
 
-export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, onReady, className }: Props) {
+export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, onReady, className, words, bare = false }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const language = useRef(new Compartment())
@@ -162,8 +193,7 @@ export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, on
       state: EditorState.create({
         doc: value,
         extensions: [
-          lineNumbers(),
-          foldGutter(),
+          bare ? [] : [lineNumbers(), foldGutter()],
           history(),
           closeBrackets(),
           bracketMatching(),
@@ -175,11 +205,11 @@ export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, on
           search({ top: true, createPanel: searchPanel }),
           syntaxHighlighting(highlight),
           theme,
-          lintGutter(),
+          bare ? [] : lintGutter(),
           EditorView.lineWrapping,
           placeholderExtension(placeholder ?? $t('SELECT * FROM catalogue.schema.table')),
           EditorState.phrases.of(phrases()),
-          language.current.of([dialect(tree), autocompletion({ activateOnTyping: true, icons: true })]),
+          language.current.of(languageOf(tree, words)),
           lint.current.of(linter((v) => diagnosticsFor(v, latest.current.error))),
           keymap.of([
             { key: 'Mod-Enter', preventDefault: true, run: (v) => (latest.current.onRun(statementOf(v)), true) },
@@ -205,6 +235,11 @@ export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, on
         editor.dispatch({ changes: { from, to, insert: text }, selection: EditorSelection.cursor(from + text.length) })
         editor.focus()
       },
+      snippet: (template) => {
+        const { from, to } = editor.state.selection.main
+        snippet(template)(editor, null, from, to)
+        editor.focus()
+      },
       focus: () => editor.focus(),
     })
     return () => {
@@ -213,9 +248,13 @@ export function SqlEditor({ value, tree, placeholder, onChange, onRun, error, on
     }
   }, [])
 
+  // Reconfigured when the schema or the words truly change — not for a new list of the same
+  // words at each render, which would close the completion being typed.
+  const wordsKey = words?.map((w) => `${w.label}:${w.detail ?? ''}`).join('|') ?? ''
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the words follow `wordsKey`
   useEffect(() => {
-    view.current?.dispatch({ effects: language.current.reconfigure([dialect(tree), autocompletion({ activateOnTyping: true, icons: true })]) })
-  }, [tree])
+    view.current?.dispatch({ effects: language.current.reconfigure(languageOf(tree, words)) })
+  }, [tree, wordsKey])
 
   useEffect(() => {
     view.current?.dispatch({ effects: lint.current.reconfigure(linter((v) => diagnosticsFor(v, error), { delay: 0 })) })

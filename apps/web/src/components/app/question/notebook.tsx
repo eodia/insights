@@ -8,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Choice } from '@/components/ui/choice'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Textarea } from '@/components/ui/textarea'
 import {
   AGG_FNS,
   type ColumnOption,
@@ -27,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { ArrowDownAZ, ArrowUpAZ, ChevronDown, Columns3, Database, Filter as FilterIcon, ListOrdered, Loader2, Plus, Sigma, SquareFunction, X } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { useModelColumns } from '@/lib/queries'
+import { ExpressionDialog } from './expression-dialog'
 import { JoinGlyph } from './join-glyph'
 import { ColumnList, FilterEditor, KindIcon, SearchBox, SourceList, described } from './pickers'
 import { Hint } from '@/components/ui/tooltip'
@@ -409,63 +409,6 @@ function TableColumns({
   )
 }
 
-/** A column computed on each row of the source, in Trino SQL; its name is set once and for all. */
-function ExpressionEditor({
-  initial,
-  taken,
-  readOnly,
-  onApply,
-  onRemove,
-}: {
-  initial?: CustomColumn
-  taken: ReadonlySet<string>
-  readOnly?: boolean
-  onApply: (e: CustomColumn) => void
-  onRemove?: () => void
-}) {
-  const [name, setName] = useState(initial?.name ?? '')
-  const [expression, setExpression] = useState(initial?.expression ?? '')
-  const validName = /^[A-Za-z_][A-Za-z0-9_]*$/.test(name)
-  const clash = taken.has(name.toLowerCase())
-  return (
-    <form
-      className="w-80 space-y-3 p-3"
-      onSubmit={(e) => {
-        e.preventDefault()
-        if (validName && !clash && expression.trim()) onApply({ name, expression: expression.trim() })
-      }}
-    >
-      <div className="space-y-1">
-        <div className="text-xs text-muted-foreground">{$t('Nom')}</div>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="marge" disabled={!!initial || readOnly} autoFocus={!initial} className="h-8 font-mono text-sm" />
-        {name && !validName ? (
-          <p className="text-xs text-destructive">{$t('Lettres, chiffres et _ ; pas de chiffre au début.')}</p>
-        ) : clash ? (
-          <p className="text-xs text-destructive">{$t('Une colonne porte déjà ce nom.')}</p>
-        ) : null}
-      </div>
-      <div className="space-y-1">
-        <div className="text-xs text-muted-foreground">{$t('Expression Trino SQL')}</div>
-        <Textarea value={expression} onChange={(e) => setExpression(e.target.value)} placeholder="prix - cout" rows={3} readOnly={readOnly} autoFocus={!!initial} className="font-mono text-xs" />
-        <p className="text-xs text-muted-foreground">{$t('Calculée pour chaque ligne à partir des colonnes de la source, elle sert ensuite comme les autres : filtre, mesure, regroupement.')}</p>
-      </div>
-      {readOnly ? null : (
-        <div className="flex items-center gap-2">
-          {onRemove ? (
-            <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={onRemove}>
-              {$t('Retirer')}
-            </Button>
-          ) : null}
-          <span className="flex-1" />
-          <Button type="submit" size="sm" disabled={!validName || clash || !expression.trim()}>
-            {initial ? $t('Appliquer') : $t('Ajouter')}
-          </Button>
-        </div>
-      )}
-    </form>
-  )
-}
-
 const TONES = {
   data: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300',
   filter: 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
@@ -542,6 +485,8 @@ export function Notebook({
       })),
   ].filter((t) => t.options.length > 0)
   // A computed column's name must not hide one of the source's.
+  // What an expression may cite: the source's own columns (not those of a join, nor another expression).
+  const expressionColumns = options.filter((o) => !o.ref.join && !o.join && !expressionNames.has(o.ref.field)).map((o) => ({ name: o.ref.field, label: o.label, type: o.type }))
   const takenNames = (except?: string) => new Set(options.filter((o) => !o.ref.join && o.ref.field !== except).map((o) => o.ref.field.toLowerCase()))
   const applyExpression = (e: CustomColumn, index?: number) => {
     const expressions = [...(query.expressions ?? [])]
@@ -794,28 +739,30 @@ export function Notebook({
             <div className="flex w-full flex-wrap items-center gap-1.5 border-t pt-2">
               <span className="pr-1 text-xs text-muted-foreground">{$t('Calculées')}</span>
               {(query.expressions ?? []).map((e, i) => (
-                <Popover key={e.name} open={exprOpen === i} onOpenChange={(o) => setExprOpen(o ? i : null)}>
-                  <PopoverTrigger asChild>
-                    <span>
-                      <Pill tone={TONES.sort} onClick={() => setExprOpen(i)} onRemove={allowSql ? () => removeExpression(i) : undefined}>
-                        <span className="inline-flex items-center gap-1.5">
-                          <SquareFunction className="size-3.5 opacity-70" />
-                          {e.name}
-                          <span className="max-w-48 truncate font-mono text-xs font-normal opacity-70">= {e.expression}</span>
-                        </span>
-                      </Pill>
-                    </span>
-                  </PopoverTrigger>
-                  <PopoverContent align="start" className="w-auto p-0">
-                    <ExpressionEditor initial={e} taken={takenNames(e.name)} readOnly={!allowSql} onApply={(ne) => applyExpression(ne, i)} onRemove={() => removeExpression(i)} />
-                  </PopoverContent>
-                </Popover>
+                <Pill key={e.name} tone={TONES.sort} onClick={() => setExprOpen(i)} onRemove={allowSql ? () => removeExpression(i) : undefined}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <SquareFunction className="size-3.5 opacity-70" />
+                    {e.name}
+                    <span className="max-w-48 truncate font-mono text-xs font-normal opacity-70">= {e.expression}</span>
+                  </span>
+                </Pill>
               ))}
               {allowSql ? (
-                <AddButton label={$t('Colonne calculée')} open={exprOpen === 'new'} onOpenChange={(o) => setExprOpen(o ? 'new' : null)}>
-                  <ExpressionEditor taken={takenNames()} onApply={(ne) => applyExpression(ne)} />
-                </AddButton>
+                <button type="button" onClick={() => setExprOpen('new')} className="inline-flex h-8 items-center gap-1 rounded-lg border border-dashed px-2.5 text-sm text-muted-foreground hover:border-primary hover:text-primary">
+                  <Plus className="size-3.5" /> {$t('Colonne calculée')}
+                </button>
               ) : null}
+              <ExpressionDialog
+                open={exprOpen !== null}
+                onOpenChange={(o) => {
+                  if (!o) setExprOpen(null)
+                }}
+                {...(typeof exprOpen === 'number' && query.expressions?.[exprOpen] ? { initial: query.expressions[exprOpen], onRemove: () => removeExpression(exprOpen) } : {})}
+                columns={expressionColumns}
+                taken={takenNames(typeof exprOpen === 'number' ? query.expressions?.[exprOpen]?.name : undefined)}
+                readOnly={!allowSql}
+                onApply={(ne) => applyExpression(ne, typeof exprOpen === 'number' ? exprOpen : undefined)}
+              />
             </div>
           ) : null}
         </Step>

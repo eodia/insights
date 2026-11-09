@@ -12,8 +12,7 @@ import {
   conditionCard,
   conditionHolds,
   sqlVariableNames,
-  truthy,
-} from '@eodia/contracts'
+  truthy, type TableSearch } from '@eodia/contracts'
 import { Button } from '@/components/ui/button'
 import { Choice } from '@/components/ui/choice'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -28,7 +27,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { type Values, filterName } from './parameters'
 
 /** How a dashboard runs a card: its own, a shared link's, an embed's. */
-export type Runner = (card: DashboardCard, values: Values, opts: { fresh: boolean; draft: boolean }) => Promise<RunResult>
+export type Runner = (card: DashboardCard, values: Values, opts: { fresh: boolean; draft: boolean; search?: TableSearch }) => Promise<RunResult>
 
 /** The values a card's result depends on: only the filters tied to it. */
 export function relevantValues(card: DashboardCard, values: Values): Values {

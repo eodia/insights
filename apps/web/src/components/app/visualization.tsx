@@ -1,6 +1,6 @@
 'use client'
 
-import type { ResultColumn, Visualization as Viz, VisualizationSettings } from '@eodia/contracts'
+import type { ResultColumn, TableSearch, Visualization as Viz, VisualizationSettings } from '@eodia/contracts'
 import { RULE_ICON_NAMES, type RuleOperand, type ScalePalette, ruleColor, ruleFor, scaleColor } from '@eodia/contracts'
 import { EChart } from '@/components/app/echart'
 import type { ECElementEvent } from 'echarts'
@@ -17,7 +17,8 @@ import { useColumnDescriptions } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import type { LookColor } from '@eodia/contracts'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowDown, ArrowUp, Copy, FilterX, Minus, RotateCcw, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, Check, ChevronDown, Copy, Download, FilterX, Loader2, Minus, RotateCcw, Search } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { createContext, type MouseEvent, useContext, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
@@ -97,6 +98,18 @@ export const StillMotion = createContext(false)
  * filters tied to them on a dashboard —, which conditional formats can compare to.
  */
 export const RuleVariables = createContext<Readonly<Record<string, unknown>>>({})
+
+/**
+ * What a table can ask of the screen showing it when it holds only the first rows of its result
+ * (« tronqué »): the server reads every row again — under the person's rights, as always.
+ */
+export interface TableRemoteApi {
+  /** The rows where the text shows, among all of the result's. */
+  readonly search: (search: TableSearch) => Promise<Result>
+  /** The whole result as a file, written by the server — searched as the table is. */
+  readonly export?: (format: 'csv' | 'xlsx', search?: TableSearch) => Promise<void>
+}
+export const TableRemote = createContext<TableRemoteApi | null>(null)
 
 /** What a rule compares to in a row: another of its cells, or a variable's value. */
 function operandIn(columns: readonly ResultColumn[], row: readonly unknown[] | undefined, variables: Readonly<Record<string, unknown>>): RuleOperand {
@@ -639,12 +652,15 @@ export function DataTable({
   toolbarSlot?: HTMLElement | null
 }) {
   const variables = useContext(RuleVariables)
+  const remote = useContext(TableRemote)
   const parent = useRef<HTMLDivElement>(null)
   const [sort, setSort] = useState<{ index: number; desc: boolean } | null>(null)
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
   const [filters, setFilters] = useState<Record<string, ColumnFilter>>({})
   const [page, setPage] = useState(0)
+  // The search kept to one column: quicker, and more precise.
+  const [pinned, setPinned] = useState<string | null>(null)
   const { layout, setWidth, setOrder, reset, custom } = useTableLayout(persistKey)
   const toolbar = settings.table_toolbar !== false
   const label = (c: ResultColumn) => settings.column_labels?.[c.name] || c.label
@@ -658,6 +674,42 @@ export function DataTable({
     return [...chosen].sort((a, b) => (at.get(a.c.name) ?? Number.MAX_SAFE_INTEGER) - (at.get(b.c.name) ?? Number.MAX_SAFE_INTEGER))
   }, [result.columns, settings.columns, layout.order, onSettingsChange])
 
+  // Searched by the server when the table holds only the first rows: every row, not those loaded.
+  const truncated = (result as Partial<RunResult>).truncated === true
+  const needle = deferredSearch.trim()
+  const searchable = columns.filter(({ c }) => c.type !== 'json' && !c.compared && (!pinned || c.name === pinned))
+  const wide: TableSearch | null = remote && truncated && needle && searchable.length ? { text: needle, columns: searchable.map(({ c }) => c.name) } : null
+  const wideKey = wide ? JSON.stringify(wide) : ''
+  const [found, setFound] = useState<{ key: string; result: Result } | null>(null)
+  const [seeking, setSeeking] = useState(false)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the search follows its key
+  useEffect(() => {
+    if (!wide || !remote) {
+      setFound(null)
+      setSeeking(false)
+      return
+    }
+    let live = true
+    setSeeking(true)
+    // A pause in the typing first: not one query per letter.
+    const timer = setTimeout(() => {
+      remote
+        .search(wide)
+        .then((r) => live && setFound({ key: wideKey, result: r }))
+        .catch((err) => live && (toast.error(err instanceof Error ? err.message : String(err)), setFound(null)))
+        .finally(() => live && setSeeking(false))
+    }, 350)
+    return () => {
+      live = false
+      clearTimeout(timer)
+    }
+  }, [wideKey])
+  // A column gone from the result (the question changed): the search goes back to all of them.
+  useEffect(() => {
+    if (pinned && !columns.some(({ c }) => c.name === pinned)) setPinned(null)
+  }, [columns, pinned])
+  const searchedAll = found !== null && found.key === wideKey && found.result.columns.length === result.columns.length ? found.result : null
+
   const moveColumn = (dragged: string, before: string) => {
     const names = columns.map(({ c }) => c.name).filter((n) => n !== dragged)
     names.splice(names.indexOf(before), 0, dragged)
@@ -666,14 +718,16 @@ export function DataTable({
   }
 
   const rows = useMemo(() => {
-    let list: readonly (readonly unknown[])[] = result.rows
+    let list: readonly (readonly unknown[])[] = searchedAll?.rows ?? result.rows
     const active = Object.entries(filters)
     if (active.length) {
       const at = active.map(([name, f]) => ({ f, i: result.columns.findIndex((c) => c.name === name) })).filter((x) => x.i >= 0)
       list = list.filter((r) => at.every(({ f, i }) => keepsRow(f, r[i], result.columns[i] as ResultColumn)))
     }
-    const q = fold(deferredSearch.trim())
-    if (q) list = list.filter((r) => columns.some(({ c, i }) => fold(formatValue(r[i], c)).includes(q)))
+    // The server's rows hold the text already; the loaded ones are searched here, as they show.
+    const q = searchedAll ? '' : fold(deferredSearch.trim())
+    const within = pinned ? columns.filter(({ c }) => c.name === pinned) : columns
+    if (q) list = list.filter((r) => within.some(({ c, i }) => fold(formatValue(r[i], c)).includes(q)))
     if (sort) {
       list = [...list].sort((a, b) => {
         const x = a[sort.index]
@@ -686,7 +740,7 @@ export function DataTable({
       })
     }
     return list
-  }, [result.rows, result.columns, filters, deferredSearch, columns, sort])
+  }, [result.rows, result.columns, filters, deferredSearch, columns, sort, searchedAll, pinned])
   // A new filter, search or order starts back at the first page.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the page follows the rows
   useEffect(() => setPage(0), [rows])
@@ -732,7 +786,9 @@ export function DataTable({
   const freeze = settings.freeze_first === true
   const [menu, setMenu] = useState<PointClick | null>(null)
   const [detail, setDetail] = useState<readonly unknown[] | null>(null)
-  const exportRows = (format: 'csv' | 'xlsx') => void exportTable(format, exportName ?? '', exported, rows).catch(exportFailed)
+  // Every row of the result when the table holds only the first ones: the server writes it.
+  const exportRows = (format: 'csv' | 'xlsx') =>
+    void (remote?.export && truncated ? remote.export(format, wide ?? undefined) : exportTable(format, exportName ?? '', exported, rows)).catch(exportFailed)
   const rowText = (row: readonly unknown[]) => `${columns.map(({ c }) => label(c)).join('\t')}\n${columns.map(({ c, i }) => formatValue(row[i], c)).join('\t')}`
 
   const openMenu = (e: MouseEvent, row: readonly unknown[], c: ResultColumn, i: number) => {
@@ -777,15 +833,60 @@ export function DataTable({
     else setMenu(point)
   }
 
+  const pinnedLabel = pinned ? (columns.find(({ c }) => c.name === pinned) ? label((columns.find(({ c }) => c.name === pinned) as { c: ResultColumn }).c) : null) : null
   const tools = toolbar ? (
     <>
-      <div className={cn('table-search relative', toolbarSlot ? 'w-44 min-w-24 shrink' : 'w-56 max-w-[50%]')}>
-        <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={$t('Rechercher…')} className="h-7 pl-7 text-xs" aria-label={$t('Rechercher dans la table')} />
+      <div className={cn('table-search relative flex items-center', toolbarSlot ? 'w-52 min-w-28 shrink' : 'w-72 min-w-48 max-w-full')}>
+        {seeking ? (
+          <Loader2 className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 animate-spin text-primary" />
+        ) : (
+          <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        )}
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={pinnedLabel ? $t('Rechercher dans « {column} »', { column: pinnedLabel }) : $t('Rechercher…')}
+          className="h-7 pr-24 pl-7 text-xs"
+          aria-label={$t('Rechercher dans la table')}
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn('absolute top-1/2 right-1 inline-flex h-5 max-w-[5.5rem] -translate-y-1/2 items-center gap-0.5 rounded px-1.5 text-[11px] hover:bg-accent', pinned ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground')}
+              aria-label={$t('Colonne où chercher')}
+            >
+              <span className="truncate">{pinnedLabel ?? $t('Partout')}</span>
+              <ChevronDown className="size-3 shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="max-h-80 w-56">
+            <DropdownMenuLabel>{$t('Chercher dans')}</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={() => setPinned(null)}>
+              <span className="flex-1">{$t('Toutes les colonnes')}</span>
+              {pinned ? null : <Check className="size-3.5 text-primary" />}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {columns
+              .filter(({ c }) => c.type !== 'json' && !c.compared)
+              .map(({ c }) => (
+                <DropdownMenuItem key={c.name} onSelect={() => setPinned(c.name)}>
+                  <span className="min-w-0 flex-1 truncate">{label(c)}</span>
+                  {pinned === c.name ? <Check className="size-3.5 text-primary" /> : null}
+                </DropdownMenuItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {filtered ? (
         <>
-          <span className="shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums">{$t('{kept} sur {all}', { kept: formatCount(rows.length), all: formatCount(result.rows.length) })}</span>
+          <span className="shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+            {searchedAll
+              ? (searchedAll as Partial<RunResult>).truncated
+                ? $t('{count} premières trouvées dans tout le résultat', { count: formatCount(rows.length) })
+                : $t('{count} trouvées dans tout le résultat', { count: formatCount(rows.length) })
+              : $t('{kept} sur {all}', { kept: formatCount(rows.length), all: formatCount(result.rows.length) })}
+          </span>
           {toolbarSlot ? (
             <Hint label={$t('Effacer les filtres')}>
               <button
@@ -807,7 +908,7 @@ export function DataTable({
                 setFilters({})
                 setSearch('')
               }}
-              className="text-xs text-primary hover:underline"
+              className="text-xs whitespace-nowrap text-primary hover:underline"
             >
               {$t('Effacer les filtres')}
             </button>
@@ -815,6 +916,27 @@ export function DataTable({
         </>
       ) : null}
       {toolbarSlot ? null : <span className="flex-1" />}
+      {/* The rows as a file: all of them, read again by the server, when the table holds only the first. */}
+      <DropdownMenu>
+        <Hint label={truncated && remote?.export ? $t('Exporter tout le résultat') : $t('Exporter le tableau')}>
+          <DropdownMenuTrigger asChild>
+            <button type="button" className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Exporter')}>
+              <Download className="size-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+        </Hint>
+        <DropdownMenuContent align="end" className="w-60">
+          <DropdownMenuLabel className="font-normal">
+            {truncated && remote?.export
+              ? wide
+                ? $t('Toutes les lignes trouvées, lues à nouveau (100 000 au plus)')
+                : $t('Tout le résultat, lu à nouveau (100 000 lignes au plus)')
+              : $t('Les lignes du tableau, filtres et tri compris')}
+          </DropdownMenuLabel>
+          <DropdownMenuItem onSelect={() => exportRows('csv')}>{$t('CSV')}</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => exportRows('xlsx')}>{$t('Excel (XLSX)')}</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       {custom && !onSettingsChange ? (
         <Hint label={$t('Largeurs et ordre des colonnes d’origine')}>
           <button type="button" onClick={reset} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={$t('Réinitialiser la mise en page')}>
@@ -827,7 +949,8 @@ export function DataTable({
 
   return (
     <div className={cn('flex h-full min-h-0 flex-col text-sm', className)}>
-      {tools && toolbarSlot ? createPortal(tools, toolbarSlot) : tools ? <div className="flex shrink-0 items-center gap-2 px-1 pb-1.5">{tools}</div> : null}
+      {/* Narrow, it goes on two lines rather than running under what is beside it. */}
+      {tools && toolbarSlot ? createPortal(tools, toolbarSlot) : tools ? <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 px-1 pb-1.5">{tools}</div> : null}
       <div ref={parent} className="relative min-h-0 flex-1 overflow-auto">
         <table className="w-max min-w-full border-separate border-spacing-0">
           <thead className="sticky top-0 z-10 bg-background">
@@ -985,7 +1108,15 @@ export function ResultFooter({ result }: { result: RunResult }) {
     const when = new Intl.DateTimeFormat(intlLocale(), { dateStyle: 'short', timeStyle: 'short' }).format(new Date(result.cached_at))
     parts.push($t('résultat du {when}', { when }))
   }
-  return <span className="text-xs text-muted-foreground tabular-nums">{parts.join(' · ')}</span>
+  const text = <span className="text-xs text-muted-foreground tabular-nums">{parts.join(' · ')}</span>
+  // Cut: where the limit is set, and that the table's search and export read every row anyway.
+  return result.truncated ? (
+    <Hint label={$t('Le résultat compte plus de lignes. « Limite de lignes », dans les réglages du tableau, en lit jusqu’à 100 000 ; la recherche et l’export du tableau portent déjà sur toutes.')}>
+      <span className="cursor-help underline decoration-dotted underline-offset-2">{text}</span>
+    </Hint>
+  ) : (
+    text
+  )
 }
 
 // ── Tableau croisé ──────────────────────────────────────────────────────────

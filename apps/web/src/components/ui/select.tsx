@@ -37,6 +37,8 @@ function SelectContent({
   className,
   children,
   position = 'popper',
+  collisionPadding = 8,
+  style,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
@@ -44,6 +46,9 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         position={position}
+        collisionPadding={collisionPadding}
+        // At most 24 rem, and never more than the room left on screen.
+        style={{ maxHeight: 'min(24rem, var(--radix-select-content-available-height, 24rem))', ...style }}
         className={cn(
           'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
